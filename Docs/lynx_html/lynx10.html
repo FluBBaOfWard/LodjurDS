@@ -1,0 +1,215 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<HTML>
+<HEAD>
+   <TITLE>14.System Reset/Power Up</TITLE>
+</HEAD>
+<BODY BGCOLOR="#ffffff" LINK="#FF0000" VLINK="#800000" ALINK="#00FF00" FGCOLOR="#000000">
+<A NAME = "TOP">
+<H1 ALIGN=CENTER><U>14.System Reset/Power Up</U></H1>
+<P>
+<P>
+ The state of all of the control bits during and immediately after system reset is given 
+in appendix 2. During reset, the main clocks are still running and are used to 
+propagate the reset condition thru the logic. Reset must be long enough to insure a 
+stable and consistent startup.<BR>
+ The process that takes place upon release from system reset and the steps required 
+to initialize the hardware are described below. 
+<OL>
+<P><A NAME = "_00"><A HREF = "#TOP"><LI>Suzy Reset Recovery.</A>
+<P> 
+At release from reset, all of Suzy is disabled and remains so until enabled by the CPU. 
+During reset, the bus handshake logic has stabilized with bus grant asserted. Any 
+incidental internal activity wili be listed when the logic design is completed. Suzy is not 
+expected to require any software initialization until a specific function of Suzy is 
+desired. 
+
+<P><A NAME = "_01"><A HREF = "#TOP"><LI>Mikey Reset Recovery.</A>
+<P>>
+ At release from system reset, the video bus request is disabled and will remain so 
+until enabled by the CPU. The CPU is requesting the bus. During reset, the bus 
+handshake logic has stabilized and is ready to give the bus to the CPU. The ROM 
+overlay is enabled and the CPU will fetch its reset vector from ROM at the normal 
+6502 address of FFFC and FFFD.<BR>
+ Since there are some pieces of hardware that are running at rates siower than the 
+main system ctock, there is the possibility that there will not be a deterministic 
+relationship between the phases of these slower clocks (eg. CPU and audio/timer). To 
+prevent possibte peculiarities of operation (due to hardware bugs) and to assist in 
+truthful software emulation, it is suggested that these individual hardware chunks get 
+synchronized at system start. It may be expensive to do it all in silicon, so some of 
+them may need to be done by software. At this time, Glenn says that the audio section 
+is done in silicon. There are other hardware registers that must be initialized correctly 
+in order to let the system come up consistently. They are stated in appendix 2 
+(hardware addresses). 
+<P>
+The current process that must be followed at system initialization is:<BR>
+ 1. Disable interrupts<BR>
+ 2. Clear decimal mode<BR>
+ 3. Read SUZYHREV<BR>
+ 4. If =0, jump to test code<BR>
+ 5. Read 8 locations in RAM (each must cause a new RAS to occur)<BR>
+<P>
+ (more ??)
+</OL>
+<P>
+<B>[<a href="lynx9.html#_13">BACK</a>|<a href="lynxdoc.html">CONTENTS</a>|<a
+href="#_15">NEXT</A>]</B>
+<P>
+<!----------------------------------------------------------------------------->
+<P>
+<A NAME = "_15">
+ <H1 ALIGN=CENTER><U> 15. Definitions and Terminology</U></H1>
+<P></A>
+ The polarity of signals and their effect on the circuitry is not always apparent from the 
+name of the signals. For this document and its related documents and appendices, 
+the following conventions will be used: 
+<P>
+Set = On = Asserted = Active = Occurs<BR>
+ These mean that the signal is in the state that causes or allows its named function to 
+occur. For example, if bus grant is set, we are granting a bus. If an interrupt mask bit 
+is set, that interrupt is masked. 
+<P>
+Reset = Off = Cleared = De-asserted = Inactive = Dropped<BR>
+ These mean that the signal is in the state that does not allow its named function to 
+occur. For example, when bus request is dropped, we are no longer requesting the 
+bus. 
+<P>
+The terms 'hi' and 'low' are well applied to actual schematic referenced signals, but 
+should be avoided in generally descriptive text. 
+<P>
+Acquired = Taken<BR>
+ These relate to tri-state busses and indicate that the bus is now being driven by the 
+'acquirer'. 
+<P>
+Released = Let Go<BR>
+ These also relate to tri-state busses and indicate that the 'releaser' is no longer 
+driving the bus. 
+<P>
+SimWait = Boil<BR>
+ The act of waiting for garbage collection on the VTI tools
+<p>
+</OL>
+<B>[<a href="#TOP">BACK</a>|<a href="lynxdoc.html">CONTENTS</a>|<a
+href="#_16">NEXT</A>]</B>
+<P>
+<!----------------------------------------------------------------------------->
+
+<P><A NAME = "_16">
+ <H1 ALIGN=CENTER><U>16. Known Variances From Anticipated Optimums</U></H1>
+<P></A>
+ This is a list of the known bugs in the hardware. 
+<p>
+<OL>
+<P><A NAME = "_02"><A HREF = "#_16"><LI>Mikey</A>
+<P>
+<UL>
+<A NAME = "sleep">
+<LI>Sleep does not work if Suzy does not have the bus.
+</A>
+<LI>The UART interrupt is not edge sensitive.
+<LI>The UART TXD signal powers up in TTL HIGH, instead of open collector.
+<LI>The lower nybble of the audio out byte is processed incorrectly.
+<LI>The Reset Timer Done bit is not a pulse.
+<LI>The Timer Done bit requires clearing in order to count.
+<LI>The Mikey ROM sets the External Power Detect pin to output.
+<LI>The REST pin on Mikey is initialized as an input and its data is set to 0. Both are 
+wrong. You must set it to an output with a data value of 1.
+<LI>The IODAT register is not really a R/W register. 
+</UL>
+<P><A NAME = "_03"><A HREF = "#_16"><LI>Suzy</A>
+<P>
+<UL>
+<LI>Remainder does not correctly handle the upper bit in two ways. 
+<LI>Signed multiply thinks 8000 is a positive number. 
+<LI>Auto clear of the upper byte of an SCB word does not also auto clear the sign flag. 
+<LI>The page break signal does not delay the end ot the pen index palette loading.
+<LI>The polarity of the 'shadow' attribute is inverted.
+<LI>Signed multiply thinks that 0 is a negative number. (delayed.effect)
+<LI>The circuit that detects a '0' in the SCB NEXT field of an SCB only looks at the 
+upper byte. Therefore, we can't have scabs in page 0. I'm sorry.
+<LI>A data packet header of '00000' can be used to indicate end of data. There appears 
+to be a bug with it. I don't understand it yet. Beat me. Kick me. 
+</UL>
+</OL>
+<p>
+<B>[<a href="#_15">BACK</a>|<a href="lynxdoc.html">CONTENTS</a>|<a
+href="#_17">NEXT</A>]</B>
+<!----------------------------------------------------------------------------->
+<P><A NAME = "_17">
+ <H1 ALIGN=CENTER><U>17. Approved Exemptions </U></H1>
+<P></A>
+<OL>
+<LI>Only the upper byte of the 'NEXT' word in the SCB needs to be set to zero in order 
+to indicate that this is the last SCB in the list. The lower byte of that word can then be 
+used for any other function since the hardware will ignore it if the upper byte is zero. 
+<P>
+<LI>Some of the sprite values (H size, V size, etc) are re-usable. The normal way to 
+reuse them is to have the first sprite in the local list actually initialize the values, and 
+then have the remaining sprites in the local list re-use them. One of the difficulties in 
+doing it this way is that it is not always reasonable to arrange the list and the SCABs 
+appropriately. One of the ways to simplify the problem is to use an initializing sprite 
+with the desired numbers in the reusable registers.<BR>
+ I have been asked to provide an exemption that would allow the software to write 
+directly to the hardware registers in the Suzy SCB and thus avoid all of the overhead 
+of arranging the lists or creating null sprites. Since this section of hardware is firmly 
+tied to the sprite software process, I believe that it will be OK to write directly to the 
+hardware registers. I could be wrong, so I am going to approve the following 
+conditional exemption.<BR>
+ It will be OK to write to the twentyfour 16 bit registers of the Suzy SCB PROVIDING 
+that you only do it via the MACRO PROVlDED TO YOU BY RJ MICAL In addition, you 
+must understand that the contents of this macro may change if future revisions of the 
+hardware so require. In addition, you must understand that future hardware may make 
+the process not work and therefore the macro will be changed to be a warning that 
+you can't use it anymore.<BR>
+ Don't cheat. 
+</OL>
+<p>
+<B>[<a href="#_16">BACK</a>|<a href="lynxdoc.html">CONTENTS</a>|<a href="#_18">NEXT</A>]</B>
+<!----------------------------------------------------------------------------->
+
+<P><A NAME = "_18">
+ <H1 ALIGN=CENTER><U>18.Common Errors </U></H1>
+<P></A>
+There are errors that many first time programmers and some experienced 
+programmers make with this hardware. Some of these errors may be difficult tO 
+identify due to the complexity of the ICs. I will list some of them here to aid in the 
+debugging of 'Mystery Bugs'.
+<P>
+<OL>
+<li>The presence of an interrupt in Mikey, regardless of the state of the CPU enable 
+interrupt bit, will prevent the CPU from going to sleep, and thus prevent Suzy from 
+functioning. So if sprites stop working, unintentional interrupt bits can be the hidden 
+cause. 
+<p>
+<LI>The Suzy Done Acknowledge address must be written to prior to running the sprite 
+engine. This is required even prior to the first time the sprite engine is activated. It it is 
+not written to in the appropriate sequences, the GPU will not go to 
+sleep when so requested. In addition, if some software accidentally allows a Suzy 
+operation to complete without then following that completion with a write to 
+SDONEACK, the CPU will not sleep. So if sprites stop working, something may have 
+gone wrong with your SDONEACK software. 
+<P>
+<LI>Writes to the cartridge are blind. If you accidentally access Suzy before the required 
+delay period, you will modify some internal bus in Suzy. The results are not definable.
+</OL>
+<p>
+<B>[<a href="#_17">BACK</a>|<a href="lynxdoc.html">CONTENTS</a>|<a
+href="#_19">NEXT</A>]</B>
+<!----------------------------------------------------------------------------->
+
+
+<P><A NAME = "_19">
+ <H1 ALIGN=CENTER><U>19. Savegame-Option</U></H1>
+<P></A>
+<CENTER><FONT SIZE= -2>(c) by Bastian Schick<BR></FONT></CENTER>
+<BR>
+It's possible to save high-scores or whatever info on a EEPROM provided on
+some carts. For best results use the EEPROM routines provide with the dev.kit.
+<P>
+<B>[<a href="#_17">BACK</a>|<a href="lynxdoc.html">CONTENTS</a>|<a
+href="lynx11.html">NEXT</A>]</B>
+<HR NOSHADE><FONT SIZE=-2><A HREF="../index.html#TOP">HOME<BR>
+<ADRESS><A HREF="mailto:elw5basc@rghx50.gp.fht-esslingen.de">(c) Bastian
+Schick</A> 
+<BR>ast modified 1996/12/16</FONT></P>
+</BODY>
+</HTML>

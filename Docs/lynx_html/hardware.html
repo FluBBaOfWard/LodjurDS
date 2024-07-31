@@ -1,0 +1,995 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<HTML>
+<HEAD>
+   <TITLE>App. 3:Hardware Addresses</TITLE>
+</HEAD>
+<BODY FGCOLOR="#ffffff" LINK="#FF0000" VLINK="#808080" ALINK="#00FF00"
+BGCOLOR="#dddddd" TEXT =
+BLACK>
+
+<H1 ALIGN = CENTER><U>App. 3:Hardware Addresses</U></H1> 
+
+<OL>
+<U><LI>Basic Address Ranges</U> 
+<P>
+	The 6502 CPU has an address range of 64K bytes. The upper 1K byte of address 
+	space is shared by the RAM, the R0M, Suzy hardware and Mikey hardware. This upper 
+	1K byte of space is divided as tollows: 
+<P>
+FFFE, FFFF
+<OL>CPU Interrupt Vector (RAM or ROM)</OL>
+FFFC, FFFD
+<OL>CPU Reset Vector (RAM or ROM)</OL>
+FFFA, FFFB
+<OL>CPU NMI Vector (RAM or ROM)</OL>
+FFF9
+<OL> Memory Map Control (Mikey and Suzy hardware)</OL>
+FFF8<OL>Reserved for future hardware (RAM)</OL>
+FE00 thru FFF7<OL>ROM Space</OL> 
+FD00 thru FDFF<OL>Mikey Space</OL>
+FC00 thru FCFF<OL>Suzy Space</OL>
+<P>
+	The above listed adress ranges (except for FFF8 and FFF9) can, under control of 
+	the CPU, have RAM overlayed on them. These overlays are controlled by the bits in the 
+	hardware register at FFF9. Both Mikey and Suzy accept a write at those addresses but 
+	only Mikey responds to a read. 
+<P>
+	The remaining 63k bytes are RAM. 
+<P>
+	These address ranges affect only CPU accesses from Mikey. The video and 
+	refresh generators in Mikey and the sprite engine in Suzy <B>see</B> the entire 64K byte 
+	range as RAM. 
+<P>
+<B>
+<HR>
+<BR>
+	BIG NOTE!!!!! We are done messing around with these 
+	addresses. Do not change them anymore!!! 
+<HR>
+</B>
+<P>
+<OL>
+<LI>Legend 
+<P>
+	(W), (R), (R/W) indicate write only, read only, and read/write capability of a 
+	particular address.<BR>
+	Please follow the rules:<BR>
+	<OL>If an address is read only, <B>DON'T</B>write to it.</OL>
+	<ol> If an address is write only,<B>DON'T</B>read it.</OL> 
+<P>
+	The reset condition is shown with bit 7 on the left (B7......B0). X indicates unchanged by reset. 
+<P>
+	(U) indicates that it is unsafe to read or write this address without first 
+	checking (at a different address) to see if it is available. Please follow the rules. A 
+	description of UNSAFE is in the hardware specification. 
+<P>
+	(CPU), (ENG), (SCB), indicate the usual source of data for this particular 
+	address.
+	<BR>CPU = Mikey,<BR> ENG = sprite engine,<BR>SCB = DMA from the RAM based sprite 
+	control block. 
+<P>
+<LI>Memory Map Control
+<P>
+	FFF9 = MAPCTL.
+<FONT SIZE = -1>
+	Memory Map Control<BR>
+	(R/W)Mikey reset = 0,0,0,0,0,0,0,0 <BR>
+	(W) Suzy reset x,x,x,x,x,x,x,0 <BR>
+	(0nly bit 0 is implemented)<BR>
+</FONT> 
+<P><OL>
+	B7 = sequential disable. If set, the CPU will always use full cycles (5 ticks min), 
+	never a sequential cycle (4 ticks). <BR>
+	B6, B5, B4 = reserved for future use <BR>
+	B3 = FFFA -&gt FFFF, Vector Space <BR>
+	B2 = FE00 -&gt FFF7, ROM Space <BR>
+	B1 = FD00 -&gt FDFF, Mikey Space <BR>
+	B0 = FC00 -&gt FCFF, Suzy Space <BR>
+	</OL>
+<P>
+	All 8 bits are set to 0 at reset. Any address space bit that is set to a 1 will cause 
+	its related address space to access RAM instead of the hardware or R0M normally 
+	accessed. 
+<P>
+</OL>
+<U><LI>Suzy Addresses</U>
+<P>
+	FC00 -> FC7F = <FONT SIZE = -1>Sprite Control Block (R/W) (U)<BR>
+	reset x,x,x,x,x,x,x,x</FONT><BR>
+	Even addresses are the LSB.<BR>
+	Any CPU write to an LSB will set the MSB to 0.
+<P> 
+<TABLE  BORDER=1 FRAME=box COLS=4 ALIGN=center>
+ <TR ALIGN=center><TH>Name
+ <TH>machine
+ <TH>$FCxx
+ <TH>description
+  
+<TR ALIGN=center><TD>L0  <TD>(ENG)<TD> 00,01<TD ALIGN=left> TMPADRL,H Temporary address
+<TR ALIGN=center><TD>H0  <TD>(ENG)<TD> 02,03<TD ALIGN=left> TILTACUML,H Accumulator for tilt value
+<TR ALIGN=center><TD>L1  <TD>(CPU)<TD> 04,05<TD ALIGN=left> HOFFL,H Offset to H edge of screen 
+<TR ALIGN=center><TD>H1  <TD>(CPU)<TD> 06,07<TD ALIGN=left> VOFFL,H Offset to V edge of screen 
+<TR ALIGN=center><TD>L2  <TD>(CPU)<TD> 08.09<TD ALIGN=left> VIDBASL,H Base Address of Video Build Buffer 
+<TR ALIGN=center><TD>H2  <TD>(CPU)<TD> 0A,0B<TD ALIGN=left> COLLBASL,H Base Address of Coll Build Buffer 
+<TR ALIGN=center><TD>L3  <TD>(ENG)<TD> 0C,0D<TD ALIGN=left> VIDADRL,H Current Video Build Address 
+<TR ALIGN=center><TD>H3  <TD>(ENG)<TD> 0E.0F<TD ALIGN=left> COLLADRL H Current Collision Build Address 
+<TR ALIGN=center><TD>L4  <TD>(SCB)<TD> 10,11<TD ALIGN=left> SCBNEXTL,H Address of Next SCB 
+<TR ALIGN=center><TD>H4  <TD>(SCB)<TD> 12,13<TD ALIGN=left> SPRDLINEL,H Start of Sprite Data Line Address 
+<TR ALIGN=center><TD>LS  <TD>(SCB)<TD> 14,15<TD ALIGN=left> HPOSSTRTL,H Starting Hpos 
+<TR ALIGN=center><TD>H5  <TD>(SCB)<TD> 16,17<TD ALIGN=left> VPOSSTRTL,H Starting Vpos 
+<TR ALIGN=center><TD>L6  <TD>(SCB)<TD> 18,19<TD ALIGN=left> SPRHSIZL,H H Size 
+<TR ALIGN=center><TD>H6  <TD>(SCB)<TD> 1A,1B<TD ALIGN=left> SPRVSIZL,H V Size 
+<TR ALIGN=center><TD>L7  <TD>(ENG)<TD> 1C,1D<TD ALIGN=left> STRETCHL H H Size Adder 
+<TR ALIGN=center><TD>H7  <TD>(ENG)<TD> 1E,1F<TD ALIGN=left> TILTL,H H Position Adder 
+<TR ALIGN=center><TD>LS  <TD>(ENG)<TD> 20,21<TD ALIGN=left> SPRDOFFL,H Offset to Next Sprite Data Line 
+<TR ALIGN=center><TD>HS  <TD>(ENG)<TD> 22,23<TD ALIGN=left> SPRVPOSL,H Current Vpos 
+<TR ALIGN=center><TD>L9  <TD>(CPU)<TD> 24,25<TD ALIGN=left> COLLOFFL,H Offset to Collision Depository 
+<TR ALIGN=center><TD>H9  <TD>(ENG)<TD> 26,27<TD ALIGN=left> VSIZACUML,H Vertical Size Accumulator 
+<TR ALIGN=center><TD>L10 <TD>(CPU)<TD> 28,29<TD ALIGN=left> HSIZOFFL,H Horizontal Size Offset 
+<TR ALIGN=center><TD>H10 <TD>(CPU)<TD> 2A,2B<TD ALIGN=left> VSIZOFFL,H Vertical Size Offset 
+<TR ALIGN=center><TD>L11 <TD>(ENG)<TD> 2C,2D<TD ALIGN=left> SCBADRL,H Address of Current SCB 
+<TR ALIGN=center><TD>H11 <TD>(ENG)<TD> 2E,2F<TD ALIGN=left>PROCADRL,H Current Spr Data Proc Address 
+<TR ALIGN=center><TD>---  <TD>(ENG)<TD> 30 thru 4F<TD ALIGN=left> reserved 
+<TR ALIGN=center><TD>---  <TD>(ENG)<TD> 50,51 <TD ALIGN=left>Do Not Use  
+<TR ALIGN=center><TD>H4  <TD>(ENG)<TD> 52 <TD ALIGN=left>MATHD (12) 
+<TR ALIGN=center><TD>H4  <TD>(ENG)<TD> 53 <TD ALIGN=left>MATHC (13) 
+<TR ALIGN=center><TD>L5  <TD>(ENG)<TD> 54 <TD ALIGN=left>MATHB (14) 
+<TR ALIGN=center><TD>L5  <TD>(ENG)<TD> 55 <TD ALIGN=left>MATHA (15) 
+<TR ALIGN=center><TD>H5  <TD>(ENG)<TD> 56 <TD ALIGN=left>MATHP (16)  
+<TR ALIGN=center><TD>H5  <TD>(ENG)<TD> 57 <TD ALIGN=left>MATHN (17)  
+<TR ALIGN=center><TD>--- <TD>(ENG)<TD> 58 thru 5F <TD ALIGN=left>Do Not Use  
+<TR ALIGN=center><TD>L8  <TD>(ENG)<TD> 60 <TD ALIGN=left>MATHH (20) 
+<TR ALIGN=center><TD>L8  <TD>(ENG)<TD> 61 <TD ALIGN=left>MATHG (21)  
+<TR ALIGN=center><TD>H8  <TD>(ENG)<TD> 62 <TD ALIGN=left>MATHF (22)  
+<TR ALIGN=center><TD>H8  <TD>(ENG)<TD> 63 <TD ALIGN=left>MATHE (23)  
+<TR ALIGN=center><TD>--- <TD>(ENG)<TD> 64 thru 6B <TD ALIGN=left>Do Not Use  
+<TR ALIGN=center><TD>L11 <TD>(ENG)<TD> 6C <TD ALIGN=left>MATHM (2C) 
+<TR ALIGN=center><TD>L11 <TD>(ENG)<TD> 6D <TD ALIGN=left>MATHL (2D) 
+<TR ALIGN=center><TD>H11 <TD>(ENG)<TD> 6E <TD ALIGN=left>MATHK (2E) 
+<TR ALIGN=center><TD>H11 <TD>(ENG)<TD> 6F <TD ALIGN=left> MATHJ (2F)  
+<TR ALIGN=center><TD>--- <TD>(ENG)<TD > 70 thru 7F <TD ALIGN=left>Do Not Use- 
+
+</TABLE>
+<P>
+<P>
+ 
+FC80 = SPRCTL0<FONT SIZE = -1> Sprite Control Bits 0 (W)<BR>
+(U) reset x,x,x,x,x,x,x,x <BR></FONT>
+
+<OL>
+B7,B6 = bits/pixel-1 (1,2,3,4) <BR>
+B5 = H flip, 0 = not flipped <BR>
+B4 = V flip, 0 = not flipped <BR>
+B3 reserved <BR>
+B2,B1,B0 = Sprite Type <BR>
+7 -> shadow <BR>
+6 -> exclusive-or, shadow <BR>
+5 -> non-collidable <BR>
+4 -> normal <BR>
+3 -> boundary <BR>
+2 -> boundary-shadow <BR>
+1 -> background-no collision <BR>
+0 -> background, shadow <BR>
+</OL>
+<p>
+	FC81 = SPRCTL1<FONT SIZE = -1> Sprite Control Bits 1 (W)(U)
+	<BR>reset x,x,x,x,x,x,x,x </FONT>
+	<OL>
+	B7 = literal attribute, 0=normal, 1=totally literal<BR> 
+	B6 = Sizing algorithm choice, 0=adder (algo 4), 1=shifter (algo 3) <BR>
+	<B>SET IT T0 ZERO!!!!, algo 3 is broke</B> <BR>
+	B5,B4 = Reloadable depth. <BR>
+	<OL>
+	0=none. <BR>
+	1=Hsize,Vsize. <BR>
+	2=Hsize,Vsize,Stretch. <BR>
+	3=Hsize, Vsize,Stretch, Tilt. <BR>
+	</OL>
+	B3 = Palette re-load. 0=reload the palette, 1 use existing palette. <BR>
+	B2 = Skipsprite. 1 skip this sprite, 0=use this sprite. <BR>
+	B1 = Start drawing up (1=up, 0=down) <BR>
+	B0 = Start drawing left (1 left, 0=right) <BR>
+	</OL>
+<P>
+	FC82 = SPRCOLL. <FONT SIZE = -1>Sprite Collision Number (W)<BR>
+	(U) reset = x,x,x,x,x,x,x,x </FONT>
+	<OL>
+	B7,B6 = 0 <BR>
+	B5 = dont collide. 1=dont collide with this sprite. <BR>
+	B4 = 0 <BR>
+	B3,B2,B1,B0 = number <BR>
+	</OL>
+<P>
+	FC83 = SPRINIT.<FONT SIZE = -1> Sprite Initialization Bits (W)(U) <BR>
+  reset x,x,x,x,x,x,x,x </FONT>
+  <OL>
+	B7 = fc1, B6 = fc2, B5 = fc3, B4 = reserved<BR>
+	B3 = ac1, B2 = ac2, B1 = ac3, B0 = ac4
+	</OL>
+<P>
+	Set to '$F3' after at least 100ms after power up and before any sprites are drawn. 
+<P>
+	FC84 -> FC87 = not yet atlocated 
+<P>
+	FC88 = SUZYHREV. <FONT SIZE = -1> Suzy Hardware Revision (R) </FONT><BR>
+	<OL>= '01'</OL>
+<P>
+	FC89 = SUZYSREV.<FONT SIZE = -1> Suzy Software Revision </FONT><BR>
+	<OL>no actual register is implemented </OL>
+<P>
+	FC8A -> FC8F = not yet atlocated 
+<P>
+	FC90 = SUZYBUSEN.<FONT SIZE = -1> Suzy Bus Enable (W)<BR>
+	reset = 0 </FONT>
+	<OL>B0 = Suzy Bus Enable, 0=disabled</OL> 
+<P>
+	FC91 = SPRG0. <FONT SIZE = -1>Sprite Process Start Bit (W)<BR>
+	reset = 0 </FONT><BR>
+	<OL>
+	B0 = Sprite process enabled, 0=disabled. <BR>
+	<OL>Write a 1 to start the process, at completion of process this bit will be reset to 0. 
+	Either setting or clearing this bit will clear the Stop At End Of Current Sprite bit.<BR> 
+	</OL>B1 = reserved <BR>
+	B2= enable everon detector. 1 = enabled.
+	</OL>
+<P>
+	FC92 = SPRSYS. <FONT SIZE = -1>System Control Bits (R/W) <BR>
+	<I>(write)</I> reset x,x,x,x,x,x,x,x </FONT><BR>
+	<OL>
+	B7 = Signmath. 0 =unsigned math, 1 =signed math. <BR>
+	B6 = 0K to accumvlate. 0=do not accumulate, 1 =yes, accumulate. <BR>
+	B5 = dont collide. 1=dont collide with any sprites. <BR>
+	B4 = Vstretch. 1=stretch the v. 0 =Don't play with it, it will grow by itself.<BR> 
+	83 = Lefthand, 0=normal handed <BR>
+	B2 = Clear the 'unsafeAccess' bit. 1=clear it. 0=no change. <BR>
+	B1 = Stop at end of current sprite, 1 request to stop.
+	<OL> Continue sprite processing by 
+	setting the Sprite Process Start Bit. Either setting or clearing the SPSB will clear this 
+	stop request.
+	</OL>
+	B0 = has no effect <BR>
+	</OL>
+	<FONT SIZE = -1><I>(read) reset 0,0,0,x,x,0,x,0</I> </FONT>
+	<OL>
+	B7 = Math in process <BR>
+	B6 = Mathbit. If mult, 1=accumulator overflow. If div, 1=div by zero attempted. <BR>
+	B5 = Last carry bit. <BR>
+	B4 = Vstretch. <BR>
+	B3 = Lefthand. <BR>
+	B2 = UnsafeAccess. 1=Unsafe Access was performed.<BR>
+	B1 = Stop at end of current sprite, 1 = request to stop.<BR>
+	B0 = Sprite process was started and has neither completed nor been stopped.<BR>
+	</OL>
+<P> 
+	FC93 -> FCAF = not yet allocated 
+<P>
+	FCB0 <FONT SIZE = -1>JOYSTICK. Read Joystick and Switches(R) </FONT>
+<P><PRE>
+	If Lefthand=1 	If Lefthand=0 
+	B7 = Joy Up         (Down) 
+	B6 = Joy Down       (Up) 
+	B5 = Joy Left       (Right) 
+	B4 = Joy Right 	    (Left) 
+	B3 = 0ption 1       0ption 1  
+	B2 = 0ption 2       0ption 2  
+	B1 = Inside         Inside 
+	B0 = 0utside        0utside
+</PRE>
+<P>
+	FCB1 = SWITCHES.<FONT SIZE = -1> Read Other Switches (R) </FONT>
+<OL>
+	B7 = 0<BR>
+	B6 = 0<BR>
+	B5 = 0<BR>
+	B4 = 0<BR>
+	B3 = 0<BR>
+	B2 = Cart1 I/0 Inactive<BR>
+	B1 = Cart0 I/0 Inactive<BR>
+	B0 = Pause (was Flablode)<BR>
+	</OL>
+<P>
+<CENTER>
+<IMG SRC = "lynx2.gif">
+</CENTER>
+<P>
+This Picture shows the <B>Normal</B> orientation of the unit, which according to our 
+previous definition is the <B>LeftHand</B> orientation. Please realize that this means that 
+the normal setup is <B>Flip</B> off, and <B>LeftHand</B> on. <BR>
+The current agreement is that <B>Pause</B> and <B>Option 1</B> pressed together will result 
+in the patter of little rubber feet around the house. Also, <B>Pause</B> and <B>Option 2</B> 
+pressed together will be used to indicate a user request for the <B>Flip</B> function. 
+<P>
+	FCB2,FCB3<FONT SIZE = -1> RCART(R/W)</FONT> 
+	<OL>Read or write 8 bits of data.</OL> 
+<P>
+	FCB2 uses 'CART0/' as the strobe.<BR>
+	FCB3 uses 'CART1/’ as the strobe. 
+<P>
+ 	FCB4-> FCBF = not yet allocated 
+<P>
+	FCC0 <FONT SIZE = -1>LEDS (W)<BR>
+	reset=0,0,0,0,0,0,0,0 </FONT>
+	<OL>
+	A '0' in a bit will turn its corresponding LED on.
+	</OL>
+<P>
+	FCC1 <FONT SIZE = -1>Reserved</FONT>
+<P>
+	FCC2 <FONT SIZE = -1>Parallel Port Status(R/W)<BR>
+	reset 0,0,x,x,x,x,x,x <BR>
+	<I>(write) </I></FONT>
+	<OL>
+	B7 = direction, 0 = input, 1=output 
+	B6 = paper out, used to signal the device at the other end of the parallel cable. 
+	</OL>
+	<P><FONT SIZE = -1><I>(read) </I></FONT>
+	<OL>
+	B7 = data available. 
+	<OL>
+	When port is in input mode, B7=1 indicates that a character has arrived and not 
+	yet been read by the CPU. This bit will be cleared when the CPU reads the parallel 
+	port data. <BR>
+	When in output mode, B7=1 indicates that an output character is in the data 
+	register and awaiting acknowledgement from the device on the other end of the parallel 
+	cable. This bit is cleared when that other device accepts the character. 
+	In addition, this bit is cleared whenever the direction of the port is changed. 
+	</OL>
+<p>
+	B6 = Hello Handy 
+	<OL>
+	This bit is connected to the 'Busy' pin of the parallel port. It is intended as a 
+	signal fine FR0M the device on the other end of the parallel cable.
+	</OL></OL> 
+<P>
+	FCC3 <FONT SIZE = -1>Parallel Port Data (R/W) </FONT> <BR>
+	<OL>Read or write as appropriate.</OL> 
+<P>
+	FCC4 <FONT SIZE = -1>Howie (R/W)</FONT><BR> 
+	<OL>Read or write as appropriate.</OL> 
+<P>
+	FCC5<FONT SIZE = -1> Reserved</FONT><BR>  
+<P>
+	FCC6 -> FCCF = not yet allocated 
+<P>
+	FCD0 -> FCFF = not yet allocated 
+<P><U><LI>Mikey Addresses (R/W)</U>
+<P> 
+<H4>Timers</H4>
+<P>
+	Timers are reset to 0
+	<P>
+	FD00 -> FD03 Timer channel 0 and Hcount<BR> 
+	FD04 -> FD07 Timer channel 1 and mag0a (read current state of TAPE0 in b7)<BR> 
+	FD08 -> FD0B Timer channel 2 and Vcount <BR>
+	FD0C -> FD0F Timer channel 3 and mag0b <BR>
+	FD10 -> FD13 Timer channel 4 and serial rate<BR> 
+	FD14 -> FD17 Timer channel 5 and mag1a (read current state of TAPE1 in b7) <BR>
+	FD18 -> FD1B Timer channel 6 <BR>
+	FD1C -> FD1F Timer channel 7 and mag1b <BR>
+<P>
+	FD00 = TIM0BKUP. HTIMBKUP. Timer 0 backup value<BR> 
+	FD01 = TIM0CTLA. HTIMCTL0. Timer 0 static control <BR>
+	FD02 = TIM0CNT. Timer 0 current count <BR>
+	FD03 = TIM0CTLB. Timer 0 dynamic control <BR>
+	FD04 = TIM1BKUP. MAGA. Timer 1 backup vatue <BR>
+	FD05 = TIM1CTLA. Timer 1 static control <BR>
+	FD06 = TIM1CNT. Timer 1 current count <BR>
+	FD07 = TlM1CTLB. Timer 1 dynamic control <BR>
+	FD08 = TlM2BKUP. VTIMBKUP. Timer 2 backup value <BR>
+	FD09 = TIM2CTLA. Timer 2 static control <BR>
+	FD0A = TIM2CNT. Timer 2 current count <BR>
+	FD0B = TIM2CTLB. Timer 2 dynamic control <BR>
+	FD0C = TIM3BKUP.MAGB. Timer 3 backup value <BR>
+	FD0D = TIM3CTLA. Timer 3 static control <BR>
+	FD0E = TIM3CNT. Timer 3 current count <BR>
+	FD0F = TIM3CTLB. Timer 3 dynamic control <BR>
+	FD10 = TIM4BKUP. BAUDBKUP. Timer 4 backup value <BR>
+	FD11 = TIM4CTLA, Timer 4 static control <BR>
+	FD12 = TIM4CNT. Timer 4 current count <BR>
+	FD13 = TlM4CTLB. Timer 4 dynamic control <BR>
+	FD14 = TIM5BKUP. MAGC. Timer 5 backup value<BR> 
+	FD15 = TIMSCTLA. Timer 5 static control <BR>
+	FD16 = TIM5CNT. Timer 5 current count <BR>
+	FD17 = TIMSCTLB. Timer 5 dynamic control <BR>
+	FD18 = TIM6BKUP. Timer 6 backup value <BR>
+	FD19 = TIM6CTLA. Timer 6 static control <BR>
+	FD1A = TIM6CNT. Timer 6 current count <BR>
+	FD1B = TIM6CTLB. Timer 6 dynamic control <BR>
+	FD1C = TIM7BKUP.MAGD. Timer 7 backup value <BR>
+	FD1D = TIM7CTLA. Timer 7 static control <BR>
+	FD1E = TIM7CNT. Timer 7 current count <BR>
+	FD1F = TIM7CTLB. Timer 7 dynamic control <BR>
+<P>
+<TABLE BORDER = 2 FRAME = box COLS = 11>
+<TH>xxx0<TH>HEX
+<TH>7<TH> 6<TH> 5 <TH>4 <TH>3 <TH>2<TH> 1<TH> 0 
+<TR><TD COLSPAN = 10>backup value
+
+<TR><TH>xxx1<TH>HEX
+<TH>7<TH> 6<TH> 5 <TH>4 <TH>3 <TH>2<TH> 1<TH> 0
+<TR>
+<TR>
+<TD COLSPAN = 10>control bits
+<TR><TD>Enable interrupt<TD ALIGN = CENTER>$80<TD>1
+<TR><TD>Reset Timer Done<TD ALIGN = CENTER>$40<TD><TD>1
+<TR><TD>Unused in timers 0,2,4,6 / Magmode in timers 1,3,5,7
+<TD ALIGN = CENTER>$20<TD COLSPAN = 2><TD>1
+<TR><TD>Enable reload<TD ALIGN = CENTER>$10<TD COLSPAN = 3><TD>1
+<TR><TD>Enable count<TD ALIGN = CENTER>$08<TD COLSPAN = 4><TD>1
+<TR><TD COLSPAN = 10>clock select
+<TR><TD>linking<TD ALIGN = CENTER>$07<TD COLSPAN = 5><TD>1<TD>1<TD>1
+<TR><TD>64us<TD ALIGN = CENTER>$06<TD COLSPAN = 5><TD>1<TD>1<TD>0
+<TR><TD>32us<TD ALIGN = CENTER>$05<TD COLSPAN = 5><TD>1<TD>0<TD>1
+<TR><TD>16us<TD ALIGN = CENTER>$04<TD COLSPAN = 5><TD>1<TD>0<TD>0
+<TR><TD>8us<TD ALIGN = CENTER>$03<TD COLSPAN = 5><TD>0<TD>1<TD>1
+<TR><TD>4us<TD ALIGN = CENTER>$02<TD COLSPAN = 5><TD>0<TD>1<TD>0
+<TR><TD>2us<TD ALIGN = CENTER>$01<TD COLSPAN = 5><TD>0<TD>0<TD>1
+<TR><TD>1us<TD ALIGN = CENTER>$00<TD COLSPAN = 5><TD>0<TD>0<TD>0
+<TR>
+<TR><TH>xxx2<TH>HEX
+<TH>7<TH> 6<TH> 5 <TH>4 <TH>3 <TH>2<TH> 1<TH> 0 
+<TR><TD COLSPAN = 10>current value
+<TR><TH>xxx3<TH>HEX
+<TH>7<TH> 6<TH> 5 <TH>4 <TH>3 <TH>2<TH> 1<TH> 0 
+<TR><TD COLSPAN = 10>more control bits
+<TR><TD>Timer Done<SUP>(1)</SUP><TD ALIGN = CENTER>$08<TD COLSPAN = 4><TD>1
+<TR><TD>Last clock<TD ALIGN = CENTER>$04<TD COLSPAN = 5><TD>1
+<TR><TD>Borrow in<TD ALIGN = CENTER>$02<TD COLSPAN = 6><TD>1
+<TR><TD>Borrow out<TD ALIGN = CENTER>$01<TD COLSPAN = 7><TD>1
+</TABLE>
+<P>
+<SUP>(1)</SUP>
+It is set on time out, reset with the reset timer done bit (xxx1, B6)
+<H4>Audio</H4>
+<P>
+ 	Audio are reset to 0, all are read/write 
+<P>
+	FD20 -> FD27 Audio channel 0, links from timer 7 <BR>
+	FD28 -> FD2F Audio channel 1, links from audio timer 0<BR> 
+	FD30 -> FD37 Audio channel 2, links from audio timer 1 <BR>
+	FD38 -> FD3F Audio channel 3, links trom audio timer 2 <BR>
+<P>
+	FD20 = 8 bit. 2's Complement Volume Control
+	<OL>
+	00000000 is zero volume <BR>
+	00000001 is the same volume as 11111111, but opposite phase. <BR>
+	</OL>
+<P>
+	FD21 = Shift Register Feedback Enable
+	<OL>
+	B7= feedback bit 11 <BR>
+	B6=feedback bit 10 <BR>
+	B5=feedback bit 5 <BR>
+	B4=feedback bit 4 <BR>
+	B3=feedback bit 3 <BR>
+	B2=feedback bit 2 <BR>
+	B1=feedback bit 1 <BR>
+	B0=feedback bit 0 <BR>
+	</OL>
+<P>
+	FD22 = Audio Output Value
+	<OL>
+	In normal mode, shift reg 0 = 0: contains 2's complement of volume register.<BR>
+	In normal mode, shift reg 0 = 1: contains value of volume register. <BR>
+	In integrate mode, shift reg 0 = 0: subtract volume register from output.<BR> 
+	In integrate mode, shift reg 0 = 1: add volume register to output. <BR>
+	note that there is hardware clipping at max and min (ff,00). <BR>
+	</OL>
+<P>
+	FD23 = Lower 8 Bits of Shift Register 
+<P>
+	FD24 = Audio Timer Backup Value 
+<P>
+	FD25 = Audio Control Bits
+	<OL>
+	B7=feedback bit 7 <BR>
+	B6=reset timer done <BR>
+	B5=enable integrate mode <BR>
+	B4=enable reload <BR>
+	B3=enable count <BR>
+	B2,B1,B0=clock select
+	<OL>
+	7 = <I>linking</I> <BR>
+	6 = 64 us <BR>
+	5 = 32us <BR>
+	4 = 16 us <BR>
+	3 = 8 us <BR>
+	2 = 4 us <BR>
+	1 = 2us <BR>
+	0 = 1us <BR>
+	</OL></OL>
+	<P>
+	FD26 = Audio Counter <OL>
+	Value of the current count at the time it is read <BR></OL>
+<P> 
+	FD27 = Other Audio Bits
+	<OL>
+	B7=shift register bit 11 <BR>
+	B6=shift register bit 10 <BR>
+	B5=shift register bit 9 <BR>
+	B4=shift register bit 8 <BR>
+	B3=for Glenn to know and you to find out <BR>
+	B2=last clock state (0->1 causes count) <BR>
+	B1=borrow in (1 causes count) <BR>
+	B0=borrow out (count=0 and borrow in) <BR>
+	</OL>
+<P>
+	FD40 -> FD4F = not yet altocated 
+<P>
+	FD50 = MSTERE0(* R/W)<BR><FONT SIZE=-1> reset 0,0,0,0,0,0,0,0<BR> </FONT>
+	*Note: Write-only on Howards <BR>
+	<OL>
+	A '1' in the bit disables the indicated audio connection.<BR> 
+<P>
+	B7 = Audio 	Channel 3 -> Left Ear <BR>
+	B6 = Audio 	Channel 2 -> Left Ear <BR>
+	B5 = Audio 	Channel 1 -> Left Ear <BR>
+	B4 = Audio 	Channel 0 -> Left Ear <BR>
+	B3 = Audio 	Channel 3 -> Right Ear <BR>
+	B2 = Audio 	Channel 2 -> Right Ear <BR>
+	B1 = Audio 	Channel 1 -> Right Ear <BR>
+	B0 = Audio 	Channel 0 -> Right Ear <BR>
+	</OL>
+<P>
+	FD51 -> FD7F = not yet allocated
+	<P> 
+<H4>Misc</H4>
+<P>
+	FD80 = 	INTRST.<FONT SIZE=-1>Interrupt Poll 0, (R/W)<BR>reset = 0,0,0,0,0,0,0,0 </FONT><BR>
+	<OL>Read is a 	poll, write will reset the int that corresponds to a set bit.</OL>
+<P> 
+	FD81 	INTSET. <FONT SIZE=-1>Interrupt Poll 1, (R/W) <BR>reset = 0,0,0,0,0,0,0,0 </FONT><BR>
+	<OL>Read is a 	poll, write will set the int that corresponds to a set bit.<BR>
+	B7 = timer 	7 <BR>
+	B6 = timer 	6 <BR>
+	B5 = timer 	5 <BR>
+	B4 = serial interupt <BR>
+	B3 = timer 	3 <BR>
+	B2 = timer 	2 (vertical line counter) <BR>
+	B1 = timer 	1 <BR>
+	B0 = timer 	0 (horizontal line timer) <BR>
+</OL>
+<P>
+	FD82 -> FD83 = not yet allocated 
+<P>
+	FD84 = MAGRDY0.<FONT SIZE=-1>Mag Tape Channel 0 ready bit.(R)<BR> reset = x</FONT><BR>
+	<OL>B7=edge (1 ) 	Reset upon read. </OL>
+<P>
+	FD85 = MAGRDY1. <FONT SIZE=-1>Mag Tape Channel 1 ready bit.(R)<BR>reset = x</FONT ><BR>
+	<OL>B7 =edge (1 ) 	Reset upon read. </OL>
+<P>
+	FD86 AUDIN.<FONT SIZE=-1> Audio In.(R)<BR>reset = b7,0,0,0,0,0,0,0</FONT>
+	<OL>B7 = Audio in comparator </OL>
+<P>
+	FD87 = SYSCTL1.<FONT SIZE=-1>Control Bits.(W)<BR>reset x,x,x,x,x,x,1,0</FONT><BR>
+	<OL>B1=power (1 = on) <BR>
+	B0= Cart Address Strobe (also counter reset) (was MotorOn) 
+	</OL>
+<P>
+	FD88 = MIKEYHREV.<FONT SIZE=-1>Mikey Hardware Revision(R)<BR></FONT> 
+	<OL>= '01'</OL> 
+<P>
+	FD89 = MIKEYSREV.<FONT SIZE=-1>Mikey Software Revision(W)</FONT><BR> 
+	<OL>no actual register is implemented</OL>
+<P>
+	FD8A = IODIR.<FONT SIZE=-1>Mikey Parallel I/O Data Direction (W)<BR>
+	reset = 0,0.0.0,0,0,0,0 </FONT><OL>
+	8 bits I/O direction corresponding to the 8 bits at FD8B<BR> 
+	0=input, 1= output, <BR>
+	</OL>
+<P>
+	FD8B = lODAT.<FONT SIZE=-1>Mikey Parallel Data(sort of a R/W)</FONT><BR> 
+	8 bits of general purpose I/O data <OL>
+	B7 = NC<BR>
+	B6 = NC<BR>
+	B5 = NC<BR>
+	B4 = audin 	input <BR>
+	B3 = rest 	output <BR>
+	B2 = noexp 	input <BR>
+	B1 = Cart Address Data 	output 	(0 turns cart power on) <BR>
+	B0 = External Power 	input <BR>
+	(note, R0M sets 	it to output, you must set it to input) </OL>
+<P>
+	Note that some lines are used for several functions, please read the spec. <BR>
+	Also note that only the lines that are set to input are actually valid for reading.<BR> 
+	--READ THE SPEC---- 
+<P>
+	FD8C = SERCTL. <FONT SIZE=-1>Serial Control Register.(R/W) <BR>reset 0,0,0,0,0,0,0,0 <BR>
+	(write) </FONT><OL>
+	B7 = TXINTEN transmitter interrupt enable <BR>
+	B6 = RXINTEN receive interrupt enable <BR>
+	B5 = 0 (for future compatibility) <BR>
+	B4 = PAREN xmit parity enable (if 0, PAREVEN is the bit sent) <BR>
+	B3 = RESETERR reset all errors <BR>
+	B2 = TX0PEN 1 open collector driver, 0 = TTL driver <BR>
+	B1 = TXBRK send a break (for as long as the bit is set) <BR>
+	B0 = PAREVEN send/rcv even parity
+</OL><P> 
+	<FONT SIZE=-1>(read)</FONT><BR> <OL>
+	B7 = TXRDY transmitter buffer empty <BR>
+	B6 = RXRDY receive character ready <BR>
+	B5 = TXEMPTY transmitter totaiy done <BR>
+	B4 = PARERR received parity error <BR>
+	B3 = 0VERRUN received overrun error <BR>
+	B2 = FRAMERR received framing error <BR>
+	B1 = RXBRK break recieved (24 bit periods)<BR> 
+	B0 = PARBIT 9th bit <BR>
+	</OL>
+<P>
+	FD8D = SERDAT. <FONT SIZE=-1>Serial Data .(R/W) <BR>reset = x,x,x,x,x,x,x,x</FONT><BR> 
+<P>
+	FD8E -> FD8F = not yet allocated 
+<P>
+	FD90 = SD0NEACK.<FONT SIZE=-1> Suzy Done Acknowledge, (W) <BR>reset = 0 (not acked)</FONT>
+<P>
+	FD91 = CPUSLEEP. <FONT SIZE=-1>CPU Bus Request Disable(W)</FONT><OL> 
+	A write of '0' to this address will reset the CPU bus request flip fIop. <BR>
+	The setting of the flip flop is described in the hardware specification. 
+	</OL>
+<P>
+	FD92 = DISPCTL. <FONT SIZE=-1>Video Bus Reguest Enable, (W) <BR>reset = 0
+	</FONT><OL>
+	B7,B6,B5,B4 = 0 <BR>
+	B3 = color, 1=color, 0=monochrome <BR>
+	B2 = fourbit, 1=4 bit mode, 0=2 bit mode <BR>
+	B1 = 1=flip, 0 normal <BR>
+	B0 = 1=enable video DMA, 0=disable 
+	</OL>
+<P>
+	FD93 = PBKUP.  <FONT SIZE=-1>Magic 'P' count, (W)<BR>reset = x,x,x,x,x,x,x,x </FONT><BR> 
+	<OL>INT((((line time - .5us) / 15) * 4) -1) <BR>
+	At 60 Hz, 'PBKUP' = 41. (0x29) </OL>
+<P>
+	FD94 ->FD95= DISPADRL,H . <FONT SIZE=-1>Start Address of Video Disptay, (W) <BR>
+	reset x,x,x,x,x,x,x,x </FONT><OL>
+	DISPADRH (FD95) is upper 8 bits of display address.<BR>
+	DISPADRL (FD94) is lower 8 bits of display address <BR>with the bottom 2 bit ignored by 
+	the hardware The address of the upper left corner of a display buffer must always 
+	have '00' in the bottom 2 bits. 
+	</OL>
+<P>
+	FD96 -> FD9B = not yet altocated 
+<P>
+	FD9C = Mtest0,(W) <FONT SIZE=-1><BR>reset 0,0,0,0,0,0,0,0 </FONT><BR>
+	<OL>
+	B7 = ATcnt16 <BR>
+	B6 = ATtest <BR>
+	B5 = XCLKEN <BR>
+	B4 = UARTturbo <BR>
+	B3 = R0Msel <BR>
+	B2 = R0Mtest <BR>
+	B1 = Mtest <BR>
+	B0 = CPUtest <BR>
+</OL>
+<P>
+	FD9D = Mtest1,(W) <FONT SIZE=-1><BR>reset x,0,0,0,0.0,0,0 </FONT><BR>
+<OL>
+	B7 = not used <BR>
+	B6 = Pcnt16 <BR>
+	B5 = REFcnt16 <BR>
+	B4 = VIDtrig <BR>
+	B3 = REFtrig <BR>
+	B2 = VIDdmaDIS <BR>
+	B1 = REFfast <BR>
+	B0 = REFdis <BR>
+</OL>
+<P>
+	FD9E = Mtest2,(W)<FONT SIZE=-1><BR>reset = x,x,x,0,0,0,0,0 </FONT><BR>
+<OL>	B7 ->B5 not used <BR>
+	B4 = Vstrobe <BR>
+	B3 = Vzero <BR>
+	B2 = H120 <BR>
+	B1 = Hzero <BR>
+	B0 = Vblankef 
+</OL>
+<P>
+	FDA0 -> FDAF =<FONT SIZE=-1>Green Color map, (R/W) <BR>reset x,x,x,x,x,x,x,x</FONT><BR> 
+
+<OL>B7-> = unused<BR>
+	B3->B0 = green</OL> 
+<P>
+	FDB0 -> FDBF =<FONT SIZE=-1>Blue and Red color map, <BR>(R/W) reset x,x,x,x,x,x,x,x</FONT><BR> 
+	<OL>B7->B4 = blue <BR>
+	B3->B0 = red <BR>
+	</OL>
+<P><PRE>
+	FDA0 = GREEN0    FDA8 = GREEN8 
+	FDA1 = GREEN1    FDA9 = GREEN9 
+	FDA2 = GREEN2    FDAA = GREENA 
+	FDA3 = GREEN3    FDAB = GREENB 
+	FDA4 = GREEN4    FDAC = GREENC 
+	FDAS = GREEN5    FDAD = GREEND 
+	FDA6 = GREEN6    FDAE = GREENE 
+	FDA7 = GREEN7    FDAF = GREENF 
+
+	FDB0 = BLUERED0  FDB8 = BLUERED8 
+	FDB1 = BLUERED1  FDB9 = BLUERED9 
+	FDB2 = BLUERED2  FDBA = BLUEREDA 
+	FDB3 = BLUERED3  FDBB = BLUEREDB 
+	FDB4 = BLUERED4  FDBC = BLUEREDC 
+	FDB5 = BLUERED5  FDBD = BLUEREDD 
+	FDB6 = BLUERED6  FDBE = BLUEREDE 
+	FDB7 = BLUERED7  FDBF = BLUEREDF 
+</PRE>
+<P>
+	FDC0 -> FDCF = not yet allocated 
+<P>
+	FDD0 -> FDFF = not yet allocated 
+<P>
+	<B>Address Summary ... System </B>
+<P>
+	FE00 thru FFF7 = R0M Space <BR>
+	FFF8 = Reserved for future hardware <BR>
+	FFF9 = Memory Map Control, Mikey reset= 0,0,0,0,0,0,0,0, Suzy reset = x,x,x,x,x,x,x,0 <BR>
+	FFFA, FFFB = CPU NMI Vector <BR>
+	FFFC, FFFD = CPU Reset Vector <BR>
+	FFFE, FFFF = CPU Interrupt Vector <BR>
+<P>
+	<B>Address Summary ... Suzy (dont forget FFF9)</B> 
+<P>
+	FC00 -> FC7F = Sprite Control BIock, (R/W) (U) reset = x,x,x,x,x,x,x,x <BR>
+	Even addresses are the LSB. Any CPU write to an LSB will set the MSB to 0.<BR>
+<PRE> 
+	(address) 
+	L0  (ENG) 00,01 TMPADRL,H Temporary address 
+	H0  (ENG) 02,03 TILTACUML,H Accumulator for tilt value 
+	L1  (CPU) 04,05 H0FFL,H 0ffset to H edge of screen 
+	H1  (CPU) 06,07 V0FFL,H 0ffset to V edge of screen 
+	L2  (CPU) 08,09 VIDBASL,H Base Address of Video Build Buffer 
+	H2  (CPU) 0A,0B COLLBASL,H Base Address of Coll Build Buffer 
+	L3  (ENG) 0C,0D VIDADRL,H Current Video Build Address 
+	H3  (ENG) 0E,0F COLLADR,LH Current Collision Build Address 
+	L4  (SCB) 10,11 SCBNEXTL,H Address of Next SCB 
+	H4  (SCB) 12,13 SPRDLINEL,H Start of Sprite Data Line Address 
+	L5  (SCB) 14,15 HP0SSTRTL,H Starting Kpos 
+	H5  (SCB) 16,17 VP0SSTRTL,H Starting Vpos 
+	L6  (SCB) 18,19 SPRHSIZL,H H Size 
+	H6  (SCB) 1A,1B SPRVSIZL,H V Size 
+	L7  (ENG) 1C,1D STRETCHL,H H Size Adder 
+	H7  (ENG) 1E,1F TILTL,H H Position Adder 
+	LB  (ENG) 20,21 SPRD0FFL,H 0ffset to Next Sprite Data Line 
+	HS  (ENG) 22,23 SPRVP0SL,H Current Vpos 
+	L9  (CPU) 24,25 COLL0FFL,H 0ffset to Collision Depository 
+	H9  (ENG) 26,27 VSIZACUML,H Vertical Size Accvmulator 
+	L10 (CPU) 28,29 HSlZ0FFL,H Horizontal Size 0ffset 
+	H10 (CPU) 2A,2B VSIZ0FFL,H Vertical Size 0flset 
+	L11 (ENG) 2C,2D SCBADRL, H Address of Current SCB 
+	H11 (ENG) 2E,2F PR0CADRL, H Current Spr Data Proc Address 
+	    (ENG) 30 thru 4F reserved 
+	    (ENG) 50,51 Do Not Use------\ 
+	H4  (ENG) 52 MATHD (12)          \ 
+	H4  (ENG) 53 MATHC (13)           \
+	L5  (ENG) 54 MATHB (14)           |
+	L5  (ENG) 55 MATHA (15)           |
+	H5  (ENG) 56 MATHP (16)           |
+	H5  (ENG) 57 MATHN (17)           |
+	    (ENG) 58 thru 5F Do Not Use   | These are used for MATH 
+	L8  (ENG) 60 MATHH (20)           | operations. The meanings 
+	L8  (ENG) 61 MATHG (21)           | of the letters are 
+	H8  (ENG) 62 MATHF (22)           | explained in the spec. 
+	H8  (ENG) 63 MATHE (23)           |
+ 	    (ENG) 64 thru 6B Do Not Use   |
+	L11 (ENG) 6C MATHM (2C)           | 
+	L11 (ENG) 6D MATML (20)           | 
+	H11 (ENG) 6E MATHK (2E)           | 
+	H11 (ENG) 6F MATHJ (2F)           | 
+	    (ENG) 70 thru 7F Do Not Use---/ 
+	FC80 = SPRCTL0, Sprite Control Bits 0, (W) (U) reset x,x,x,x,x,x,x,x 
+	FC81 = SPRGTL1, Sprite Control Bits 1, (W) (U) reset x,x,x,x,x,x,x,x 
+	FC82 = SPRCOLL, Sprite Collision Number, (W) (U) reset x,x,x,x,x,x,x,x 
+	FC83 = SPRINIT, Sprite Initialization Bits, (W) (U) reset x,x,x,x,x,x,x,x 
+	FC84 -> FC87 not yet allocated 
+	FC88 = SUZYHREV, Suzy Hardware Revision (R) 
+	FC89 = SUZYSREV, Suzy Software Revision (W) 
+	FC8A -> FC8F = not yet allocated 
+	FC90 = SUZYBUSEN, Suzy Bus Enable FF, (W) reset 0 
+	FC91 = SPRG0, Sprite Process Start Bit (W) reset 0 
+	FC92 = SPRSYS, System Control Bits, (R/W) 
+	FC93 -> FCAF not yet allocated 
+	FCB0 = J0YSTICK, Read Joystick and Switches(R) 
+	FCB1 = SWITCHES, Read 0ther Switches (R) 
+	FCB2,FCB3 = RCART(R/W) 
+	FCB4-> FCBF = not yet allocated 
+	FCC0 = LEDS(W)reset=0,0,0,0,0,0,0,0 
+	FCC1 = Reserved 
+	FCC2 = Parallel Port Status(R/W)reset=0,0,x,x,x,x,x,x 
+	FCC3 = Parallel Port Data (R/W) 
+	FCC4 = Howie (R/W) 
+	FCC5 = Reserved 
+	FCC6 -> FCCF = not yet altocated 
+	FCD0 -> FDFF = not yet allocated
+</PRE>
+<P><B>Address Summary, ... Mikey (dont forget FFF9)</B>
+<PRE> 
+	FD00 -> FD03 Timer channel 0 and Hcount 
+	FD04 -> FD07 Timer channel 1 and mag0a (read current state of TAPE0 in b7) 
+	FD08 -> FD0B Timer channel 2 and Vcount 
+	FD0C -> FD0F timer channel 3 and mag0b 
+	FD10 -> FD13 Timer channel 4 and serial rate 
+	FD14 -> FD17 Timer channel 5 and mag1a (read current state of TAPE1 in b7) 
+	FD18 -> FD18 Timer channel 6 
+	FD1C -> FD1F Timer channel 7 and mag1b 
+	FD20 -> FD27 Audio channel 0, links from timer 7 
+	FD28 -> FD2F Audio channel 1, links trom audio timer 0 
+	FD30 -> FD37 Audio channel 2, links from audio timer 1 
+	FD38 -> FD3F Audio channel 3, links from audio timer 2 
+	FD20 = 8 bit, 2's Complement Volume Control 
+	FD21 = Shift Register Feedback Enable 
+	FD22 = Audio 0utput Value 
+	FD23 = Lower 8 Bits of Shift Register 
+	FD24 = Audio Timer Backup Value 
+	FD25 = Audio Control Bits 
+	FD26 = Audio Counter 
+	FD27 = 0ther Audio Bits 
+	FD40 -> FD4F not yet allocated 
+	FD50 = MSTERE0(R/W) reset 1,1,1,1,1,1,1,1 
+	FD51 -> FD7F not yet allocated 
+	FDB0 = INTRST, Interrupt Poll 0, (R/W) reset 0,0,0,0,0,0,0,0 
+	FD81 = INTSET, Interrupt Poll 1, (R/W) reset = 0,0,0,0,0,0,0,0 
+	FD82 -> FD83 = not yet allocated 
+	FD84 = MAGRDY0, Mag Tape Channel 0 ready bit,(R) reset = x 
+	FD85 = MAGRDY1, Mag Tape Channel 1 ready bit,(R) reset = x 
+	FD86 = AUDIN, Audio In,(R) reset = b7,0,0,0,0,0,0,0 
+	FD87 = SYSCTL1, Control Bits.,"W) reset x,x,x,x,x,x,1,0 
+	FD88 = MIKEYHREV, Mikey Hardware Revision(R) 
+	FD89 = MIKEYSREV, Mikey Software Revision(W) 
+	FD8A = l0DIR, Mikey Parallel I/0 Data Direction (W) 
+	FD8B = IQDAT, Mikey Parallel Data(sort of a R/W) 
+	FD8C = SERCTL, Serial Control Register,(R/W) reset = 0,0,0,0.0,0,0,0 
+	FD8D = SERDAT, Serial Data,(R/W) reset x,x,x,x,x,x,x,x 
+	FD8E -> FD8F = not yet allocated 
+	FD90 = SD0NEACK, Suzy Done Acknowledge, (W) reset = 0 (not acked) 
+	FD91 = CPUSLEEP, CPU Bus Request Disable(W) 
+	FD92 = DISPCTL, Video Bus Request Enable, (W) reset = 0 
+	FD93 = PBKUP, Magic 'P' count. (W) reset x,x,x,x,x,x,x,x 
+	FD94 ->FD95= DISPADRL,H, Start Address of Video Display, (W) 
+	FD96 -> FD9B not yet allocated 
+	FD9C = Mtest0,(W) reset 0,0,0,0,0,0,0,0 
+	FD9D = Mtest1,(W) reset x,0,0,0,0,0,0,0 
+	FD9E = Mtest2,(W) reset x,x,x,0,0,0,0,0 
+	FDA0 -> FDAF =Green (mono) color map, (R/W) reset = x,x,x,x,x,x,x,x 
+	B3->B0=green 
+	FDB0 -> FDBF =Blue and Red color map, (R/W) reset x,x,x,x,x,x,x,x 
+	B7->B4 blue B3->B0=red 
+	FDC0 -> FDCF = not yet allocated 
+	FDD0 -> FDFF = not yet allocated 
+</PRE>
+</OL>
+<HR>
+<P>
+<TABLE BORDER = 2 FRAME = box COLS = 11>
+<TH>JOYPAD<BR>($FCB0)<TH>HEX
+<TH>7<TH> 6<TH> 5 <TH>4 <TH>3 <TH>2<TH> 1<TH> 0
+<TH>
+<TH>SWITCHES<BR>($FCB1)<TH>HEX
+<TH>7<TH> 6<TH> 5 <TH>4 <TH>3 <TH>2<TH> 1<TH> 0
+ 
+<TR><TD COLSPAN = 10><FONT SIZE = -1>JOYSTICK bit definition</FONT>
+<TD><TD COLSPAN = 10><FONT SIZE = -1>SWITCHES bit definitions</FONT>
+<TR><TD>JOY_DOWN<TD ALIGN = CENTER>$80<TD>1<TD COLSPAN = 8>
+ 
+<TR><TD>JOY_UP<TD ALIGN = CENTER>$40<TD><TD>1<TD COLSPAN = 7>
+ 
+<TR><TD>JOY_RIGHT<TD ALIGN = CENTER>$20<TD COLSPAN = 2><TD>1
+<TR><TD>JOY_LEFT<TD ALIGN = CENTER>$10<TD COLSPAN = 3><TD>1
+<TR><TD>OPTION1<TD ALIGN = CENTER>$08<TD COLSPAN = 4><TD>1
+<TR><TD>OPTION2<TD ALIGN = CENTER>$04<TD COLSPAN = 5><TD>1<TD COLSPAN = 3>
+<TD>CART1_STROBE<TD ALIGN = CENTER>$04<TD COLSPAN = 5><TD>1
+<TR><TD>B_BUTTON<TD ALIGN = CENTER>$02<TD COLSPAN = 6><TD>1<TD>
+<TD><TD>CART0_STROBE<TD ALIGN = CENTER>$02<TD COLSPAN = 6><TD>1
+<TR><TD>A_BUTTON<TD ALIGN = CENTER>$01<TD COLSPAN = 7><TD>1
+<TD><TD>PAUSE_BUTTON<TD ALIGN = CENTER>$01<TD COLSPAN = 7><TD>1
+</TABLE>
+<P>
+<!---------------------------------------------------------------------------->
+
+<TABLE BORDER = 2 FRAME = box COLS = 11>
+<TH>SPRCTL0<BR>($FC80)<TH>HEX
+<TH>7<TH> 6<TH> 5 <TH>4 <TH>3 <TH>2<TH> 1<TH> 0
+<TH>
+<TH>SPRCTL1<BR>($FC81)<TH>HEX
+<TH>7<TH>6<TH>5<TH>4<TH>3<TH>2<TH>1<TH>0
+	
+<TR><TD COLSPAN = 10><FONT SIZE = -1>Bits-per-pixel definitions</FONT>
+<TD><TD COLSPAN = 11><FONT SIZE = -1>Sprite control 1 bit definitions</FONT>
+
+<TR><TD>ONE PER PIXEL<TD ALIGN = center>$00<TD>0<TD>0
+<TD COLSPAN =7> <TD>LITERAL<TD ALIGN=CENTER>$80<TD>1
+
+<TR><TD>TWO PER PIXEL<TD ALIGN = center>$40<TD>0<TD>1
+<TD COLSPAN =7> <TD>ALGO 3<SUP>(1)</SUP><TD ALIGN=CENTER>$40<TD><TD>1
+
+<TR><TD>THREE PER PIXEL<TD ALIGN = center>$80<TD>1<TD>0
+<TD COLSPAN =6> <TD><TD COLSPAN = 11><FONT SIZE = -1>Sprite control 1 bit definitions</FONT>
+
+<TR><TD>F0UR PER PIXEL<TD ALIGN = center>$C0<TD>1<TD>1
+<TD COLSPAN =7><TD>RELOAD NONE<TD ALIGN=CENTER>$00<TD><TD><TD>0<TD>0
+
+<TR><TD COLSPAN = 10><FONT SIZE = -1>More sprite control 0 it definitions</FONT>
+<TD><TD>RELOAD HV<TD ALIGN=CENTER>$10<TD><TD><TD>0<TD>1 
+
+<TR><TD>HFLIP<TD ALIGN = center>$20<TD><TD><TD>1
+<TD COLSPAN = 6><TD>RELOAD HVS<TD ALIGN=CENTER>$20<TD><TD><TD>1<TD>0
+
+<TR><TD>VFLIP<TD ALIGN = center>$10<TD><TD><TD><TD>1
+<TD COLSPAN =5><TD>RELOAD HVST<TD ALIGN=CENTER>$30<TD><TD><TD>1<TD>1
+
+<TR><TD COLSPAN = 10><FONT SIZE = -1>Sprite types </FONT>
+<TD><TD COLSPAN = 10><FONT SIZE = -1>More sprite control 1 it definitions</FONT>
+<TR><TD>SHADOW SPRITE<TD ALIGN = center>$07<TD COLSPAN = 5>  <TD> 1<TD>1<TD>1 
+<TD><TD>REUSE PALETTE <TD ALIGN = center>$08 <TD COLSPAN=4><TD> 1 
+<TR><TD>XOR SPRITE<TD ALIGN = center>$06<TD COLSPAN = 5> <TD> 1<TD>1<TD>0 
+<TD><TD>SKIP SPRITE<TD ALIGN = center>$04<TD COLSPAN=5><TD>1 
+<TR><TD>NONCOLL SPRITE<TD ALIGN = center>$05<TD COLSPAN = 5> <TD> 1<TD>0<TD>1		 
+<TD><TD>DRAW UP<TD ALIGN = center>$02<TD COLSPAN=6><TD>1
+<TR><TD>NORMAL SPRITE<TD ALIGN = center>$04<TD COLSPAN = 5><TD> 1<TD>0<TD>0		 
+<TD><TD>DRAW LEFT<TD ALIGN = center>$01<TD COLSPAN=7><TD>1
+<TR><TD>BOUNDARY SPRITE<TD ALIGN = center>$03<TD COLSPAN = 5><TD> 0<TD>1<TD>1		 
+<TD><TD>
+<TR><TD>BSHADOW SPRITE<TD ALIGN = center>$02<TD COLSPAN = 5><TD> 0<TD>1<TD>0		 
+<TD>
+<TR><TD>BACKNONCOLL SPR<TD ALIGN = center>$01<TD COLSPAN = 5><TD> 0<TD>0<TD>1 
+<TD>
+<TR><TD>BACKGROUND SPR<TD ALIGN = center>$00<TD COLSPAN = 5><TD> 0<TD>0<TD>0
+<TD>
+</TABLE>
+<P>
+<SUP>(1)</SUP>ALGO 3 is broken !
+<P>
+<!---------------------------------------------------------------------------->
+<TABLE BORDER = 2 FRAME = box COLS = 11>
+<TH>SPRGO<BR>($FC91)<TH>HEX
+<TH>7<TH> 6<TH> 5 <TH>4 <TH>3 <TH>2<TH> 1<TH> 0 
+<TR><TD>EVER_ON<TD ALIGN = CENTER>$04<TD COLSPAN = 5><TD>1
+<TR><TD>SPRITE_GO<TD ALIGN = CENTER>$01<TD COLSPAN = 7><TD>1
+</TABLE>
+<p>
+<!---------------------------------------------------------------------------->
+<TABLE BORDER = 2 FRAME = box COLS = 11>
+<TH>SPRSYS<BR>($FC92)<I>WRITE</I><TH>HEX
+<TH>7<TH> 6<TH> 5 <TH>4 <TH>3 <TH>2<TH> 1<TH> 0 
+<TH><TH>SPRSYS<BR>($FC92)<I>READ</I><TH>HEX
+<TH>7<TH> 6<TH> 5 <TH>4 <TH>3 <TH>2<TH> 1<TH> 0 
+<TR><TD>SIGNMATH<TD ALIGN = CENTER>$80<TD>1<TD COLSPAN = 8>
+<TD>MATHWORKING<TD ALIGN = CENTER>$80<TD>1
+
+<TR><TD>ACCUMULATE<TD ALIGN = CENTER>$40<TD><TD>1<TD COLSPAN = 7>
+<TD>MATHWARNING<TD ALIGN = CENTER>$40<TD><TD>1
+
+<TR><TD>NO_COLLIDE<TD ALIGN = CENTER>$20<TD COLSPAN = 2><TD>1<TD COLSPAN = 6>
+<TD>MATHCARRY<TD ALIGN = CENTER>$20<TD COLSPAN = 2><TD>1
+
+<TR><TD>VSTRETCH<TD ALIGN = CENTER>$10<TD COLSPAN = 3><TD>1<TD COLSPAN = 5>
+<TD>VSTRETCHING<TD ALIGN = CENTER>$10<TD COLSPAN = 3><TD>1
+
+<TR><TD>LEFTHAND<TD ALIGN = CENTER>$08<TD COLSPAN = 4><TD>1<TD COLSPAN = 4>
+<TD>LEFTHANDED<TD ALIGN = CENTER>$08<TD COLSPAN = 4><TD>1
+
+<TR><TD>CLR_UNSAFE<TD ALIGN = CENTER>$04<TD COLSPAN = 5><TD>1<TD COLSPAN = 3>
+<TD>UNSAFE_ACCESS<TD ALIGN = CENTER>$04<TD COLSPAN = 5><TD>1
+
+<TR><TD>SPRITESTOP<TD ALIGN = CENTER>$02<TD COLSPAN = 6><TD>1<TD COLSPAN = 2>
+<TD>SPRITETOSTOP<TD ALIGN = CENTER>$02<TD COLSPAN = 6><TD>1
+<TR><TD COLSPAN = 11>
+<TD>SPRITEWORKING<TD ALIGN = CENTER>$01<TD COLSPAN = 7><TD>1
+
+</TABLE>
+<P>
+<!---------------------------------------------------------------------------->
+<TABLE BORDER = 2 FRAME = box COLS = 11>
+<TH>MAPCNTL<BR>($FFF9)<TH>HEX
+<TH>7<TH> 6<TH> 5 <TH>4 <TH>3 <TH>2<TH> 1<TH> 0
+<TR><TD COLSPAN = 10><FONT SIZE = -1>MAPCTL flag definitions</FONT>
+<TR><TD>HIGH SPEED<TD ALIGN = CENTER>$80<TD>1
+<TR><TD>VECTOR SPACE<TD ALIGN = CENTER>$08<TD COLSPAN =4><TD>1
+<TR><TD>ROM SPACE<TD ALIGN = CENTER>$04<TD COLSPAN =5><TD>1
+<TR><TD>MIKEY SPACE<TD ALIGN = CENTER>$02<TD COLSPAN =6><TD>1
+<TR><TD>SUZY SPACE<TD ALIGN = CENTER>$01<TD COLSPAN =7><TD>1
+</TABLE>
+<P>
+<HR NOSHADE><FONT SIZE=-2><A HREF="../index.html#T0P">HOME</A><BR>
+<ADDRESS><A HREF="mailto:elw5basc@rghx50.gp.fht-esslingen.de">(c) Bastian
+Schick</A></ADDRESS><BR> last modified 1996/12/18</FONT>
+
+</BODY>
+</HTML>

@@ -1,0 +1,9 @@
+Lodjur.xcodeproj/xcuserdata
+LodjurDS.xcodeproj/project.xcworkspace/xcuserdata
+contents.xcworkspacedata
+build
+*.img
+*.lnx
+*.elf
+*.nds
+*.zip

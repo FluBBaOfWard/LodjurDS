@@ -1,0 +1,31 @@
+LodjurDS Todo
+
+	Find speed hacks.
+
+GFX:
+	See Suzy todo.
+
+GUI:
+	Eng/Jap:
+
+Mem:
+
+CPU:
+	See ARM6502 Todo.
+
+Sound:
+	See Mikey todo.
+
+Misc:
+	Game, slow.
+
+Games Not Working:
+
+Games Not Working Fixed:
+
+Games With Glitches:
+
+Games With Glitches Fixed:
+
+Speedhacks:
+	* Zakull Bootsplash

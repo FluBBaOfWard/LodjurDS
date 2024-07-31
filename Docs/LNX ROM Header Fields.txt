@@ -1,0 +1,24 @@
+LNX ROM Header Fields
+64 Byte Header
+
+Byte  0 -  3  | Char literal   | "LYNX"                      EEPROM byte-bits encode details of EEPROM used
+      4 -  5  | 16-bit uchar   | Bank 0 page size            bit  1   2   3   4   5   6   7   8
+      6 -  7  | 16-bit uchar   | Bank 1 page size                 |       |   |       |   |   |
+      8 -  9  | 16-bit uchar   | Version number                   +---+---+   +---+---+   |  16/8 BIT
+     10 - 41  | String + \0    | Cart name                            |           |     REAL/SD
+     42 - 57  | String + \0    | Manufacturer                    EEPROM TYPE    UNUSED
+          58  | uchar          | Rotation (1=left, 2=right)
+          59  | uchar          | AUDIN Used (1=yes)          Example: 0x40 (00000010) no-EEPROM, SD card saves
+          60  | uchar          | EEPROM detail, see right    EEPROM Type values - 0: no EEPROM, 1: 93C46
+     61 - 63  | uchar          | Unused                           2: 93C56, 3: 93C66, 4: 93C76, 5: 93C86
+                                                             EEPROM size is 2^(type+9)
+                                                                  e.g. 2^(1+9) = 1024 bits for 93C46
+                                                             Lynx is little-endian so bit order is reversed.
+
+BLL Object Header Fields
+10 Byte Header
+
+Byte  0 -  1  | 16-bit uchar   | Magic: 0x80 0x08 (08 is BS ASCII char, also bytes in hex show up as 8008 😅)
+      2 -  3  | 16-bit uchar   | Load address
+      4 -  5  | 16-bit uchar   | Object size
+      6 -  9  | Char literal   | "BS93"

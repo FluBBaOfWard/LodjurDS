@@ -1,0 +1,5 @@
+LodjurDS revision history
+-=-=-=-=-=-=-=-=-=-=-=-=-=-
+
+V0.0.1 - 2024-07-29 (FluBBa)
+	Started coding on NDS version.
