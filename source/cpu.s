@@ -1,18 +1,16 @@
 #ifdef __arm__
 
 #include "ARM6502/M6502.i"
-#include "ARM6502/M6502mac.h"
+#include "ARMSuzy/ARMSuzy.i"
 
-#define ALLOW_REFRESH_CHG	(1<<19)
-
-#define CYCLE_PSL (256)
+#define CYCLE_PSL (246*2)
 
 	.global waitMaskIn
 	.global waitMaskOut
+	.global m6502_0
 
 	.global run
-	.global runScanLine
-	.global runFrame
+	.global stepFrame
 	.global cpuInit
 	.global cpuReset
 
@@ -39,36 +37,31 @@ run:						;@ Return after X frame(s)
 ;@----------------------------------------------------------------------------
 runStart:
 ;@----------------------------------------------------------------------------
-	ldr r0,=joy0State
+	ldr r0,=EMUinput
 	ldr r0,[r0]
-	ldr r1,joyClick
-	eor r1,r1,r0
-	and r1,r1,r0
+	ldr r3,joyClick
+	eor r3,r3,r0
+	and r3,r3,r0
 	str r0,joyClick
 
 	bl refreshEMUjoypads
 
 	ldr m6502ptr,=m6502_0
-	add r0,m6502ptr,#m6502Regs
-	ldmia r0,{m6502nz-m6502pc,m6502zpage}	;@ Restore M6502 state
-
-	ldr r0,=emuSettings
-	ldr r0,[r0]
-	tst r0,#ALLOW_REFRESH_CHG
-	beq lxFrameLoop3DS
+	add r1,m6502ptr,#m6502Regs
+	ldmia r1,{m6502nz-m6502pc,m6502zpage}	;@ Restore M6502 state
 ;@----------------------------------------------------------------------------
-lxFrameLoop:
+svFrameLoop:
 ;@----------------------------------------------------------------------------
 	mov r0,#CYCLE_PSL
 	bl m6502RunXCycles
-	ldr spxptr,=sphinx0
-	bl wsvDoScanline
+	ldr suzptr,=suzy_0
+	bl svDoScanline
 	cmp r0,#0
-	bne lxFrameLoop
+	bne svFrameLoop
+
 ;@----------------------------------------------------------------------------
-lxFrameLoopEnd:
 	add r0,m6502ptr,#m6502Regs
-	stmia r0,{m6502nz-m6502pc}	;@ Save 6502 state
+	stmia r0,{m6502nz-m6502pc}	;@ Save M6502 state
 
 	ldrh r0,waitCountOut
 	add r0,r0,#1
@@ -79,23 +72,7 @@ lxFrameLoopEnd:
 	b runStart
 
 ;@----------------------------------------------------------------------------
-lxFrameLoop3DS:
-;@----------------------------------------------------------------------------
-	mov r0,#CYCLE_PSL
-	bl m6502RunXCycles
-	ldr spxptr,=sphinx0
-	bl wsvDoScanline
-	ldr r1,scanLineCount3DS
-	cmp r0,#0
-	cmpeq r1,#2
-	subsne r1,r1,#1
-	moveq r1,#199				;@ (159 * 75) / 60 = 198,75
-	str r1,scanLineCount3DS
-	bne lxFrameLoop3DS
-	b lxFrameLoopEnd
-;@----------------------------------------------------------------------------
-lynxCyclesPerScanline:	.long 0
-scanLineCount3DS:	.long 199
+m6502CyclesPerScanline:	.long 0
 joyClick:			.long 0
 waitCountIn:		.byte 0
 waitMaskIn:			.byte 0
@@ -103,71 +80,62 @@ waitCountOut:		.byte 0
 waitMaskOut:		.byte 0
 
 ;@----------------------------------------------------------------------------
-runScanLine:				;@ Return after 1 scanline
-	.type runScanLine STT_FUNC
+stepFrame:					;@ Return after 1 frame
+	.type stepFrame STT_FUNC
 ;@----------------------------------------------------------------------------
 	stmfd sp!,{r4-r11,lr}
 	ldr m6502ptr,=m6502_0
-	bl wsScanLine
-	ldmfd sp!,{r4-r11,lr}
-	bx lr
+	add r1,m6502ptr,#m6502Regs
+	ldmia r1,{m6502nz-m6502pc,m6502zpage}	;@ Restore M6502 state
 ;@----------------------------------------------------------------------------
-lxScanLine:
+svStepLoop:
 ;@----------------------------------------------------------------------------
-	stmfd sp!,{lr}
 	mov r0,#CYCLE_PSL
-	bl M6502RestoreAndRunXCycles
-	add r0,m6502ptr,#m6502Regs
-	stmia r0,{m6502nz-m6502pc}	;@ Save 6502 state
-	ldmfd sp!,{lr}
-	ldr spxptr,=sphinx0
-	b wsvDoScanline
-;@----------------------------------------------------------------------------
-runFrame:					;@ Return after 1 frame
-	.type runFrame STT_FUNC
-;@----------------------------------------------------------------------------
-	stmfd sp!,{r4-r11,lr}
-	ldr v30ptr,=V30OpTable
-;@----------------------------------------------------------------------------
-lxStepLoop:
-;@----------------------------------------------------------------------------
-	bl wsScanLine
+	bl m6502RunXCycles
+	ldr suzptr,=suzy_0
+	bl svDoScanline
 	cmp r0,#0
-	bne lxStepLoop
-	bl lxScanLine
+	bne svStepLoop
 ;@----------------------------------------------------------------------------
+	add r0,m6502ptr,#m6502Regs
+	stmia r0,{m6502nz-m6502pc}	;@ Save M6502 state
 
 	ldmfd sp!,{r4-r11,lr}
 	bx lr
 ;@----------------------------------------------------------------------------
 cpuInit:					;@ Called by machineInit
 ;@----------------------------------------------------------------------------
-	stmfd sp!,{v30ptr,lr}
-	ldr v30ptr,=V30OpTable
+	stmfd sp!,{lr}
 
 	mov r0,#CYCLE_PSL
-	str r0,v30MZCyclesPerScanline
-	mov r0,v30ptr
-	bl V30Init
+	str r0,m6502CyclesPerScanline
+	ldr r0,=m6502_0
+	bl m6502Init
 
-	ldmfd sp!,{v30ptr,lr}
+	ldmfd sp!,{lr}
 	bx lr
 ;@----------------------------------------------------------------------------
-cpuReset:					;@ Called by loadCart/resetGame, r0 = type
+cpuReset:					;@ Called by loadCart/resetGame
 ;@----------------------------------------------------------------------------
-	stmfd sp!,{v30ptr,lr}
-	mov r1,r0
-	ldr v30ptr,=V30OpTable
+	stmfd sp!,{lr}
 
-	mov r0,v30ptr
-	bl V30Reset
-	ldr r0,=getInterruptVector
-	str r0,[v30ptr,#v30IrqVectorFunc]
+	ldr r0,=m6502_0
+	bl m6502Reset
 
-	ldmfd sp!,{v30ptr,lr}
+	ldmfd sp!,{lr}
 	bx lr
+;@----------------------------------------------------------------------------
+#ifdef NDS
+	.section .dtcm, "ax", %progbits			;@ For the NDS
+#elif GBA
+	.section .iwram, "ax", %progbits		;@ For the GBA
+#else
+	.section .text
+#endif
+	.align 2
 ;@----------------------------------------------------------------------------
 m6502_0:
 	.space m6502Size
+;@----------------------------------------------------------------------------
 	.end
 #endif // #ifdef __arm__

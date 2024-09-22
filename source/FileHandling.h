@@ -8,12 +8,11 @@ extern "C" {
 #include "Emubase.h"
 #include "Lynx.h"
 
-#define FILEEXTENSIONS ".lyx.lnx.bin"
+#define FILEEXTENSIONS ".sv.bin"
 
 extern ConfigData cfg;
 
 int initSettings(void);
-bool updateSettingsFromWS(void);
 int loadSettings(void);
 void saveSettings(void);
 bool loadGame(const char *gameName);
@@ -25,16 +24,7 @@ void saveState(void);
 void ejectCart(void);
 void selectGame(void);
 void selectBnWBios(void);
-void selectColorBios(void);
-void selectCrystalBios(void);
 int loadBnWBIOS(void);
-int loadColorBIOS(void);
-int loadCrystalBIOS(void);
-int loadIntEeproms(void);
-int saveIntEeproms(void);
-void selectEEPROM(void);
-void clearIntEeproms(void);
-void selectIPS(void);
 
 #ifdef __cplusplus
 } // extern "C"

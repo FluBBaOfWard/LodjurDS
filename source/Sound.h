@@ -7,12 +7,11 @@ extern "C" {
 
 #include <maxmod9.h>
 
-#define sample_rate 24000
-#define buffer_size (640)
+#define sample_rate 31250
+#define buffer_size (256+10)
 
 void soundInit(void);
 void setMuteSoundGUI(void);
-void setMuteSoundChip(void);
 mm_word VblSound2(mm_word length, mm_addr dest, mm_stream_formats format);
 
 #ifdef __cplusplus

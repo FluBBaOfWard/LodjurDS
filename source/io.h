@@ -7,7 +7,6 @@ extern "C" {
 
 extern u32 joyCfg;
 extern u32 EMUinput;
-extern u8 joyMapping;
 
 /**
  * Saves the state of io to the destination.
@@ -35,12 +34,6 @@ int ioGetStateSize(void);
  * @return The converted input.
  */
 int convertInput(int input);
-
-/**
- * Set joy mapping.
- * @param type default or alternate
- */
-void setJoyMapping(int type);
 
 #ifdef __cplusplus
 } // extern "C"

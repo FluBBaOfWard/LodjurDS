@@ -1,82 +1,57 @@
 #ifdef __arm__
 
 #include "Shared/nds_asm.h"
+#include "ARMSuzy/ARMSuzy.i"
 
-#define ALLOW_REFRESH_CHG	(1<<19)
-
+	.global gfxState
 	.global gFlicker
 	.global gTwitch
 	.global gGfxMask
-	.global vblIrqHandler
 	.global GFX_DISPCNT
 	.global GFX_BG0CNT
 	.global GFX_BG1CNT
 	.global EMUPALBUFF
-	.global MAPPED_BNW
 	.global frameTotal
-	.global sphinx0
 
 	.global gfxInit
 	.global gfxReset
+	.global monoPalInit
 	.global paletteInit
-	.global paletteTxAll
 	.global gfxRefresh
 	.global gfxEndFrame
-	.global v30ReadPort
-	.global v30ReadPort16
-	.global v30WritePort
-	.global v30WritePort16
-	.global pushVolumeButton
-	.global setHeadphones
-	.global setLowBattery
+	.global vblIrqHandler
+	.global wsvReadIO
+	.global wsvWriteIO
 	.global updateLCDRefresh
 	.global setScreenRefresh
-	.global getInterruptVector
-	.global setInterruptExternal
+
+
+	.global suzy_0
 
 
 	.syntax unified
 	.arm
 
-	.section .text
+#if GBA
+	.section .ewram, "ax", %progbits	;@ For the GBA
+#else
+	.section .text						;@ For anything else
+#endif
 	.align 2
 ;@----------------------------------------------------------------------------
 gfxInit:					;@ Called from machineInit
 ;@----------------------------------------------------------------------------
 	stmfd sp!,{lr}
 
-	ldr r0,=OAM_BUFFER1			;@ No stray sprites please
-	mov r1,#0x200+SCREEN_HEIGHT
-	mov r2,#0x100*3				;@ 3 buffers
-	bl memset_
-
-	bl wsVideoInit
+	bl svVideoInit
 	bl gfxWinInit
-
-	ldr r0,=DISP_CTRL_LUT		;@ Destination
-	mov r1,#0
-dispLutLoop:
-	and r2,r1,#0x03				;@ BG & FG
-	tst r1,#0x04				;@ WS Sprites on?
-	orrne r2,r2,#0x10			;@ Sprites
-	orr r2,r2,r2,lsl#8			;@ Set both Win0 & Win1
-	and r3,r1,#0x30				;@ FG Win Ctrl
-	cmp r3,#0x20				;@ FG only inside Win0
-	biceq r2,r2,#0x0200
-	cmp r3,#0x30				;@ FG only outside Win0
-	biceq r2,r2,#0x0002
-	orr r2,r2,#0x002C0000		;@ WinOUT, Only BG2, BG3 & BLEND enabled outside Windows.
-	str r2,[r0],#4
-	add r1,r1,#1
-	cmp r1,#64
-	bne dispLutLoop
 
 	ldmfd sp!,{pc}
 
 ;@----------------------------------------------------------------------------
 gfxReset:					;@ Called with CPU reset
 ;@----------------------------------------------------------------------------
-	stmfd sp!,{r4,r5,lr}
+	stmfd sp!,{lr}
 
 	ldr r0,=gfxState
 	mov r1,#5					;@ 5*4
@@ -84,109 +59,122 @@ gfxReset:					;@ Called with CPU reset
 
 	bl gfxWinInit
 
-	ldr r0,=V30SetIRQPin
-	ldr r1,=gMachine
-	ldrb r1,[r1]
-	ldr r2,=lynxRAM
+	ldr r0,=m6502SetNMIPin
+	ldr r1,=m6502SetIRQPin
+	ldr r2,=svVRAM
 	ldr r3,=gSOC
 	ldrb r3,[r3]
-	bl wsVideoReset0
+	bl svVideoReset0
+	bl monoPalInit
 
-	ldr r4,=gGammaValue
-	ldr r5,=gContrastValue
-	ldrb r4,[r4]
-	ldrb r5,[r5]
-	mov r0,r4
-	mov r1,r5
-	bl paletteInit				;@ Do palette mapping
-	bl paletteTxAll				;@ Transfer it
-
-	ldr r0,=cartOrientation
-	ldr spxptr,=sphinx0
+	ldr r0,=gGammaValue
 	ldrb r0,[r0]
-	strb r0,[spxptr,#wsvOrientation]
+	bl paletteInit				;@ Do palette mapping
 
-	ldr r0,=emuSettings
-	ldr r0,[r0]
-	and r0,r0,#1<<18
-	bl setHeadphones
+	ldr suzptr,=suzy_0
 
-	ldmfd sp!,{r4,r5,pc}
+	ldmfd sp!,{pc}
 
 ;@----------------------------------------------------------------------------
 gfxWinInit:
 ;@----------------------------------------------------------------------------
-	stmfd sp!,{lr}
-	mov r0,#REG_BASE
+	mov r1,#REG_BASE
 	;@ Horizontal start-end
-	ldr r1,=(((SCREEN_WIDTH-GAME_WIDTH)/2)<<8)+(SCREEN_WIDTH+GAME_WIDTH)/2
-	orr r1,r1,r1,lsl#16			;@ Also WIN1H
-	str r1,[r0,#REG_WIN0H]
+	ldr r0,=(((SCREEN_WIDTH-GAME_WIDTH)/2)<<8)+(SCREEN_WIDTH+GAME_WIDTH)/2
+	strh r0,[r1,#REG_WIN0H]
+	strh r0,[r1,#REG_WIN1H]
 	;@ Vertical start-end
-	ldr r2,=(((SCREEN_HEIGHT-GAME_HEIGHT)/2)<<8)+(SCREEN_HEIGHT+GAME_HEIGHT)/2
-	orr r2,r2,r2,lsl#16			;@ Also WIN1V
-	str r2,[r0,#REG_WIN0V]
+	ldr r0,=(((SCREEN_HEIGHT-GAME_HEIGHT)/2)<<8)+(SCREEN_HEIGHT+GAME_HEIGHT)/2
+	strh r0,[r1,#REG_WIN0V]
+	strh r0,[r1,#REG_WIN1V]
 
-	ldr r3,=0x002C3333			;@ WinIN0/1, BG0, BG1, SPR & BLEND inside Win0
-	str r3,[r0,#REG_WININ]		;@ WinOUT, Only BG2, BG3 & BLEND enabled outside Windows.
+	ldr r0,=0x3333				;@ WinIN0/1, BG0, BG1, SPR & COL inside Win0
+	strh r0,[r1,#REG_WININ]
+	mov r0,#0x002C				;@ WinOUT, Only BG2, BG3 & COL enabled outside Windows.
+	strh r0,[r1,#REG_WINOUT]
+	bx lr
+;@----------------------------------------------------------------------------
+monoPalInit:
+	.type monoPalInit STT_FUNC
+;@----------------------------------------------------------------------------
+	ldr r0,=gPaletteBank
+	ldrb r0,[r0]
+	adr r1,monoPalette
+	add r1,r1,r0,lsl#3
+	ldr r0,=MAPPED_RGB
 
-	ldr lr,=WININOUTBUFF1
-	mov r0,#SCREEN_HEIGHT
-gfxWinLoop:						;@ 3 buffers
-	stmia lr!,{r1-r3}
-	stmia lr!,{r1-r3}
-	stmia lr!,{r1-r3}
-	subs r0,r0,#1
-	bne gfxWinLoop
-	ldmfd sp!,{pc}
+	ldmia r1,{r2-r3}
+	stmia r0!,{r2-r3}
+
+	bx lr
+;@----------------------------------------------------------------------------
+monoPalette:
+
+;@ Green
+	.long 0x7FFF7F, 0x102010
+;@ Black & White
+	.long 0xFFFFFF, 0x000000
+;@ Red
+	.long 0xFF7F7F, 0x201010
+;@ Blue
+	.long 0x8080FF, 0x000020
+;@ Classic
+	.long 0xFFDDAA, 0x221100
 ;@----------------------------------------------------------------------------
 paletteInit:		;@ r0-r3 modified.
 	.type paletteInit STT_FUNC
-;@ Called by ui.c:  void paletteInit(gammaVal, contrast);
+;@ Called by ui.c:  void paletteInit(gammaVal);
 ;@----------------------------------------------------------------------------
-	stmfd sp!,{r4-r8,lr}
-	mov r8,#30
-	rsb r1,r1,#4
-	mul r8,r1,r8
-	mov r1,r0					;@ Gamma value = 0 -> 4
-	mov r7,#0xF					;@ mask
-	ldr r6,=MAPPED_RGB
-	mov r4,#4096*2
-	sub r4,r4,#2
-noMap:							;@ Map 0000rrrrggggbbbb  ->  0bbbbbgggggrrrrr
-	and r0,r7,r4,lsr#1			;@ Blue ready
-	bl gPrefix
-	mov r5,r0,lsl#10
+	stmfd sp!,{r4-r9,lr}
+	mov r8,r0					;@ Gamma value = 0 -> 4
+	ldr r9,=gContrastValue
+	ldrb r9,[r9]
+	ldr r6,=EMUPALBUFF
+	ldr r7,=MAPPED_RGB
+	mov r4,#4
+noMap:							;@ Map rrrrrrrr_gggggggg_bbbbbbbb  ->  0bbbbbgggggrrrrr
+	ldrb r0,[r7,#2]				;@ Red high
+	ldrb r1,[r7,#6]				;@ Red low
+	mov r2,r9
+	bl contrastConvert
+	sub r2,r4,#1
+	bl liConvR2
+	mov r1,r8
+	bl gammaConvert
+	mov r5,r0,lsr#3
 
-	and r0,r7,r4,lsr#5			;@ Green ready
-	bl gPrefix
+	ldrb r0,[r7,#1]				;@ Green high
+	ldrb r1,[r7,#5]				;@ Green low
+	mov r2,r9
+	bl contrastConvert
+	sub r2,r4,#1
+	bl liConvR2
+	mov r1,r8
+	bl gammaConvert
+	mov r0,r0,lsr#3
 	orr r5,r5,r0,lsl#5
 
-	and r0,r7,r4,lsr#9			;@ Red ready
-	bl gPrefix
-	orr r5,r5,r0
+	ldrb r0,[r7,#0]				;@ Blue high
+	ldrb r1,[r7,#4]				;@ Blue low
+	mov r2,r9
+	bl contrastConvert
+	sub r2,r4,#1
+	bl liConvR2
+	mov r1,r8
+	bl gammaConvert
+	mov r0,r0,lsr#3
+	orr r5,r5,r0,lsl#10
 
-	strh r5,[r6,r4]
-	subs r4,r4,#2
-	bpl noMap
+	strh r5,[r6],#2
+	subs r4,r4,#1
+	bne noMap
 
-	ldmfd sp!,{r4-r8,lr}
+	ldmfd sp!,{r4-r9,lr}
 	bx lr
 
 ;@----------------------------------------------------------------------------
-gPrefix:
-	orr r0,r0,r0,lsl#4
-cPrefix:
-	mov r2,r8
-;@----------------------------------------------------------------------------
-contrastConvert:	;@ Takes value in r0(0-0xFF), gamma in r1(0-4), contrast in r2(0-255) returns new value in r0=0x1F
-;@----------------------------------------------------------------------------
-	rsb r3,r2,#256
-	mul r0,r3,r0
-	add r0,r0,r2,lsl#7
-	mov r0,r0,lsr#8
-;@----------------------------------------------------------------------------
-gammaConvert:	;@ Takes value in r0(0-0xFF), gamma in r1(0-4),returns new value in r0=0x1F
+gammaConvert:	;@ Takes value in r0(0-0xFF), gamma in r1(0-4)
+				;@ returns new value in r0=0xFF
 ;@----------------------------------------------------------------------------
 	rsb r2,r0,#0x100
 	mul r3,r2,r2
@@ -195,133 +183,52 @@ gammaConvert:	;@ Takes value in r0(0-0xFF), gamma in r1(0-4),returns new value i
 	orr r0,r0,r0,lsl#8
 	mul r2,r1,r2
 	mla r0,r3,r0,r2
-	movs r0,r0,lsr#13
-
+	mov r0,r0,lsr#10
 	bx lr
 ;@----------------------------------------------------------------------------
-paletteTxAll:				;@ Called from ui.c
-	.type paletteTxAll STT_FUNC
+contrastConvert:	;@ Takes values in r0 & r1(0-0xFF), contrast in r2(0-4)
+					;@ returns new values in r0&r1=0xFF
 ;@----------------------------------------------------------------------------
-	ldr r0,=EMUPALBUFF
-	ldr spxptr,=sphinx0
-;@----------------------------------------------------------------------------
-paletteTx:					;@ r0=destination, spxptr=Sphinx
-;@----------------------------------------------------------------------------
-	ldr r1,=MAPPED_RGB
-	ldr r2,=0x1FFE
-	stmfd sp!,{r4-r8,lr}
-	mov r5,#0
-	ldrb r3,[spxptr,#wsvBGColor]	;@ Background palette
-	ldrb r7,[spxptr,#wsvVideoMode]
-	ands r7,r7,#0xC0			;@ Color mode?
-	beq bnwTx
-
-	ldr r4,[spxptr,#paletteRAM]
-	mov r3,r3,lsl#1
-	ldrh r3,[r4,r3]
-	and r3,r2,r3,lsl#1
-	ldrh r3,[r1,r3]
-	strh r3,[r0]				;@ Background palette
-	cmp r7,#0xC0				;@ 4bitplane mode?
-	bne col4Tx
-	add r6,r0,#0x100			;@ Sprite pal ofs - r5
-txLoop:
-	ldrh r3,[r4],#2
-	and r3,r2,r3,lsl#1
-	ldrh r3,[r1,r3]
-	cmp r5,#0x00
-	strhne r3,[r0,r5]			;@ Background palette
-	cmp r5,#0x100
-	strhpl r3,[r6,r5]			;@ Sprite palette
-
-	add r5,r5,#2
-	cmp r5,#0x200
-	bmi txLoop
-
-	ldmfd sp!,{r4-r8,lr}
+	movs r2,r2,lsl#8
+	addeq r2,r2,#0x80
+	add r3,r0,r1
+	sub r0,r0,r3,lsr#1
+	sub r1,r1,r3,lsr#1
+	mul r0,r2,r0
+	mul r1,r2,r1
+	mov r0,r0,asr#8+2
+	mov r1,r1,asr#8+2
+	add r0,r0,r3,lsr#1
+	add r1,r1,r3,lsr#1
 	bx lr
 
-col4Tx:
-col4TxLoop:
-	ldrh r3,[r4,r5]
-	and r3,r2,r3,lsl#1
-	ldrh r3,[r1,r3]
-	cmp r5,#0x00
-	strhne r3,[r0]				;@ Background palette
-	strh r3,[r0,#0x8]			;@ Opaque tiles palette
-	cmp r5,#0x100
-	addpl r6,r0,#0x100
-	strhpl r3,[r6]				;@ Sprite palette
-	strhpl r3,[r6,#0x8]			;@ Sprite palette opaque
-
-	add r0,r0,#2
-	add r5,r5,#2
-	tst r5,#6
-	bne col4TxLoop
-	add r0,r0,#0x18
-	add r5,r5,#0x18
-	cmp r5,#0x200
-	bmi col4TxLoop
-
-	ldmfd sp!,{r4-r8,lr}
+;@----------------------------------------------------------------------------
+liConvR2:
+	orr r2,r2,r2,lsl#2
+	orr r2,r2,r2,lsl#4
+;@----------------------------------------------------------------------------
+lightConvert:	;@ Takes values in r0 & r1(0-0xFF), light in r2(0-0xFF)
+				;@ returns new values in r0=0xFF
+;@----------------------------------------------------------------------------
+	sub r3,r0,r1
+	mul r3,r2,r3
+	add r0,r1,r3,lsr#8
 	bx lr
 
-bnwTx:
-	add r1,r1,#MAPPED_BNW-MAPPED_RGB
-	mov r2,#0x1E
-	add r4,spxptr,#wsvPalette0
-	and r3,r3,#0x7
-	tst r3,#1
-	add r7,spxptr,#wsvColor01
-	ldrb r3,[r7,r3,lsr#1]
-	andeq r3,r2,r3,lsl#1
-	andne r3,r2,r3,lsr#3
-	ldrh r3,[r1,r3]
-	strh r3,[r0]				;@ Background palette
-bnwTxLoop2:
-	ldrh r6,[r4],#2
-bnwTxLoop:
-	and r3,r6,#0x7
-	mov r6,r6,lsr#4
-	tst r3,#1
-	ldrb r3,[r7,r3,lsr#1]
-	andeq r3,r2,r3,lsl#1
-	andne r3,r2,r3,lsr#3
-	ldrh r3,[r1,r3]
-
-	cmp r5,#0x0
-	strhne r3,[r0]				;@ Background palette
-	strh r3,[r0,#0x8]			;@ Opaque tiles palette
-	cmp r5,#0x100
-	addpl r8,r0,#0x100
-	strhpl r3,[r8]				;@ Sprite palette
-	strhpl r3,[r8,#0x8]			;@ Sprite palette opaque
-
-	add r0,r0,#2
-	add r5,r5,#2
-	tst r5,#6
-	bne bnwTxLoop
-	add r0,r0,#0x18
-	add r5,r5,#0x18
-	cmp r5,#0x200
-	bmi bnwTxLoop2
-
-	ldmfd sp!,{r4-r8,lr}
-	bx lr
 ;@----------------------------------------------------------------------------
 updateLCDRefresh:
 	.type updateLCDRefresh STT_FUNC
 ;@----------------------------------------------------------------------------
-	adr spxptr,sphinx0
-	ldrb r0,[spxptr,#wsvTotalLines]
-	b wsvRefW
+	adr suzptr,suzy_0
+	ldrb r1,[suzptr,#svvLCDVSize]
+	b svRefW
 ;@----------------------------------------------------------------------------
 setScreenRefresh:			;@ r0 in = WS scan line count.
 	.type setScreenRefresh STT_FUNC
 ;@----------------------------------------------------------------------------
 	stmfd sp!,{r4-r6,lr}
 	mov r4,r0
-	ldr r6,=12000				;@ WS scanline frequency = 12kHz
+	ldr r6,=8130				;@ SV scanline frequency = 8130Hz
 	mov r0,r6,lsl#1
 	mov r1,r4
 	swi 0x090000				;@ Division r0/r1, r0=result, r1=remainder.
@@ -331,7 +238,7 @@ setScreenRefresh:			;@ r0 in = WS scan line count.
 	bl setLCDFPS
 	ldr r0,=emuSettings
 	ldr r0,[r0]
-	tst r0,#ALLOW_REFRESH_CHG
+	ands r0,r0,#1<<19
 	moveq r0,#59
 	subne r0,r5,#1
 	ldr r1,=fpsNominal
@@ -359,45 +266,49 @@ vblIrqHandler:
 
 	mov r6,#REG_BASE
 	strh r6,[r6,#REG_DMA0CNT_H]	;@ DMA0 stop
-	strh r6,[r6,#REG_DMA3CNT_H]	;@ DMA3 stop
 
-	add r0,r6,#REG_DMA0SAD
-	ldr r1,dmaScroll			;@ Setup DMA buffer for scrolling:
-	ldmia r1!,{r3-r4}			;@ Read
-	add r2,r6,#REG_BG0HOFS		;@ DMA0 always goes here
-	stmia r2,{r3-r4}			;@ Set 1st values manually, HBL is AFTER 1st line
-	ldr r3,=0x96600002			;@ hblank 32bit repeat incsrc inc_reloaddst, 2 words
-	stmia r0,{r1-r3}			;@ DMA0 go
+	add r1,r6,#REG_DMA0SAD
+	ldr r2,dmaScroll			;@ Setup DMA buffer for scrolling:
+	ldmia r2!,{r4}				;@ Read
+	add r3,r6,#REG_BG0HOFS		;@ DMA0 always goes here
+	stmia r3,{r4}				;@ Set 1st value manually, HBL is AFTER 1st line
+	ldr r4,=0x96600001			;@ noIRQ hblank 32bit repeat incsrc inc_reloaddst, 1 word
+	stmia r1,{r2-r4}			;@ DMA0 go
 
-	add r0,r6,#REG_DMA3SAD
-	ldr r1,dmaOamBuffer			;@ DMA3 src, OAM transfer:
-	mov r2,#OAM					;@ DMA3 dst
-	mov r3,#0x84000000			;@ 32bit incsrc incdst
-	orr r3,r3,#128*2			;@ 128 sprites * 2 longwords
-	stmia r0,{r1-r3}			;@ DMA3 go
+	add r1,r6,#REG_DMA3SAD
 
-	ldr r1,=EMUPALBUFF			;@ DMA3 src, Palette transfer:
-	mov r2,#BG_PALETTE			;@ DMA3 dst
-	mov r3,#0x84000000			;@ 32bit incsrc incdst
-	orr r3,r3,#0x100			;@ 256 words (1024 bytes)
-	stmia r0,{r1-r3}			;@ DMA3 go
+	ldr r2,=EMUPALBUFF			;@ DMA3 src, Palette transfer:
+	mov r3,#BG_PALETTE			;@ DMA3 dst
+	mov r4,#0x84000000			;@ noIRQ 32bit incsrc incdst
+	orr r4,r4,#0x100			;@ 256 words (1024 bytes)
+	stmia r1,{r2-r4}			;@ DMA3 go
 
-	ldr r1,dmaWinInOut			;@ Setup DMA buffer for window stuff:
-	ldmia r1!,{r3-r5}			;@ Read
-	add r2,r6,#REG_WIN0H		;@ DMA3 dst
-	stmia r2,{r3-r5}			;@ Set 1st values manually, HBL is AFTER 1st line
-	ldr r3,=0x96600003			;@ hblank 32bit repeat incsrc inc_reloaddst, 3 words
-	stmia r0,{r1-r3}			;@ DMA3 go
-
-	adr spxptr,sphinx0
+	adr suzptr,suzy_0
+	ldr r0,GFX_BG0CNT
+	str r0,[r6,#REG_BG0CNT]
 	ldr r0,GFX_DISPCNT
+	ldrb r1,[suzptr,#wsvLatchedDispCtrl]
+//	tst r1,#0x01
+//	biceq r0,r0,#0x0100			;@ Turn off Bg
 	ldrb r2,gGfxMask
 	bic r0,r0,r2,lsl#8
 	strh r0,[r6,#REG_DISPCNT]
 
+	ldr r0,[suzptr,#windowData]
+	strh r0,[r6,#REG_WIN0H]
+	mov r0,r0,lsr#16
+	strh r0,[r6,#REG_WIN0V]
+	ldr r0,=0x3333				;@ WinIN0/1, BG0, BG1, SPR & COL inside Win0
+	and r2,r1,#0x30
+	cmp r2,#0x20
+	biceq r0,r0,#0x0200
+	cmp r2,#0x30
+	biceq r0,r0,#0x0002
+	strh r0,[r6,#REG_WININ]
+
 	ldr r0,=emuSettings
 	ldr r0,[r0]
-	tst r0,#ALLOW_REFRESH_CHG
+	ands r0,r0,#1<<19
 	beq exit75Hz
 	ldr r0,=pauseEmulation
 	ldrb r0,[r0]
@@ -420,9 +331,8 @@ exit75Hz:
 	ldrb r0,frameDone
 	cmp r0,#0
 	beq nothingNew
-//	bl wsvConvertTiles
-	mov r0,#BG_GFX
-	bl wsvConvertTileMaps
+	ldr r0,=BG_GFX+0x8000
+	bl svConvertScreen
 	mov r0,#0
 	strb r0,frameDone
 nothingNew:
@@ -430,79 +340,28 @@ nothingNew:
 	blx scanKeys
 	ldmfd sp!,{r4-r8,pc}
 
-;@----------------------------------------------------------------------------
-copyWindowValues:		;@ r0 = destination
-;@----------------------------------------------------------------------------
-	stmfd sp!,{r4-r9,lr}
-	add r0,r0,#((SCREEN_HEIGHT-GAME_HEIGHT)/2)*12		;@ 12 bytes per row
-	ldr r9,=(((SCREEN_WIDTH-GAME_WIDTH)/2)<<24)+(((SCREEN_WIDTH+GAME_WIDTH)/2)<<16)+(((SCREEN_WIDTH-GAME_WIDTH)/2)<<8)+((SCREEN_WIDTH-GAME_WIDTH)/2 + 1)
-	ldr lr,=(((SCREEN_HEIGHT-GAME_HEIGHT)/2)<<24)+(((SCREEN_HEIGHT+GAME_HEIGHT)/2)<<16)+(((SCREEN_HEIGHT-GAME_HEIGHT)/2)<<8)+((SCREEN_HEIGHT-GAME_HEIGHT)/2 + 1)
-	ldr r1,[spxptr,#dispBuff]
-	ldr r4,[spxptr,#windowBuff]
-	ldr r2,=DISP_CTRL_LUT
-
-	mov r3,#GAME_HEIGHT<<24
-setWindowLoop:
-	ldr r8,[r4],#4				;@ FG Win pos/size
-	and r6,r8,#0x000000FF		;@ H start
-	and r7,r8,#0x00FF0000		;@ H end
-	cmp r6,#GAME_WIDTH
-	movcs r6,#GAME_WIDTH
-	cmp r7,#(GAME_WIDTH-1)<<16
-	movcs r7,#(GAME_WIDTH-1)<<16
-	cmp r7,r6,lsl#16
-	orr r6,r6,r7,lsl#8
-	movcc r6,#-1
-	add r6,r9,r6,ror#24
-
-	rsb r5,r3,#GAME_HEIGHT<<24
-	and r7,r8,#0x0000FF00		;@ V start, V end top byte
-	cmp r7,r5,lsr#16
-	movcc r7,r5,lsr#16
-	cmp r7,#GAME_HEIGHT<<8
-	movcs r7,#GAME_HEIGHT<<8
-	cmp r8,#(GAME_HEIGHT-1)<<24
-	movcs r8,#(GAME_HEIGHT-1)<<24
-	cmp r8,r5
-	subcc r8,r5,#1<<24
-	orr r7,r7,r8,lsr#24
-	add r7,r7,lr
-
-	ldrb r8,[r1],#1
-	ldr r8,[r2,r8,lsl#2]
-	stmia r0!,{r6-r8}
-	subs r3,r3,#1<<24
-	bne setWindowLoop
-
-	ldmfd sp!,{r4-r9,pc}
 
 ;@----------------------------------------------------------------------------
 gfxRefresh:					;@ Called from C when changing scaling.
 	.type gfxRefresh STT_FUNC
 ;@----------------------------------------------------------------------------
-	adr spxptr,sphinx0
+	adr suzptr,suzy_0
 ;@----------------------------------------------------------------------------
-gfxEndFrame:				;@ Called just after screen end (line 144)	(r0-r3 safe to use)
+gfxEndFrame:				;@ Called just before screen end (~line 101)	(r0-r3 safe to use)
 ;@----------------------------------------------------------------------------
-	stmfd sp!,{r4-r8,lr}
+	stmfd sp!,{r3,lr}
 
 	ldr r0,tmpScroll			;@ Destination
 	bl copyScrollValues
-	ldr r0,tmpWinInOut			;@ Destination
-	bl copyWindowValues
-	ldr r0,tmpOamBuffer			;@ Destination
-	bl wsvConvertSprites
-	bl paletteTxAll
 ;@--------------------------
 
-	adr r0,tmpOamBuffer
-	ldmia r0,{r1-r8,lr}
-	stmia r0!,{r7,r8,lr}
-	stmia r0,{r1-r6}
+	ldr r0,tmpScroll
+	ldr r1,dmaScroll
+	str r0,dmaScroll
+	str r1,tmpScroll
 
 	mov r0,#1
 	strb r0,frameDone
-	bl updateSlowIO				;@ RTC/Alarm and more
 
 	ldr r1,=fpsValue
 	ldr r0,[r1]
@@ -513,21 +372,14 @@ gfxEndFrame:				;@ Called just after screen end (line 144)	(r0-r3 safe to use)
 	add r1,r1,#1
 	str r1,frameTotal
 
-	ldmfd sp!,{r4-r8,lr}
+	ldmfd sp!,{r3,lr}
 	bx lr
 
 ;@----------------------------------------------------------------------------
-frameTotal:		.long 0			;@ Let Gui.c see frame count for savestates
+frameTotal:			.long 0		;@ Let Gui.c see frame count for savestates
 
-tmpOamBuffer:	.long OAM_BUFFER1
 tmpScroll:		.long SCROLLBUFF1
-tmpWinInOut:	.long WININOUTBUFF1
-dmaOamBuffer:	.long OAM_BUFFER2
 dmaScroll:		.long SCROLLBUFF2
-dmaWinInOut:	.long WININOUTBUFF2
-xtrOamBuffer:	.long OAM_BUFFER3
-xtrScroll:		.long SCROLLBUFF3
-xtrWinInOut:	.long WININOUTBUFF3
 
 
 gFlicker:		.byte 1
@@ -538,63 +390,34 @@ gGfxMask:		.byte 0
 frameDone:		.byte 0
 				.byte 0,0
 ;@----------------------------------------------------------------------------
-wsVideoReset0:		;@ r0=periodicIrqFunc, r1=model, r2=frame2IrqFunc, r3=SOC
+svVideoReset0:		;@ r0=NmiFunc, r1=IrqFunc, r2=ram+LUTs, r3=model
 ;@----------------------------------------------------------------------------
-	adr spxptr,sphinx0
-	b wsVideoReset
+	adr suzptr,suzy_0
+	b svVideoReset
 ;@----------------------------------------------------------------------------
-v30ReadPort:
-	.type v30ReadPort STT_FUNC
+wsvReadIO:
+	.type wsvReadIO STT_FUNC
 ;@----------------------------------------------------------------------------
-	adr spxptr,sphinx0
-	b wsvRead
+	stmfd sp!,{r3,r12,lr}
+	mov r0,r12
+	adr suzptr,suzy_0
+	bl svRead
+	ldmfd sp!,{r3,r12,lr}
+	bx lr
 ;@----------------------------------------------------------------------------
-v30ReadPort16:
-	.type v30ReadPort16 STT_FUNC
+wsvWriteIO:
+	.type wsvWriteIO STT_FUNC
 ;@----------------------------------------------------------------------------
-	adr spxptr,sphinx0
-	b wsvRead16
+	stmfd sp!,{r3,r12,lr}
+	mov r1,r0
+	mov r0,r12
+	adr suzptr,suzy_0
+	bl svWrite
+	ldmfd sp!,{r3,r12,lr}
+	bx lr
 ;@----------------------------------------------------------------------------
-v30WritePort:
-	.type v30WritePort STT_FUNC
-;@----------------------------------------------------------------------------
-	adr spxptr,sphinx0
-	b wsvWrite
-;@----------------------------------------------------------------------------
-v30WritePort16:
-	.type v30WritePort16 STT_FUNC
-;@----------------------------------------------------------------------------
-	adr spxptr,sphinx0
-	b wsvWrite16
-;@----------------------------------------------------------------------------
-pushVolumeButton:
-;@----------------------------------------------------------------------------
-	adr spxptr,sphinx0
-	b wsvPushVolumeButton
-;@----------------------------------------------------------------------------
-setHeadphones:				;@ r0 = on/off
-	.type setHeadphones STT_FUNC
-;@----------------------------------------------------------------------------
-	adr spxptr,sphinx0
-	b wsvSetHeadphones
-;@----------------------------------------------------------------------------
-setLowBattery:				;@ r0 = on/off
-	.type setLowBattery STT_FUNC
-;@----------------------------------------------------------------------------
-	adr spxptr,sphinx0
-	b wsvSetLowBattery
-;@----------------------------------------------------------------------------
-getInterruptVector:
-;@----------------------------------------------------------------------------
-	adr spxptr,sphinx0
-	b wsvGetInterruptVector
-;@----------------------------------------------------------------------------
-setInterruptExternal:		;@ r0=irq state
-;@----------------------------------------------------------------------------
-	adr spxptr,sphinx0
-	b wsvSetInterruptExternal
-sphinx0:
-	.space sphinxSize
+suzy_0:
+	.space suzySize
 ;@----------------------------------------------------------------------------
 
 gfxState:
@@ -617,30 +440,12 @@ GFX_BG1CNT:
 	.section .bss
 #endif
 	.align 2
-OAM_BUFFER1:
-	.space 0x400
-OAM_BUFFER2:
-	.space 0x400
-OAM_BUFFER3:
-	.space 0x400
 SCROLLBUFF1:
-	.space SCREEN_HEIGHT*8		;@ Scrollbuffer.
+	.space 0x100*8				;@ Scrollbuffer.
 SCROLLBUFF2:
-	.space SCREEN_HEIGHT*8		;@ Scrollbuffer.
-SCROLLBUFF3:
-	.space SCREEN_HEIGHT*8		;@ Scrollbuffer.
-WININOUTBUFF1:
-	.space SCREEN_HEIGHT*12		;@ Scrollbuffer.
-WININOUTBUFF2:
-	.space SCREEN_HEIGHT*12		;@ Scrollbuffer.
-WININOUTBUFF3:
-	.space SCREEN_HEIGHT*12		;@ Scrollbuffer.
-DISP_CTRL_LUT:
-	.space 64*4					;@ Convert from WS DispCtrl to NDS/GBA WinCtrl
+	.space 0x100*8				;@ Scrollbuffer.
 MAPPED_RGB:
 	.space 0x2000				;@ 4096*2
-MAPPED_BNW:
-	.space 0x20
 EMUPALBUFF:
 	.space 0x400
 

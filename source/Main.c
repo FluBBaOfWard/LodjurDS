@@ -19,7 +19,6 @@ static void checkTimeOut(void);
 static void setupGraphics(void);
 static void setupStream(void);
 
-bool powerIsOn = false;
 bool gameInserted = false;
 static int sleepTimer = 60*60*5;	// 5 min
 static bool vBlankOverflow = false;
@@ -57,11 +56,9 @@ int main(int argc, char **argv) {
 	if (argc > 1) {
 		enableExit = true;
 	}
-	// Allocate 2MB
-	allocatedRomMemSize = 0x200000 + 0x1000;
-	allocatedRomMem = malloc(allocatedRomMemSize);
-	maxRomSize = allocatedRomMemSize;
-	romSpacePtr = (u8 *)(((u32)allocatedRomMem + 0xFF) & ~0xFF) ;
+	maxRomSize = 0x80000 + 0x1000 + 0x100;
+	u8 *memPtr = malloc(maxRomSize);
+	romSpacePtr = (u8 *)(((u32)memPtr + 0xFF) & ~0xFF);
 	setupGraphics();
 
 	setupStream();
@@ -73,11 +70,7 @@ int main(int argc, char **argv) {
 	loadCart();
 	if (initFileHelper()) {
 		loadSettings();
-		setupEmuBorderPalette();
 		loadBnWBIOS();
-		loadColorBIOS();
-		loadCrystalBIOS();
-		loadIntEeproms();
 		if (argc > 1) {
 			loadGame(argv[1]);
 			setMuteSoundGUI();
@@ -92,10 +85,11 @@ int main(int argc, char **argv) {
 		waitVBlank();
 		checkTimeOut();
 		guiRunLoop();
-		if (powerIsOn && !pauseEmulation) {
+		if (!pauseEmulation) {
 			run();
 		}
 	}
+	free(memPtr);
 	return 0;
 }
 
@@ -171,20 +165,19 @@ static void setupGraphics() {
 	// Set up the main display
 	GFX_DISPCNT = MODE_0_2D
 				 | DISPLAY_BG0_ACTIVE
-				 | DISPLAY_BG1_ACTIVE
+//				 | DISPLAY_BG1_ACTIVE
 				 | DISPLAY_BG2_ACTIVE
-				 | DISPLAY_SPR_ACTIVE
 				 | DISPLAY_WIN0_ON
 				 | DISPLAY_WIN1_ON
 				 | DISPLAY_BG_EXT_PALETTE
 				 ;
 	videoSetMode(GFX_DISPCNT);
-	GFX_BG0CNT = BG_32x64 | BG_MAP_BASE(0) | BG_COLOR_16 | BG_TILE_BASE(2) | BG_PRIORITY(1);
-	GFX_BG1CNT = BG_32x64 | BG_MAP_BASE(2) | BG_COLOR_16 | BG_TILE_BASE(2) | BG_PRIORITY(0);
+	GFX_BG0CNT = BG_32x32 | BG_MAP_BASE(0) | BG_COLOR_16 | BG_TILE_BASE(2) | BG_PRIORITY(0);
+//	GFX_BG1CNT = BG_32x32 | BG_MAP_BASE(0) | BG_COLOR_16 | BG_TILE_BASE(3) | BG_PRIORITY(1);
 	REG_BG0CNT = GFX_BG0CNT;
-	REG_BG1CNT = GFX_BG1CNT;
+//	REG_BG1CNT = GFX_BG1CNT;
 	// Background 2 for border
-	REG_BG2CNT = BG_32x32 | BG_MAP_BASE(15) | BG_COLOR_256 | BG_TILE_BASE(1) | BG_PRIORITY(2);
+	REG_BG2CNT = BG_32x32 | BG_MAP_BASE(15) | BG_COLOR_256 | BG_TILE_BASE(4) | BG_PRIORITY(2);
 
 	// Set up the sub display
 	videoSetModeSub(MODE_0_2D

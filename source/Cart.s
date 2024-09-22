@@ -1,30 +1,30 @@
 #ifdef __arm__
 
+//#define EMBEDDED_ROM
+
+#include "ARMSuzy/ARMSuzy.i"
 #include "ARM6502/M6502.i"
 
+	.global machineInit
+	.global loadCart
+	.global romNum
 	.global cartFlags
 	.global romStart
+	.global bankSwitchCart
+	.global reBankSwitchCart
+	.global BankSwitch89AB_W
+	.global clearDirtyTiles
+
 	.global romSpacePtr
-	.global allocatedRomMem
-	.global biosBase
-	.global biosSpace
-	.global biosSpaceColor
-	.global biosSpaceCrystal
-	.global g_BIOSBASE
+	.global MEMMAPTBL_
+
 	.global lynxRAM
+	.global svVRAM
 	.global DIRTYTILES
-	.global wsSRAM
-	.global extEeprom
-	.global extEepromMem
-	.global sramSize
-	.global eepromSize
 	.global gRomSize
 	.global maxRomSize
-	.global allocatedRomMemSize
 	.global romMask
-	.global gGameHeader
 	.global gGameID
-	.global cartOrientation
 	.global gConfig
 	.global gMachine
 	.global gMachineSet
@@ -32,45 +32,39 @@
 	.global gLang
 	.global gPaletteBank
 
-	.global machineInit
-	.global loadCart
-	.global reBankSwitchAll
-	.global reBankSwitch4_F
-	.global reBankSwitch1
-	.global reBankSwitch2
-	.global reBankSwitch3
-	.global clearDirtyTiles
-	.global cartRtcUpdate
-
 	.syntax unified
 	.arm
 
 	.section .rodata
 	.align 2
 
+#ifdef EMBEDDED_ROM
 ROM_Space:
 //	.incbin "roms/APB - All Points Bulletin (1990).lnx"
 //	.incbin "roms/Batman Returns (1992).lnx"
 //	.incbin "roms/Double Dragon (1993) (Telegames).lnx"
 //	.incbin "roms/Dracula - The Undead (1991).lnx"
 ROM_SpaceEnd:
+#endif
 LYNX_BIOS_INTERNAL:
 	.incbin "roms/lynxboot.img"
 
 	.align 2
 ;@----------------------------------------------------------------------------
 machineInit: 				;@ Called from C
-	.type machineInit STT_FUNC
+	.type   machineInit STT_FUNC
 ;@----------------------------------------------------------------------------
 	stmfd sp!,{r4-r11,lr}
 
-//	ldr r0,=romSize
-//	mov r1,#ROM_SpaceEnd-ROM_Space
-//	str r1,[r0]
-//	ldr r0,=romSpacePtr
-//	ldr r7,=ROM_Space
-//	str r7,[r0]
-
+#ifdef EMBEDDED_ROM
+	ldr r0,=romSize
+	mov r1,#ROM_SpaceEnd-ROM_Space
+	str r1,[r0]
+	ldr r0,=romSpacePtr
+	ldr r7,=ROM_Space
+	str r7,[r0]
+#endif
+	bl memoryMapInit
 	bl gfxInit
 //	bl ioInit
 	bl soundInit
@@ -82,36 +76,25 @@ machineInit: 				;@ Called from C
 	.section .ewram,"ax"
 	.align 2
 ;@----------------------------------------------------------------------------
-loadCart: 					;@ Called from C:
-	.type loadCart STT_FUNC
+loadCart: 					;@ Called from C
+	.type   loadCart STT_FUNC
 ;@----------------------------------------------------------------------------
 	stmfd sp!,{r4-r11,lr}
 	ldr m6502ptr,=m6502_0
 
-	bl fixRomSizeAndPtr
+	ldr r0,romSize
+	movs r1,r0,lsr#14			;@ 16kB blocks.
+	subne r1,r1,#1
+	str r1,romMask				;@ romMask=romBlocks-1
 
 	bl resetCartridgeBanks
 
-	ldr r0,=lynxRAM
-	ldr r1,=mem_R0
-	ldr r2,=mem_W0
-	add r3,m6502ptr,#m6502MemTbl
-	mov r4,#8
-memLoop0:
-	str r1,[r3,#8*4]
-	str r2,[r3,#16*4]
-	str r0,[r3],#4
-	subs r4,r4,#1
-	bne memLoop0
+	ldrb r5,gMachine
+	cmp r5,#HW_LYNX_II
+	moveq r4,#SOC_HOWARD2
+	movne r4,#SOC_HOWARD
+	strb r4,gSOC
 
-	ldr r1,=mem_R7
-	ldr r2,=mem_W7
-	str r1,[m6502ptr,#m6502ReadTbl+7*4]
-	str r2,[m6502ptr,#m6502WriteTbl+7*4]
-
-	ldrb r0,[r4,#0x3A]			;@ LNX Orientation
-	and r0,r0,#3
-	strb r0,cartOrientation
 
 	ldr r0,=lynxRAM				;@ Clear RAM
 	mov r1,#0x10000/4
@@ -123,70 +106,121 @@ memLoop0:
 	bl resetCartridgeBanks
 	bl ioReset
 	bl soundReset
-	mov r0,r4					;@ SOC
 	bl cpuReset
 	ldmfd sp!,{r4-r11,lr}
 	bx lr
-
 
 ;@----------------------------------------------------------------------------
 clearDirtyTiles:
 ;@----------------------------------------------------------------------------
 	ldr r0,=DIRTYTILES			;@ Clear RAM
-	mov r1,#0x800/4
+	mov r1,#0x200/4
 	b memclr_
 
 ;@----------------------------------------------------------------------------
-fixRomSizeAndPtr:
+memoryMapInit:
 ;@----------------------------------------------------------------------------
-	ldr r0,romSize
-	sub r1,r0,#1
-	orr r1,r1,r1,lsr#1
-	orr r1,r1,r1,lsr#2
-	orr r1,r1,r1,lsr#4
-	orr r1,r1,r1,lsr#8
-	orr r1,r1,r1,lsr#16
-	add r1,r1,#1				;@ RomSize Power of 2
+	ldr r0,=m6502_0
 
-	movs r2,r1,lsr#16			;@ 64kB blocks.
-	subne r2,r2,#1
-	str r2,romMask				;@ romMask=romBlocks-1
+	ldr r1,=lynxRAM
+	str r1,[r0,#m6502MemTbl+0*4]	;@ 0 RAM
+	ldr r1,=svVRAM
+	str r1,[r0,#m6502MemTbl+2*4]	;@ 0 VRAM
 
-	ldr r2,romSpacePtr
-	add r2,r2,r0
-	sub r2,r2,r1
-	str r2,romPtr
-	sub r2,r2,#0x20000
-	str r2,romPtr2
-	sub r2,r2,#0x10000
-	str r2,romPtr3
-	sub r2,r2,#0x10000
-	str r2,romPtr4
+	ldr r1,=ram6502R
+	str r1,[r0,#m6502ReadTbl+0*4]
+	ldr r1,=wsvReadIO
+	str r1,[r0,#m6502ReadTbl+1*4]
+	ldr r1,=vram6502R
+	str r1,[r0,#m6502ReadTbl+2*4]
+	ldr r1,=empty_R
+	str r1,[r0,#m6502ReadTbl+3*4]
+	ldr r1,=mem6502R4
+	str r1,[r0,#m6502ReadTbl+4*4]
+	ldr r1,=mem6502R5
+	str r1,[r0,#m6502ReadTbl+5*4]
+	ldr r1,=mem6502R6
+	str r1,[r0,#m6502ReadTbl+6*4]
+	ldr r1,=mem6502R7
+	str r1,[r0,#m6502ReadTbl+7*4]
+
+	ldr r1,=ram6502W
+	str r1,[r0,#m6502WriteTbl+0*4]
+	ldr r1,=wsvWriteIO
+	str r1,[r0,#m6502WriteTbl+1*4]
+	ldr r1,=vram6502W
+	str r1,[r0,#m6502WriteTbl+2*4]
+	ldr r1,=empty_W
+	str r1,[r0,#m6502WriteTbl+3*4]
+	ldr r1,=rom_W
+	str r1,[r0,#m6502WriteTbl+4*4]
+	str r1,[r0,#m6502WriteTbl+5*4]
+	str r1,[r0,#m6502WriteTbl+6*4]
+	str r1,[r0,#m6502WriteTbl+7*4]
 
 	bx lr
 ;@----------------------------------------------------------------------------
 resetCartridgeBanks:
 ;@----------------------------------------------------------------------------
-	stmfd sp!,{lr}
-	ldr r12,=sphinx0
-	mov r0,#0xFF
-	bl BankSwitch4_F_W
-	mov r0,#0xFF
-	bl BankSwitch1_W
-	mov r0,#0xFF
-	bl BankSwitch2_W
-	mov r0,#0xFF
-	bl BankSwitch3_W
-	ldmfd sp!,{pc}
+	stmfd sp!,{r4,lr}
+	ldr r4,romSpacePtr
+	ldr r0,=bankPointers
+	ldrb r2,romMask
+	mov r1,#0x1F
+bankLoop:
+	and r3,r2,r1
+	add r3,r4,r3,lsl#14
+	str r3,[r0,r1,lsl#2]
+	subs r1,r1,#1
+	bpl bankLoop
+
+	mov r1,#0
+	bl BankSwitch89AB_W
+	bl BankSwitchCDEF_W
+	ldmfd sp!,{r4,pc}
 ;@----------------------------------------------------------------------------
-cartUnmW:
+reBankSwitchCart:			;@ r0 = LinkPort val, r1 = BankChip val
 ;@----------------------------------------------------------------------------
+	ldr m6502ptr,=m6502_0
+;@----------------------------------------------------------------------------
+bankSwitchCart:				;@ r0 = LinkPort val, r1 = BankChip val
+;@----------------------------------------------------------------------------
+	mov r1,r1,lsr#5
+	ldrb r2,romMask
+	cmp r2,#8
+	bmi BankSwitch89AB_W
+	tst r1,#4
+	orrne r0,r0,#0xF
+	and r1,r1,#1
+	orr r1,r1,r0,lsl#1
+;@----------------------------------------------------------------------------
+BankSwitch89AB_W:			;@ 0x8000-0xBFFF
+;@----------------------------------------------------------------------------
+	adr r2,bankPointers
+	and r1,r1,#0x1F
+	ldr r0,[r2,r1,lsl#2]
+	sub r0,r0,#0x8000
+
+	str r0,[m6502ptr,#m6502MemTbl+4*4]
+	str r0,[m6502ptr,#m6502MemTbl+5*4]
 	bx lr
 ;@----------------------------------------------------------------------------
+BankSwitchCDEF_W:			;@ 0xC000-0xFFFF
+;@----------------------------------------------------------------------------
+	ldr r0,bankPointers+31*4
+	sub r0,r0,#0xC000
+	str r0,[m6502ptr,#m6502MemTbl+6*4]
+	str r0,[m6502ptr,#m6502MemTbl+7*4]
 
+	bx lr
+
+;@----------------------------------------------------------------------------
+
+romNum:
+	.long 0						;@ romnumber
 romInfo:						;@
 emuFlags:
-	.byte 0						;@ emuflags      (label this so GUI.c can take a peek) see EmuSettings.h for bitfields
+	.byte 0						;@ emuflags      (label this so Gui.c can take a peek) see EmuSettings.h for bitfields
 //scaling:
 	.byte 0						;@ (display type)
 	.byte 0,0					;@ (sprite follow val)
@@ -199,38 +233,18 @@ gMachineSet:
 gMachine:
 	.byte HW_LYNX
 gSOC:
-	.byte SOC_SPHINX
+	.byte SOC_HOWARD
 gLang:
 	.byte 1						;@ language
 gPaletteBank:
 	.byte 0						;@ palettebank
 gGameID:
 	.byte 0						;@ Game ID
-cartOrientation:
-	.byte 0						;@ 1=Vertical, 0=Horizontal
-	.space 3					;@ alignment.
+	.byte 0
+	.byte 0
+	.space 2					;@ alignment.
 
-gGameHeader:
-	.long 0
-allocatedRomMem:
-	.long 0
-allocatedRomMemSize:
-	.long 0
 romSpacePtr:
-	.long 0
-romPtr:
-	.long 0
-romPtr2:
-	.long 0
-romPtr3:
-	.long 0
-romPtr4:
-	.long 0
-g_BIOSBASE_BNW:
-	.long 0
-g_BIOSBASE_COLOR:
-	.long 0
-g_BIOSBASE_CRYSTAL:
 	.long 0
 gRomSize:
 romSize:
@@ -239,14 +253,9 @@ maxRomSize:
 	.long 0
 romMask:
 	.long 0
-biosBase:
-	.long 0
-sramSize:
-	.long 0
-eepromSize:
-	.long 0
+bankPointers:
+	.space 32*4
 
-;@----------------------------------------------------------------------------
 #ifdef GBA
 	.section .sbss				;@ For the GBA
 #else
@@ -255,18 +264,10 @@ eepromSize:
 	.align 8
 lynxRAM:
 	.space 0x10000
+svVRAM:
+	.space 0x2000
 DIRTYTILES:
-	.space 0x800
-wsSRAM:
-#ifdef GBA
-	.space 0x10000				;@ For the GBA
-#else
-	.space 0x40000
-#endif
-biosSpace:
-	.space 0x1000
-extEepromMem:
-	.space 0x800
+	.space 0x200
 ;@----------------------------------------------------------------------------
 	.end
 #endif // #ifdef __arm__

@@ -17,6 +17,14 @@
 		9C2E09E92A90C42B00103566 /* IPSPatch.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = IPSPatch.h; sourceTree = "<group>"; };
 		9C2E09EA2A9A382200103566 /* CartridgeRAM.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = CartridgeRAM.h; sourceTree = "<group>"; };
 		9C2E09EB2A9A382200103566 /* CartridgeRAM.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = CartridgeRAM.c; sourceTree = "<group>"; };
+		9C41C6B82C9F6DA50026DE6C /* History.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = History.txt; sourceTree = "<group>"; };
+		9C41C6B92C9F6DA50026DE6C /* ARMSuzy.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ARMSuzy.h; sourceTree = "<group>"; };
+		9C41C6BA2C9F6DA50026DE6C /* ARMSuzy.i */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c.preprocessed; path = ARMSuzy.i; sourceTree = "<group>"; };
+		9C41C6BB2C9F6DA50026DE6C /* Suzy_todo.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = Suzy_todo.txt; sourceTree = "<group>"; };
+		9C41C6BC2C9F6DA50026DE6C /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
+		9C41C6BD2C9F6DA50026DE6C /* SVAudio.s */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.asm; path = SVAudio.s; sourceTree = "<group>"; };
+		9C41C6BE2C9F6DA50026DE6C /* SVVideo.s */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.asm; path = SVVideo.s; sourceTree = "<group>"; };
+		9C41C6BF2C9F6DA50026DE6C /* Version.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Version.h; sourceTree = "<group>"; };
 		9C42404027E2264A0042454B /* README.md */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
 		9C443D79278AE4110029EE11 /* README.md */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
 		9C4EB1C4271CB16A0072D38E /* Lynx.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = Lynx.c; sourceTree = "<group>"; };
@@ -135,6 +143,21 @@
 			name = makefile;
 			sourceTree = "<group>";
 		};
+		9C41C6C02C9F6DA50026DE6C /* ARMSuzy */ = {
+			isa = PBXGroup;
+			children = (
+				9C41C6BB2C9F6DA50026DE6C /* Suzy_todo.txt */,
+				9C41C6BC2C9F6DA50026DE6C /* README.md */,
+				9C41C6B82C9F6DA50026DE6C /* History.txt */,
+				9C41C6BF2C9F6DA50026DE6C /* Version.h */,
+				9C41C6B92C9F6DA50026DE6C /* ARMSuzy.h */,
+				9C41C6BA2C9F6DA50026DE6C /* ARMSuzy.i */,
+				9C41C6BD2C9F6DA50026DE6C /* SVAudio.s */,
+				9C41C6BE2C9F6DA50026DE6C /* SVVideo.s */,
+			);
+			path = ARMSuzy;
+			sourceTree = "<group>";
+		};
 		9C7BB94925FCD73C00EA9C9C /* graphics */ = {
 			isa = PBXGroup;
 			children = (
@@ -148,11 +171,11 @@
 			isa = PBXGroup;
 			children = (
 				9C9B0E332C5A3E9F004AE287 /* README.md */,
-				9C9B0E372C5A3E9F004AE287 /* History.txt */,
 				9C9B0E322C5A3E9F004AE287 /* ARM6502_todo.txt */,
+				9C9B0E372C5A3E9F004AE287 /* History.txt */,
 				9C9B0E312C5A3E9F004AE287 /* Version.h */,
-				9C9B0E382C5A3E9F004AE287 /* M6502mac.h */,
 				9C9B0E352C5A3E9F004AE287 /* M6502.h */,
+				9C9B0E382C5A3E9F004AE287 /* M6502mac.h */,
 				9C9B0E362C5A3E9F004AE287 /* M6502.i */,
 				9C9B0E342C5A3E9F004AE287 /* M6502.s */,
 			);
@@ -231,6 +254,7 @@
 			isa = PBXGroup;
 			children = (
 				9C9B0E302C5A3E9F004AE287 /* ARM6502 */,
+				9C41C6C02C9F6DA50026DE6C /* ARMSuzy */,
 				A47F092A20863AF5004E1DA6 /* Shared */,
 				9CC013FC2668FDD9005714F7 /* Emubase.h */,
 				9C50820725D45A9A00A8E1BA /* Main.h */,

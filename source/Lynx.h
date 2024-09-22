@@ -1,14 +1,9 @@
-#ifndef WONDERSWAN_HEADER
-#define WONDERSWAN_HEADER
+#ifndef LYNX_HEADER
+#define LYNX_HEADER
 
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-#define HW_AUTO       (0)
-#define HW_LYNX       (1)
-#define HW_LYNX2      (2)
-#define HW_SELECT_END (3)
 
 /// This runs all save state functions for each chip.
 int packState(void *statePtr);
@@ -28,4 +23,4 @@ void setupEmuBorderPalette(void);
 } // extern "C"
 #endif
 
-#endif // WONDERSWAN_HEADER
+#endif // LYNX_HEADER

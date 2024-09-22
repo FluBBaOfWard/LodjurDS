@@ -5,7 +5,10 @@
 extern "C" {
 #endif
 
-extern u8 gGammaValue;
+#define ALLOW_SPEED_HACKS	(1<<17)
+#define ENABLE_HEADPHONES	(1<<18)
+#define ALLOW_REFRESH_CHG	(1<<19)
+
 extern u8 gContrastValue;
 extern u8 gBorderEnable;
 
@@ -15,35 +18,18 @@ void exitGUI(void);
 void quickSelectGame(void);
 void nullUINormal(int key);
 void nullUIDebug(int key);
-void resetGame(void);
 void ejectGame(void);
+void resetGame(void);
 
 void uiNullNormal(void);
-void uiFile(void);
-void uiSettings(void);
 void uiAbout(void);
-void uiOptions(void);
-void uiController(void);
-void uiDisplay(void);
 
-void debugIOUnmappedR(u16 port, u8 val);
-void debugIOUnmappedW(u8 val, u16 port);
-void debugIOUnimplR(u16 port, u8 val);
-void debugIOUnimplW(u8 val, u16 port);
-void debugSerialOutW(u8 val);
-void debugDivideError(void);
+void debugIOUnmappedR(u8 port);
+void debugIOUnmappedW(u8 port, u8 val);
+void debugIOUnimplR(u8 port);
+void debugIOUnimplW(u8 port, u8 val);
 void debugUndefinedInstruction(void);
 void debugCrashInstruction(void);
-
-void controllerSet(void);
-void swapABSet(void);
-
-void gammaSet(void);
-void contrastSet(void);
-void fgrLayerSet(void);
-void bgrLayerSet(void);
-void sprLayerSet(void);
-void winLayerSet(void);
 
 #ifdef __cplusplus
 } // extern "C"

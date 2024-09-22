@@ -9,7 +9,7 @@ endif
 GAME_TITLE		:=	LodjurDS
 GAME_SUBTITLE1	:=	Lynx Emulator
 GAME_SUBTITLE2	:=	github.com/FluBBaOfWard
-GAME_ICON		:=	$(CURDIR)/../LynxLogo.bmp
+GAME_ICON		:=	$(CURDIR)/../icon.bmp
 
 include $(DEVKITARM)/ds_rules
 
@@ -28,7 +28,7 @@ SOURCES		:=	source	\
 				source/Shared \
 				source/Shared/Unzip \
 				source/ARM6502 \
-				source/WSAudio
+				source/ARMSuzy
 DATA		:=	data
 INCLUDES	:=	include
 GRAPHICS	:=	source/Shared/graphics \

@@ -5,24 +5,26 @@
 extern "C" {
 #endif
 
+#include "ARMSuzy/ARMSuzy.h"
+
 extern u8 gFlicker;
 extern u8 gTwitch;
 extern u8 gGfxMask;
 
+extern SUZY suzy_0;
 extern u16 EMUPALBUFF[0x200];
-extern u16 MAPPED_BNW[0x10];
 extern u32 GFX_DISPCNT;
 extern u16 GFX_BG0CNT;
 extern u16 GFX_BG1CNT;
 
 void gfxInit(void);
 void vblIrqHandler(void);
-void paletteInit(u8 gammaVal, u8 contrast);
-void paletteTxAll(void);
+void monoPalInit(void);
+void paletteInit(u8 gammaVal);
 void updateLCDRefresh(void);
 void gfxRefresh(void);
-
-void setHeadphones(bool enable);
+u8 wsvReadIO(u16 adr);
+void wsvWriteIO(u16 adr, u8 value);
 
 #ifdef __cplusplus
 } // extern "C"
