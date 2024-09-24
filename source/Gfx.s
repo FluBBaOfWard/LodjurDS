@@ -20,8 +20,8 @@
 	.global gfxRefresh
 	.global gfxEndFrame
 	.global vblIrqHandler
-	.global wsvReadIO
-	.global wsvWriteIO
+	.global lnxReadIO
+	.global lnxWriteIO
 	.global updateLCDRefresh
 	.global setScreenRefresh
 
@@ -395,8 +395,8 @@ svVideoReset0:		;@ r0=NmiFunc, r1=IrqFunc, r2=ram+LUTs, r3=model
 	adr suzptr,suzy_0
 	b svVideoReset
 ;@----------------------------------------------------------------------------
-wsvReadIO:
-	.type wsvReadIO STT_FUNC
+lnxReadIO:
+	.type lnxReadIO STT_FUNC
 ;@----------------------------------------------------------------------------
 	stmfd sp!,{r3,r12,lr}
 	mov r0,r12
@@ -405,8 +405,8 @@ wsvReadIO:
 	ldmfd sp!,{r3,r12,lr}
 	bx lr
 ;@----------------------------------------------------------------------------
-wsvWriteIO:
-	.type wsvWriteIO STT_FUNC
+lnxWriteIO:
+	.type lnxWriteIO STT_FUNC
 ;@----------------------------------------------------------------------------
 	stmfd sp!,{r3,r12,lr}
 	mov r1,r0

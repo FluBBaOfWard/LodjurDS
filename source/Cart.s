@@ -129,7 +129,7 @@ memoryMapInit:
 
 	ldr r1,=ram6502R
 	str r1,[r0,#m6502ReadTbl+0*4]
-	ldr r1,=wsvReadIO
+	ldr r1,=lnxReadIO
 	str r1,[r0,#m6502ReadTbl+1*4]
 	ldr r1,=vram6502R
 	str r1,[r0,#m6502ReadTbl+2*4]
@@ -146,7 +146,7 @@ memoryMapInit:
 
 	ldr r1,=ram6502W
 	str r1,[r0,#m6502WriteTbl+0*4]
-	ldr r1,=wsvWriteIO
+	ldr r1,=lnxWriteIO
 	str r1,[r0,#m6502WriteTbl+1*4]
 	ldr r1,=vram6502W
 	str r1,[r0,#m6502WriteTbl+2*4]

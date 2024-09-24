@@ -23,8 +23,8 @@ void monoPalInit(void);
 void paletteInit(u8 gammaVal);
 void updateLCDRefresh(void);
 void gfxRefresh(void);
-u8 wsvReadIO(u16 adr);
-void wsvWriteIO(u16 adr, u8 value);
+u8 lnxReadIO(u16 adr);
+void lnxWriteIO(u16 adr, u8 value);
 
 #ifdef __cplusplus
 } // extern "C"

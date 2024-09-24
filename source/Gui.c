@@ -100,10 +100,9 @@ const Menu *const menus[] = {&menu0, &menu1, &menu2, &menu3, &menu4, &menu5, &me
 u8 gContrastValue = 1;
 u8 gBorderEnable = 1;
 
-const char *const machTxt[]  = {"Auto", "Lynx", "LynxII", "SwanCrystal", "Pocket Challenge V2"};
+const char *const machTxt[]  = {"Auto", "Lynx", "LynxII", "Proto"};
 const char *const bordTxt[]  = {"Black", "Border Color", "None"};
 const char *const palTxt[]   = {"Classic", "Black & White", "Red", "Green", "Blue", "Green-Blue", "Blue-Green", "Puyo Puyo Tsu"};
-const char *const langTxt[]  = {"Japanese", "English"};
 
 
 void setupGUI() {

@@ -9,7 +9,7 @@ endif
 GAME_TITLE		:=	LodjurDS
 GAME_SUBTITLE1	:=	Lynx Emulator
 GAME_SUBTITLE2	:=	github.com/FluBBaOfWard
-GAME_ICON		:=	$(CURDIR)/../icon.bmp
+GAME_ICON		:=	$(CURDIR)/../LynxLogo.bmp
 
 include $(DEVKITARM)/ds_rules
 
