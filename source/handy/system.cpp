@@ -145,7 +145,7 @@ CSystem::CSystem(const char *gamefile, ULONG filetype, const char *romfile)
 
 // Initialise the vector table for peek/poke's
 
-	int selector,loop;
+//	int selector,loop;
 /*
 	for (selector=0;selector<8;selector++) {
 		for (loop=0;loop<SYSTEM_SIZE;loop++) {
@@ -344,7 +344,6 @@ void CSystem::Reset(void)
 	gSystemCPUSleep = FALSE;
 	gSystemHalt = FALSE;
 
-	gFrameCount = 0;
 	gThrottleLastTimerCount = 0;
 	gThrottleNextCycleCheckpoint = 0;
 
@@ -352,10 +351,13 @@ void CSystem::Reset(void)
 	gEmulationSpeed = 0;
 	gFramesPerSecond = 0;
 
-	gAudioPlaybackBufferNumber = 0;
+	gAudioBufferPointer = 0;
 	gAudioLastUpdateCycle = 0;
-	memset(&gAudioBuffer[0][0], 128, HANDY_AUDIO_BUFFER_SIZE);
-	memset(&gAudioBuffer[1][0], 128, HANDY_AUDIO_BUFFER_SIZE);
+//	memset(gAudioBuffer, 128, HANDY_AUDIO_BUFFER_SIZE);
+	memset(gAudioBuffer0, 128, HANDY_AUDIO_BUFFER_SIZE);
+	memset(gAudioBuffer1, 128, HANDY_AUDIO_BUFFER_SIZE);
+	memset(gAudioBuffer2, 128, HANDY_AUDIO_BUFFER_SIZE);
+	memset(gAudioBuffer3, 128, HANDY_AUDIO_BUFFER_SIZE);
 
 #ifdef _LYNXDBG
 	gSystemHalt = TRUE;

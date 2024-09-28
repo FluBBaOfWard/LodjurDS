@@ -32,7 +32,9 @@ CCart::CCart(const char * gamefile)
 {
 	LYNX_HEADER header;
 
-	mWriteEnable = FALSE;
+	mWriteEnableBank0 = FALSE;
+	mWriteEnableBank1 = FALSE;
+	mCartRAM = FALSE;
 	mFileName = gamefile;
 	mName = "<Cart not loaded>";
 	mManufacturer = "<Cart not loaded>";
@@ -82,7 +84,8 @@ CCart::CCart(const char * gamefile)
 
 	// Set the filetypes
 
-	CTYPE banktype0,banktype1;
+	CTYPE banktype0;
+	CTYPE banktype1;
 
 	switch(header.page_size_bank0)
 	{
@@ -235,28 +238,21 @@ void CCart::Reset(void)
 
 inline void CCart::Poke(ULONG addr, UBYTE data)
 {
-	if (mWriteEnable)
-	{
-		if (mBank == bank0)
-		{
-			mCartBank0[addr & mMaskBank0] = data;
-		}
-		else
-		{
-			mCartBank1[addr & mMaskBank1] = data;
-		}
+	if (mBank==bank0) {
+		if (mWriteEnableBank0) mCartBank0[addr & mMaskBank0] = data;
+	}
+	else {
+		if (mWriteEnableBank1) mCartBank1[addr & mMaskBank1] = data;
 	}
 }
 
 
 inline UBYTE CCart::Peek(ULONG addr)
 {
-	if (mBank == bank0)
-	{
+	if (mBank == bank0) {
 		return mCartBank0[addr & mMaskBank0];
 	}
-	else
-	{
+	else {
 		return mCartBank1[addr & mMaskBank1];
 	}
 }
@@ -293,13 +289,11 @@ void CCart::CartAddressData(BOOL data)
 
 void CCart::Poke0(UBYTE data)
 {
-	if (mWriteEnable)
-	{
+	if (mWriteEnableBank0) {
 		ULONG address = (mShifter<<mShiftCount0)+(mCounter & mCountMask0);
 		mCartBank0[address & mMaskBank0] = data;
 	}
-	if (!mStrobe)
-	{
+	if (!mStrobe) {
 		mCounter++;
 		mCounter &= 0x07ff;
 	}
@@ -307,13 +301,11 @@ void CCart::Poke0(UBYTE data)
 
 void CCart::Poke1(UBYTE data)
 {
-	if (mWriteEnable)
-	{
+	if (mWriteEnableBank1) {
 		ULONG address = (mShifter<<mShiftCount1)+(mCounter & mCountMask1);
 		mCartBank1[address & mMaskBank1] = data;
 	}
-	if (!mStrobe)
-	{
+	if (!mStrobe) {
 		mCounter++;
 		mCounter &= 0x07ff;
 	}

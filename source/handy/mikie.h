@@ -27,6 +27,24 @@
 #ifndef MIKIE_H
 #define MIKIE_H
 
+//#define	TRACE_MIKIE
+
+#ifdef TRACE_MIKIE
+
+#define TRACE_MIKIE0(msg)					_RPT1(_CRT_WARN,"CMikie::"msg" (Time=%012d)\n",gSystemCycleCount)
+#define TRACE_MIKIE1(msg,arg1)				_RPT2(_CRT_WARN,"CMikie::"msg" (Time=%012d)\n",arg1,gSystemCycleCount)
+#define TRACE_MIKIE2(msg,arg1,arg2)			_RPT3(_CRT_WARN,"CMikie::"msg" (Time=%012d)\n",arg1,arg2,gSystemCycleCount)
+#define TRACE_MIKIE3(msg,arg1,arg2,arg3)	_RPT4(_CRT_WARN,"CMikie::"msg" (Time=%012d)\n",arg1,arg2,arg3,gSystemCycleCount)
+
+#else
+
+#define TRACE_MIKIE0(msg)
+#define TRACE_MIKIE1(msg,arg1)
+#define TRACE_MIKIE2(msg,arg1,arg2)
+#define TRACE_MIKIE3(msg,arg1,arg2,arg3)
+
+#endif
+
 class CSystem;
 
 #define MIKIE_START	0xfd00
@@ -53,6 +71,14 @@ class CSystem;
 #define LINE_WIDTH		160
 #define	LINE_SIZE		80
 
+#define UART_TX_INACTIVE	0x80000000
+#define UART_RX_INACTIVE	0x80000000
+#define UART_BREAK_CODE		0x00008000
+#define	UART_MAX_RX_QUEUE	32
+#define UART_TX_TIME_PERIOD	(11)
+#define UART_RX_TIME_PERIOD	(11)
+#define UART_RX_NEXT_DELAY	(44)
+
 typedef struct
 {
 	UBYTE	backup;
@@ -68,13 +94,22 @@ typedef struct
 	{
 		struct
 		{
-			UBYTE	DMAEnable:1;
-			UBYTE	Flip:1;
-			UBYTE	FourColour:1;
-			UBYTE	Colour:1;
-			UBYTE	unused:4;
-		}Bits;
-		UBYTE	Byte;
+#ifdef MSB_FIRST
+			UBYTE unused:4;
+			UBYTE Colour:1;
+			UBYTE FourColour:1;
+			UBYTE Flip:1;
+			UBYTE DMAEnable:1;
+#else
+
+			UBYTE DMAEnable:1;
+			UBYTE Flip:1;
+			UBYTE FourColour:1;
+			UBYTE Colour:1;
+			UBYTE unused:4;
+#endif
+		} Bits;
+		UBYTE Byte;
 	};
 }TDISPCTL;
 
@@ -84,11 +119,20 @@ typedef struct
 	{
 		struct
 		{
-			UBYTE	Green:4;
-			UBYTE	Red:4;
-			UBYTE	Blue:4;
-		}Colours;
-		ULONG	Index;
+#ifdef MSB_FIRST
+			UBYTE unused:8;
+			UBYTE unused2:8;
+			UBYTE unused3:4;
+			UBYTE Blue:4;
+			UBYTE Red:4;
+			UBYTE Green:4;
+#else
+			UBYTE Green:4;
+			UBYTE Red:4;
+			UBYTE Blue:4;
+#endif
+		} Colours;
+		ULONG Index;
 	};
 }TPALETTE;
 
@@ -140,13 +184,26 @@ class CMikie : public CLynxMemObj
 		CMikie(CSystem& parent);
 		~CMikie();
 	
+		void	Reset(void);
+
 		UBYTE	Peek(ULONG addr);
 		void	Poke(ULONG addr,UBYTE data);
 		ULONG	ReadCycle(void) {return 5;};
 		ULONG	WriteCycle(void) {return 5;};
 		ULONG	ObjectSize(void) {return MIKIE_SIZE;};
-		void	Reset(void);
 		void	PresetForHomebrew(void);
+		ULONG	GetLfsrNext(ULONG current);
+
+		void	ComLynxCable(int status);
+		void	ComLynxRxData(int data);
+		void	ComLynxTxLoopback(int data);
+		void	ComLynxTxCallback(void (*function)(int data,ULONG objref),ULONG objref);
+
+		ULONG	DisplayRenderLine(void);
+		ULONG	DisplayEndOfFrame(void);
+
+		inline void SetCPUSleep(void) {gSystemCPUSleep=TRUE;};
+		inline void ClearCPUSleep(void) {gSystemCPUSleep=FALSE;gSystemCPUSleep_Saved=FALSE;};
 
 		void	SetScreenAttributes(ULONG Mode,ULONG XSize,ULONG YSize,ULONG XOffset,ULONG YOffset,UBYTE *Bits0,UBYTE *Bits1)
 		{
@@ -281,26 +338,20 @@ class CMikie : public CLynxMemObj
 		inline void	Update(void)
 		{
 			static ULONG lynx_addr = 0,line_count = 0;
-			static UBYTE *bitmap_addr = NULL,*bitmap_tmp = NULL;
+			static UBYTE *bitmap_addr = NULL;
 			static BOOL	 line_start = FALSE;
-			//static BOOL clocked = FALSE;
-			//static BOOL ourcarry = FALSE;
-			static ULONG source;
-			static ULONG loop;
-//			static ULONG loop2;
-			static ULONG tmp;
-			//static UBYTE bytedata;
-			//static UWORD worddata;
 			static SLONG divide = 0;
 			static SLONG decval = 0;
+			static ULONG source;
+			ULONG loop;
+			ULONG tmp;
 
 			//
 			// To stop problems with cycle count wrap we will check and then correct the
 			// cycle counter.
 			//
 
-			if (gSystemCycleCount > 0xf0000000)
-			{
+			if (gSystemCycleCount > 0xf0000000) {
 				gSystemCycleCount -= 0x80000000;
 				gThrottleNextCycleCheckpoint -= 0x80000000;
 				gAudioLastUpdateCycle -= 0x80000000;
@@ -318,6 +369,8 @@ class CMikie : public CLynxMemObj
 				mAUDIO_3_LAST_COUNT -= 0x80000000;
 			}
 
+			gNextTimerEvent = 0xffffffff;
+			
 			//	Timer updates, rolled out flat in group order
 			//
 			//	Group A:
@@ -343,8 +396,6 @@ class CMikie : public CLynxMemObj
 			// (In reality T0 line counter should always be running.)
 			//
 
-			gNextTimerEvent = 0xffffffff;
-			
 			//
 			// Timer 0 of Group A
 			//
@@ -934,31 +985,29 @@ class CMikie : public CLynxMemObj
 			//
 			if (gAudioEnabled)
 			{
-				static ULONG audio_buffer_pointer = 0;
-				static SLONG sample = 0;
-				
+				// static ULONG audio_buffer_pointer = 0;
+				// static SLONG sample = 0;
+
 				//
 				// Catch audio buffer up to current time
 				//
-				for (;gAudioLastUpdateCycle+HANDY_AUDIO_SAMPLE_PERIOD<gSystemCycleCount;gAudioLastUpdateCycle += HANDY_AUDIO_SAMPLE_PERIOD)
-				{
-					// Mix the sample
-					sample = 0;
-					sample += (mSTEREO&0x11)?mAUDIO_0_OUTPUT:0;
-					sample += (mSTEREO&0x22)?mAUDIO_1_OUTPUT:0;
-					sample += (mSTEREO&0x44)?mAUDIO_2_OUTPUT:0;
-					sample += (mSTEREO&0x88)?mAUDIO_3_OUTPUT:0;
-					sample = sample>>2;
-					sample += 128;
+				for (;gAudioLastUpdateCycle+HANDY_AUDIO_SAMPLE_PERIOD<gSystemCycleCount;gAudioLastUpdateCycle+=HANDY_AUDIO_SAMPLE_PERIOD) {
 					// Output audio sample
-					gAudioBuffer[gAudioPlaybackBufferNumber^0x01][audio_buffer_pointer++] = (UBYTE)sample;
+//					gAudioBuffer[gAudioBufferPointer++] = (UBYTE)sample;
+					gAudioBuffer0[gAudioBufferPointer] = (mSTEREO & 0x11) ? mAUDIO_0_OUTPUT : 0;
+					gAudioBuffer1[gAudioBufferPointer] = (mSTEREO & 0x22) ? mAUDIO_1_OUTPUT : 0;
+					gAudioBuffer2[gAudioBufferPointer] = (mSTEREO & 0x33) ? mAUDIO_2_OUTPUT : 0;
+					gAudioBuffer3[gAudioBufferPointer++] = (mSTEREO & 0x44) ? mAUDIO_3_OUTPUT : 0;
 
-					// Check buffer overflow condition
-					if (audio_buffer_pointer >= HANDY_AUDIO_BUFFER_SIZE)
-					{
-						gAudioPlaybackBufferNumber ^= 0x01;
-						audio_buffer_pointer = 0;
-					}
+					// Check buffer overflow condition, stick at the endpoint
+					// teh audio output system will reset the input pointer
+					// when it reads out the data.
+
+					// We should NEVER overflow, this buffer holds 0.25 seconds
+					// of data if this happens the the multimedia system above
+					// has failed so the corruption of the buffer contents wont matter
+
+					gAudioBufferPointer%=HANDY_AUDIO_BUFFER_SIZE;
 				}
 
 				//
@@ -1008,7 +1057,7 @@ class CMikie : public CLynxMemObj
 							// Update audio circuitry
 							//
 
-							mAUDIO_0_WAVESHAPER = gAudioWaveShaperLookupTable[mAUDIO_0_WAVESHAPER];
+							mAUDIO_0_WAVESHAPER = GetLfsrNext(mAUDIO_0_WAVESHAPER);
 
 							if (mAUDIO_0_INTEGRATE_ENABLE)
 							{
@@ -1094,7 +1143,7 @@ class CMikie : public CLynxMemObj
 							// Update audio circuitry
 							//
 
-							mAUDIO_1_WAVESHAPER = gAudioWaveShaperLookupTable[mAUDIO_1_WAVESHAPER];
+							mAUDIO_1_WAVESHAPER = GetLfsrNext(mAUDIO_1_WAVESHAPER);
 
 							if (mAUDIO_1_INTEGRATE_ENABLE)
 							{
@@ -1180,7 +1229,7 @@ class CMikie : public CLynxMemObj
 							// Update audio circuitry
 							//
 
-							mAUDIO_2_WAVESHAPER = gAudioWaveShaperLookupTable[mAUDIO_2_WAVESHAPER];
+							mAUDIO_2_WAVESHAPER = GetLfsrNext(mAUDIO_2_WAVESHAPER);
 
 							if (mAUDIO_2_INTEGRATE_ENABLE)
 							{
@@ -1265,7 +1314,7 @@ class CMikie : public CLynxMemObj
 							//
 							// Update audio circuitry
 							//
-							mAUDIO_3_WAVESHAPER = gAudioWaveShaperLookupTable[mAUDIO_3_WAVESHAPER];
+							mAUDIO_3_WAVESHAPER = GetLfsrNext(mAUDIO_3_WAVESHAPER);
 
 							if (mAUDIO_3_INTEGRATE_ENABLE)
 							{
@@ -1461,6 +1510,7 @@ class CMikie : public CLynxMemObj
 
 		ULONG		mIODAT;
 		ULONG		mIODIR;
+		ULONG		mIODAT_REST_SIGNAL;
 
 		ULONG		mDISPCTL_DMAEnable;
 		ULONG		mDISPCTL_Flip;
@@ -1629,6 +1679,41 @@ class CMikie : public CLynxMemObj
 
 		ULONG		mSTEREO;
 
+		//
+		// Serial related variables
+		//
+		ULONG		mUART_RX_IRQ_ENABLE;
+		ULONG		mUART_TX_IRQ_ENABLE;
+
+		ULONG		mUART_RX_COUNTDOWN;
+		ULONG		mUART_TX_COUNTDOWN;
+
+		// old data
+		ULONG		mUART_DATA;
+
+		ULONG		mUART_SENDBREAK;
+		ULONG		mUART_TX_DATA;
+		ULONG		mUART_RX_DATA;
+		ULONG		mUART_RX_READY;
+
+		ULONG		mUART_PARITY_ENABLE;
+		ULONG		mUART_PARITY_EVEN;
+
+		int			mUART_CABLE_PRESENT;
+		void		(*mpUART_TX_CALLBACK)(int data,ULONG objref);
+		ULONG		mUART_TX_CALLBACK_OBJECT;
+
+		int			mUART_Rx_input_queue[UART_MAX_RX_QUEUE];
+		unsigned int mUART_Rx_input_ptr;
+		unsigned int mUART_Rx_output_ptr =0;
+		int			mUART_Rx_waiting;
+		int			mUART_Rx_framing_error;
+		int			mUART_Rx_overun_error;
+
+		//
+		// Screen related
+		//
+
 		UBYTE		*mBitmapBits0;
 		UBYTE		*mBitmapBits1;
 		ULONG		mCurrentBuffer;
@@ -1640,16 +1725,6 @@ class CMikie : public CLynxMemObj
 		ULONG		mImageXoffset;
 		ULONG		mImageYoffset;
 
-		//
-		// Serial related variables
-		//
-		BOOL		mUART_RX_IRQ_ENABLE;
-		BOOL		mUART_TX_IRQ_ENABLE;
-
-		ULONG		mUART_RX_COUNTDOWN;
-		ULONG		mUART_TX_COUNTDOWN;
-
-		ULONG		mUART_DATA;
 };
 
 

@@ -32,7 +32,7 @@
 #define VECTOR_START	0xfffa
 #define VECTOR_SIZE		0x6
 
-class CRom : public CLynxMemObj
+class CRom : public CLynxBase
 {
 
 	// Function members
@@ -41,15 +41,13 @@ class CRom : public CLynxMemObj
 		CRom(const char *romfile);
 
 	public:
-		void	Poke(ULONG addr,UBYTE data) {
-			if (mWriteEnable)
-				mRomData[addr & ROM_ADDR_MASK] = data;
-		};
+		void	Reset(void);
+
+		void	Poke(ULONG addr,UBYTE data) { if (mWriteEnable) mRomData[addr & ROM_ADDR_MASK] = data;};
 		UBYTE	Peek(ULONG addr) { return(mRomData[addr & ROM_ADDR_MASK]);};
 		ULONG	ReadCycle(void) {return 5;};
 		ULONG	WriteCycle(void) {return 5;};
 		ULONG	ObjectSize(void) {return ROM_SIZE;};
-		void	Reset(void);
 
 	// Data members
 

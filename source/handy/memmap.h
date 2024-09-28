@@ -27,7 +27,7 @@
 #define MEMMAP_SIZE				0x1
 
 
-class CMemMap : public CLynxMemObj
+class CMemMap : public CLynxBase
 {
 
 	// Function members
@@ -36,9 +36,9 @@ class CMemMap : public CLynxMemObj
 		CMemMap(CSystem& parent);
 
 	public:
+		void	Reset(void);
 		void	Poke(ULONG addr,UBYTE data);
 		UBYTE	Peek(ULONG addr);
-		void	Reset(void);
 		ULONG	ReadCycle(void) {return 5;};
 		ULONG	WriteCycle(void) {return 5;};
 		ULONG	ObjectSize(void) {return MEMMAP_SIZE;};
@@ -46,13 +46,14 @@ class CMemMap : public CLynxMemObj
 	// Data members
 
 	public:
+		UBYTE			mSelector;
+
+	private:
 		BOOL			mMikieEnabled;
 		BOOL			mSusieEnabled;
 		BOOL			mRomEnabled;
 		BOOL			mVectorsEnabled;
-		UBYTE			mSelector;
 
-	private:
 		CSystem& mSystem;
 };
 

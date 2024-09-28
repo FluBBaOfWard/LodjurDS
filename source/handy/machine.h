@@ -53,20 +53,24 @@ typedef unsigned short UWORD;
 typedef signed long SLONG;
 typedef unsigned long ULONG;
 
+// Read/Write Cycle definitions
+#define CPU_RDWR_CYC	5
+#define DMA_RDWR_CYC	4
+#define SPR_RDWR_CYC	3
+// Ammended to 2 on 28/04/00, 16Mhz = 62.5nS cycle
+//
+//    2 cycles is 125ns - PAGE MODE CYCLE
+//    4 cycles is 250ns - NORMAL MODE CYCLE
+//
+
 // Average length of a read/write cycle
 #define AVE_RDWR_CYC	5
 
 //
-// bank0	- Cartridge bank 0
-// bank1	- Cartridge bank 1
-// ram		- all ram
-// cpu		- system memory as viewed by the cpu
-//
-enum EMMODE {bank0,bank1,ram,cpu};
-
-//
 // Generic Memory object base class.
 //
+
+#include "lynxbase.h"
 
 class CLynxMemObj
 {
@@ -76,6 +80,7 @@ class CLynxMemObj
 		virtual ~CLynxMemObj() {};
 
 	public:
+	virtual void	Reset(void) {};
 		virtual void	Poke(ULONG addr, UBYTE data) = 0;
 		virtual UBYTE	Peek(ULONG addr) = 0;
 		virtual void	PokeW(ULONG addr, UWORD data) {};	// ONLY mSystem overloads these, they are never used by the clients
@@ -84,7 +89,6 @@ class CLynxMemObj
 		virtual ULONG	WriteCycle(void) {return 0;};
 		virtual void	BankSelect(EMMODE newbank){};
 		virtual ULONG	ObjectSize(void) {return 1;};
-		virtual void	Reset(void) {};
 };
 
 #endif

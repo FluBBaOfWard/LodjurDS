@@ -45,6 +45,8 @@
 #ifdef SYSTEM_CPP
 	ULONG	gSystemCycleCount = 0;
 	ULONG	gNextTimerEvent = 0;
+	ULONG	gCPUWakeupTime = 0;
+	ULONG	gIRQEntryCycle = 0;
 	ULONG	gCPUBootAddress = 0;
 	BOOL	gScreenUpdateRequired = FALSE;
 	BOOL	gEmulatorAbort = FALSE;
@@ -55,7 +57,6 @@
 	BOOL	gSystemCPUSleep = FALSE;
 	BOOL	gSystemCPUSleep_Saved = FALSE;
 	BOOL	gSystemHalt = FALSE;
-	ULONG	gFrameCount = 0;
 	ULONG	gThrottleMaxPercentage = 100;
 	ULONG	gThrottleLastTimerCount = 0;
 	ULONG	gThrottleNextCycleCheckpoint = 0;
@@ -64,17 +65,21 @@
 	volatile ULONG gEmulationSpeed = 0;
 	volatile ULONG gFramesPerSecond = 0;
 
-	BOOL	gAudioEnabled = FALSE;
-	UBYTE	gAudioBuffer[2][HANDY_AUDIO_BUFFER_SIZE];
-	ULONG	gAudioPlaybackBufferNumber = 0;
+	ULONG	gAudioEnabled = FALSE;
+	UBYTE	*gAudioBuffer0; // UBYTE	gAudioBuffer0[HANDY_AUDIO_BUFFER_SIZE];
+	UBYTE	*gAudioBuffer1; // UBYTE	gAudioBuffer1[HANDY_AUDIO_BUFFER_SIZE];
+	UBYTE	*gAudioBuffer2; // UBYTE	gAudioBuffer2[HANDY_AUDIO_BUFFER_SIZE];
+	UBYTE	*gAudioBuffer3; // UBYTE	gAudioBuffer3[HANDY_AUDIO_BUFFER_SIZE];
+	ULONG	gAudioBufferPointer = 0;
 	ULONG	gAudioLastUpdateCycle = 0;
-	ULONG	*gAudioWaveShaperLookupTable = NULL;
 
 	BOOL	gWindowInFocus = TRUE;
 #else
 
 	extern ULONG	gSystemCycleCount;
 	extern ULONG	gNextTimerEvent;
+	extern ULONG	gCPUWakeupTime;
+	extern ULONG	gIRQEntryCycle;
 	extern ULONG	gCPUBootAddress;
 	extern BOOL		gScreenUpdateRequired;
 	extern BOOL		gEmulatorAbort;
@@ -85,7 +90,6 @@
 	extern BOOL		gSystemCPUSleep;
 	extern BOOL		gSystemCPUSleep_Saved;
 	extern BOOL		gSystemHalt;
-	extern ULONG	gFrameCount;
 	extern ULONG	gThrottleMaxPercentage;
 	extern ULONG	gThrottleLastTimerCount;
 	extern ULONG	gThrottleNextCycleCheckpoint;
@@ -94,11 +98,13 @@
 	extern volatile ULONG gEmulationSpeed;
 	extern volatile ULONG gFramesPerSecond;
 
-	extern BOOL		gAudioEnabled;
-	extern UBYTE	gAudioBuffer[2][HANDY_AUDIO_BUFFER_SIZE];
-	extern ULONG	gAudioPlaybackBufferNumber;
+	extern ULONG	gAudioEnabled;
+	extern UBYTE	*gAudioBuffer0; // extern UBYTE	gAudioBuffer0[HANDY_AUDIO_BUFFER_SIZE];
+	extern UBYTE	*gAudioBuffer1; // extern UBYTE	gAudioBuffer1[HANDY_AUDIO_BUFFER_SIZE];
+	extern UBYTE	*gAudioBuffer2; // extern UBYTE	gAudioBuffer2[HANDY_AUDIO_BUFFER_SIZE];
+	extern UBYTE	*gAudioBuffer3; // extern UBYTE	gAudioBuffer3[HANDY_AUDIO_BUFFER_SIZE];
+	extern ULONG	gAudioBufferPointer;
 	extern ULONG	gAudioLastUpdateCycle;
-	extern ULONG	*gAudioWaveShaperLookupTable;
 
 	extern BOOL		gWindowInFocus;
 #endif
@@ -107,6 +113,7 @@
 class CSystem;
 
 #include "sysbase.h"
+#include "lynxbase.h"
 #include "ram.h"
 #include "rom.h"
 #include "memmap.h"
@@ -215,7 +222,7 @@ class CSystem : public CSystemBase
 
 		void	SetRegs(C6502_REGS &regs) {mCpu->SetRegs(regs);};
 		void	GetRegs(C6502_REGS &regs) {mCpu->GetRegs(regs);};
-		void	SetCPUBreakpoint(ULONG breakpoint) {mCpu->SetBreakpoint(breakpoint);};
+//		void	SetCPUBreakpoint(ULONG breakpoint) {mCpu->SetBreakpoint(breakpoint);};
 
 		inline void SetCPUSleep(void) {gSystemCPUSleep = TRUE;};
 		inline void ClearCPUSleep(void) {gSystemCPUSleep = FALSE;gSystemCPUSleep_Saved = FALSE;};
@@ -225,6 +232,11 @@ class CSystem : public CSystemBase
 		ULONG   GetDisplayBuffer(void) {return mMikie->GetDisplayBuffer();};
 		void	SetScreenAttributes(ULONG Mode,ULONG XSize,ULONG YSize,ULONG XOffset,ULONG YOffset,UBYTE *Bits0,UBYTE *Bits1)
 			{ mMikie->SetScreenAttributes(Mode,XSize,YSize,XOffset,YOffset,Bits0,Bits1); };
+//		void	DisplaySetAttributes(ULONG Rotate, ULONG Format, ULONG Pitch, UBYTE *(*DisplayCallback)(ULONG objref),ULONG objref) { mMikie->DisplaySetAttributes(Rotate, Format, Pitch, DisplayCallback, objref); };
+
+//		void	ComLynxCable(int status) { mMikie->ComLynxCable(status); };
+//		void	ComLynxRxData(int data)  { mMikie->ComLynxRxData(data); };
+//		void	ComLynxTxCallback(void (*function)(int data, ULONG objref), ULONG objref) { mMikie->ComLynxTxCallback(function, objref); };
 
 // Suzy system interfacing
 
@@ -239,10 +251,7 @@ class CSystem : public CSystemBase
 
 	public:
 		ULONG			mCycleCountBreakpoint;
-
-	private:
 //		CLynxMemObj		*mMemoryHandlers[8][SYSTEM_SIZE];
-
 		CRom			*mRom;
 		CCart			*mCart;
 		CMemMap			*mMemMap;

@@ -58,52 +58,12 @@ CMikie::CMikie(CSystem& parent)
 	for (loop=0;loop<16;loop++) mPalette[loop].Index = loop;
 	for (loop=0;loop<4096;loop++) mColourMap[loop] = 0;
 
-	// Create and initialise the waveshaper table
-	//
-	// The table is built thus:
-	//	Bits 0-11  LFSR					(12 Bits)
-	//  Bits 12-20 Feedback switches	(9 Bits)
-	//     (Order = 7,0,1,2,3,4,5,10,11)
-	//  Order is mangled to make peek/poke easier as
-	//  bit 7 is in a seperate register
-	//
-	// Total 21 bits = 2MWords @ 4 Bytes/Word = 8MB !!!!!
-	//
-	// If the index is a combination of Current LFSR+Feedback the
-	// table will give the next value.
-/*	if (gAudioWaveShaperLookupTable == NULL)
-	{
-		gAudioWaveShaperLookupTable = new ULONG[HANDY_AUDIO_WAVESHAPER_TABLE_LENGTH];
-
-		ULONG switches,lfsr,next,swloop,result;
-		ULONG switchbits[9] = {7,0,1,2,3,4,5,10,11};
-
-		for (loop=0;loop<HANDY_AUDIO_WAVESHAPER_TABLE_LENGTH;loop++)
-		{
-			switches = loop>>12;
-			lfsr = loop & 0xfff;
-
-			result = 0;
-			for (swloop=0;swloop<9;swloop++)
-			{
-				if ((switches>>swloop)&0x001) result ^= (lfsr>>switchbits[swloop]) & 0x001;
-			}
-			result = (result)?0:1;
-			next = (switches<<12)|((lfsr<<1)&0xffe)|result;
-			gAudioWaveShaperLookupTable[loop] = next;
-		}
-	}*/
 	Reset();
 }
 
 
 CMikie::~CMikie()
 {
-	if (gEmulatorAbort)
-	{
-		delete[] gAudioWaveShaperLookupTable;
-		gAudioWaveShaperLookupTable = NULL;
-	}
 }
 
 
@@ -310,6 +270,34 @@ void CMikie::Reset(void)
 	mUART_RX_COUNTDOWN = 0;
 	mUART_TX_COUNTDOWN = 0;
 
+}
+
+ULONG CMikie::GetLfsrNext(ULONG current)
+{
+	// The table is built thus:
+	//	Bits 0-11  LFSR					(12 Bits)
+	//  Bits 12-20 Feedback switches	(9 Bits)
+	//     (Order = 7,0,1,2,3,4,5,10,11)
+	//  Order is mangled to make peek/poke easier as
+	//  bit 7 is in a seperate register
+	//
+	// Total 21 bits = 2MWords @ 4 Bytes/Word = 8MB !!!!!
+	//
+	// If the index is a combination of Current LFSR+Feedback the
+	// table will give the next value.
+
+	static ULONG switches,lfsr,next,swloop,result;
+	static ULONG switchbits[9]={7,0,1,2,3,4,5,10,11};
+
+	switches = current >> 12;
+	lfsr = current & 0xfff;
+	result = 0;
+	for (swloop=0;swloop<9;swloop++) {
+		if ((switches >> swloop) & 0x001) result ^= (lfsr >> switchbits[swloop]) & 0x001;
+	}
+	result = (result) ? 0 : 1;
+	next = (switches << 12) | ((lfsr << 1) & 0xffe) | result;
+	return next;
 }
 
 void CMikie::PresetForHomebrew(void)

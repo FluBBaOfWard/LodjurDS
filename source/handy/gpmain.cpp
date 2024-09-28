@@ -18,6 +18,7 @@ const char *romfile = "LYNXBOOT.IMG";
 const char *gamefile = "toki (1990).lnx";
 
 unsigned short vram[2][160*102];
+int bufIdx = 0;
 /*
 extern "C" {
   void write(int ff, char *bla, int fd)
@@ -41,8 +42,22 @@ void loadFile(const char *fname, void *dest, int start, int size) {
 	fclose(fhandle);
 }
 
+UBYTE *handy_nds_display_callback(ULONG objref)
+{
+//	handy_3ds_video_flip();  //mainSurface );
+	unsigned short *srcbuf = vram[bufIdx];
+	bufIdx ^= 1;
+
+	for (int y=0;y<102;y++) {
+		for (int x=0;x<160;x++) {
+			((unsigned short *)0x06000000)[x+(y*256)] = srcbuf[x+(y*160)] | 0x8000;
+		}
+	}
+	return (UBYTE *)vram[bufIdx];
+}
+
+
 void GpMain(void *args) {
-	int surf = 0;
 
 	CSystem *newsystem = new CSystem(gamefile, HANDY_FILETYPE_LNX, romfile);
 	newsystem->SetScreenAttributes(MIKIE_BITMAP_NORMAL_BPP16_X1, 160, 102, 0, 0, (UBYTE*)vram[0], (UBYTE*)vram[1]);
@@ -59,7 +74,6 @@ void GpMain(void *args) {
 		if (gScreenUpdateRequired) {
 			unsigned short *srcbuf;
 
-			gFrameCount++;
 			gScreenUpdateRequired = FALSE;
 
 			if (newsystem->GetDisplayBuffer()) {

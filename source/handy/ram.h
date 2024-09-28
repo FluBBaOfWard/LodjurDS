@@ -35,7 +35,7 @@ typedef struct
    UBYTE   magic[4];
 }HOME_HEADER;
 
-class CRam : public CLynxMemObj
+class CRam : public CLynxBase
 {
 
 	// Function members
@@ -45,12 +45,13 @@ class CRam : public CLynxMemObj
 
 	public:
 
+		void	Reset(void);
+
 		void	Poke(ULONG addr, UBYTE data){ mRamData[addr] = data;};
 		UBYTE	Peek(ULONG addr){ return(mRamData[addr]);};
 		ULONG	ReadCycle(void) {return 5;};
 		ULONG	WriteCycle(void) {return 5;};
 		ULONG   ObjectSize(void) {return RAM_SIZE;};
-		void	Reset(void);
 		UBYTE	*GetRamPointer(void) { return mRamData; };
 
 	// Data members

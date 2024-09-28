@@ -57,13 +57,14 @@ class CCart : public CLynxMemObj
 
 // Access for sensible members of the clan
 
+		void	Reset(void);
+
 		void	Poke(ULONG addr,UBYTE data);
 		UBYTE	Peek(ULONG addr);
 		ULONG	ReadCycle(void) {return 15;};
 		ULONG	WriteCycle(void) {return 15;};
 		void	BankSelect(EMMODE newbank) {mBank = newbank;}
 		ULONG	ObjectSize(void) {return (mBank == bank0)?mMaskBank0+1:mMaskBank1+1;};
-		void	Reset(void);
 
 		void	CartGetName(const char ** name) { (*name)=mName;};
 		void	CartGetManufacturer(const char ** manuf) { (*manuf)=mManufacturer;};
@@ -82,7 +83,9 @@ class CCart : public CLynxMemObj
 	// Data members
 
 	public:
-		BOOL	mWriteEnable;
+		ULONG	mWriteEnableBank0;
+		ULONG	mWriteEnableBank1;
+		ULONG	mCartRAM;
 
 	private:
 		EMMODE	mBank;
