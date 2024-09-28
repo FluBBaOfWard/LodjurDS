@@ -25,6 +25,31 @@
 		9C41C6BD2C9F6DA50026DE6C /* SVAudio.s */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.asm; path = SVAudio.s; sourceTree = "<group>"; };
 		9C41C6BE2C9F6DA50026DE6C /* SVVideo.s */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.asm; path = SVVideo.s; sourceTree = "<group>"; };
 		9C41C6BF2C9F6DA50026DE6C /* Version.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Version.h; sourceTree = "<group>"; };
+		9C41C6C22CA32F7A0026DE6C /* c65c02.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = c65c02.h; sourceTree = "<group>"; };
+		9C41C6C32CA32F7A0026DE6C /* c6502mak.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = c6502mak.h; sourceTree = "<group>"; };
+		9C41C6C42CA32F7A0026DE6C /* lynxcart.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = lynxcart.h; sourceTree = "<group>"; };
+		9C41C6C52CA32F7A0026DE6C /* lynxcart.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = lynxcart.cpp; sourceTree = "<group>"; };
+		9C41C6C72CA32F7A0026DE6C /* defines.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = defines.h; sourceTree = "<group>"; };
+		9C41C6C82CA32F7A0026DE6C /* dis6502.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = dis6502.h; sourceTree = "<group>"; };
+		9C41C6C92CA32F7A0026DE6C /* error.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = error.h; sourceTree = "<group>"; };
+		9C41C6CA2CA32F7A0026DE6C /* gpmain.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = gpmain.cpp; sourceTree = "<group>"; };
+		9C41C6CB2CA32F7A0026DE6C /* lynxdef.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = lynxdef.h; sourceTree = "<group>"; };
+		9C41C6CC2CA32F7A0026DE6C /* machine.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = machine.h; sourceTree = "<group>"; };
+		9C41C6CF2CA32F7A0026DE6C /* Makefile.gp32 */ = {isa = PBXFileReference; lastKnownFileType = text; path = Makefile.gp32; sourceTree = "<group>"; };
+		9C41C6D02CA32F7A0026DE6C /* memmap.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = memmap.h; sourceTree = "<group>"; };
+		9C41C6D12CA32F7A0026DE6C /* memmap.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = memmap.cpp; sourceTree = "<group>"; };
+		9C41C6D22CA32F7A0026DE6C /* mikie.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = mikie.h; sourceTree = "<group>"; };
+		9C41C6D32CA32F7A0026DE6C /* mikie.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = mikie.cpp; sourceTree = "<group>"; };
+		9C41C6D42CA32F7A0026DE6C /* ram.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ram.h; sourceTree = "<group>"; };
+		9C41C6D52CA32F7A0026DE6C /* ram.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = ram.cpp; sourceTree = "<group>"; };
+		9C41C6D62CA32F7A0026DE6C /* readme.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = readme.txt; sourceTree = "<group>"; };
+		9C41C6D72CA32F7A0026DE6C /* rom.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = rom.h; sourceTree = "<group>"; };
+		9C41C6D82CA32F7A0026DE6C /* rom.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = rom.cpp; sourceTree = "<group>"; };
+		9C41C6D92CA32F7A0026DE6C /* susie.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = susie.h; sourceTree = "<group>"; };
+		9C41C6DA2CA32F7A0026DE6C /* susie.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = susie.cpp; sourceTree = "<group>"; };
+		9C41C6DB2CA32F7A0026DE6C /* sysbase.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = sysbase.h; sourceTree = "<group>"; };
+		9C41C6DC2CA32F7A0026DE6C /* system.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = system.h; sourceTree = "<group>"; };
+		9C41C6DD2CA32F7A0026DE6C /* system.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = system.cpp; sourceTree = "<group>"; };
 		9C42404027E2264A0042454B /* README.md */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
 		9C443D79278AE4110029EE11 /* README.md */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
 		9C4EB1C4271CB16A0072D38E /* Lynx.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = Lynx.c; sourceTree = "<group>"; };
@@ -158,6 +183,38 @@
 			path = ARMSuzy;
 			sourceTree = "<group>";
 		};
+		9C41C6DE2CA32F7A0026DE6C /* handy */ = {
+			isa = PBXGroup;
+			children = (
+				9C41C6D62CA32F7A0026DE6C /* readme.txt */,
+				9C41C6C22CA32F7A0026DE6C /* c65c02.h */,
+				9C41C6C32CA32F7A0026DE6C /* c6502mak.h */,
+				9C41C6C82CA32F7A0026DE6C /* dis6502.h */,
+				9C41C6C72CA32F7A0026DE6C /* defines.h */,
+				9C41C6C92CA32F7A0026DE6C /* error.h */,
+				9C41C6CA2CA32F7A0026DE6C /* gpmain.cpp */,
+				9C41C6CB2CA32F7A0026DE6C /* lynxdef.h */,
+				9C41C6CC2CA32F7A0026DE6C /* machine.h */,
+				9C41C6CF2CA32F7A0026DE6C /* Makefile.gp32 */,
+				9C41C6D02CA32F7A0026DE6C /* memmap.h */,
+				9C41C6D12CA32F7A0026DE6C /* memmap.cpp */,
+				9C41C6C42CA32F7A0026DE6C /* lynxcart.h */,
+				9C41C6C52CA32F7A0026DE6C /* lynxcart.cpp */,
+				9C41C6D22CA32F7A0026DE6C /* mikie.h */,
+				9C41C6D32CA32F7A0026DE6C /* mikie.cpp */,
+				9C41C6D42CA32F7A0026DE6C /* ram.h */,
+				9C41C6D52CA32F7A0026DE6C /* ram.cpp */,
+				9C41C6D72CA32F7A0026DE6C /* rom.h */,
+				9C41C6D82CA32F7A0026DE6C /* rom.cpp */,
+				9C41C6D92CA32F7A0026DE6C /* susie.h */,
+				9C41C6DA2CA32F7A0026DE6C /* susie.cpp */,
+				9C41C6DB2CA32F7A0026DE6C /* sysbase.h */,
+				9C41C6DC2CA32F7A0026DE6C /* system.h */,
+				9C41C6DD2CA32F7A0026DE6C /* system.cpp */,
+			);
+			path = handy;
+			sourceTree = "<group>";
+		};
 		9C7BB94925FCD73C00EA9C9C /* graphics */ = {
 			isa = PBXGroup;
 			children = (
@@ -256,6 +313,7 @@
 				9C9B0E302C5A3E9F004AE287 /* ARM6502 */,
 				9C41C6C02C9F6DA50026DE6C /* ARMSuzy */,
 				A47F092A20863AF5004E1DA6 /* Shared */,
+				9C41C6DE2CA32F7A0026DE6C /* handy */,
 				9CC013FC2668FDD9005714F7 /* Emubase.h */,
 				9C50820725D45A9A00A8E1BA /* Main.h */,
 				9C50820C25D45A9B00A8E1BA /* Main.c */,

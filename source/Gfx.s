@@ -292,7 +292,7 @@ vblIrqHandler:
 //	biceq r0,r0,#0x0100			;@ Turn off Bg
 	ldrb r2,gGfxMask
 	bic r0,r0,r2,lsl#8
-	strh r0,[r6,#REG_DISPCNT]
+//	strh r0,[r6,#REG_DISPCNT]
 
 	ldr r0,[suzptr,#windowData]
 	strh r0,[r6,#REG_WIN0H]

@@ -81,6 +81,8 @@ int main(int argc, char **argv) {
 		infoOutput("fatInitDefault() failure.");
 	}
 
+	GpMain(NULL);
+
 	while (1) {
 		waitVBlank();
 		checkTimeOut();
@@ -163,21 +165,25 @@ static void setupGraphics() {
 	vramSetBankI(VRAM_I_SUB_SPRITE);
 
 	// Set up the main display
-	GFX_DISPCNT = MODE_0_2D
-				 | DISPLAY_BG0_ACTIVE
-//				 | DISPLAY_BG1_ACTIVE
+	GFX_DISPCNT = MODE_5_2D
+//				 | DISPLAY_BG0_ACTIVE
 				 | DISPLAY_BG2_ACTIVE
-				 | DISPLAY_WIN0_ON
-				 | DISPLAY_WIN1_ON
-				 | DISPLAY_BG_EXT_PALETTE
+//				 | DISPLAY_WIN0_ON
+//				 | DISPLAY_WIN1_ON
+//				 | DISPLAY_BG_EXT_PALETTE
 				 ;
 	videoSetMode(GFX_DISPCNT);
 	GFX_BG0CNT = BG_32x32 | BG_MAP_BASE(0) | BG_COLOR_16 | BG_TILE_BASE(2) | BG_PRIORITY(0);
-//	GFX_BG1CNT = BG_32x32 | BG_MAP_BASE(0) | BG_COLOR_16 | BG_TILE_BASE(3) | BG_PRIORITY(1);
 	REG_BG0CNT = GFX_BG0CNT;
-//	REG_BG1CNT = GFX_BG1CNT;
 	// Background 2 for border
-	REG_BG2CNT = BG_32x32 | BG_MAP_BASE(15) | BG_COLOR_256 | BG_TILE_BASE(4) | BG_PRIORITY(2);
+//	REG_BG2CNT = BG_32x32 | BG_MAP_BASE(15) | BG_COLOR_256 | BG_TILE_BASE(4) | BG_PRIORITY(2);
+	REG_BG2CNT = BG_BMP16_256x256 | BG_TILE_BASE(0) | BG_PRIORITY(0);
+	REG_BG2X = -48<<8;
+	REG_BG2Y = (102+45)<<8;
+	REG_BG2PA = 1<<8;
+	REG_BG2PB = 0;
+	REG_BG2PC = 0;
+	REG_BG2PD = -1<<8;
 
 	// Set up the sub display
 	videoSetModeSub(MODE_0_2D

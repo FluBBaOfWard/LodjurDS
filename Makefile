@@ -24,11 +24,12 @@ include $(DEVKITARM)/ds_rules
 #---------------------------------------------------------------------------------
 TARGET		:=	$(shell basename $(CURDIR))
 BUILD		:=	build
-SOURCES		:=	source	\
+SOURCES		:=	source \
 				source/Shared \
 				source/Shared/Unzip \
 				source/ARM6502 \
-				source/ARMSuzy
+				source/ARMSuzy \
+				source/handy
 DATA		:=	data
 INCLUDES	:=	include
 GRAPHICS	:=	source/Shared/graphics \

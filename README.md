@@ -1,15 +1,14 @@
-# LodjurDS V0.0.0
+# LodjurDS V0.0.1
 
 A Lynx emulator for Nintendo DS(i)/3DS
 
 ## How to use
 
-1. Create a folder named "ngpds" in either the root of your flash card or in
+1. Create a folder named "lodjurds" in either the root of your flash card or in
  the data folder. This is where settings and save files end up.
-2. Now put game/bios files into a folder where you have (NGP) roms, max
+2. Now put game/bios files into a folder where you have (Lynx) roms, max
  768 games per folder, filenames must not be longer than 127 chars. You can use
- zip-files (as long as they use the deflate compression). CAUTION! Games that
- require SLOT-2 RAM can not be used with zip-files!
+ zip-files (as long as they use the deflate compression).
 3. Depending on your flashcart you might have to DLDI patch the emulator.
 
 Note! You need a bios to be able to save in game.
@@ -41,19 +40,16 @@ To select between the tabs use R & L or the touchscreen.
 * Controller:
   * B Autofire: Select if you want autofire on button B.
   * A Autofire: Select if you want autofire on button A.
-  * Swap A-B: Swap which NDS button is mapped to which NGP button.
+  * Swap A-B: Swap which NDS button is mapped to which Lynx button.
 * Display:
   * Gamma: Lets you change the gamma ("brightness").
-  * B&W Palette: Here you can select the palette for B & W games.
 * Machine:
   * Language: Select between Japanese and English.
   * Machine: Select the emulated machine.
   * Change Batteries: Change to new main batteries (AA/LR6).
   * Change Sub Battery: Change to a new sub battery (CR2032).
   * Cpu Speed Hacks: Allow speed hacks.
-  * Z80 Clock: You can underclock to get better speed on the DS.
-  * Select BnW Bios: Load a real NGP Bios, recommended.
-  * Select Color Bios: Load a real NGPC Bios, recommended.
+  * Select Bios: Load a Lynx Bios, recommended.
 * Settings:
   * Speed: Switch between speed modes.
     * Normal: Game runs at it's normal speed.

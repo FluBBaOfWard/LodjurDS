@@ -1,0 +1,24 @@
+# devkitadv base dir
+export CCBASE=c:/devkitadv
+# User options passed to the compiler
+export CUSER=
+include $(CCBASE)/gp32.mk
+#------------------------------
+
+%.o: %.cpp
+	$(CC) $(CPPFLAGS) -c $< -o $@
+
+# --------------------------------------------------------------------
+SRC  = susie.cpp mikie.cpp rom.cpp ram.cpp cart.cpp system.cpp memmap.cpp gpmain.cpp
+OBJS = $(SRC:%.cpp=%.o)
+# --------------------------------------------------------------------
+
+all: handygp.gxb
+
+handygp.gxb: handygp.elf
+
+handygp.elf: $(OBJS)
+	$(LINK)
+
+clean:
+	rm -f handygp.elf handygp.gxb $(OBJS)
