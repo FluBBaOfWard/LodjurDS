@@ -48,6 +48,7 @@
 	ULONG	gCPUWakeupTime = 0;
 	ULONG	gIRQEntryCycle = 0;
 	ULONG	gCPUBootAddress = 0;
+	ULONG	gSingleStepModeSprites = FALSE;
 	BOOL	gScreenUpdateRequired = FALSE;
 	BOOL	gEmulatorAbort = FALSE;
 	BOOL	gBreakpointHit = FALSE;
@@ -81,6 +82,7 @@
 	extern ULONG	gCPUWakeupTime;
 	extern ULONG	gIRQEntryCycle;
 	extern ULONG	gCPUBootAddress;
+	extern ULONG	gSingleStepModeSprites;
 	extern BOOL		gScreenUpdateRequired;
 	extern BOOL		gEmulatorAbort;
 	extern BOOL		gBreakpointHit;

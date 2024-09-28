@@ -1,5 +1,27 @@
+//
+// Copyright (c) 2004 K. Wilkins
+//
+// This software is provided 'as-is', without any express or implied warranty.
+// In no event will the authors be held liable for any damages arising from
+// the use of this software.
+//
+// Permission is granted to anyone to use this software for any purpose,
+// including commercial applications, and to alter it and redistribute it
+// freely, subject to the following restrictions:
+//
+// 1. The origin of this software must not be misrepresented; you must not
+//    claim that you wrote the original software. If you use this software
+//    in a product, an acknowledgment in the product documentation would be
+//    appreciated but is not required.
+//
+// 2. Altered source versions must be plainly marked as such, and must not
+//    be misrepresented as being the original software.
+//
+// 3. This notice may not be removed or altered from any source distribution.
+//
+
 //////////////////////////////////////////////////////////////////////////////
-//                       Handy - An Atari Lynx Emulator                     //
+//	                  Handy - An Atari Lynx Emulator                     //
 //                          Copyright (c) 1996,1997                         //
 //                              Keith Wilkins                               //
 //////////////////////////////////////////////////////////////////////////////
@@ -22,6 +44,22 @@
 
 #ifndef SUSIE_H
 #define SUSIE_H
+
+#ifdef TRACE_SUSIE
+
+#define TRACE_SUSIE0(msg)					_RPT1(_CRT_WARN,"CSusie::"msg" (Time=%012d)\n",gSystemCycleCount)
+#define TRACE_SUSIE1(msg,arg1)				_RPT2(_CRT_WARN,"CSusie::"msg" (Time=%012d)\n",arg1,gSystemCycleCount)
+#define TRACE_SUSIE2(msg,arg1,arg2)			_RPT3(_CRT_WARN,"CSusie::"msg" (Time=%012d)\n",arg1,arg2,gSystemCycleCount)
+#define TRACE_SUSIE3(msg,arg1,arg2,arg3)	_RPT4(_CRT_WARN,"CSusie::"msg" (Time=%012d)\n",arg1,arg2,arg3,gSystemCycleCount)
+
+#else
+
+#define TRACE_SUSIE0(msg)
+#define TRACE_SUSIE1(msg,arg1)
+#define TRACE_SUSIE2(msg,arg1,arg2)
+#define TRACE_SUSIE3(msg,arg1,arg2,arg3)
+
+#endif
 
 class CSystem;
 
@@ -49,21 +87,12 @@ class CSystem;
 
 
 enum {line_error=0,line_abs_literal,line_literal,line_packed};
-enum {
-	background_shadow = 0,
-	background_nocoll,
-	boundary_shadow,
-	boundary,
-	normal,
-	non_collide,
-	x__or,shadow
-	};
-enum {math_finished = 0,math_divide,math_multiply,math_init_divide,math_init_multiply};
+enum {math_finished=0,math_divide,math_multiply,math_init_divide,math_init_multiply};
 
-enum {sprite_background_shadow = 0,
-      sprite_background_noncollide,
-      sprite_boundary_shadow,
-      sprite_boundary,
+enum {sprite_background_shadow=0,
+	  sprite_background_noncollide,
+	  sprite_boundary_shadow,
+	  sprite_boundary,
 	  sprite_normal,
 	  sprite_noncollide,
 	  sprite_xor_shadow,
@@ -71,35 +100,24 @@ enum {sprite_background_shadow = 0,
 
 // Define register typdefs
 
-typedef struct 
+typedef struct
 {
 	union
 	{
 		struct
 		{
+#ifdef MSB_FIRST
+			UBYTE	High;
+			UBYTE	Low;
+#else
 			UBYTE	Low;
 			UBYTE	High;
+#endif
 		}Byte;
 		UWORD	Word;
 	};
 }UUWORD;
 
-typedef struct
-{
-	union
-	{
-		struct
-		{
-			UBYTE	Type:3;
-			UBYTE	Reserved:1;
-			UBYTE	Vflip:1;
-			UBYTE	Hflip:1;
-			UBYTE	PixelBits:2;
-		}Bits;
-		UBYTE	Byte;
-	};
-}TSPRCTL0;
-
 
 typedef struct
 {
@@ -107,70 +125,16 @@ typedef struct
 	{
 		struct
 		{
-			UBYTE	StartLeft:1;
-			UBYTE	StartUp:1;
-			UBYTE	SkipSprite:1;
-			UBYTE	ReloadPalette:1;
-			UBYTE	ReloadDepth:2;
-			UBYTE	Sizing:1;
-			UBYTE	Literal:1;
-		}Bits;
-		UBYTE	Byte;
-	};
-}TSPRCTL1;
-
-typedef struct
-{
-	union
-	{
-		struct
-		{
-			UBYTE	Number:4;
-			UBYTE	unused2:1;
-			UBYTE	Collide:1;
-			UBYTE	unused1:2;
-		}Bits;
-		UBYTE	Byte;
-	};
-}TSPRCOLL;
-
-typedef struct
-{
-	union
-	{
-		struct
-		{
-			UBYTE	unused:1;
-			UBYTE	StopOnCurrent:1;
-			UBYTE	ClearUnsafe:1;
-			UBYTE	LeftHand:1;
-			UBYTE	Vstretch:1;
-			UBYTE	NoCollide:1;
-			UBYTE	Accumulate:1;
-			UBYTE	SignedMath:1;
-		}Write;
-
-		struct
-		{
-			UBYTE	Status:1;
-			UBYTE	StopOnCurrent:1;
-			UBYTE	UnsafeAccess:1;
-			UBYTE	LeftHand:1;
-			UBYTE	Vstretch:1;
-			UBYTE	LastCarry:1;
-			UBYTE	Mathbit:1;
-			UBYTE	MathInProgress:1;
-		}Read;
-		UBYTE	Byte;
-	};
-}TSPRSYS;
-
-typedef struct
-{
-	union
-	{
-		struct
-		{
+#ifdef MSB_FIRST
+			UBYTE	Fc1:1;
+			UBYTE	Fc2:1;
+			UBYTE	Fc3:1;
+			UBYTE	reserved:1;
+			UBYTE	Ac1:1;
+			UBYTE	Ac2:1;
+			UBYTE	Ac3:1;
+			UBYTE	Ac4:1;
+#else
 			UBYTE	Ac4:1;
 			UBYTE	Ac3:1;
 			UBYTE	Ac2:1;
@@ -179,6 +143,7 @@ typedef struct
 			UBYTE	Fc3:1;
 			UBYTE	Fc2:1;
 			UBYTE	Fc1:1;
+#endif
 		}Bits;
 		UBYTE	Byte;
 	};
@@ -190,6 +155,16 @@ typedef struct
 	{
 		struct
 		{
+#ifdef MSB_FIRST
+			UBYTE	Up:1;
+			UBYTE	Down:1;
+			UBYTE	Left:1;
+			UBYTE	Right:1;
+			UBYTE	Option1:1;
+			UBYTE	Option2:1;
+			UBYTE	Inside:1;
+			UBYTE	Outside:1;
+#else
 			UBYTE	Outside:1;
 			UBYTE	Inside:1;
 			UBYTE	Option2:1;
@@ -198,6 +173,7 @@ typedef struct
 			UBYTE	Left:1;
 			UBYTE	Down:1;
 			UBYTE	Up:1;
+#endif
 		}Bits;
 		UBYTE	Byte;
 	};
@@ -209,10 +185,17 @@ typedef struct
 	{
 		struct
 		{
+#ifdef MSB_FIRST
+			UBYTE	spare:5;
+			UBYTE	Cart1IO:1;
+			UBYTE	Cart0IO:1;
+			UBYTE	Pause:1;
+#else
 			UBYTE	Pause:1;
 			UBYTE	Cart0IO:1;
 			UBYTE	Cart1IO:1;
 			UBYTE	spare:5;
+#endif
 		}Bits;
 		UBYTE	Byte;
 	};
@@ -224,15 +207,27 @@ typedef struct
 	{
 		struct
 		{
+#ifdef MSB_FIRST
+			UBYTE	A;
+			UBYTE	B;
+			UBYTE	C;
+			UBYTE	D;
+#else
 			UBYTE	D;
 			UBYTE	C;
 			UBYTE	B;
 			UBYTE	A;
+#endif
 		}Bytes;
 		struct
 		{
+#ifdef MSB_FIRST
+			UWORD	AB;
+			UWORD	CD;
+#else
 			UWORD	CD;
 			UWORD	AB;
+#endif
 		}Words;
 		ULONG	Long;
 	};
@@ -244,15 +239,27 @@ typedef struct
 	{
 		struct
 		{
+#ifdef MSB_FIRST
+			UBYTE	E;
+			UBYTE	F;
+			UBYTE	G;
+			UBYTE	H;
+#else
 			UBYTE	H;
 			UBYTE	G;
 			UBYTE	F;
 			UBYTE	E;
+#endif
 		}Bytes;
 		struct
 		{
+#ifdef MSB_FIRST
+			UWORD	EF;
+			UWORD	GH;
+#else
 			UWORD	GH;
 			UWORD	EF;
+#endif
 		}Words;
 		ULONG	Long;
 	};
@@ -264,15 +271,27 @@ typedef struct
 	{
 		struct
 		{
+#ifdef MSB_FIRST
+			UBYTE	J;
+			UBYTE	K;
+			UBYTE	L;
+			UBYTE	M;
+#else
 			UBYTE	M;
 			UBYTE	L;
 			UBYTE	K;
 			UBYTE	J;
+#endif
 		}Bytes;
 		struct
 		{
+#ifdef MSB_FIRST
+			UWORD	JK;
+			UWORD	LM;
+#else
 			UWORD	LM;
 			UWORD	JK;
+#endif
 		}Words;
 		ULONG	Long;
 	};
@@ -284,35 +303,50 @@ typedef struct
 	{
 		struct
 		{
+#ifdef MSB_FIRST
+			UBYTE	xx2;
+			UBYTE	xx1;
+			UBYTE	N;
+			UBYTE	P;
+#else
 			UBYTE	P;
 			UBYTE	N;
 			UBYTE	xx1;
 			UBYTE	xx2;
+#endif
 		}Bytes;
 		struct
 		{
+#ifdef MSB_FIRST
+			UWORD	xx1;
+			UWORD	NP;
+#else
 			UWORD	NP;
 			UWORD	xx1;
+#endif
 		}Words;
 		ULONG	Long;
 	};
 }TMATHNP;
 
 
-class CSusie : public CLynxMemObj
+class CSusie : public CLynxBase
 {
 	public:
 		CSusie(CSystem& parent);
 		~CSusie();
 
 		void	Reset(void);
+//		bool	ContextSave(FILE *fp);
+//		bool	ContextLoad(LSS_FILE *fp);
+
 		UBYTE	Peek(ULONG addr);
 		void	Poke(ULONG addr,UBYTE data);
 		ULONG	ReadCycle(void) {return 9;};
 		ULONG	WriteCycle(void) {return 5;};
 		ULONG	ObjectSize(void) {return SUSIE_SIZE;};
 
-		void	SetButtonData(ULONG data) {mJOYSTICK.Byte = (UBYTE)data;mSWITCHES.Byte = (UBYTE)(data>>8);};
+		void	SetButtonData(ULONG data) {mJOYSTICK.Byte=(UBYTE)data;mSWITCHES.Byte=(UBYTE)(data>>8);};
 		ULONG	GetButtonData(void) {return mJOYSTICK.Byte+(mSWITCHES.Byte<<8);};
 
 		ULONG	PaintSprites(void);
@@ -353,7 +387,7 @@ class CSusie : public CLynxMemObj
 		UUWORD		mSPRVPOS;		// ENG
 		UUWORD		mCOLLOFF;		// CPU
 		UUWORD		mVSIZACUM;		// ENG
-		UUWORD		mHSIZACUM;		// Keiths creation
+		UUWORD		mHSIZACUM;		//    K.s creation
 		UUWORD		mHSIZOFF;		// CPU
 		UUWORD		mVSIZOFF;		// CPU
 		UUWORD		mSCBADR;		// ENG
@@ -363,21 +397,44 @@ class CSusie : public CLynxMemObj
 		TMATHEFGH	mMATHEFGH;		// ENG
 		TMATHJKLM	mMATHJKLM;		// ENG
 		TMATHNP		mMATHNP;		// ENG
-		BOOL		mMATH_SIGNED;	// Keiths creation
-		BOOL		mMATH_OFLOW;	// Keiths creation
-		BOOL		mMATH_ACCUM;	// Keiths creation
+		int			mMATHAB_sign;
+		int			mMATHCD_sign;
+		int			mMATHEFGH_sign;
 
-		TSPRCTL0	mSPRCTL0;		// SCB
-		TSPRCTL1	mSPRCTL1;		// SCB
-		TSPRCOLL	mSPRCOLL;		// SCB
+		int			mSPRCTL0_Type;			// SCB
+		int			mSPRCTL0_Vflip;
+		int			mSPRCTL0_Hflip;
+		int			mSPRCTL0_PixelBits;
 
-		TSPRSYS		mSPRSYS;		// CPU
+		int			mSPRCTL1_StartLeft;		// SCB
+		int			mSPRCTL1_StartUp;
+		int			mSPRCTL1_SkipSprite;
+		int			mSPRCTL1_ReloadPalette;
+		int			mSPRCTL1_ReloadDepth;
+		int			mSPRCTL1_Sizing;
+		int			mSPRCTL1_Literal;
 
-		BOOL		mSUZYBUSEN;		// CPU
+		int			mSPRCOLL_Number;		//CPU
+		int			mSPRCOLL_Collide;
+
+		int			mSPRSYS_StopOnCurrent;	//CPU
+		int			mSPRSYS_LeftHand;
+		int			mSPRSYS_VStretch;
+		int			mSPRSYS_NoCollide;
+		int			mSPRSYS_Accumulate;
+		int			mSPRSYS_SignedMath;
+		int			mSPRSYS_Status;
+		int			mSPRSYS_UnsafeAccess;
+		int			mSPRSYS_LastCarry;
+		int			mSPRSYS_Mathbit;
+		int			mSPRSYS_MathInProgress;
+
+		ULONG		mSUZYBUSEN;		// CPU
 
 		TSPRINIT	mSPRINIT;		// CPU
 
-		BOOL		mSPRGO;			// CPU
+		ULONG		mSPRGO;			// CPU
+		int			mEVERON;
 
 		UBYTE		mPenIndex[16];	// SCB
 
@@ -390,7 +447,7 @@ class CSusie : public CLynxMemObj
 		ULONG		mLinePixel;
 		ULONG		mLinePacketBitsLeft;
 
-		ULONG		mCollision;
+		int			mCollision;
 
 		UBYTE		*mRamPointer;
 
@@ -402,6 +459,5 @@ class CSusie : public CLynxMemObj
 		TJOYSTICK	mJOYSTICK;
 		TSWITCHES	mSWITCHES;
 };
-
 
 #endif
