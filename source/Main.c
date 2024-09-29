@@ -56,7 +56,7 @@ int main(int argc, char **argv) {
 	if (argc > 1) {
 		enableExit = true;
 	}
-	maxRomSize = 0x80000 + 0x1000 + 0x100;
+	maxRomSize = 0x80000 + 0x10000 + 0x100;
 	u8 *memPtr = malloc(maxRomSize);
 	romSpacePtr = (u8 *)(((u32)memPtr + 0xFF) & ~0xFF);
 	setupGraphics();

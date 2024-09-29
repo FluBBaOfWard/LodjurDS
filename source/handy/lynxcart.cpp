@@ -171,44 +171,26 @@ CCart::CCart(UBYTE *gameData, ULONG gameSize)
 			break;
 	}
 
-	// Make some space for the new carts
-
-	mCartBank0 = new UBYTE[mMaskBank0+1];
-	mCartBank1 = new UBYTE[mMaskBank1+1];
-
 	// Set default bank
-
 	mBank = bank0;
 
 	// Initialize
-
 	int cartsize = int(gameSize - sizeof(LYNX_HEADER));
 	if (cartsize < 0) cartsize = 0;
 	int bank0size = (cartsize == 0) ? 0 : (int)(mMaskBank0+1);
 	int bank1size = (cartsize == 0) ? 0 : (int)(mMaskBank1+1);
 
-	memcpy(
-		mCartBank0,
-		gameData+(sizeof(LYNX_HEADER)),
-		bank0size);
-	memset(
-		mCartBank0 + bank0size,
-		DEFAULT_CART_CONTENTS,
-		mMaskBank0+1 - bank0size);
-	memcpy(
-		mCartBank1,
-		gameData+(sizeof(LYNX_HEADER)),
-		bank1size);
-	memset(
-		mCartBank1 + bank0size,
-		DEFAULT_CART_CONTENTS,
-		mMaskBank1+1 - bank1size);
+	mCartBank0 = gameData+sizeof(LYNX_HEADER);
+	mCartBank1 = mCartBank0+bank0size;
+
+	memset(mCartBank0 + bank0size, DEFAULT_CART_CONTENTS, mMaskBank0+1 - bank0size);
+	memset(mCartBank1 + bank1size, DEFAULT_CART_CONTENTS, mMaskBank1+1 - bank1size);
 
 	// Copy the cart banks from the image
 	if (gameSize) {
 		// As this is a cartridge boot unset the boot address
 
-		gCPUBootAddress=0;
+		gCPUBootAddress = 0;
 
 		//
 		// Check if this is a headerless cart
@@ -223,14 +205,12 @@ CCart::CCart(UBYTE *gameData, ULONG gameSize)
 	// Dont allow an empty Bank1 - Use it for shadow SRAM/EEPROM
 	if (banktype1 == UNUSED) {
 		// Delete the single byte allocated  earlier
-		delete[] mCartBank1;
 		// Allocate some new memory for us
 		TRACE_CART0("CCart() - Bank1 being converted to 64K SRAM");
 		banktype1 = C64K;
 		mMaskBank1 = 0x00ffff;
 		mShiftCount1 = 8;
 		mCountMask1 = 0x0ff;
-		mCartBank1 = (UBYTE *) new UBYTE[mMaskBank1+1];
 		memset(mCartBank1, DEFAULT_RAM_CONTENTS, mMaskBank1+1);
 		mWriteEnableBank1 = TRUE;
 		mCartRAM = TRUE;
@@ -239,8 +219,6 @@ CCart::CCart(UBYTE *gameData, ULONG gameSize)
 
 CCart::~CCart()
 {
-	delete[] mCartBank0;
-	delete[] mCartBank1;
 }
 
 void CCart::Reset(void)

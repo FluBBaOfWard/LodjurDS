@@ -27,28 +27,29 @@
 #include "system.h"
 #include "ram.h"
 
-int loadFile(const char *fname, void *dest, int start, int size);
-
-CRam::CRam(const char *homebrew)
+CRam::CRam(const UBYTE *filememory, ULONG filesize)
 {
 	HOME_HEADER	header;
 
-	mFileName = homebrew;
-	
-	// Open up the file
+	mFileSize = filesize;
 
-	if (strlen(mFileName) > 0)
-	{
-		loadFile(mFileName, &header, -1, sizeof(HOME_HEADER));
+	if (filesize) {
+		mFileData = filememory;
 
 		// Sanity checks on the header
-		if (header.magic[0]!='B' || header.magic[1]!='S' || header.magic[2]!='9' || header.magic[3]!='3')
-		{
-			printf("Couldn't load file **3**\n");
-			exit(1);
+		memcpy(&header, mFileData, sizeof(HOME_HEADER));
+
+		if (header.magic[0]!='B' || header.magic[1]!='S' || header.magic[2]!='9' || header.magic[3]!='3') {
+/*
+			CLynxException lynxerr;
+			lynxerr.Message() << "Handy Error: File format invalid (Magic No)";
+			lynxerr.Description()
+				<< "The image you selected was not a recognised homebrew format." << endl
+				<< "(see the Handy User Guide for more information).";
+			throw(lynxerr);
+*/
 		}
 	}
-
 	// Reset will cause the loadup
 
 	Reset();
@@ -56,37 +57,32 @@ CRam::CRam(const char *homebrew)
 
 void CRam::Reset(void)
 {
-	for (int loop=0;loop<RAM_SIZE;loop++) {
-		mRamData[loop] = DEFAULT_RAM_CONTENTS;
-	}
 	// Open up the file
 
-	if (strlen(mFileName) > 0) {
+	if (mFileSize >= sizeof(HOME_HEADER)) {
 		HOME_HEADER	header;
 		UBYTE tmp;
-		
-		loadFile(mFileName, &header, -1, sizeof(HOME_HEADER));
-		
-/*		CFile file(mFileName,CFile::modeRead);
-		file.Read((void*)&header,sizeof(HOME_HEADER));*/
+
 		// Reverse the bytes in the header words
-		tmp = (header.load_address&0xff00)>>8;
-		header.load_address = (header.load_address<<8)+tmp;
-		tmp = (header.size&0xff00)>>8;
-		header.size = (header.size<<8)+tmp;
+		memcpy(&header, mFileData, sizeof(HOME_HEADER));
+		tmp = (header.load_address & 0xff00) >> 8;
+		header.load_address = (header.load_address << 8) + tmp;
+		tmp = (header.size & 0xff00) >> 8;
+		header.size = (header.size << 8) + tmp;
+
 		// Now we can safely read/manipulate the data
 		header.load_address -= 10;
 
-		loadFile(mFileName, (void *)(mRamData+header.load_address), -1, header.size);
-/*		fseek(fhandle, 0, SEEK_SET);
-		fread((void*)(mRamData+header.load_address), 1, header.size, fhandle);
-		fclose(fhandle);*/
-/*		file.SeekToBegin();
-		file.Read((void*)(mRamData+header.load_address),header.size);
-		file.Close();*/
-		gCPUBootAddress = header.load_address;
+		int data_size = (int)header.size;
+		if (data_size > (int)mFileSize) data_size = (int)mFileSize;
+		memset(mRamData, 0x00, header.load_address);
+		memcpy(mRamData+header.load_address, mFileData, data_size);
+		memset(mRamData+header.load_address+data_size, 0x00, RAM_SIZE-header.load_address-data_size);
+		gCPUBootAddress=header.load_address;
+	}
+	else {
+		memset(mRamData, DEFAULT_RAM_CONTENTS, RAM_SIZE);
 	}
 }
-
 
 //END OF FILE

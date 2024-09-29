@@ -66,7 +66,8 @@ class CCart : public CLynxBase
 	// Function members
 
 	public:
-		CCart(UBYTE *gameData,ULONG gameSize);
+		/** gameData is used directly so don't get rid of it before running the destructor */
+		CCart(UBYTE *gameData, ULONG gameSize);
 		~CCart();
 
 	public:

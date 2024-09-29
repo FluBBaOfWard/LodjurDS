@@ -64,9 +64,8 @@ void GpMain(void *args) {
 	newsystem->SetScreenAttributes(MIKIE_BITMAP_NORMAL_BPP16_X1, 160, 102, 0, 0, (UBYTE*)vram[0], (UBYTE*)vram[1]);
 
 	while (1) {
-		int i,j;
 
-		for (i=0;i<1024;i++) {
+		for (int i=0;i<1024;i++) {
 			newsystem->Update();
 		}
 		gTimerCount++;
@@ -84,14 +83,10 @@ void GpMain(void *args) {
 				srcbuf = vram[1];
 			}
 
-			int y=0;
-			for (i=0;i<102;i++) {
-				int x=0;
-				for (j=0;j<160;j++) {
+			for (int y=0;y<102;y++) {
+				for (int x=0;x<160;x++) {
 					((unsigned short *)0x06000000)[x+(y*256)] = srcbuf[x+(y*160)] | 0x8000;
-					x++;
 				}
-				y++;
 			}
 		}
 	}

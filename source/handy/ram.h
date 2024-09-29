@@ -41,7 +41,7 @@ class CRam : public CLynxBase
 	// Function members
 
 	public:
-		CRam(const char *homebrew);
+		CRam(const UBYTE *filememory, ULONG filesize);
 
 	public:
 
@@ -58,7 +58,8 @@ class CRam : public CLynxBase
 
 	private:
 		UBYTE	mRamData[RAM_SIZE];
-		const char	*mFileName;
+		const UBYTE *mFileData;
+		ULONG	mFileSize;
 
 };
 

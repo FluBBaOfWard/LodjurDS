@@ -86,62 +86,33 @@ CSystem::CSystem(const char *gamefile, ULONG filetype, const char *romfile)
 
 	// An exception from this will be caught by the level above
 
-//	try
-//	{
-		if (mFileType == HANDY_FILETYPE_LNX) {
-			int size = loadFile(gamefile, romSpacePtr, -1, 0x80000);
-			mCart = new CCart(romSpacePtr, size);
-			if (mCart->CartHeaderLess()) {
-				char drive[3];
-				char dir[256];
-				char cartgo[256];
-				mFileType = HANDY_FILETYPE_HOMEBREW;
-//				_splitpath(romfile,drive,dir,NULL,NULL);
-				strcpy(cartgo,drive);
-				strcat(cartgo,dir);
-				strcat(cartgo,"howard.o");
-				mRam = new CRam(cartgo);
-			}
-			else
-			{
-				mRam = new CRam("");
-			}
+	if (mFileType == HANDY_FILETYPE_LNX) {
+		int size = loadFile(gamefile, romSpacePtr, -1, 0x80000);
+		mCart = new CCart(romSpacePtr, size);
+		if (mCart->CartHeaderLess()) {
+			char drive[3];
+			char dir[256];
+			char cartgo[256];
+			mFileType = HANDY_FILETYPE_HOMEBREW;
+//			_splitpath(romfile,drive,dir,NULL,NULL);
+			strcpy(cartgo,drive);
+			strcat(cartgo,dir);
+			strcat(cartgo,"howard.o");
+			int size = loadFile(cartgo, romSpacePtr, -1, 0x10000);
+			mRam = new CRam(romSpacePtr, size);
 		}
-		else
-		{
-			mCart = new CCart(NULL, 0);
-			mRam = new CRam(gamefile);
+		else {
+			mRam = new CRam(NULL, 0);
 		}
-//	}
-/*	catch(CFileException *filerr)
-	{
-		CLynxException lynxerr;
-
-		switch(filerr->m_cause)
-		{
-			case CFileException::generic:
-				lynxerr.Message() << "Handy Error: File format invalid!";
-				lynxerr.Description()
-					<< "The image you selected was not a recognised game cartridge format." << endl
-					<< "(see the Handy User Guide for more information).";
-				break;
-			case CFileException::fileNotFound:
-				lynxerr.Message() << "Handy Error: File Not Found!";
-				lynxerr.Description()
-					<< "The lynx emulator will not run without a cartridge image." << endl
-					<< "\"" << gamefile << "\" was not found in the place you " << endl
-					<< "specified. (see the Handy User Guide for more information).";
-				break;
-			default:
-				lynxerr.Message() << "Handy Error: Unspecified Load error!";
-				lynxerr.Description()
-					<< "The lynx emulator will not run without a cartridge image." << endl
-					<< "It appears that your cartridge image may be corrupted or there is" << endl
-					<< "some other error.(see the Handy User Guide for more information)";
-		}
-		filerr->Delete();
-		throw(lynxerr);
-	}*/
+	}
+	else if (mFileType == HANDY_FILETYPE_HOMEBREW) {
+		mCart = new CCart(NULL, 0);
+		mRam = new CRam(romSpacePtr, 0);
+	}
+	else {
+		mCart = new CCart(NULL, 0);
+		mRam = new CRam(NULL, 0);
+	}
 
 	// These can generate exceptions
 	mMikie = new CMikie(*this);
@@ -149,78 +120,6 @@ CSystem::CSystem(const char *gamefile, ULONG filetype, const char *romfile)
 
 	mMemMap = new CMemMap(*this);
 
-// Initialise the vector table for peek/poke's
-
-//	int selector,loop;
-/*
-	for (selector=0;selector<8;selector++) {
-		for (loop=0;loop<SYSTEM_SIZE;loop++) {
-			mMemoryHandlers[selector][loop] = mRam;
-		}
-	}
-//
-// We will hold 16 different memory maps for the "top" area which are selected
-// on the basis of mMemMap->mSelector:
-//
-//				Code	Vect	ROM		Mikie	Susie
-//----------------------------------------------------
-//	(Default)	0000	V		R		M		S
-//				0001	V		R		M		RAM
-//				0001	V		R		RAM		S
-//				0011	V		R		RAM		RAM
-//				0100	V		RAM		M		S
-//				..
-//				..
-//				1111	RAM		RAM		RAM		RAM
-//
-// Get it.....
-//
-// We can then index with mMemoryHandlers[mMemMap->mSelector][addr] for speed
-//
-
-	for (selector=0;selector<8;selector++) {
-		// FC00-FCFF Susie area
-
-		if (!(selector&0x01))
-			for (loop=SUSIE_START;loop<SUSIE_START+SUSIE_SIZE;loop++)
-				mMemoryHandlers[selector][loop] = mSusie;
-		else
-			for (loop=SUSIE_START;loop<SUSIE_START+SUSIE_SIZE;loop++)
-				mMemoryHandlers[selector][loop] = mRam;
-
-		// FD00-FDFF Mikie area
-
-		if (!(selector&0x02))
-			for (loop=MIKIE_START;loop<MIKIE_START+MIKIE_SIZE;loop++)
-				mMemoryHandlers[selector][loop] = mMikie;
-		else
-			for (loop=MIKIE_START;loop<MIKIE_START+MIKIE_SIZE;loop++)
-				mMemoryHandlers[selector][loop] = mRam;
-
-		// FE00-FFF7 Rom area
-
-		if (!(selector&0x04))
-			for (loop=BROM_START;loop<BROM_START+BROM_SIZE;loop++)
-				mMemoryHandlers[selector][loop] = mRom;
-		else
-			for (loop=BROM_START;loop<BROM_START+BROM_SIZE;loop++)
-				mMemoryHandlers[selector][loop] = mRam;
-
-		// FFFA-FFFF Vector area - Overload ROM space
-
-		if (!(selector&0x04))
-			for (loop=VECTOR_START;loop<VECTOR_START+VECTOR_SIZE;loop++)
-				mMemoryHandlers[selector][loop] = mRom;
-		else
-			for (loop=VECTOR_START;loop<VECTOR_START+VECTOR_SIZE;loop++)
-				mMemoryHandlers[selector][loop] = mRam;
-
-		// FFF8/9 - The exception, this is the memory map controller
-
-		mMemoryHandlers[selector][0xFFF8] = mRam;
-		mMemoryHandlers[selector][0xFFF9] = mMemMap;
-	}
-*/
 // Now the handlers are set we can instantiate the CPU as is will use handlers on reset
 
 	mCpu = new C65C02(*this);
@@ -317,8 +216,9 @@ inline UBYTE CSystem::Peek_CPU(ULONG addr) {
 
 inline void  CSystem::PokeW_CPU(ULONG addr,UWORD data) {
 	Poke_CPU(addr, data & 0xff);
-	Poke_CPU(addr+1,data>>8);
+	Poke_CPU(addr+1, data>>8);
 };
+
 inline UWORD CSystem::PeekW_CPU(ULONG addr) {
 	return ((Peek_CPU(addr))+(Peek_CPU(addr+1)<<8));
 };
