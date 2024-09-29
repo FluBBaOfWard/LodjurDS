@@ -71,6 +71,9 @@ void CMikie::Reset(void)
 {
 	mAudioInputComparator = FALSE;	// Initialises to unknown
 	mDisplayAddress = 0x00;			// Initialises to unknown
+	mLynxLine = 0;
+	mLynxLineDMACounter = 0;
+	mLynxAddr = 0;
 
 	mTimerStatusFlags = 0x00;		// Initialises to ZERO, i.e No IRQ's
 	mTimerInterruptMask = 0x00;
@@ -252,6 +255,7 @@ void CMikie::Reset(void)
 
 	mIODAT = 0x00;
 	mIODIR = 0x00;
+	mIODAT_REST_SIGNAL = 0x00;
 
 	//
 	// Initialise display control register vars
@@ -267,9 +271,22 @@ void CMikie::Reset(void)
 	mUART_RX_IRQ_ENABLE = 0;
 	mUART_TX_IRQ_ENABLE = 0;
 
-	mUART_RX_COUNTDOWN = 0;
-	mUART_TX_COUNTDOWN = 0;
+	mUART_TX_COUNTDOWN = UART_TX_INACTIVE;
+	mUART_RX_COUNTDOWN = UART_RX_INACTIVE;
 
+	mUART_Rx_input_ptr = 0;
+	mUART_Rx_output_ptr = 0;
+	mUART_Rx_waiting = 0;
+	mUART_Rx_framing_error = 0;
+	mUART_Rx_overun_error = 0;
+
+	mUART_SENDBREAK = 0;
+	mUART_TX_DATA = 0;
+	mUART_RX_DATA = 0;
+	mUART_RX_READY = 0;
+
+	mUART_PARITY_ENABLE = 0;
+	mUART_PARITY_EVEN = 0;
 }
 
 ULONG CMikie::GetLfsrNext(ULONG current)
@@ -376,504 +393,484 @@ void CMikie::ComLynxTxCallback(void (*function)(int data, ULONG objref), ULONG o
 
 void CMikie::Poke(ULONG addr,UBYTE data)
 {
-	switch(addr&0xff)
+	switch(addr & 0xff)
 	{
-		case (TIM0BKUP&0xff): 
-			mTIM_0_BKUP=data;
+		case (TIM0BKUP & 0xff):
+			mTIM_0_BKUP = data;
 			break;
-		case (TIM1BKUP&0xff): 
-			mTIM_1_BKUP=data;
+		case (TIM1BKUP & 0xff):
+			mTIM_1_BKUP = data;
 			break;
-		case (TIM2BKUP&0xff): 
-			mTIM_2_BKUP=data;
+		case (TIM2BKUP & 0xff):
+			mTIM_2_BKUP = data;
 			break;
-		case (TIM3BKUP&0xff): 
-			mTIM_3_BKUP=data;
+		case (TIM3BKUP & 0xff):
+			mTIM_3_BKUP = data;
 			break;
-		case (TIM4BKUP&0xff): 
-			mTIM_4_BKUP=data;
+		case (TIM4BKUP & 0xff):
+			mTIM_4_BKUP = data;
 			break;
-		case (TIM5BKUP&0xff): 
-			mTIM_5_BKUP=data;
+		case (TIM5BKUP & 0xff):
+			mTIM_5_BKUP = data;
 			break;
-		case (TIM6BKUP&0xff): 
-			mTIM_6_BKUP=data;
+		case (TIM6BKUP & 0xff):
+			mTIM_6_BKUP = data;
 			break;
-		case (TIM7BKUP&0xff):
-			mTIM_7_BKUP=data;
+		case (TIM7BKUP & 0xff):
+			mTIM_7_BKUP = data;
 			break;
 
-
-		case (TIM0CTLA&0xff):
-			mTimerInterruptMask&=(0x01^0xff);
-			mTimerInterruptMask|=(data&0x80)?0x01:0x00;
-			mTIM_0_ENABLE_RELOAD=data&0x10;
-			mTIM_0_ENABLE_COUNT=data&0x08;
-			mTIM_0_LINKING=data&0x07;
-			if(data&0x40) mTIM_0_TIMER_DONE=0;
-			if(data&0x48)
-			{
-				mTIM_0_LAST_COUNT=gSystemCycleCount;
-				gNextTimerEvent=gSystemCycleCount;
+		case (TIM0CTLA & 0xff):
+			mTimerInterruptMask &= (0x01 ^ 0xff);
+			mTimerInterruptMask |= (data & 0x80) ? 0x01 : 0x00;
+			mTIM_0_ENABLE_RELOAD = data & 0x10;
+			mTIM_0_ENABLE_COUNT = data & 0x08;
+			mTIM_0_LINKING = data & 0x07;
+			if (data & 0x40) mTIM_0_TIMER_DONE = 0;
+			if (data & 0x48) {
+				mTIM_0_LAST_COUNT = gSystemCycleCount;
+				gNextTimerEvent = gSystemCycleCount;
 			}
 			break;
-		case (TIM1CTLA&0xff): 
-			mTimerInterruptMask&=(0x02^0xff);
-			mTimerInterruptMask|=(data&0x80)?0x02:0x00;
-			mTIM_1_ENABLE_RELOAD=data&0x10;
-			mTIM_1_ENABLE_COUNT=data&0x08;
-			mTIM_1_LINKING=data&0x07;
-			if(data&0x40) mTIM_1_TIMER_DONE=0;
-			if(data&0x48)
-			{
-				mTIM_1_LAST_COUNT=gSystemCycleCount;
-				gNextTimerEvent=gSystemCycleCount;
+		case (TIM1CTLA & 0xff):
+			mTimerInterruptMask &= (0x02 ^ 0xff);
+			mTimerInterruptMask |= (data & 0x80) ? 0x02 : 0x00;
+			mTIM_1_ENABLE_RELOAD = data & 0x10;
+			mTIM_1_ENABLE_COUNT = data & 0x08;
+			mTIM_1_LINKING = data & 0x07;
+			if (data & 0x40) mTIM_1_TIMER_DONE = 0;
+			if (data & 0x48) {
+				mTIM_1_LAST_COUNT = gSystemCycleCount;
+				gNextTimerEvent = gSystemCycleCount;
 			}
 			break;
-		case (TIM2CTLA&0xff): 
-			mTimerInterruptMask&=(0x04^0xff);
-			mTimerInterruptMask|=(data&0x80)?0x04:0x00;
-			mTIM_2_ENABLE_RELOAD=data&0x10;
-			mTIM_2_ENABLE_COUNT=data&0x08;
-			mTIM_2_LINKING=data&0x07;
-			if(data&0x40) mTIM_2_TIMER_DONE=0;
-			if(data&0x48)
-			{
-				mTIM_2_LAST_COUNT=gSystemCycleCount;
-				gNextTimerEvent=gSystemCycleCount;
+		case (TIM2CTLA & 0xff):
+			mTimerInterruptMask &= (0x04 ^ 0xff);
+			mTimerInterruptMask |= (data & 0x80) ? 0x04 : 0x00;
+			mTIM_2_ENABLE_RELOAD = data & 0x10;
+			mTIM_2_ENABLE_COUNT = data & 0x08;
+			mTIM_2_LINKING = data & 0x07;
+			if (data & 0x40) mTIM_2_TIMER_DONE = 0;
+			if (data & 0x48) {
+				mTIM_2_LAST_COUNT = gSystemCycleCount;
+				gNextTimerEvent = gSystemCycleCount;
 			}
 			break;
-		case (TIM3CTLA&0xff): 
-			mTimerInterruptMask&=(0x08^0xff);
-			mTimerInterruptMask|=(data&0x80)?0x08:0x00;
-			mTIM_3_ENABLE_RELOAD=data&0x10;
-			mTIM_3_ENABLE_COUNT=data&0x08;
-			mTIM_3_LINKING=data&0x07;
-			if(data&0x40) mTIM_3_TIMER_DONE=0;
-			if(data&0x48)
-			{
-				mTIM_3_LAST_COUNT=gSystemCycleCount;
-				gNextTimerEvent=gSystemCycleCount;
+		case (TIM3CTLA & 0xff):
+			mTimerInterruptMask &= (0x08 ^ 0xff);
+			mTimerInterruptMask |= (data & 0x80) ? 0x08 : 0x00;
+			mTIM_3_ENABLE_RELOAD = data & 0x10;
+			mTIM_3_ENABLE_COUNT = data & 0x08;
+			mTIM_3_LINKING = data & 0x07;
+			if (data & 0x40) mTIM_3_TIMER_DONE = 0;
+			if (data & 0x48) {
+				mTIM_3_LAST_COUNT = gSystemCycleCount;
+				gNextTimerEvent = gSystemCycleCount;
 			}
 			break;
-		case (TIM4CTLA&0xff): 
+		case (TIM4CTLA & 0xff):
 			// Timer 4 can never generate interrupts as its timer output is used
 			// to drive the UART clock generator
-			mTIM_4_ENABLE_RELOAD=data&0x10;
-			mTIM_4_ENABLE_COUNT=data&0x08;
-			mTIM_4_LINKING=data&0x07;
-			if(data&0x40) mTIM_4_TIMER_DONE=0;
-			if(data&0x48)
-			{
-				mTIM_4_LAST_COUNT=gSystemCycleCount;
-				gNextTimerEvent=gSystemCycleCount;
+			mTIM_4_ENABLE_RELOAD = data & 0x10;
+			mTIM_4_ENABLE_COUNT = data & 0x08;
+			mTIM_4_LINKING = data & 0x07;
+			if (data & 0x40) mTIM_4_TIMER_DONE = 0;
+			if (data & 0x48) {
+				mTIM_4_LAST_COUNT = gSystemCycleCount;
+				gNextTimerEvent = gSystemCycleCount;
 			}
 			break;
-		case (TIM5CTLA&0xff): 
-			mTimerInterruptMask&=(0x20^0xff);
-			mTimerInterruptMask|=(data&0x80)?0x20:0x00;
-			mTIM_5_ENABLE_RELOAD=data&0x10;
-			mTIM_5_ENABLE_COUNT=data&0x08;
-			mTIM_5_LINKING=data&0x07;
-			if(data&0x40) mTIM_5_TIMER_DONE=0;
-			if(data&0x48)
-			{
-				mTIM_5_LAST_COUNT=gSystemCycleCount;
-				gNextTimerEvent=gSystemCycleCount;
+		case (TIM5CTLA & 0xff):
+			mTimerInterruptMask &= (0x20 ^ 0xff);
+			mTimerInterruptMask |= (data & 0x80) ? 0x20 : 0x00;
+			mTIM_5_ENABLE_RELOAD = data & 0x10;
+			mTIM_5_ENABLE_COUNT = data & 0x08;
+			mTIM_5_LINKING = data & 0x07;
+			if (data & 0x40) mTIM_5_TIMER_DONE = 0;
+			if (data & 0x48) {
+				mTIM_5_LAST_COUNT = gSystemCycleCount;
+				gNextTimerEvent = gSystemCycleCount;
 			}
 			break;
-		case (TIM6CTLA&0xff): 
-			mTimerInterruptMask&=(0x40^0xff);
-			mTimerInterruptMask|=(data&0x80)?0x40:0x00;
-			mTIM_6_ENABLE_RELOAD=data&0x10;
-			mTIM_6_ENABLE_COUNT=data&0x08;
-			mTIM_6_LINKING=data&0x07;
-			if(data&0x40) mTIM_6_TIMER_DONE=0;
-			if(data&0x48)
-			{
-				mTIM_6_LAST_COUNT=gSystemCycleCount;
-				gNextTimerEvent=gSystemCycleCount;
+		case (TIM6CTLA & 0xff):
+			mTimerInterruptMask &= (0x40 ^ 0xff);
+			mTimerInterruptMask |= (data & 0x80) ? 0x40 : 0x00;
+			mTIM_6_ENABLE_RELOAD = data & 0x10;
+			mTIM_6_ENABLE_COUNT = data & 0x08;
+			mTIM_6_LINKING = data & 0x07;
+			if (data & 0x40) mTIM_6_TIMER_DONE = 0;
+			if (data & 0x48) {
+				mTIM_6_LAST_COUNT = gSystemCycleCount;
+				gNextTimerEvent = gSystemCycleCount;
 			}
 			break;
-		case (TIM7CTLA&0xff):
-			mTimerInterruptMask&=(0x80^0xff);
-			mTimerInterruptMask|=(data&0x80)?0x80:0x00;
-			mTIM_7_ENABLE_RELOAD=data&0x10;
-			mTIM_7_ENABLE_COUNT=data&0x08;
-			mTIM_7_LINKING=data&0x07;
-			if(data&0x40) mTIM_7_TIMER_DONE=0;
-			if(data&0x48)
-			{
-				mTIM_7_LAST_COUNT=gSystemCycleCount;
-				gNextTimerEvent=gSystemCycleCount;
+		case (TIM7CTLA & 0xff):
+			mTimerInterruptMask &= (0x80 ^ 0xff);
+			mTimerInterruptMask |= (data & 0x80) ? 0x80 : 0x00;
+			mTIM_7_ENABLE_RELOAD = data & 0x10;
+			mTIM_7_ENABLE_COUNT = data & 0x08;
+			mTIM_7_LINKING = data & 0x07;
+			if (data & 0x40) mTIM_7_TIMER_DONE = 0;
+			if (data & 0x48) {
+				mTIM_7_LAST_COUNT = gSystemCycleCount;
+				gNextTimerEvent = gSystemCycleCount;
 			}
 			break;
 
-
-		case (TIM0CNT&0xff): 
-			mTIM_0_CURRENT=data;
-			gNextTimerEvent=gSystemCycleCount;
+		case (TIM0CNT & 0xff):
+			mTIM_0_CURRENT = data;
+			gNextTimerEvent = gSystemCycleCount;
 			break;
-		case (TIM1CNT&0xff): 
-			mTIM_1_CURRENT=data;
-			gNextTimerEvent=gSystemCycleCount;
+		case (TIM1CNT & 0xff):
+			mTIM_1_CURRENT = data;
+			gNextTimerEvent = gSystemCycleCount;
 			break;
-		case (TIM2CNT&0xff): 
-			mTIM_2_CURRENT=data;
-			gNextTimerEvent=gSystemCycleCount;
+		case (TIM2CNT & 0xff):
+			mTIM_2_CURRENT = data;
+			gNextTimerEvent = gSystemCycleCount;
 			break;
-		case (TIM3CNT&0xff): 
-			mTIM_3_CURRENT=data;
-			gNextTimerEvent=gSystemCycleCount;
+		case (TIM3CNT & 0xff):
+			mTIM_3_CURRENT = data;
+			gNextTimerEvent = gSystemCycleCount;
 			break;
-		case (TIM4CNT&0xff): 
-			mTIM_4_CURRENT=data;
-			gNextTimerEvent=gSystemCycleCount;
+		case (TIM4CNT & 0xff):
+			mTIM_4_CURRENT = data;
+			gNextTimerEvent = gSystemCycleCount;
 			break;
-		case (TIM5CNT&0xff): 
-			mTIM_5_CURRENT=data;
-			gNextTimerEvent=gSystemCycleCount;
+		case (TIM5CNT & 0xff):
+			mTIM_5_CURRENT = data;
+			gNextTimerEvent = gSystemCycleCount;
 			break;
-		case (TIM6CNT&0xff): 
-			mTIM_6_CURRENT=data;
-			gNextTimerEvent=gSystemCycleCount;
+		case (TIM6CNT & 0xff):
+			mTIM_6_CURRENT = data;
+			gNextTimerEvent = gSystemCycleCount;
 			break;
-		case (TIM7CNT&0xff): 
-			mTIM_7_CURRENT=data;
-			gNextTimerEvent=gSystemCycleCount;
-			break;
-
-		case (TIM0CTLB&0xff): 
-			mTIM_0_TIMER_DONE=data&0x08;
-			mTIM_0_LAST_CLOCK=data&0x04;
-			mTIM_0_BORROW_IN=data&0x02;
-			mTIM_0_BORROW_OUT=data&0x01;
-//			BlowOut();
-			break;
-		case (TIM1CTLB&0xff): 
-			mTIM_1_TIMER_DONE=data&0x08;
-			mTIM_1_LAST_CLOCK=data&0x04;
-			mTIM_1_BORROW_IN=data&0x02;
-			mTIM_1_BORROW_OUT=data&0x01;
-//			BlowOut();
-			break;
-		case (TIM2CTLB&0xff): 
-			mTIM_2_TIMER_DONE=data&0x08;
-			mTIM_2_LAST_CLOCK=data&0x04;
-			mTIM_2_BORROW_IN=data&0x02;
-			mTIM_2_BORROW_OUT=data&0x01;
-//			BlowOut();
-			break;
-		case (TIM3CTLB&0xff): 
-			mTIM_3_TIMER_DONE=data&0x08;
-			mTIM_3_LAST_CLOCK=data&0x04;
-			mTIM_3_BORROW_IN=data&0x02;
-			mTIM_3_BORROW_OUT=data&0x01;
-//			BlowOut();
-			break;
-		case (TIM4CTLB&0xff): 
-			mTIM_4_TIMER_DONE=data&0x08;
-			mTIM_4_LAST_CLOCK=data&0x04;
-			mTIM_4_BORROW_IN=data&0x02;
-			mTIM_4_BORROW_OUT=data&0x01;
-//			BlowOut();
-			break;
-		case (TIM5CTLB&0xff): 
-			mTIM_5_TIMER_DONE=data&0x08;
-			mTIM_5_LAST_CLOCK=data&0x04;
-			mTIM_5_BORROW_IN=data&0x02;
-			mTIM_5_BORROW_OUT=data&0x01;
-//			BlowOut();
-			break;
-		case (TIM6CTLB&0xff): 
-			mTIM_6_TIMER_DONE=data&0x08;
-			mTIM_6_LAST_CLOCK=data&0x04;
-			mTIM_6_BORROW_IN=data&0x02;
-			mTIM_6_BORROW_OUT=data&0x01;
-//			BlowOut();
-			break;
-		case (TIM7CTLB&0xff):
-			mTIM_7_TIMER_DONE=data&0x08;
-			mTIM_7_LAST_CLOCK=data&0x04;
-			mTIM_7_BORROW_IN=data&0x02;
-			mTIM_7_BORROW_OUT=data&0x01;
-//			BlowOut();
+		case (TIM7CNT & 0xff):
+			mTIM_7_CURRENT = data;
+			gNextTimerEvent = gSystemCycleCount;
 			break;
 
-		case (AUD0VOL&0xff): 
+		case (TIM0CTLB & 0xff):
+			mTIM_0_TIMER_DONE = data & 0x08;
+			mTIM_0_LAST_CLOCK = data & 0x04;
+			mTIM_0_BORROW_IN = data & 0x02;
+			mTIM_0_BORROW_OUT = data & 0x01;
+//			BlowOut();
+			break;
+		case (TIM1CTLB & 0xff):
+			mTIM_1_TIMER_DONE = data & 0x08;
+			mTIM_1_LAST_CLOCK = data & 0x04;
+			mTIM_1_BORROW_IN = data & 0x02;
+			mTIM_1_BORROW_OUT = data & 0x01;
+//			BlowOut();
+			break;
+		case (TIM2CTLB&0xff):
+			mTIM_2_TIMER_DONE = data & 0x08;
+			mTIM_2_LAST_CLOCK = data & 0x04;
+			mTIM_2_BORROW_IN = data & 0x02;
+			mTIM_2_BORROW_OUT = data & 0x01;
+//			BlowOut();
+			break;
+		case (TIM3CTLB & 0xff):
+			mTIM_3_TIMER_DONE = data & 0x08;
+			mTIM_3_LAST_CLOCK = data & 0x04;
+			mTIM_3_BORROW_IN = data & 0x02;
+			mTIM_3_BORROW_OUT = data & 0x01;
+//			BlowOut();
+			break;
+		case (TIM4CTLB & 0xff):
+			mTIM_4_TIMER_DONE = data & 0x08;
+			mTIM_4_LAST_CLOCK = data & 0x04;
+			mTIM_4_BORROW_IN = data & 0x02;
+			mTIM_4_BORROW_OUT = data & 0x01;
+//			BlowOut();
+			break;
+		case (TIM5CTLB & 0xff):
+			mTIM_5_TIMER_DONE= data & 0x08;
+			mTIM_5_LAST_CLOCK= data & 0x04;
+			mTIM_5_BORROW_IN = data & 0x02;
+			mTIM_5_BORROW_OUT = data & 0x01;
+//			BlowOut();
+			break;
+		case (TIM6CTLB & 0xff):
+			mTIM_6_TIMER_DONE = data & 0x08;
+			mTIM_6_LAST_CLOCK = data & 0x04;
+			mTIM_6_BORROW_IN = data & 0x02;
+			mTIM_6_BORROW_OUT = data & 0x01;
+//			BlowOut();
+			break;
+		case (TIM7CTLB & 0xff):
+			mTIM_7_TIMER_DONE = data & 0x08;
+			mTIM_7_LAST_CLOCK = data & 0x04;
+			mTIM_7_BORROW_IN = data & 0x02;
+			mTIM_7_BORROW_OUT = data & 0x01;
+//			BlowOut();
+			break;
+
+		case (AUD0VOL & 0xff):
 			// Counter is disabled when volume is zero for optimisation
 			// reasons, we must update the last use position to stop problems
-			if(!mAUDIO_0_VOLUME && data)
-			{
-				mAUDIO_0_LAST_COUNT=gSystemCycleCount;
-				gNextTimerEvent=gSystemCycleCount;
+			if (!mAUDIO_0_VOLUME && data) {
+				mAUDIO_0_LAST_COUNT = gSystemCycleCount;
+				gNextTimerEvent = gSystemCycleCount;
 			}
-			mAUDIO_0_VOLUME=(SBYTE)data;
+			mAUDIO_0_VOLUME = (SBYTE)data;
 			break;
-		case (AUD0SHFTFB&0xff):	
-			mAUDIO_0_WAVESHAPER&=0x001fff;
-			mAUDIO_0_WAVESHAPER|=(ULONG)data<<13;
+		case (AUD0SHFTFB & 0xff):
+			mAUDIO_0_WAVESHAPER &= 0x001fff;
+			mAUDIO_0_WAVESHAPER |= (ULONG)data << 13;
 			break;
-		case (AUD0OUTVAL&0xff): 
-			mAUDIO_0_OUTPUT=data;
+		case (AUD0OUTVAL & 0xff):
+			mAUDIO_0_OUTPUT = data;
 			break;
-		case (AUD0L8SHFT&0xff): 
-			mAUDIO_0_WAVESHAPER&=0x1fff00;
-			mAUDIO_0_WAVESHAPER|=data;
+		case (AUD0L8SHFT & 0xff):
+			mAUDIO_0_WAVESHAPER &= 0x1fff00;
+			mAUDIO_0_WAVESHAPER |= data;
 			break;
-		case (AUD0TBACK&0xff):
+		case (AUD0TBACK & 0xff):
 			// Counter is disabled when backup is zero for optimisation
 			// due to the fact that the output frequency will be above audio
 			// range, we must update the last use position to stop problems
-			if(!mAUDIO_0_BKUP && data)
-			{
-				mAUDIO_0_LAST_COUNT=gSystemCycleCount;
-				gNextTimerEvent=gSystemCycleCount;
+			if (!mAUDIO_0_BKUP && data) {
+				mAUDIO_0_LAST_COUNT = gSystemCycleCount;
+				gNextTimerEvent = gSystemCycleCount;
 			}
-			mAUDIO_0_BKUP=data;
+			mAUDIO_0_BKUP = data;
 			break;
-		case (AUD0CTL&0xff):
-			mAUDIO_0_ENABLE_RELOAD=data&0x10;
-			mAUDIO_0_ENABLE_COUNT=data&0x08;
-			mAUDIO_0_LINKING=data&0x07;
-			mAUDIO_0_INTEGRATE_ENABLE=data&0x20;
-			if(data&0x40) mAUDIO_0_TIMER_DONE=0;
-			mAUDIO_0_WAVESHAPER&=0x1fefff;
-			mAUDIO_0_WAVESHAPER|=(data&0x80)?0x001000:0x000000;
-			if(data&0x48)
-			{
-				mAUDIO_0_LAST_COUNT=gSystemCycleCount;
-				gNextTimerEvent=gSystemCycleCount;
+		case (AUD0CTL & 0xff):
+			mAUDIO_0_ENABLE_RELOAD = data & 0x10;
+			mAUDIO_0_ENABLE_COUNT = data & 0x08;
+			mAUDIO_0_LINKING = data & 0x07;
+			mAUDIO_0_INTEGRATE_ENABLE = data & 0x20;
+			if (data & 0x40) mAUDIO_0_TIMER_DONE = 0;
+			mAUDIO_0_WAVESHAPER &= 0x1fefff;
+			mAUDIO_0_WAVESHAPER |= (data & 0x80) ? 0x001000 : 0x000000;
+			if (data & 0x48) {
+				mAUDIO_0_LAST_COUNT = gSystemCycleCount;
+				gNextTimerEvent = gSystemCycleCount;
 			}
 			break;
-		case (AUD0COUNT&0xff): 
-			mAUDIO_0_CURRENT=data;
+		case (AUD0COUNT & 0xff):
+			mAUDIO_0_CURRENT = data;
 			break;
-		case (AUD0MISC&0xff):
-			mAUDIO_0_WAVESHAPER&=0x1ff0ff;
-			mAUDIO_0_WAVESHAPER|=(data&0xf0)<<4;
-			mAUDIO_0_BORROW_IN=data&0x02;
-			mAUDIO_0_BORROW_OUT=data&0x01;
-			mAUDIO_0_LAST_CLOCK=data&0x04;
+		case (AUD0MISC & 0xff):
+			mAUDIO_0_WAVESHAPER &= 0x1ff0ff;
+			mAUDIO_0_WAVESHAPER |= (data & 0xf0)<<4;
+			mAUDIO_0_BORROW_IN = data & 0x02;
+			mAUDIO_0_BORROW_OUT = data & 0x01;
+			mAUDIO_0_LAST_CLOCK = data & 0x04;
 			break;
-		  
-		case (AUD1VOL&0xff): 
+
+		case (AUD1VOL & 0xff):
 			// Counter is disabled when volume is zero for optimisation
 			// reasons, we must update the last use position to stop problems
-			if(!mAUDIO_1_VOLUME && data)
+			if (!mAUDIO_1_VOLUME && data)
 			{
-				mAUDIO_1_LAST_COUNT=gSystemCycleCount;
-				gNextTimerEvent=gSystemCycleCount;
+				mAUDIO_1_LAST_COUNT = gSystemCycleCount;
+				gNextTimerEvent = gSystemCycleCount;
 			}
-			mAUDIO_1_VOLUME=(SBYTE)data;
+			mAUDIO_1_VOLUME = (SBYTE)data;
 			break;
-		case (AUD1SHFTFB&0xff):	
-			mAUDIO_1_WAVESHAPER&=0x001fff;
-			mAUDIO_1_WAVESHAPER|=(ULONG)data<<13;
+		case (AUD1SHFTFB & 0xff):
+			mAUDIO_1_WAVESHAPER &= 0x001fff;
+			mAUDIO_1_WAVESHAPER |= (ULONG)data<<13;
 			break;
-		case (AUD1OUTVAL&0xff): 
-			mAUDIO_1_OUTPUT=data;
+		case (AUD1OUTVAL & 0xff):
+			mAUDIO_1_OUTPUT = data;
 			break;
-		case (AUD1L8SHFT&0xff): 
-			mAUDIO_1_WAVESHAPER&=0x1fff00;
-			mAUDIO_1_WAVESHAPER|=data;
+		case (AUD1L8SHFT & 0xff):
+			mAUDIO_1_WAVESHAPER &= 0x1fff00;
+			mAUDIO_1_WAVESHAPER |= data;
 			break;
-		case (AUD1TBACK&0xff):
+		case (AUD1TBACK & 0xff):
 			// Counter is disabled when backup is zero for optimisation
 			// due to the fact that the output frequency will be above audio
 			// range, we must update the last use position to stop problems
-			if(!mAUDIO_1_BKUP && data)
+			if (!mAUDIO_1_BKUP && data)
 			{
-				mAUDIO_1_LAST_COUNT=gSystemCycleCount;
-				gNextTimerEvent=gSystemCycleCount;
+				mAUDIO_1_LAST_COUNT = gSystemCycleCount;
+				gNextTimerEvent = gSystemCycleCount;
 			}
-			mAUDIO_1_BKUP=data;
+			mAUDIO_1_BKUP = data;
 			break;
-		case (AUD1CTL&0xff):
-			mAUDIO_1_ENABLE_RELOAD=data&0x10;
-			mAUDIO_1_ENABLE_COUNT=data&0x08;
-			mAUDIO_1_LINKING=data&0x07;
-			mAUDIO_1_INTEGRATE_ENABLE=data&0x20;
-			if(data&0x40) mAUDIO_1_TIMER_DONE=0;
-			mAUDIO_1_WAVESHAPER&=0x1fefff;
-			mAUDIO_1_WAVESHAPER|=(data&0x80)?0x001000:0x000000;
-			if(data&0x48)
-			{
-				mAUDIO_1_LAST_COUNT=gSystemCycleCount;
-				gNextTimerEvent=gSystemCycleCount;
+		case (AUD1CTL & 0xff):
+			mAUDIO_1_ENABLE_RELOAD = data & 0x10;
+			mAUDIO_1_ENABLE_COUNT = data & 0x08;
+			mAUDIO_1_LINKING = data & 0x07;
+			mAUDIO_1_INTEGRATE_ENABLE = data & 0x20;
+			if (data & 0x40) mAUDIO_1_TIMER_DONE = 0;
+			mAUDIO_1_WAVESHAPER &= 0x1fefff;
+			mAUDIO_1_WAVESHAPER |= (data & 0x80) ? 0x001000 : 0x000000;
+			if (data & 0x48) {
+				mAUDIO_1_LAST_COUNT = gSystemCycleCount;
+				gNextTimerEvent = gSystemCycleCount;
 			}
 			break;
-		case (AUD1COUNT&0xff): 
-			mAUDIO_1_CURRENT=data;
+		case (AUD1COUNT & 0xff):
+			mAUDIO_1_CURRENT = data;
 			break;
-		case (AUD1MISC&0xff):
-			mAUDIO_1_WAVESHAPER&=0x1ff0ff;
-			mAUDIO_1_WAVESHAPER|=(data&0xf0)<<4;
-			mAUDIO_1_BORROW_IN=data&0x02;
-			mAUDIO_1_BORROW_OUT=data&0x01;
-			mAUDIO_1_LAST_CLOCK=data&0x04;
+		case (AUD1MISC & 0xff):
+			mAUDIO_1_WAVESHAPER &= 0x1ff0ff;
+			mAUDIO_1_WAVESHAPER |= (data & 0xf0)<<4;
+			mAUDIO_1_BORROW_IN = data & 0x02;
+			mAUDIO_1_BORROW_OUT = data & 0x01;
+			mAUDIO_1_LAST_CLOCK = data & 0x04;
 			break;
 
-		case (AUD2VOL&0xff): 
+		case (AUD2VOL & 0xff):
 			// Counter is disabled when volume is zero for optimisation
 			// reasons, we must update the last use position to stop problems
-			if(!mAUDIO_2_VOLUME && data)
+			if (!mAUDIO_2_VOLUME && data)
 			{
-				mAUDIO_2_LAST_COUNT=gSystemCycleCount;
-				gNextTimerEvent=gSystemCycleCount;
+				mAUDIO_2_LAST_COUNT = gSystemCycleCount;
+				gNextTimerEvent = gSystemCycleCount;
 			}
-			mAUDIO_2_VOLUME=(SBYTE)data;
+			mAUDIO_2_VOLUME = (SBYTE)data;
 			break;
-		case (AUD2SHFTFB&0xff):	
-			mAUDIO_2_WAVESHAPER&=0x001fff;
-			mAUDIO_2_WAVESHAPER|=(ULONG)data<<13;
+		case (AUD2SHFTFB & 0xff):
+			mAUDIO_2_WAVESHAPER &= 0x001fff;
+			mAUDIO_2_WAVESHAPER |= (ULONG)data<<13;
 			break;
-		case (AUD2OUTVAL&0xff): 
-			mAUDIO_2_OUTPUT=data;
+		case (AUD2OUTVAL & 0xff):
+			mAUDIO_2_OUTPUT = data;
 			break;
-		case (AUD2L8SHFT&0xff): 
-			mAUDIO_2_WAVESHAPER&=0x1fff00;
-			mAUDIO_2_WAVESHAPER|=data;
+		case (AUD2L8SHFT & 0xff):
+			mAUDIO_2_WAVESHAPER &= 0x1fff00;
+			mAUDIO_2_WAVESHAPER |= data;
 			break;
-		case (AUD2TBACK&0xff):
+		case (AUD2TBACK & 0xff):
 			// Counter is disabled when backup is zero for optimisation
 			// due to the fact that the output frequency will be above audio
 			// range, we must update the last use position to stop problems
-			if(!mAUDIO_2_BKUP && data)
-			{
-				mAUDIO_2_LAST_COUNT=gSystemCycleCount;
-				gNextTimerEvent=gSystemCycleCount;
+			if (!mAUDIO_2_BKUP && data) {
+				mAUDIO_2_LAST_COUNT = gSystemCycleCount;
+				gNextTimerEvent = gSystemCycleCount;
 			}
-			mAUDIO_2_BKUP=data;
+			mAUDIO_2_BKUP = data;
 			break;
-		case (AUD2CTL&0xff):
-			mAUDIO_2_ENABLE_RELOAD=data&0x10;
-			mAUDIO_2_ENABLE_COUNT=data&0x08;
-			mAUDIO_2_LINKING=data&0x07;
-			mAUDIO_2_INTEGRATE_ENABLE=data&0x20;
-			if(data&0x40) mAUDIO_2_TIMER_DONE=0;
-			mAUDIO_2_WAVESHAPER&=0x1fefff;
-			mAUDIO_2_WAVESHAPER|=(data&0x80)?0x001000:0x000000;
-			if(data&0x48)
-			{
-				mAUDIO_2_LAST_COUNT=gSystemCycleCount;
-				gNextTimerEvent=gSystemCycleCount;
+		case (AUD2CTL & 0xff):
+			mAUDIO_2_ENABLE_RELOAD = data & 0x10;
+			mAUDIO_2_ENABLE_COUNT = data & 0x08;
+			mAUDIO_2_LINKING = data & 0x07;
+			mAUDIO_2_INTEGRATE_ENABLE = data & 0x20;
+			if (data & 0x40) mAUDIO_2_TIMER_DONE = 0;
+			mAUDIO_2_WAVESHAPER &= 0x1fefff;
+			mAUDIO_2_WAVESHAPER |= (data & 0x80) ? 0x001000 : 0x000000;
+			if (data & 0x48) {
+				mAUDIO_2_LAST_COUNT = gSystemCycleCount;
+				gNextTimerEvent = gSystemCycleCount;
 			}
 			break;
-		case (AUD2COUNT&0xff): 
-			mAUDIO_2_CURRENT=data;
+		case (AUD2COUNT & 0xff):
+			mAUDIO_2_CURRENT = data;
 			break;
-		case (AUD2MISC&0xff):
-			mAUDIO_2_WAVESHAPER&=0x1ff0ff;
-			mAUDIO_2_WAVESHAPER|=(data&0xf0)<<4;
-			mAUDIO_2_BORROW_IN=data&0x02;
-			mAUDIO_2_BORROW_OUT=data&0x01;
-			mAUDIO_2_LAST_CLOCK=data&0x04;
+		case (AUD2MISC & 0xff):
+			mAUDIO_2_WAVESHAPER &= 0x1ff0ff;
+			mAUDIO_2_WAVESHAPER|= (data & 0xf0)<<4;
+			mAUDIO_2_BORROW_IN = data & 0x02;
+			mAUDIO_2_BORROW_OUT = data & 0x01;
+			mAUDIO_2_LAST_CLOCK = data & 0x04;
 			break;
 
-		case (AUD3VOL&0xff): 
+		case (AUD3VOL & 0xff):
 			// Counter is disabled when volume is zero for optimisation
 			// reasons, we must update the last use position to stop problems
-			if(!mAUDIO_3_VOLUME && data)
-			{
-				mAUDIO_3_LAST_COUNT=gSystemCycleCount;
-				gNextTimerEvent=gSystemCycleCount;
+			if (!mAUDIO_3_VOLUME && data) {
+				mAUDIO_3_LAST_COUNT = gSystemCycleCount;
+				gNextTimerEvent = gSystemCycleCount;
 			}
-			mAUDIO_3_VOLUME=(SBYTE)data;
+			mAUDIO_3_VOLUME = (SBYTE)data;
 			break;
-		case (AUD3SHFTFB&0xff):	
-			mAUDIO_3_WAVESHAPER&=0x001fff;
-			mAUDIO_3_WAVESHAPER|=(ULONG)data<<13;
+		case (AUD3SHFTFB & 0xff):
+			mAUDIO_3_WAVESHAPER &= 0x001fff;
+			mAUDIO_3_WAVESHAPER |= (ULONG)data<<13;
 			break;
-		case (AUD3OUTVAL&0xff): 
-			mAUDIO_3_OUTPUT=data;
+		case (AUD3OUTVAL & 0xff):
+			mAUDIO_3_OUTPUT = data;
 			break;
-		case (AUD3L8SHFT&0xff): 
-			mAUDIO_3_WAVESHAPER&=0x1fff00;
-			mAUDIO_3_WAVESHAPER|=data;
+		case (AUD3L8SHFT & 0xff):
+			mAUDIO_3_WAVESHAPER &= 0x1fff00;
+			mAUDIO_3_WAVESHAPER |= data;
 			break;
-		case (AUD3TBACK&0xff):
+		case (AUD3TBACK & 0xff):
 			// Counter is disabled when backup is zero for optimisation
 			// due to the fact that the output frequency will be above audio
 			// range, we must update the last use position to stop problems
-			if(!mAUDIO_3_BKUP && data)
-			{
-				mAUDIO_3_LAST_COUNT=gSystemCycleCount;
-				gNextTimerEvent=gSystemCycleCount;
+			if (!mAUDIO_3_BKUP && data) {
+				mAUDIO_3_LAST_COUNT = gSystemCycleCount;
+				gNextTimerEvent = gSystemCycleCount;
 			}
-			mAUDIO_3_BKUP=data;
+			mAUDIO_3_BKUP = data;
 			break;
-		case (AUD3CTL&0xff):
-			mAUDIO_3_ENABLE_RELOAD=data&0x10;
-			mAUDIO_3_ENABLE_COUNT=data&0x08;
-			mAUDIO_3_LINKING=data&0x07;
-			mAUDIO_3_INTEGRATE_ENABLE=data&0x20;
-			if(data&0x40) mAUDIO_3_TIMER_DONE=0;
-			mAUDIO_3_WAVESHAPER&=0x1fefff;
-			mAUDIO_3_WAVESHAPER|=(data&0x80)?0x001000:0x000000;
-			if(data&0x48)
-			{
-				mAUDIO_3_LAST_COUNT=gSystemCycleCount;
-				gNextTimerEvent=gSystemCycleCount;
+		case (AUD3CTL & 0xff):
+			mAUDIO_3_ENABLE_RELOAD = data & 0x10;
+			mAUDIO_3_ENABLE_COUNT = data & 0x08;
+			mAUDIO_3_LINKING = data & 0x07;
+			mAUDIO_3_INTEGRATE_ENABLE = data & 0x20;
+			if (data & 0x40) mAUDIO_3_TIMER_DONE = 0;
+			mAUDIO_3_WAVESHAPER &= 0x1fefff;
+			mAUDIO_3_WAVESHAPER |= (data & 0x80) ? 0x001000 : 0x000000;
+			if (data & 0x48) {
+				mAUDIO_3_LAST_COUNT = gSystemCycleCount;
+				gNextTimerEvent = gSystemCycleCount;
 			}
 			break;
-		case (AUD3COUNT&0xff): 
-			mAUDIO_3_CURRENT=data;
+		case (AUD3COUNT & 0xff):
+			mAUDIO_3_CURRENT = data;
 			break;
-		case (AUD3MISC&0xff):
-			mAUDIO_3_WAVESHAPER&=0x1ff0ff;
-			mAUDIO_3_WAVESHAPER|=(data&0xf0)<<4;
-			mAUDIO_3_BORROW_IN=data&0x02;
-			mAUDIO_3_BORROW_OUT=data&0x01;
-			mAUDIO_3_LAST_CLOCK=data&0x04;
-			break;
-
-		case (ATTEN_A&0xff):
-		case (ATTEN_B&0xff):
-		case (ATTEN_C&0xff):
-		case (ATTEN_D&0xff):
-		case (MPAN&0xff):
+		case (AUD3MISC & 0xff):
+			mAUDIO_3_WAVESHAPER &= 0x1ff0ff;
+			mAUDIO_3_WAVESHAPER |= (data & 0xf0)<<4;
+			mAUDIO_3_BORROW_IN = data & 0x02;
+			mAUDIO_3_BORROW_OUT = data & 0x01;
+			mAUDIO_3_LAST_CLOCK = data & 0x04;
 			break;
 
-		case (MSTEREO&0xff):
-			data^=0xff;
-//			if(!(mSTEREO&0x11) && (data&0x11))
+		case (ATTEN_A & 0xff):
+		case (ATTEN_B & 0xff):
+		case (ATTEN_C & 0xff):
+		case (ATTEN_D & 0xff):
+		case (MPAN & 0xff):
+			break;
+
+		case (MSTEREO & 0xff):
+			data ^= 0xff;
+//			if (!(mSTEREO & 0x11) && (data & 0x11))
 //			{
-//				mAUDIO_0_LAST_COUNT=gSystemCycleCount;
-//				gNextTimerEvent=gSystemCycleCount;
+//				mAUDIO_0_LAST_COUNT = gSystemCycleCount;
+//				gNextTimerEvent = gSystemCycleCount;
 //			}
-//			if(!(mSTEREO&0x22) && (data&0x22))
+//			if (!(mSTEREO & 0x22) && (data & 0x22))
 //			{
-//				mAUDIO_1_LAST_COUNT=gSystemCycleCount;
-//				gNextTimerEvent=gSystemCycleCount;
+//				mAUDIO_1_LAST_COUNT = gSystemCycleCount;
+//				gNextTimerEvent = gSystemCycleCount;
 //			}
-//			if(!(mSTEREO&0x44) && (data&0x44))
+//			if (!(mSTEREO & 0x44) && (data & 0x44))
 //			{
-//				mAUDIO_2_LAST_COUNT=gSystemCycleCount;
-//				gNextTimerEvent=gSystemCycleCount;
+//				mAUDIO_2_LAST_COUNT = gSystemCycleCount;
+//				gNextTimerEvent = gSystemCycleCount;
 //			}
-//			if(!(mSTEREO&0x88) && (data&0x88))
+//			if (!(mSTEREO & 0x88) && (data & 0x88))
 //			{
-//				mAUDIO_3_LAST_COUNT=gSystemCycleCount;
-//				gNextTimerEvent=gSystemCycleCount;
+//				mAUDIO_3_LAST_COUNT = gSystemCycleCount;
+//				gNextTimerEvent = gSystemCycleCount;
 //			}
-			mSTEREO=data;
+			mSTEREO = data;
 			break;
 
-		case (INTRST&0xff):
-			data^=0xff;
-			mTimerStatusFlags&=data;
-			gNextTimerEvent=gSystemCycleCount;
+		case (INTRST & 0xff):
+			data ^= 0xff;
+			mTimerStatusFlags &= data;
+			gNextTimerEvent = gSystemCycleCount;
 			break;
 
-		case (INTSET&0xff): 
-			mTimerStatusFlags|=data;
-			gNextTimerEvent=gSystemCycleCount;
+		case (INTSET & 0xff):
+			mTimerStatusFlags |= data;
+			gNextTimerEvent = gSystemCycleCount;
 			break;
 
-		case (SYSCTL1&0xff):
-			if(!(data&0x02))
-			{
+		case (SYSCTL1 & 0xff):
+			if (!(data & 0x02)) {
 //				CString addr;
 				C6502_REGS regs;
 				mSystem.GetRegs(regs);
@@ -883,53 +880,71 @@ void CMikie::Poke(ULONG addr,UBYTE data)
 				mSystem.Reset();
 				gSystemHalt=TRUE;
 			}
-			mSystem.CartAddressStrobe((data&0x01)?TRUE:FALSE);
+			mSystem.CartAddressStrobe((data & 0x01) ? TRUE : FALSE);
 			break;
 
-		case (MIKEYSREV&0xff):
+		case (MIKEYSREV & 0xff):
 			break;
 
-		case (IODIR&0xff):
-			mIODIR=data;
+		case (IODIR & 0xff):
+			mIODIR = data;
 			break;
 
-		case (IODAT&0xff):
-			mIODAT=data&(mIODIR^0xff);
-			mSystem.CartAddressData((data&0x02)?TRUE:FALSE);
+		case (IODAT & 0xff):
+			mIODAT = data & (mIODIR ^ 0xff);
+			mSystem.CartAddressData((data & 0x02) ? TRUE : FALSE);
+			// Enable cart writes to BANK1 on AUDIN if AUDIN is set to output
+			if (mIODIR & 0x10) mSystem.mCart->mWriteEnableBank1 = (mIODAT & 0x10) ? TRUE : FALSE;
 			break;
 
-		case (SERCTL&0xff): 
-			mUART_TX_IRQ_ENABLE=data&0x80;
-			mUART_RX_IRQ_ENABLE=data&0x40;
-			mUART_TX_COUNTDOWN=0;	// Allow an int to trigger
+		case (SERCTL & 0xff):
+			TRACE_MIKIE2("Poke(SERCTL  ,%02x) at PC=%04x", data, mSystem.mCpu->GetPC());
+			mUART_TX_IRQ_ENABLE = (data & 0x80) ? true : false;
+			mUART_RX_IRQ_ENABLE = (data & 0x40) ? true : false;
+			mUART_PARITY_ENABLE = (data & 0x10) ? true : false;
+			mUART_SENDBREAK = data & 0x02;
+			mUART_PARITY_EVEN = data & 0x01;
 
+			// Reset all errors if required
+			if (data & 0x08) {
+				mUART_Rx_overun_error = 0;
+				mUART_Rx_framing_error = 0;
+			}
+
+			if (mUART_SENDBREAK) {
+				// Trigger send break, it will self sustain as long as sendbreak is set
+				mUART_TX_COUNTDOWN = UART_TX_TIME_PERIOD;
+				// Loop back what we transmitted
+				ComLynxTxLoopback(UART_BREAK_CODE);
+			}
 			break;
 
-		case (SERDAT&0xff):
+		case (SERDAT & 0xff):
 			//
 			// Fake transmission, set counter to be decremented by Timer 4
 			//
 			// ComLynx only has one output pin, hence Rx & Tx are shorted
 			// therefore any transmitted data will loopback
 			//
-			mUART_DATA=data;
-//			mUART_TX_COUNTDOWN=10*16;	// 10 bits @ 16 clocks/bit
-//			mUART_RX_COUNTDOWN=10*16;	// 10 bits @ 16 clocks/bit
-			//
-			// Current optimised counter implementation means that
-			// timer 4 doesn't update very often and will slip badly
-			// against other timers, hence it only gets decremented
-			// at the rate of the next fastest timer in the system, 
-			// usually the line timer, hence the Rx/Tx delay is reduced
-			// to 2 ticks of timer 4
-			//
-			mUART_TX_COUNTDOWN=2;
-			mUART_RX_COUNTDOWN=2;
+			mUART_TX_DATA = data;
+			// Calculate Parity data
+			if (mUART_PARITY_ENABLE) {
+				// Calc parity value
+				// Leave at zero !!
+			}
+			else {
+				// If disabled then the PAREVEN bit is sent
+				if (mUART_PARITY_EVEN) data |= 0x0100;
+			}
+			// Set countdown to transmission
+			mUART_TX_COUNTDOWN = UART_TX_TIME_PERIOD;
+			// Loop back what we transmitted
+			ComLynxTxLoopback(mUART_TX_DATA);
 			break;
 
-		case (SDONEACK&0xff):
+		case (SDONEACK & 0xff):
 			break;
-		case (CPUSLEEP&0xff):
+		case (CPUSLEEP & 0xff):
 			//
 			// The only use of this I believe is to paint sprites
 			//
@@ -937,19 +952,17 @@ void CMikie::Poke(ULONG addr,UBYTE data)
 			// only IRQ's will wake it up
 			//
 			{
-				static BOOL entry=0; /* FIXME ** CHN */
-				if(entry)
-				{
+				static BOOL entry = 0; /* FIXME ** CHN */
+				if (entry) {
 					C6502_REGS regs;
 					mSystem.GetRegs(regs);
 					printf("CMikie::Poke(CPUSLEEP) - Sprite paint recursion occured at PC=$%04x.\n",regs.PC);
-					gSystemHalt=TRUE;
+					gSystemHalt = TRUE;
 				}
-				else
-				{
-					entry=TRUE;
+				else {
+					entry = TRUE;
 
-					SLONG cycles_used=(SLONG)mSystem.PaintSprites();
+					SLONG cycles_used = (SLONG)mSystem.PaintSprites();
 					ULONG tmp;
 
 					//
@@ -958,106 +971,105 @@ void CMikie::Poke(ULONG addr,UBYTE data)
 					//
 
 					mSystem.SetCPUSleep();
-					while(cycles_used>0)
-					{
-						tmp=gSystemCycleCount;
+					while (cycles_used > 0) {
+						tmp = gSystemCycleCount;
 						mSystem.Update();
-						if(gSystemCPUSleep) cycles_used-=gSystemCycleCount-tmp;
+						if (gSystemCPUSleep) cycles_used -= gSystemCycleCount-tmp;
 
 						//
 						// Throttling code
 						//
 
 						if (gSystemCycleCount > gThrottleNextCycleCheckpoint) {
-							while(gThrottleLastTimerCount==gTimerCount)
+							while (gThrottleLastTimerCount == gTimerCount)
 							{
 								// While away the hours.....
 							}
-							gThrottleNextCycleCheckpoint=gSystemCycleCount+(((HANDY_SYSTEM_FREQ/HANDY_TIMER_FREQ)*gThrottleMaxPercentage)/100);
-							gThrottleLastTimerCount=gTimerCount;
+							gThrottleNextCycleCheckpoint = gSystemCycleCount+(((HANDY_SYSTEM_FREQ/HANDY_TIMER_FREQ)*gThrottleMaxPercentage)/100);
+							gThrottleLastTimerCount = gTimerCount;
 						}
 					}
 					mSystem.ClearCPUSleep();
-					entry=FALSE;
+					entry = FALSE;
 				}
 			}
 			break;
 
-		case (DISPCTL&0xff): 
+		case (DISPCTL & 0xff):
 			{
 				TDISPCTL tmp;
-				tmp.Byte=data;
-				mDISPCTL_DMAEnable=tmp.Bits.DMAEnable;
-				mDISPCTL_Flip=tmp.Bits.Flip;
-				mDISPCTL_FourColour=tmp.Bits.FourColour;
-				mDISPCTL_Colour=tmp.Bits.Colour;
+				tmp.Byte = data;
+				mDISPCTL_DMAEnable = tmp.Bits.DMAEnable;
+				mDISPCTL_Flip = tmp.Bits.Flip;
+				mDISPCTL_FourColour = tmp.Bits.FourColour;
+				mDISPCTL_Colour = tmp.Bits.Colour;
 			}
 			break;
-		case (PBKUP&0xff): 
+		case (PBKUP & 0xff):
 			break;
 
-		case (DISPADRL&0xff):
-			mDisplayAddress&=0xff00;
-			mDisplayAddress+=data;
+		case (DISPADRL & 0xff):
+			mDisplayAddress &= 0xff00;
+			mDisplayAddress += data;
 			break;
 
-		case (DISPADRH&0xff): 
-			mDisplayAddress&=0x00ff;
-			mDisplayAddress+=(data<<8);
+		case (DISPADRH & 0xff):
+			mDisplayAddress &= 0x00ff;
+			mDisplayAddress += (data<<8);
 			break;
 
-		case (Mtest0&0xff): 
-		case (Mtest1&0xff): 
-		case (Mtest2&0xff): 
+		case (Mtest0 & 0xff):
+		case (Mtest1 & 0xff):
+		case (Mtest2 & 0xff):
 			// Test registers are unimplemented
 			// lets hope no programs use them.
 			break;
 
-		case (GREEN0&0xff): 
-		case (GREEN1&0xff): 
-		case (GREEN2&0xff): 
-		case (GREEN3&0xff): 
-		case (GREEN4&0xff): 
-		case (GREEN5&0xff): 
-		case (GREEN6&0xff): 
-		case (GREEN7&0xff): 
-		case (GREEN8&0xff): 
-		case (GREEN9&0xff): 
-		case (GREENA&0xff): 
-		case (GREENB&0xff): 
-		case (GREENC&0xff): 
-		case (GREEND&0xff): 
-		case (GREENE&0xff): 
-		case (GREENF&0xff):
-			mPalette[addr&0x0f].Colours.Green = data & 0x0f;
+		case (GREEN0 & 0xff):
+		case (GREEN1 & 0xff):
+		case (GREEN2 & 0xff):
+		case (GREEN3 & 0xff):
+		case (GREEN4 & 0xff):
+		case (GREEN5 & 0xff):
+		case (GREEN6 & 0xff):
+		case (GREEN7 & 0xff):
+		case (GREEN8 & 0xff):
+		case (GREEN9 & 0xff):
+		case (GREENA & 0xff):
+		case (GREENB & 0xff):
+		case (GREENC & 0xff):
+		case (GREEND & 0xff):
+		case (GREENE & 0xff):
+		case (GREENF & 0xff):
+			mPalette[addr & 0x0f].Colours.Green = data & 0x0f;
 			break;
 
-		case (BLUERED0&0xff): 
-		case (BLUERED1&0xff): 
-		case (BLUERED2&0xff): 
-		case (BLUERED3&0xff): 
-		case (BLUERED4&0xff): 
-		case (BLUERED5&0xff): 
-		case (BLUERED6&0xff): 
-		case (BLUERED7&0xff): 
-		case (BLUERED8&0xff): 
-		case (BLUERED9&0xff): 
-		case (BLUEREDA&0xff): 
-		case (BLUEREDB&0xff): 
-		case (BLUEREDC&0xff): 
-		case (BLUEREDD&0xff): 
-		case (BLUEREDE&0xff): 
-		case (BLUEREDF&0xff): 
-			mPalette[addr&0x0f].Colours.Blue = (data & 0xf0)>>4;
-			mPalette[addr&0x0f].Colours.Red = data & 0x0f;
+		case (BLUERED0 & 0xff):
+		case (BLUERED1 & 0xff):
+		case (BLUERED2 & 0xff):
+		case (BLUERED3 & 0xff):
+		case (BLUERED4 & 0xff):
+		case (BLUERED5 & 0xff):
+		case (BLUERED6 & 0xff):
+		case (BLUERED7 & 0xff):
+		case (BLUERED8 & 0xff):
+		case (BLUERED9 & 0xff):
+		case (BLUEREDA & 0xff):
+		case (BLUEREDB & 0xff):
+		case (BLUEREDC & 0xff):
+		case (BLUEREDD & 0xff):
+		case (BLUEREDE & 0xff):
+		case (BLUEREDF & 0xff):
+			mPalette[addr & 0x0f].Colours.Blue = (data & 0xf0)>>4;
+			mPalette[addr & 0x0f].Colours.Red = data & 0x0f;
 			break;
 
 // Errors on read only register accesses
 
-		case (MAGRDY0&0xff): 
-		case (MAGRDY1&0xff): 
-		case (AUDIN&0xff): 
-		case (MIKEYHREV&0xff): 
+		case (MAGRDY0 & 0xff):
+		case (MAGRDY1 & 0xff):
+		case (AUDIN & 0xff):
+		case (MIKEYHREV & 0xff):
 //			_RPT3(_CRT_WARN, "CMikie::Poke(%04x,%02x) - Poke to read only register location at time %d\n",addr,data,gSystemCycleCount);
 			break;
 
@@ -1078,229 +1090,229 @@ UBYTE CMikie::Peek(ULONG addr)
 
 // Timer control registers
 
-		case (TIM0BKUP&0xff): 
+		case (TIM0BKUP & 0xff):
 			return (UBYTE)mTIM_0_BKUP;
 			break;
-		case (TIM1BKUP&0xff): 
+		case (TIM1BKUP & 0xff):
 			return (UBYTE)mTIM_1_BKUP;
 			break;
-		case (TIM2BKUP&0xff): 
+		case (TIM2BKUP & 0xff):
 			return (UBYTE)mTIM_2_BKUP;
 			break;
-		case (TIM3BKUP&0xff): 
+		case (TIM3BKUP & 0xff):
 			return (UBYTE)mTIM_3_BKUP;
 			break;
-		case (TIM4BKUP&0xff): 
+		case (TIM4BKUP & 0xff):
 			return (UBYTE)mTIM_4_BKUP;
 			break;
-		case (TIM5BKUP&0xff): 
+		case (TIM5BKUP & 0xff):
 			return (UBYTE)mTIM_5_BKUP;
 			break;
-		case (TIM6BKUP&0xff): 
+		case (TIM6BKUP & 0xff):
 			return (UBYTE)mTIM_6_BKUP;
 			break;
-		case (TIM7BKUP&0xff):
+		case (TIM7BKUP & 0xff):
 			return (UBYTE)mTIM_7_BKUP;
 			break;
 
-		case (TIM0CTLA&0xff):
+		case (TIM0CTLA & 0xff):
 			{
-				UBYTE retval=0;
-				retval|=(mTimerInterruptMask&0x01)?0x80:0x00;
-				retval|=(mTIM_0_ENABLE_RELOAD)?0x10:0x00;
-				retval|=(mTIM_0_ENABLE_COUNT)?0x08:0x00;
-				retval|=mTIM_0_LINKING;
+				UBYTE retval = 0;
+				retval |= (mTimerInterruptMask & 0x01) ? 0x80 : 0x00;
+				retval |= (mTIM_0_ENABLE_RELOAD) ? 0x10 : 0x00;
+				retval |= (mTIM_0_ENABLE_COUNT) ? 0x08 : 0x00;
+				retval |= mTIM_0_LINKING;
 				return retval;
 			}
 			break;
-		case (TIM1CTLA&0xff): 
+		case (TIM1CTLA & 0xff):
 			{
-				UBYTE retval=0;
-				retval|=(mTimerInterruptMask&0x02)?0x80:0x00;
-				retval|=(mTIM_1_ENABLE_RELOAD)?0x10:0x00;
-				retval|=(mTIM_1_ENABLE_COUNT)?0x08:0x00;
-				retval|=mTIM_1_LINKING;
+				UBYTE retval = 0;
+				retval |= (mTimerInterruptMask & 0x02) ? 0x80 : 0x00;
+				retval |= (mTIM_1_ENABLE_RELOAD) ? 0x10 : 0x00;
+				retval |= (mTIM_1_ENABLE_COUNT) ? 0x08 : 0x00;
+				retval |= mTIM_1_LINKING;
 				return retval;
 			}
 			break;
-		case (TIM2CTLA&0xff): 
+		case (TIM2CTLA & 0xff):
 			{
-				UBYTE retval=0;
-				retval|=(mTimerInterruptMask&0x04)?0x80:0x00;
-				retval|=(mTIM_2_ENABLE_RELOAD)?0x10:0x00;
-				retval|=(mTIM_2_ENABLE_COUNT)?0x08:0x00;
-				retval|=mTIM_2_LINKING;
+				UBYTE retval = 0;
+				retval |= (mTimerInterruptMask & 0x04) ? 0x80 : 0x00;
+				retval |= (mTIM_2_ENABLE_RELOAD) ? 0x10 : 0x00;
+				retval |= (mTIM_2_ENABLE_COUNT) ? 0x08 : 0x00;
+				retval |= mTIM_2_LINKING;
 				return retval;
 			}
 			break;
-		case (TIM3CTLA&0xff): 
+		case (TIM3CTLA & 0xff):
 			{
-				UBYTE retval=0;
-				retval|=(mTimerInterruptMask&0x08)?0x80:0x00;
-				retval|=(mTIM_3_ENABLE_RELOAD)?0x10:0x00;
-				retval|=(mTIM_3_ENABLE_COUNT)?0x08:0x00;
-				retval|=mTIM_3_LINKING;
+				UBYTE retval = 0;
+				retval |= (mTimerInterruptMask & 0x08) ? 0x80 : 0x00;
+				retval |= (mTIM_3_ENABLE_RELOAD) ? 0x10 : 0x00;
+				retval |= (mTIM_3_ENABLE_COUNT) ? 0x08 : 0x00;
+				retval |= mTIM_3_LINKING;
 				return retval;
 			}
 			break;
-		case (TIM4CTLA&0xff): 
+		case (TIM4CTLA & 0xff):
 			{
-				UBYTE retval=0;
-				retval|=(mTimerInterruptMask&0x10)?0x80:0x00;
-				retval|=(mTIM_4_ENABLE_RELOAD)?0x10:0x00;
-				retval|=(mTIM_4_ENABLE_COUNT)?0x08:0x00;
-				retval|=mTIM_4_LINKING;
+				UBYTE retval = 0;
+				retval |= (mTimerInterruptMask & 0x10) ? 0x80 : 0x00;
+				retval |= (mTIM_4_ENABLE_RELOAD) ? 0x10 : 0x00;
+				retval |= (mTIM_4_ENABLE_COUNT) ? 0x08 : 0x00;
+				retval |= mTIM_4_LINKING;
 				return retval;
 			}
 			break;
-		case (TIM5CTLA&0xff): 
+		case (TIM5CTLA & 0xff):
 			{
-				UBYTE retval=0;
-				retval|=(mTimerInterruptMask&0x20)?0x80:0x00;
-				retval|=(mTIM_5_ENABLE_RELOAD)?0x10:0x00;
-				retval|=(mTIM_5_ENABLE_COUNT)?0x08:0x00;
-				retval|=mTIM_5_LINKING;
+				UBYTE retval = 0;
+				retval |= (mTimerInterruptMask & 0x20) ? 0x80 : 0x00;
+				retval |= (mTIM_5_ENABLE_RELOAD) ? 0x10 : 0x00;
+				retval |= (mTIM_5_ENABLE_COUNT) ? 0x08 : 0x00;
+				retval |= mTIM_5_LINKING;
 				return retval;
 			}
 			break;
-		case (TIM6CTLA&0xff): 
+		case (TIM6CTLA & 0xff):
 			{
-				UBYTE retval=0;
-				retval|=(mTimerInterruptMask&0x40)?0x80:0x00;
-				retval|=(mTIM_6_ENABLE_RELOAD)?0x10:0x00;
-				retval|=(mTIM_6_ENABLE_COUNT)?0x08:0x00;
-				retval|=mTIM_6_LINKING;
+				UBYTE retval = 0;
+				retval |= (mTimerInterruptMask & 0x40) ? 0x80 : 0x00;
+				retval |= (mTIM_6_ENABLE_RELOAD) ? 0x10 : 0x00;
+				retval |= (mTIM_6_ENABLE_COUNT) ? 0x08 : 0x00;
+				retval |= mTIM_6_LINKING;
 				return retval;
 			}
 			break;
-		case (TIM7CTLA&0xff):
+		case (TIM7CTLA & 0xff):
 			{
-				UBYTE retval=0;
-				retval|=(mTimerInterruptMask&0x80)?0x80:0x00;
-				retval|=(mTIM_7_ENABLE_RELOAD)?0x10:0x00;
-				retval|=(mTIM_7_ENABLE_COUNT)?0x08:0x00;
-				retval|=mTIM_7_LINKING;
+				UBYTE retval = 0;
+				retval |= (mTimerInterruptMask & 0x80) ? 0x80 : 0x00;
+				retval |= (mTIM_7_ENABLE_RELOAD) ? 0x10 : 0x00;
+				retval |= (mTIM_7_ENABLE_COUNT) ? 0x08 : 0x00;
+				retval |= mTIM_7_LINKING;
 				return retval;
 			}
 			break;
 
-		case (TIM0CNT&0xff): 
+		case (TIM0CNT & 0xff):
 			Update();
 			return (UBYTE)mTIM_0_CURRENT;
 			break;
-		case (TIM1CNT&0xff): 
+		case (TIM1CNT & 0xff):
 			Update();
 			return (UBYTE)mTIM_1_CURRENT;
 			break;
-		case (TIM2CNT&0xff): 
+		case (TIM2CNT & 0xff):
 			Update();
 			return (UBYTE)mTIM_2_CURRENT;
 			break;
-		case (TIM3CNT&0xff): 
+		case (TIM3CNT & 0xff):
 			Update();
 			return (UBYTE)mTIM_3_CURRENT;
 			break;
-		case (TIM4CNT&0xff): 
+		case (TIM4CNT & 0xff):
 			Update();
 			return (UBYTE)mTIM_4_CURRENT;
 			break;
-		case (TIM5CNT&0xff): 
+		case (TIM5CNT & 0xff):
 			Update();
 			return (UBYTE)mTIM_5_CURRENT;
 			break;
-		case (TIM6CNT&0xff): 
+		case (TIM6CNT & 0xff):
 			Update();
 			return (UBYTE)mTIM_6_CURRENT;
 			break;
-		case (TIM7CNT&0xff): 
+		case (TIM7CNT & 0xff):
 			Update();
 			return (UBYTE)mTIM_7_CURRENT;
 			break;
 
-		case (TIM0CTLB&0xff): 
+		case (TIM0CTLB & 0xff):
 			{
-				UBYTE retval=0;
-				retval|=(mTIM_0_TIMER_DONE)?0x08:0x00;
-				retval|=(mTIM_0_LAST_CLOCK)?0x04:0x00;
-				retval|=(mTIM_0_BORROW_IN)?0x02:0x00;
-				retval|=(mTIM_0_BORROW_OUT)?0x01:0x00;
+				UBYTE retval = 0;
+				retval |= (mTIM_0_TIMER_DONE) ? 0x08 : 0x00;
+				retval |= (mTIM_0_LAST_CLOCK) ? 0x04 : 0x00;
+				retval |= (mTIM_0_BORROW_IN) ? 0x02 : 0x00;
+				retval |= (mTIM_0_BORROW_OUT) ? 0x01 : 0x00;
 				return retval;
 			}
 //			BlowOut();
 			break;
-		case (TIM1CTLB&0xff): 
+		case (TIM1CTLB & 0xff):
 			{
-				UBYTE retval=0;
-				retval|=(mTIM_1_TIMER_DONE)?0x08:0x00;
-				retval|=(mTIM_1_LAST_CLOCK)?0x04:0x00;
-				retval|=(mTIM_1_BORROW_IN)?0x02:0x00;
-				retval|=(mTIM_1_BORROW_OUT)?0x01:0x00;
+				UBYTE retval = 0;
+				retval |= (mTIM_1_TIMER_DONE) ? 0x08 : 0x00;
+				retval |= (mTIM_1_LAST_CLOCK) ? 0x04 : 0x00;
+				retval |= (mTIM_1_BORROW_IN) ? 0x02 : 0x00;
+				retval |= (mTIM_1_BORROW_OUT) ? 0x01 : 0x00;
 				return retval;
 			}
 //			BlowOut();
 			break;
-		case (TIM2CTLB&0xff): 
+		case (TIM2CTLB & 0xff):
 			{
-				UBYTE retval=0;
-				retval|=(mTIM_2_TIMER_DONE)?0x08:0x00;
-				retval|=(mTIM_2_LAST_CLOCK)?0x04:0x00;
-				retval|=(mTIM_2_BORROW_IN)?0x02:0x00;
-				retval|=(mTIM_2_BORROW_OUT)?0x01:0x00;
+				UBYTE retval = 0;
+				retval |= (mTIM_2_TIMER_DONE) ? 0x08 : 0x00;
+				retval |= (mTIM_2_LAST_CLOCK) ? 0x04 : 0x00;
+				retval |= (mTIM_2_BORROW_IN) ? 0x02 : 0x00;
+				retval |= (mTIM_2_BORROW_OUT) ? 0x01 : 0x00;
 				return retval;
 			}
 //			BlowOut();
 			break;
-		case (TIM3CTLB&0xff): 
+		case (TIM3CTLB & 0xff):
 			{
-				UBYTE retval=0;
-				retval|=(mTIM_3_TIMER_DONE)?0x08:0x00;
-				retval|=(mTIM_3_LAST_CLOCK)?0x04:0x00;
-				retval|=(mTIM_3_BORROW_IN)?0x02:0x00;
-				retval|=(mTIM_3_BORROW_OUT)?0x01:0x00;
+				UBYTE retval = 0;
+				retval |= (mTIM_3_TIMER_DONE) ? 0x08 : 0x00;
+				retval |= (mTIM_3_LAST_CLOCK) ? 0x04 : 0x00;
+				retval |= (mTIM_3_BORROW_IN) ? 0x02 : 0x00;
+				retval |= (mTIM_3_BORROW_OUT) ? 0x01 : 0x00;
 				return retval;
 			}
 //			BlowOut();
 			break;
-		case (TIM4CTLB&0xff): 
+		case (TIM4CTLB & 0xff):
 			{
-				UBYTE retval=0;
-				retval|=(mTIM_4_TIMER_DONE)?0x08:0x00;
-				retval|=(mTIM_4_LAST_CLOCK)?0x04:0x00;
-				retval|=(mTIM_4_BORROW_IN)?0x02:0x00;
-				retval|=(mTIM_4_BORROW_OUT)?0x01:0x00;
+				UBYTE retval = 0;
+				retval |= (mTIM_4_TIMER_DONE) ? 0x08 : 0x00;
+				retval |= (mTIM_4_LAST_CLOCK) ? 0x04 : 0x00;
+				retval |= (mTIM_4_BORROW_IN) ? 0x02 : 0x00;
+				retval |= (mTIM_4_BORROW_OUT) ? 0x01 : 0x00;
 				return retval;
 			}
 //			BlowOut();
 			break;
-		case (TIM5CTLB&0xff): 
+		case (TIM5CTLB & 0xff):
 			{
-				UBYTE retval=0;
-				retval|=(mTIM_5_TIMER_DONE)?0x08:0x00;
-				retval|=(mTIM_5_LAST_CLOCK)?0x04:0x00;
-				retval|=(mTIM_5_BORROW_IN)?0x02:0x00;
-				retval|=(mTIM_5_BORROW_OUT)?0x01:0x00;
+				UBYTE retval = 0;
+				retval |= (mTIM_5_TIMER_DONE) ? 0x08 : 0x00;
+				retval |= (mTIM_5_LAST_CLOCK) ? 0x04 : 0x00;
+				retval |= (mTIM_5_BORROW_IN) ? 0x02 : 0x00;
+				retval |= (mTIM_5_BORROW_OUT) ? 0x01 : 0x00;
 				return retval;
 			}
 //			BlowOut();
 			break;
-		case (TIM6CTLB&0xff): 
+		case (TIM6CTLB & 0xff):
 			{
-				UBYTE retval=0;
-				retval|=(mTIM_6_TIMER_DONE)?0x08:0x00;
-				retval|=(mTIM_6_LAST_CLOCK)?0x04:0x00;
-				retval|=(mTIM_6_BORROW_IN)?0x02:0x00;
-				retval|=(mTIM_6_BORROW_OUT)?0x01:0x00;
+				UBYTE retval = 0;
+				retval |= (mTIM_6_TIMER_DONE) ? 0x08 : 0x00;
+				retval |= (mTIM_6_LAST_CLOCK) ? 0x04 : 0x00;
+				retval |= (mTIM_6_BORROW_IN) ? 0x02 : 0x00;
+				retval |= (mTIM_6_BORROW_OUT) ? 0x01 : 0x00;
 				return retval;
 			}
 //			BlowOut();
 			break;
-		case (TIM7CTLB&0xff):
+		case (TIM7CTLB & 0xff):
 			{
-				UBYTE retval=0;
-				retval|=(mTIM_7_TIMER_DONE)?0x08:0x00;
-				retval|=(mTIM_7_LAST_CLOCK)?0x04:0x00;
-				retval|=(mTIM_7_BORROW_IN)?0x02:0x00;
-				retval|=(mTIM_7_BORROW_OUT)?0x01:0x00;
+				UBYTE retval = 0;
+				retval |= (mTIM_7_TIMER_DONE) ? 0x08 : 0x00;
+				retval |= (mTIM_7_LAST_CLOCK) ? 0x04 : 0x00;
+				retval |= (mTIM_7_BORROW_IN) ? 0x02 : 0x00;
+				retval |= (mTIM_7_BORROW_OUT) ? 0x01 : 0x00;
 				return retval;
 			}
 //			BlowOut();
@@ -1308,162 +1320,162 @@ UBYTE CMikie::Peek(ULONG addr)
 
 // Audio control registers
 
-		case (AUD0VOL&0xff):
+		case (AUD0VOL & 0xff):
 			return (UBYTE)mAUDIO_0_VOLUME;
 			break;
-		case (AUD0SHFTFB&0xff):
-			return (UBYTE)((mAUDIO_0_WAVESHAPER>>13)&0xff);
+		case (AUD0SHFTFB & 0xff):
+			return (UBYTE)((mAUDIO_0_WAVESHAPER >> 13) & 0xff);
 			break;
-		case (AUD0OUTVAL&0xff): 
+		case (AUD0OUTVAL & 0xff):
 			return (UBYTE)mAUDIO_0_OUTPUT;
 			break;
-		case (AUD0L8SHFT&0xff):
-			return (UBYTE)(mAUDIO_0_WAVESHAPER&0xff);
+		case (AUD0L8SHFT & 0xff):
+			return (UBYTE)(mAUDIO_0_WAVESHAPER & 0xff);
 			break;
-		case (AUD0TBACK&0xff): 
+		case (AUD0TBACK & 0xff):
 			return (UBYTE)mAUDIO_0_BKUP;
 			break;
-		case (AUD0CTL&0xff):
+		case (AUD0CTL & 0xff):
 			{
-				UBYTE retval=0;
-				retval|=(mAUDIO_0_INTEGRATE_ENABLE)?0x20:0x00;
-				retval|=(mAUDIO_0_ENABLE_RELOAD)?0x10:0x00;
-				retval|=(mAUDIO_0_ENABLE_COUNT)?0x08:0x00;
-				retval|=(mAUDIO_0_WAVESHAPER&0x001000)?0x80:0x00;
-				retval|=mAUDIO_0_LINKING;
+				UBYTE retval = 0;
+				retval |= (mAUDIO_0_INTEGRATE_ENABLE)? 0x20 : 0x00;
+				retval |= (mAUDIO_0_ENABLE_RELOAD) ? 0x10 : 0x00;
+				retval |= (mAUDIO_0_ENABLE_COUNT) ? 0x08 : 0x00;
+				retval |= (mAUDIO_0_WAVESHAPER & 0x001000) ? 0x80 : 0x00;
+				retval |= mAUDIO_0_LINKING;
 				return retval;
 			}
 			break;
-		case (AUD0COUNT&0xff): 
+		case (AUD0COUNT & 0xff):
 			return (UBYTE)mAUDIO_0_CURRENT;
 			break;
-		case (AUD0MISC&0xff): 
+		case (AUD0MISC & 0xff):
 			{
-				UBYTE retval=0;
-				retval|=(mAUDIO_0_BORROW_OUT)?0x01:0x00;
-				retval|=(mAUDIO_0_BORROW_IN)?0x02:0x00;
-				retval|=(mAUDIO_0_LAST_CLOCK)?0x08:0x00;
-				retval|=(mAUDIO_0_WAVESHAPER>>4)&0xf0;
+				UBYTE retval = 0;
+				retval |= (mAUDIO_0_BORROW_OUT) ? 0x01:0x00;
+				retval |= (mAUDIO_0_BORROW_IN) ? 0x02:0x00;
+				retval |= (mAUDIO_0_LAST_CLOCK) ? 0x08:0x00;
+				retval |= (mAUDIO_0_WAVESHAPER >> 4) & 0xf0;
 				return retval;
 			}
 			break;
 
-		case (AUD1VOL&0xff):
+		case (AUD1VOL & 0xff):
 			return (UBYTE)mAUDIO_1_VOLUME;
 			break;
-		case (AUD1SHFTFB&0xff):
-			return (UBYTE)((mAUDIO_1_WAVESHAPER>>13)&0xff);
+		case (AUD1SHFTFB & 0xff):
+			return (UBYTE)((mAUDIO_1_WAVESHAPER >> 13) & 0xff);
 			break;
-		case (AUD1OUTVAL&0xff): 
+		case (AUD1OUTVAL & 0xff):
 			return (UBYTE)mAUDIO_1_OUTPUT;
 			break;
-		case (AUD1L8SHFT&0xff):
-			return (UBYTE)(mAUDIO_1_WAVESHAPER&0xff);
+		case (AUD1L8SHFT & 0xff):
+			return (UBYTE)(mAUDIO_1_WAVESHAPER & 0xff);
 			break;
-		case (AUD1TBACK&0xff): 
+		case (AUD1TBACK & 0xff):
 			return (UBYTE)mAUDIO_1_BKUP;
 			break;
-		case (AUD1CTL&0xff):
+		case (AUD1CTL & 0xff):
 			{
 				UBYTE retval = 0;
-				retval |= (mAUDIO_1_INTEGRATE_ENABLE)?0x20:0x00;
-				retval |= (mAUDIO_1_ENABLE_RELOAD)?0x10:0x00;
-				retval |= (mAUDIO_1_ENABLE_COUNT)?0x08:0x00;
-				retval |= (mAUDIO_1_WAVESHAPER&0x001000)?0x80:0x00;
+				retval |= (mAUDIO_1_INTEGRATE_ENABLE) ? 0x20 : 0x00;
+				retval |= (mAUDIO_1_ENABLE_RELOAD) ? 0x10 : 0x00;
+				retval |= (mAUDIO_1_ENABLE_COUNT) ? 0x08 : 0x00;
+				retval |= (mAUDIO_1_WAVESHAPER & 0x001000) ? 0x80 : 0x00;
 				retval |= mAUDIO_1_LINKING;
 				return retval;
 			}
 			break;
-		case (AUD1COUNT&0xff): 
+		case (AUD1COUNT & 0xff):
 			return (UBYTE)mAUDIO_1_CURRENT;
 			break;
-		case (AUD1MISC&0xff): 
+		case (AUD1MISC & 0xff):
 			{
 				UBYTE retval = 0;
-				retval |= (mAUDIO_1_BORROW_OUT)?0x01:0x00;
-				retval |= (mAUDIO_1_BORROW_IN)?0x02:0x00;
-				retval |= (mAUDIO_1_LAST_CLOCK)?0x08:0x00;
-				retval |= (mAUDIO_1_WAVESHAPER>>4)&0xf0;
+				retval |= (mAUDIO_1_BORROW_OUT) ? 0x01 : 0x00;
+				retval |= (mAUDIO_1_BORROW_IN) ? 0x02 : 0x00;
+				retval |= (mAUDIO_1_LAST_CLOCK) ? 0x08 : 0x00;
+				retval |= (mAUDIO_1_WAVESHAPER >> 4) & 0xf0;
 				return retval;
 			}
 			break;
 
-		case (AUD2VOL&0xff):
+		case (AUD2VOL & 0xff):
 			return (UBYTE)mAUDIO_2_VOLUME;
 			break;
-		case (AUD2SHFTFB&0xff):
-			return (UBYTE)((mAUDIO_2_WAVESHAPER>>13)&0xff);
+		case (AUD2SHFTFB & 0xff):
+			return (UBYTE)((mAUDIO_2_WAVESHAPER >> 13) & 0xff);
 			break;
-		case (AUD2OUTVAL&0xff): 
+		case (AUD2OUTVAL & 0xff):
 			return (UBYTE)mAUDIO_2_OUTPUT;
 			break;
-		case (AUD2L8SHFT&0xff):
-			return (UBYTE)(mAUDIO_2_WAVESHAPER&0xff);
+		case (AUD2L8SHFT & 0xff):
+			return (UBYTE)(mAUDIO_2_WAVESHAPER & 0xff);
 			break;
-		case (AUD2TBACK&0xff): 
+		case (AUD2TBACK & 0xff):
 			return (UBYTE)mAUDIO_2_BKUP;
 			break;
-		case (AUD2CTL&0xff):
+		case (AUD2CTL & 0xff):
 			{
 				UBYTE retval = 0;
-				retval |= (mAUDIO_2_INTEGRATE_ENABLE)?0x20:0x00;
-				retval |= (mAUDIO_2_ENABLE_RELOAD)?0x10:0x00;
-				retval |= (mAUDIO_2_ENABLE_COUNT)?0x08:0x00;
-				retval |= (mAUDIO_2_WAVESHAPER&0x001000)?0x80:0x00;
+				retval |= (mAUDIO_2_INTEGRATE_ENABLE) ? 0x20 : 0x00;
+				retval |= (mAUDIO_2_ENABLE_RELOAD) ? 0x10 : 0x00;
+				retval |= (mAUDIO_2_ENABLE_COUNT) ? 0x08 : 0x00;
+				retval |= (mAUDIO_2_WAVESHAPER & 0x001000) ? 0x80 : 0x00;
 				retval |= mAUDIO_2_LINKING;
 				return retval;
 			}
 			break;
-		case (AUD2COUNT&0xff): 
+		case (AUD2COUNT & 0xff):
 			return (UBYTE)mAUDIO_2_CURRENT;
 			break;
-		case (AUD2MISC&0xff): 
+		case (AUD2MISC & 0xff):
 			{
 				UBYTE retval = 0;
-				retval |= (mAUDIO_2_BORROW_OUT)?0x01:0x00;
-				retval |= (mAUDIO_2_BORROW_IN)?0x02:0x00;
-				retval |= (mAUDIO_2_LAST_CLOCK)?0x08:0x00;
-				retval |= (mAUDIO_2_WAVESHAPER>>4)&0xf0;
+				retval |= (mAUDIO_2_BORROW_OUT) ? 0x01 : 0x00;
+				retval |= (mAUDIO_2_BORROW_IN) ? 0x02 : 0x00;
+				retval |= (mAUDIO_2_LAST_CLOCK) ? 0x08 : 0x00;
+				retval |= (mAUDIO_2_WAVESHAPER >> 4) & 0xf0;
 				return retval;
 			}
 			break;
 
-		case (AUD3VOL&0xff):
+		case (AUD3VOL & 0xff):
 			return (UBYTE)mAUDIO_3_VOLUME;
 			break;
-		case (AUD3SHFTFB&0xff):
-			return (UBYTE)((mAUDIO_3_WAVESHAPER>>13)&0xff);
+		case (AUD3SHFTFB & 0xff):
+			return (UBYTE)((mAUDIO_3_WAVESHAPER >> 13) & 0xff);
 			break;
-		case (AUD3OUTVAL&0xff): 
+		case (AUD3OUTVAL & 0xff):
 			return (UBYTE)mAUDIO_3_OUTPUT;
 			break;
-		case (AUD3L8SHFT&0xff):
-			return (UBYTE)(mAUDIO_3_WAVESHAPER&0xff);
+		case (AUD3L8SHFT & 0xff):
+			return (UBYTE)(mAUDIO_3_WAVESHAPER & 0xff);
 			break;
-		case (AUD3TBACK&0xff): 
+		case (AUD3TBACK & 0xff):
 			return (UBYTE)mAUDIO_3_BKUP;
 			break;
-		case (AUD3CTL&0xff):
+		case (AUD3CTL & 0xff):
 			{
 				UBYTE retval = 0;
-				retval |= (mAUDIO_3_INTEGRATE_ENABLE)?0x20:0x00;
-				retval |= (mAUDIO_3_ENABLE_RELOAD)?0x10:0x00;
-				retval |= (mAUDIO_3_ENABLE_COUNT)?0x08:0x00;
-				retval |= (mAUDIO_3_WAVESHAPER&0x001000)?0x80:0x00;
+				retval |= (mAUDIO_3_INTEGRATE_ENABLE) ? 0x20 : 0x00;
+				retval |= (mAUDIO_3_ENABLE_RELOAD) ? 0x10 : 0x00;
+				retval |= (mAUDIO_3_ENABLE_COUNT) ? 0x08 : 0x00;
+				retval |= (mAUDIO_3_WAVESHAPER & 0x001000) ? 0x80 : 0x00;
 				retval |= mAUDIO_3_LINKING;
 				return retval;
 			}
 			break;
-		case (AUD3COUNT&0xff): 
+		case (AUD3COUNT & 0xff):
 			return (UBYTE)mAUDIO_3_CURRENT;
 			break;
-		case (AUD3MISC&0xff): 
+		case (AUD3MISC & 0xff):
 			{
 				UBYTE retval = 0;
-				retval |= (mAUDIO_3_BORROW_OUT)?0x01:0x00;
-				retval |= (mAUDIO_3_BORROW_IN)?0x02:0x00;
-				retval |= (mAUDIO_3_LAST_CLOCK)?0x08:0x00;
-				retval |= (mAUDIO_3_WAVESHAPER>>4)&0xf0;
+				retval |= (mAUDIO_3_BORROW_OUT) ? 0x01 : 0x00;
+				retval |= (mAUDIO_3_BORROW_IN) ? 0x02 : 0x00;
+				retval |= (mAUDIO_3_LAST_CLOCK) ? 0x08 : 0x00;
+				retval |= (mAUDIO_3_WAVESHAPER >> 4) & 0xf0;
 				return retval;
 			}
 			break;
@@ -1475,17 +1487,21 @@ UBYTE CMikie::Peek(ULONG addr)
 		case (MPAN & 0xff):
 			break;
 
-		case (MSTEREO&0xff):
-			return (UBYTE) mSTEREO^0xff;
+		case (MSTEREO & 0xff):
+			return (UBYTE) mSTEREO ^ 0xff;
 			break;
 
 // Miscellaneous registers
 
-		case (SERCTL&0xff): 
+		case (SERCTL & 0xff):
 			{
-				ULONG retval=0;
-				retval|=(!mUART_TX_COUNTDOWN)?0xA0:0x00;	// Indicate TxDone & TxAllDone
-				retval|=(!mUART_RX_COUNTDOWN)?0x40:0x00;	// Indicate Rx data ready
+				ULONG retval = 0;
+				retval |= (mUART_TX_COUNTDOWN&UART_TX_INACTIVE) ? 0xA0 : 0x00;	// Indicate TxDone & TxAllDone
+				retval |= (mUART_RX_READY) ? 0x40 : 0x00;						// Indicate Rx data ready
+				retval |= (mUART_Rx_overun_error) ? 0x08 : 0x0;					// Framing error
+				retval |= (mUART_Rx_framing_error) ? 0x04 : 0x00;				// Rx overrun
+				retval |= (mUART_RX_DATA&UART_BREAK_CODE) ? 0x02 : 0x00;		// Indicate break received
+				retval |= (mUART_RX_DATA & 0x0100) ? 0x01 : 0x00;				// Add parity bit
 				return (UBYTE)retval;
 			}
 			break;
@@ -1497,98 +1513,99 @@ UBYTE CMikie::Peek(ULONG addr)
 
 		case (IODAT&0xff): 
 			{
-				ULONG retval=0;
-//				retval|=0x01;					// External power enabled
-				retval|=0x04;					// Comlynx NOT connected
-				retval|=0x10;					// External audio connected
-				retval|=(mIODAT&mIODIR);		// Mask on output bits
+				ULONG retval = 0;
+				retval |= (mIODIR&0x10) ? mIODAT & 0x10 : 0x10;									// IODIR  = output bit : input high (eeprom write done)
+				retval |= (mIODIR&0x08) ? (((mIODAT & 0x08) && mIODAT_REST_SIGNAL) ? 0x00 : 0x08) : 0x00;									// REST   = output bit : input low
+				retval |= (mIODIR&0x04) ? mIODAT & 0x04 : ((mUART_CABLE_PRESENT) ? 0x04 : 0x00);	// NOEXP  = output bit : input low
+				retval |= (mIODIR&0x02) ? mIODAT & 0x02 : 0x00;									// CARTAD = output bit : input low
+				retval |= (mIODIR&0x01) ? mIODAT & 0x01 : 0x01;									// EXTPW  = output bit : input high (Power connected)
 				return (UBYTE)retval;
 			}
 			break;
 
-		case (INTRST&0xff):
-		case (INTSET&0xff):
+		case (INTRST & 0xff):
+		case (INTSET & 0xff):
 			return (UBYTE)mTimerStatusFlags;
 			break;
 
-		case (MAGRDY0&0xff): 
-		case (MAGRDY1&0xff): 
+		case (MAGRDY0 & 0xff):
+		case (MAGRDY1 & 0xff):
 			return 0x00;
 			break;
 
-		case (AUDIN&0xff):
-			if(mAudioInputComparator) return 0x80; else return 0x00;
+		case (AUDIN & 0xff):
+			if (mAudioInputComparator) return 0x80; else return 0x00;
 			break;
 
-		case (MIKEYHREV&0xff): 
+		case (MIKEYHREV & 0xff):
 			return 0x01;
 			break;
 
 // Pallette registers
 
-		case (GREEN0&0xff): 
-		case (GREEN1&0xff): 
-		case (GREEN2&0xff): 
-		case (GREEN3&0xff): 
-		case (GREEN4&0xff): 
-		case (GREEN5&0xff): 
-		case (GREEN6&0xff): 
-		case (GREEN7&0xff): 
-		case (GREEN8&0xff): 
-		case (GREEN9&0xff): 
-		case (GREENA&0xff): 
-		case (GREENB&0xff): 
-		case (GREENC&0xff): 
-		case (GREEND&0xff): 
-		case (GREENE&0xff): 
-		case (GREENF&0xff):
-			return mPalette[addr&0x0f].Colours.Green;
+		case (GREEN0 & 0xff):
+		case (GREEN1 & 0xff):
+		case (GREEN2 & 0xff):
+		case (GREEN3 & 0xff):
+		case (GREEN4 & 0xff):
+		case (GREEN5 & 0xff):
+		case (GREEN6 & 0xff):
+		case (GREEN7 & 0xff):
+		case (GREEN8 & 0xff):
+		case (GREEN9 & 0xff):
+		case (GREENA & 0xff):
+		case (GREENB & 0xff):
+		case (GREENC & 0xff):
+		case (GREEND & 0xff):
+		case (GREENE & 0xff):
+		case (GREENF & 0xff):
+			return mPalette[addr & 0x0f].Colours.Green;
 			break;
 
-		case (BLUERED0&0xff): 
-		case (BLUERED1&0xff): 
-		case (BLUERED2&0xff): 
-		case (BLUERED3&0xff): 
-		case (BLUERED4&0xff): 
-		case (BLUERED5&0xff): 
-		case (BLUERED6&0xff): 
-		case (BLUERED7&0xff): 
-		case (BLUERED8&0xff): 
-		case (BLUERED9&0xff): 
-		case (BLUEREDA&0xff): 
-		case (BLUEREDB&0xff): 
-		case (BLUEREDC&0xff): 
-		case (BLUEREDD&0xff): 
-		case (BLUEREDE&0xff): 
-		case (BLUEREDF&0xff):
-			return (mPalette[addr&0x0f].Colours.Red | (mPalette[addr&0x0f].Colours.Blue<<4));
+		case (BLUERED0 & 0xff):
+		case (BLUERED1 & 0xff):
+		case (BLUERED2 & 0xff):
+		case (BLUERED3 & 0xff):
+		case (BLUERED4 & 0xff):
+		case (BLUERED5 & 0xff):
+		case (BLUERED6 & 0xff):
+		case (BLUERED7 & 0xff):
+		case (BLUERED8 & 0xff):
+		case (BLUERED9 & 0xff):
+		case (BLUEREDA & 0xff):
+		case (BLUEREDB & 0xff):
+		case (BLUEREDC & 0xff):
+		case (BLUEREDD & 0xff):
+		case (BLUEREDE & 0xff):
+		case (BLUEREDF & 0xff):
+			return (mPalette[addr & 0x0f].Colours.Red | (mPalette[addr & 0x0f].Colours.Blue << 4));
 			break;
 
 // Errors on write only register accesses
 
 		// For easier debugging
 
-		case (DISPADRL&0xff): 
-			return (UBYTE)(mDisplayAddress&0xff);
-		case (DISPADRH&0xff): 
-			return (UBYTE)(mDisplayAddress>>8)&0xff;
+		case (DISPADRL & 0xff):
+			return (UBYTE)(mDisplayAddress & 0xff);
+		case (DISPADRH & 0xff):
+			return (UBYTE)(mDisplayAddress >> 8) & 0xff;
 
-		case (DISPCTL&0xff): 
-		case (SYSCTL1&0xff):
-		case (MIKEYSREV&0xff): 
-		case (IODIR&0xff): 
-		case (SDONEACK&0xff): 
-		case (CPUSLEEP&0xff): 
-		case (PBKUP&0xff): 
-		case (Mtest0&0xff): 
-		case (Mtest1&0xff): 
-		case (Mtest2&0xff): 
+		case (DISPCTL & 0xff):
+		case (SYSCTL1 & 0xff):
+		case (MIKEYSREV & 0xff):
+		case (IODIR & 0xff):
+		case (SDONEACK & 0xff):
+		case (CPUSLEEP & 0xff):
+		case (PBKUP & 0xff):
+		case (Mtest0 & 0xff):
+		case (Mtest1 & 0xff):
+		case (Mtest2 & 0xff):
 //			_RPT2(_CRT_WARN, "CMikie::Peek(%04x) - Peek from write only register location at time %d\n",addr,gSystemCycleCount);
 			break;
 
 // Register to let programs know handy is running
 
-		case (0xfd97&0xff):
+		case (0xfd97 & 0xff):
 			return 0x42;
 			break;
 

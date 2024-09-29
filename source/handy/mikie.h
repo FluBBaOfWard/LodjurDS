@@ -139,43 +139,21 @@ typedef struct
 // Emumerated types for possible mikie windows independant modes
 //
 enum
-{	
-	MIKIE_BAD_MODE=0,
-
-	MIKIE_BITMAP_NORMAL_BPP8_X1,
-	MIKIE_BITMAP_NORMAL_BPP16_X1,
-
-	MIKIE_BITMAP_ROTATE_L_BPP8_X1,
-	MIKIE_BITMAP_ROTATE_L_BPP16_X1,
-
-	MIKIE_BITMAP_ROTATE_R_BPP8_X1,
-	MIKIE_BITMAP_ROTATE_R_BPP16_X1,
-
-	MIKIE_SCREEN_NORMAL_BPP8_X1,
-	MIKIE_SCREEN_NORMAL_BPP8_X2,
-	MIKIE_SCREEN_NORMAL_BPP8_X3,
-
-	MIKIE_SCREEN_ROTATE_L_BPP8_X1,
-	MIKIE_SCREEN_ROTATE_L_BPP8_X2,
-	MIKIE_SCREEN_ROTATE_L_BPP8_X3,
-
-	MIKIE_SCREEN_ROTATE_R_BPP8_X1,
-	MIKIE_SCREEN_ROTATE_R_BPP8_X2,
-	MIKIE_SCREEN_ROTATE_R_BPP8_X3,
-
-	MIKIE_SCREEN_NORMAL_BPP16_X1,
-	MIKIE_SCREEN_NORMAL_BPP16_X2,
-	MIKIE_SCREEN_NORMAL_BPP16_X3,
-
-	MIKIE_SCREEN_ROTATE_L_BPP16_X1,
-	MIKIE_SCREEN_ROTATE_L_BPP16_X2,
-	MIKIE_SCREEN_ROTATE_L_BPP16_X3,
-
-	MIKIE_SCREEN_ROTATE_R_BPP16_X1,
-	MIKIE_SCREEN_ROTATE_R_BPP16_X2,
-	MIKIE_SCREEN_ROTATE_R_BPP16_X3,
+{
+	MIKIE_BAD_MODE = 0,
+	MIKIE_NO_ROTATE,
+	MIKIE_ROTATE_L,
+	MIKIE_ROTATE_R
 };
 
+enum
+{
+	MIKIE_PIXEL_FORMAT_8BPP = 0,
+	MIKIE_PIXEL_FORMAT_16BPP_555,
+	MIKIE_PIXEL_FORMAT_16BPP_565,
+	MIKIE_PIXEL_FORMAT_24BPP,
+	MIKIE_PIXEL_FORMAT_32BPP,
+};
 
 class CMikie : public CLynxBase
 {
@@ -225,44 +203,6 @@ class CMikie : public CLynxBase
 			mBitmapBits0=Bits0;
 			mBitmapBits1=Bits1;
 
-			switch(mScreenMode)
-			{
-				case MIKIE_BITMAP_NORMAL_BPP8_X1:
-					mBitmapBits0 += (LYNX_SCREEN_WIDTH*LYNX_SCREEN_HEIGHT)-LYNX_SCREEN_WIDTH;
-					mBitmapBits1 += (LYNX_SCREEN_WIDTH*LYNX_SCREEN_HEIGHT)-LYNX_SCREEN_WIDTH;
-					break;
-				case MIKIE_BITMAP_NORMAL_BPP16_X1:
-					mBitmapBits0 += (LYNX_SCREEN_WIDTH*LYNX_SCREEN_HEIGHT*2)-(LYNX_SCREEN_WIDTH*2);
-					mBitmapBits1 += (LYNX_SCREEN_WIDTH*LYNX_SCREEN_HEIGHT*2)-(LYNX_SCREEN_WIDTH*2);
-					break;
-
-				case MIKIE_BITMAP_ROTATE_L_BPP8_X1:
-				case MIKIE_BITMAP_ROTATE_L_BPP16_X1:
-				case MIKIE_BITMAP_ROTATE_R_BPP8_X1:
-				case MIKIE_BITMAP_ROTATE_R_BPP16_X1:
-				case MIKIE_SCREEN_NORMAL_BPP8_X1:
-				case MIKIE_SCREEN_NORMAL_BPP8_X2:
-				case MIKIE_SCREEN_NORMAL_BPP8_X3:
-				case MIKIE_SCREEN_ROTATE_L_BPP8_X1:
-				case MIKIE_SCREEN_ROTATE_L_BPP8_X2:
-				case MIKIE_SCREEN_ROTATE_L_BPP8_X3:
-				case MIKIE_SCREEN_ROTATE_R_BPP8_X1:
-				case MIKIE_SCREEN_ROTATE_R_BPP8_X2:
-				case MIKIE_SCREEN_ROTATE_R_BPP8_X3:
-				case MIKIE_SCREEN_NORMAL_BPP16_X1:
-				case MIKIE_SCREEN_NORMAL_BPP16_X2:
-				case MIKIE_SCREEN_NORMAL_BPP16_X3:
-				case MIKIE_SCREEN_ROTATE_L_BPP16_X1:
-				case MIKIE_SCREEN_ROTATE_L_BPP16_X2:
-				case MIKIE_SCREEN_ROTATE_L_BPP16_X3:
-				case MIKIE_SCREEN_ROTATE_R_BPP16_X1:
-				case MIKIE_SCREEN_ROTATE_R_BPP16_X2:
-				case MIKIE_SCREEN_ROTATE_R_BPP16_X3:
-					break;
-				default:
-					break;
-			}
-
 			//
 			// Calculate the colour lookup tabes for the relevant mode
 			//
@@ -271,18 +211,7 @@ class CMikie : public CLynxBase
 
 			switch(mScreenMode)
 			{
-				case MIKIE_BITMAP_NORMAL_BPP8_X1:
-				case MIKIE_BITMAP_ROTATE_L_BPP8_X1:
-				case MIKIE_BITMAP_ROTATE_R_BPP8_X1:
-				case MIKIE_SCREEN_NORMAL_BPP8_X1:
-				case MIKIE_SCREEN_NORMAL_BPP8_X2:
-				case MIKIE_SCREEN_NORMAL_BPP8_X3:
-				case MIKIE_SCREEN_ROTATE_L_BPP8_X1:
-				case MIKIE_SCREEN_ROTATE_L_BPP8_X2:
-				case MIKIE_SCREEN_ROTATE_L_BPP8_X3:
-				case MIKIE_SCREEN_ROTATE_R_BPP8_X1:
-				case MIKIE_SCREEN_ROTATE_R_BPP8_X2:
-				case MIKIE_SCREEN_ROTATE_R_BPP8_X3:
+				case MIKIE_PIXEL_FORMAT_8BPP:
 					for(Spot.Index=0;Spot.Index<4096;Spot.Index++)
 					{
 						mColourMap[Spot.Index] = (Spot.Colours.Red<<4)&0xe0;
@@ -290,26 +219,33 @@ class CMikie : public CLynxBase
 						mColourMap[Spot.Index] |= (Spot.Colours.Blue>>2)&0x03;
 					}
 					break;
-
-				case MIKIE_BITMAP_NORMAL_BPP16_X1:
-				case MIKIE_BITMAP_ROTATE_L_BPP16_X1:
-				case MIKIE_BITMAP_ROTATE_R_BPP16_X1:
-				case MIKIE_SCREEN_NORMAL_BPP16_X1:
-				case MIKIE_SCREEN_NORMAL_BPP16_X2:
-				case MIKIE_SCREEN_NORMAL_BPP16_X3:
-				case MIKIE_SCREEN_ROTATE_L_BPP16_X1:
-				case MIKIE_SCREEN_ROTATE_L_BPP16_X2:
-				case MIKIE_SCREEN_ROTATE_L_BPP16_X3:
-				case MIKIE_SCREEN_ROTATE_R_BPP16_X1:
-				case MIKIE_SCREEN_ROTATE_R_BPP16_X2:
-				case MIKIE_SCREEN_ROTATE_R_BPP16_X3:
-					for(Spot.Index=0;Spot.Index<4096;Spot.Index++)
-					{
-						mColourMap[Spot.Index] =  (Spot.Colours.Blue<<11)&(0x7c00);
-						mColourMap[Spot.Index] |= (Spot.Colours.Green<<6)&(0x03e0);
-						mColourMap[Spot.Index] |= (Spot.Colours.Red<<1)&(0x001f);
+				case MIKIE_PIXEL_FORMAT_16BPP_555:
+					for(Spot.Index=0;Spot.Index<4096;Spot.Index++) {
+						mColourMap[Spot.Index] = (Spot.Colours.Blue<<11) & 0x7c00;
+						mColourMap[Spot.Index] |= (Spot.Colours.Green<<6) & 0x03e0;
+						mColourMap[Spot.Index] |= (Spot.Colours.Red<<1) & 0x001f;
 					}
 					break;
+				case MIKIE_PIXEL_FORMAT_16BPP_565:
+					for(Spot.Index=0;Spot.Index<4096;Spot.Index++) {
+						mColourMap[Spot.Index] = (Spot.Colours.Red<<12) & 0xf800;
+						mColourMap[Spot.Index] |= (Spot.Colours.Green<<7) & 0x07e0;
+						mColourMap[Spot.Index] |= (Spot.Colours.Blue<<1) & 0x001f;
+					}
+					break;
+				case MIKIE_PIXEL_FORMAT_24BPP:
+					for(Spot.Index=0;Spot.Index<4096;Spot.Index++) {
+						mColourMap[Spot.Index] = (Spot.Colours.Red<<20) & 0x00ff0000;
+						mColourMap[Spot.Index] |= (Spot.Colours.Green<<12) & 0x0000ff00;
+						mColourMap[Spot.Index] |= (Spot.Colours.Blue<<4) & 0x000000ff;
+					}
+					break;
+				case MIKIE_PIXEL_FORMAT_32BPP:
+					for(Spot.Index=0;Spot.Index<4096;Spot.Index++) {
+						mColourMap[Spot.Index] = 0xff000000 | ((Spot.Colours.Blue<<20) & 0x00ff0000);
+						mColourMap[Spot.Index] |= (Spot.Colours.Green<<12) & 0x0000ff00;
+						mColourMap[Spot.Index] |= (Spot.Colours.Red<<4) & 0x000000ff;
+					}
 				default:
 					for(Spot.Index=0;Spot.Index<4096;Spot.Index++) mColourMap[Spot.Index] = 0;
 					break;
@@ -1338,15 +1274,13 @@ class CMikie : public CLynxBase
 			// Update system IRQ status as a result of timer activity
 			// OR is required to ensure serial IRQ's are not masked accidentally
 
-			gSystemIRQ=mTimerStatusFlags;
+			gSystemIRQ = mTimerStatusFlags;
 
 			//
 			// Perform screen bitmap update
 			//
-			if (line_start && mDISPCTL_DMAEnable)
-			{
-				if (line_count > 102)
-				{
+			if (line_start && mDISPCTL_DMAEnable) {
+				if (line_count > 102) {
 					// VBL Period emulation
 
 					line_start = FALSE;
@@ -1358,117 +1292,70 @@ class CMikie : public CLynxBase
 					// flipping doesnt work correctly. The three blank lines
 					// are usually used to set the frame address.
 
-					if (mDISPCTL_Flip)
-					{
+					if (mDISPCTL_Flip) {
 						lynx_addr = mDisplayAddress & 0xfffc;
 						lynx_addr += 3;
 					}
-					else
-					{
+					else {
 						lynx_addr = mDisplayAddress & 0xfffc;
 					}
 				}
-				else
-				{
+				else {
 					// Mikie screen DMA can only see the system RAM....
 					// (Step through bitmap, line at a time)
 
-					// Speedup, code change:
-					//
-					//    from
-					// source=mSystem.Peek_RAM(lynx_addr++);
-					//    to
-					// source=mRamPointer[lynx_addr++];
-					//
-
-					switch (mScreenMode)
-					{
-
-						case MIKIE_BITMAP_NORMAL_BPP8_X1:
-							for (loop=0;loop<LYNX_SCREEN_WIDTH/2;loop++)
-							{
+					switch (mScreenMode) {
+						case MIKIE_PIXEL_FORMAT_8BPP:
+							for (loop=0;loop<LYNX_SCREEN_WIDTH/2;loop++) {
 								source = mRamPointer[lynx_addr];
-								if (mDISPCTL_Flip)
-								{
+								if (mDISPCTL_Flip) {
 									lynx_addr--;
-									*(bitmap_addr) = (UBYTE)mColourMap[mPalette[source&0x0f].Index];
-									bitmap_addr += 1;
-									*(bitmap_addr) = (UBYTE)mColourMap[mPalette[source>>4].Index];
-									bitmap_addr += 1;
+									*(bitmap_addr) = (UBYTE)mColourMap[mPalette[source & 0x0f].Index];
+									bitmap_addr += sizeof(UBYTE);
+									*(bitmap_addr) = (UBYTE)mColourMap[mPalette[source >> 4].Index];
+									bitmap_addr += sizeof(UBYTE);
 								}
-								else
-								{
+								else {
 									lynx_addr++;
-									*(bitmap_addr) = (UBYTE)mColourMap[mPalette[source>>4].Index];
-									bitmap_addr += 1;
-									*(bitmap_addr) = (UBYTE)mColourMap[mPalette[source&0x0f].Index];
-									bitmap_addr += 1;
+									*(bitmap_addr) = (UBYTE)mColourMap[mPalette[source >> 4].Index];
+									bitmap_addr += sizeof(UBYTE);
+									*(bitmap_addr) = (UBYTE)mColourMap[mPalette[source & 0x0f].Index];
+									bitmap_addr += sizeof(UBYTE);
 								}
 							}
-							bitmap_addr -= LYNX_SCREEN_WIDTH*2;
 							break;
-
-						case MIKIE_BITMAP_NORMAL_BPP16_X1:
-							for (loop=0;loop<LYNX_SCREEN_WIDTH/2;loop++)
-							{
+						case MIKIE_PIXEL_FORMAT_16BPP_555:
+							for (loop=0;loop<LYNX_SCREEN_WIDTH/2;loop++) {
 								source = mRamPointer[lynx_addr];
-								if (mDISPCTL_Flip)
-								{
+								if (mDISPCTL_Flip) {
 									lynx_addr--;
-									*((UWORD*)(bitmap_addr)) = (UWORD)mColourMap[mPalette[source&0x0f].Index];
-									bitmap_addr += 2;
-									*((UWORD*)(bitmap_addr)) = (UWORD)mColourMap[mPalette[source>>4].Index];
-									bitmap_addr += 2;
+									*((UWORD*)bitmap_addr) = (UWORD)mColourMap[mPalette[source & 0x0f].Index];
+									bitmap_addr += sizeof(UWORD);
+									*((UWORD*)bitmap_addr) = (UWORD)mColourMap[mPalette[source >> 4].Index];
+									bitmap_addr += sizeof(UWORD);
 								}
-								else
-								{
+								else {
 									lynx_addr++;
-									*((UWORD*)(bitmap_addr)) = (UWORD)mColourMap[mPalette[source>>4].Index];
-									bitmap_addr += 2;
-									*((UWORD*)(bitmap_addr)) = (UWORD)mColourMap[mPalette[source&0x0f].Index];
-									bitmap_addr += 2;
+									*((UWORD*)bitmap_addr) = (UWORD)mColourMap[mPalette[source >> 4].Index];
+									bitmap_addr += sizeof(UWORD);
+									*((UWORD*)bitmap_addr) = (UWORD)mColourMap[mPalette[source & 0x0f].Index];
+									bitmap_addr += sizeof(UWORD);
 								}
 							}
-							bitmap_addr -= (LYNX_SCREEN_WIDTH*2)*2;
 							break;
-
-						case MIKIE_BITMAP_ROTATE_L_BPP8_X1:
-						case MIKIE_BITMAP_ROTATE_L_BPP16_X1:
-						case MIKIE_BITMAP_ROTATE_R_BPP8_X1:
-						case MIKIE_BITMAP_ROTATE_R_BPP16_X1:
-						case MIKIE_SCREEN_NORMAL_BPP8_X1:
-						case MIKIE_SCREEN_NORMAL_BPP8_X2:
-						case MIKIE_SCREEN_NORMAL_BPP8_X3:
-						case MIKIE_SCREEN_ROTATE_L_BPP8_X1:
-						case MIKIE_SCREEN_ROTATE_L_BPP8_X2:
-						case MIKIE_SCREEN_ROTATE_L_BPP8_X3:
-						case MIKIE_SCREEN_ROTATE_R_BPP8_X1:
-						case MIKIE_SCREEN_ROTATE_R_BPP8_X2:
-						case MIKIE_SCREEN_ROTATE_R_BPP8_X3:
-						case MIKIE_SCREEN_NORMAL_BPP16_X1:
-						case MIKIE_SCREEN_NORMAL_BPP16_X2:
-						case MIKIE_SCREEN_NORMAL_BPP16_X3:
-						case MIKIE_SCREEN_ROTATE_L_BPP16_X1:
-						case MIKIE_SCREEN_ROTATE_L_BPP16_X2:
-						case MIKIE_SCREEN_ROTATE_L_BPP16_X3:
-						case MIKIE_SCREEN_ROTATE_R_BPP16_X1:
-						case MIKIE_SCREEN_ROTATE_R_BPP16_X2:
-						case MIKIE_SCREEN_ROTATE_R_BPP16_X3:
-						case MIKIE_BAD_MODE:
 						default:
 							break;
 					}
 
-					// Cycle hit for a 80 RAM access
-					gSystemCycleCount += 80*5;
+					// Cycle hit for a 80 RAM access in rendering a line
+					gSystemCycleCount += 80 * DMA_RDWR_CYC;
 
 					// Check for end of line
 
 					line_start = FALSE;
-					if (!--line_count)
-					{
+					if (!--line_count) {
 						// Flip screen buffers
-						mCurrentBuffer = (mCurrentBuffer)?0:1;
+						mCurrentBuffer = (mCurrentBuffer) ? 0 : 1;
 						// Indicate to upstairs the old buffer is ready
 						gScreenUpdateRequired = TRUE;
 					}
@@ -1699,6 +1586,9 @@ class CMikie : public CLynxBase
 		UBYTE		*mBitmapBits1;
 		ULONG		mCurrentBuffer;
 		UBYTE		*mRamPointer;
+		ULONG		mLynxLine;
+		ULONG		mLynxLineDMACounter;
+		ULONG		mLynxAddr;
 
 		ULONG		mScreenMode;
 		ULONG		mScreenXsize;

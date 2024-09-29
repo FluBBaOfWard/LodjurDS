@@ -4,7 +4,6 @@
 #include <string.h>
 #include <ctype.h>
 
-#include "defines.h"
 #include "system.h"
 #include "../Shared/FileHelper.h"
 
@@ -61,7 +60,7 @@ UBYTE *handy_nds_display_callback(ULONG objref)
 void GpMain(void *args) {
 
 	CSystem *newsystem = new CSystem(gamefile, HANDY_FILETYPE_LNX, romfile);
-	newsystem->SetScreenAttributes(MIKIE_BITMAP_NORMAL_BPP16_X1, 160, 102, 0, 0, (UBYTE*)vram[0], (UBYTE*)vram[1]);
+	newsystem->SetScreenAttributes(MIKIE_PIXEL_FORMAT_16BPP_555, 160, 102, 0, 0, (UBYTE*)vram[0], (UBYTE*)vram[1]);
 
 	while (1) {
 

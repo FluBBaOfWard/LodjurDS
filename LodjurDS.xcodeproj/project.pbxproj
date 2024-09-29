@@ -29,7 +29,6 @@
 		9C41C6C32CA32F7A0026DE6C /* c6502mak.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = c6502mak.h; sourceTree = "<group>"; };
 		9C41C6C42CA32F7A0026DE6C /* lynxcart.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = lynxcart.h; sourceTree = "<group>"; };
 		9C41C6C52CA32F7A0026DE6C /* lynxcart.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = lynxcart.cpp; sourceTree = "<group>"; };
-		9C41C6C72CA32F7A0026DE6C /* defines.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = defines.h; sourceTree = "<group>"; };
 		9C41C6C82CA32F7A0026DE6C /* dis6502.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = dis6502.h; sourceTree = "<group>"; };
 		9C41C6C92CA32F7A0026DE6C /* error.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = error.h; sourceTree = "<group>"; };
 		9C41C6CA2CA32F7A0026DE6C /* gpmain.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = gpmain.cpp; sourceTree = "<group>"; };
@@ -190,7 +189,6 @@
 				9C41C6C22CA32F7A0026DE6C /* c65c02.h */,
 				9C41C6C32CA32F7A0026DE6C /* c6502mak.h */,
 				9C41C6C82CA32F7A0026DE6C /* dis6502.h */,
-				9C41C6C72CA32F7A0026DE6C /* defines.h */,
 				9C41C6C92CA32F7A0026DE6C /* error.h */,
 				9C41C6CA2CA32F7A0026DE6C /* gpmain.cpp */,
 				9C41C6CB2CA32F7A0026DE6C /* lynxdef.h */,
