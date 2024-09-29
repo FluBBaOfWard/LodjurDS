@@ -206,8 +206,8 @@ class CSystem : public CSystemBase
 		inline UBYTE Peek_CART(ULONG addr) {return mCart->Peek(addr);};
 		inline void  CartBank(EMMODE bank) {mCart->BankSelect(bank);};
 		inline ULONG CartSize(void) {return mCart->ObjectSize();};
-		inline void	 CartGetName(const char ** name) { mCart->CartGetName(name);};
-		inline void	 CartGetManufacturer(const char ** manuf) { mCart->CartGetManufacturer(manuf);};
+		inline const char *CartGetName(void) { return mCart->CartGetName();};
+		inline const char *CartGetManufacturer(void) { return mCart->CartGetManufacturer();};
 		inline ULONG CartGetRotate(void) {return mCart->CartGetRotate();};
 
 // Low level cart access for Suzy, Mikey

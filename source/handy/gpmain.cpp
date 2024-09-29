@@ -27,25 +27,25 @@ extern "C" {
   }
 }
 */
-void loadFile(const char *fname, void *dest, int start, int size) {
-	FILE *fhandle;
+int loadFile(const char *fname, void *dest, int start, int maxSize) {
+	FILE *fHandle;
 
 	findFolder("Lynx");
 
-	if ( !(fhandle = fopen(fname, "r" ))) {
+	if ( !(fHandle = fopen(fname, "r" ))) {
 		printf("Couldn't load file **1**\n");
-		exit(1);
+		return -1;
 	}
 	if (start > 0) {
-		fseek(fhandle, start, SEEK_SET);
+		fseek(fHandle, start, SEEK_SET);
 	}
-	fread(dest, 1, size, fhandle);
-	fclose(fhandle);
+	int size = fread(dest, 1, maxSize, fHandle);
+	fclose(fHandle);
+	return size;
 }
 
 UBYTE *handy_nds_display_callback(ULONG objref)
 {
-//	handy_3ds_video_flip();  //mainSurface );
 	unsigned short *srcbuf = vram[bufIdx];
 	bufIdx ^= 1;
 

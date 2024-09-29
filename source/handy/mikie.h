@@ -177,7 +177,7 @@ enum
 };
 
 
-class CMikie : public CLynxMemObj
+class CMikie : public CLynxBase
 {
 	public:
 		CMikie(CSystem& parent);

@@ -34,11 +34,11 @@
 
 class CRom : public CLynxBase
 {
-
 	// Function members
 
 	public:
-		CRom(const char *romfile);
+		/** Supply the Lynx boot image, is 512 bytes long. */
+		CRom(const UBYTE *romData);
 
 	public:
 		void	Reset(void);
@@ -55,7 +55,6 @@ class CRom : public CLynxBase
 		BOOL	mWriteEnable = FALSE;
 	private:
 		UBYTE	mRomData[ROM_SIZE];
-		const char	*mFileName;
 };
 
 #endif

@@ -23,6 +23,22 @@
 #ifndef CART_H
 #define CART_H
 
+#ifdef TRACE_CART
+
+#define TRACE_CART0(msg)					_RPT1(_CRT_WARN,"CCart::"msg" (Time=%012d)\n",gSystemCycleCount)
+#define TRACE_CART1(msg,arg1)				_RPT2(_CRT_WARN,"CCart::"msg" (Time=%012d)\n",arg1,gSystemCycleCount)
+#define TRACE_CART2(msg,arg1,arg2)			_RPT3(_CRT_WARN,"CCart::"msg" (Time=%012d)\n",arg1,arg2,gSystemCycleCount)
+#define TRACE_CART3(msg,arg1,arg2,arg3)		_RPT4(_CRT_WARN,"CCart::"msg" (Time=%012d)\n",arg1,arg2,arg3,gSystemCycleCount)
+
+#else
+
+#define TRACE_CART0(msg)
+#define TRACE_CART1(msg,arg1)
+#define TRACE_CART2(msg,arg1,arg2)
+#define TRACE_CART3(msg,arg1,arg2,arg3)
+
+#endif
+
 #define DEFAULT_CART_CONTENTS	0x11
 
 enum CTYPE {UNUSED,C64K,C128K,C256K,C512K,C1024K};
@@ -37,20 +53,20 @@ typedef struct
    UWORD   page_size_bank0;
    UWORD   page_size_bank1;
    UWORD   version;
-   UBYTE   cartname[32];
-   UBYTE   manufname[16];
-   UBYTE   rotation; 
+   char    cartname[32];
+   char    manufname[16];
+   UBYTE   rotation;
    UBYTE   spare[5];
 }LYNX_HEADER;
 
 
-class CCart : public CLynxMemObj
+class CCart : public CLynxBase
 {
 
 	// Function members
 
 	public:
-		CCart(const char * gamefile);
+		CCart(UBYTE *gameData,ULONG gameSize);
 		~CCart();
 
 	public:
@@ -66,8 +82,8 @@ class CCart : public CLynxMemObj
 		void	BankSelect(EMMODE newbank) {mBank = newbank;}
 		ULONG	ObjectSize(void) {return (mBank == bank0)?mMaskBank0+1:mMaskBank1+1;};
 
-		void	CartGetName(const char ** name) { (*name)=mName;};
-		void	CartGetManufacturer(const char ** manuf) { (*manuf)=mManufacturer;};
+		const char *CartGetName(void) { return mName;};
+		const char *CartGetManufacturer(void) { return mManufacturer; };
 		ULONG	CartGetRotate(void) { return mRotation;};
 		BOOL	CartHeaderLess(void) { return mHeaderLess;};
 
@@ -93,9 +109,8 @@ class CCart : public CLynxMemObj
 		ULONG	mMaskBank1;
 		UBYTE	*mCartBank0;
 		UBYTE	*mCartBank1;
-		const char	*mFileName;
-		const char	*mName;
-		const char	*mManufacturer;
+		char	mName[33];
+		char	mManufacturer[17];
 		ULONG	mRotation;
 		BOOL	mHeaderLess;
 

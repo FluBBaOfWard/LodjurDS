@@ -27,7 +27,7 @@
 #include "system.h"
 #include "ram.h"
 
-void loadFile(const char *fname, void *dest, int start, int size);
+int loadFile(const char *fname, void *dest, int start, int size);
 
 CRam::CRam(const char *homebrew)
 {

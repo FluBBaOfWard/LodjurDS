@@ -32,6 +32,9 @@
 #include <stdlib.h>
 #include "system.h"
 
+extern UBYTE *romSpacePtr;
+
+int loadFile(const char *fname, void *dest, int start, int size);
 
 CSystem::CSystem(const char *gamefile, ULONG filetype, const char *romfile)
 	:mRom(NULL),
@@ -48,12 +51,14 @@ CSystem::CSystem(const char *gamefile, ULONG filetype, const char *romfile)
 
 	mCycleCountBreakpoint = 0xffffffff;
 
-// Create the system objects that we'll use
+	// Create the system objects that we'll use
 
 	// Attempt to load the cartridge & catch errors
 //	try
 //	{
-		mRom = new CRom(romfile);
+		UBYTE romData[ROM_SIZE];
+		loadFile(romfile, romData, -1, ROM_SIZE);
+		mRom = new CRom(romData);
 //	}
 /*	catch(CFileException *filerr)
 	{
@@ -84,7 +89,8 @@ CSystem::CSystem(const char *gamefile, ULONG filetype, const char *romfile)
 //	try
 //	{
 		if (mFileType == HANDY_FILETYPE_LNX) {
-			mCart = new CCart(gamefile);
+			int size = loadFile(gamefile, romSpacePtr, -1, 0x80000);
+			mCart = new CCart(romSpacePtr, size);
 			if (mCart->CartHeaderLess()) {
 				char drive[3];
 				char dir[256];
@@ -103,7 +109,7 @@ CSystem::CSystem(const char *gamefile, ULONG filetype, const char *romfile)
 		}
 		else
 		{
-			mCart = new CCart("");
+			mCart = new CCart(NULL, 0);
 			mRam = new CRam(gamefile);
 		}
 //	}
