@@ -225,9 +225,6 @@ class CSystem : public CSystemBase
 		void	GetRegs(C6502_REGS &regs) {mCpu->GetRegs(regs);};
 //		void	SetCPUBreakpoint(ULONG breakpoint) {mCpu->SetBreakpoint(breakpoint);};
 
-		inline void SetCPUSleep(void) {gSystemCPUSleep = TRUE;};
-		inline void ClearCPUSleep(void) {gSystemCPUSleep = FALSE;gSystemCPUSleep_Saved = FALSE;};
-
 // Mikey system interfacing
 
 		ULONG   GetDisplayBuffer(void) {return mMikie->GetDisplayBuffer();};

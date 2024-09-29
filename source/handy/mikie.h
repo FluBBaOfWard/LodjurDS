@@ -184,13 +184,13 @@ class CMikie : public CLynxBase
 
 		void	SetScreenAttributes(ULONG Mode,ULONG XSize,ULONG YSize,ULONG XOffset,ULONG YOffset,UBYTE *Bits0,UBYTE *Bits1)
 		{
-			mScreenMode=Mode;
+			mScreenMode = Mode;
 
-			mScreenXsize=XSize;
-			mScreenYsize=YSize;
+			mScreenXsize = XSize;
+			mScreenYsize = YSize;
 
-			mImageXoffset=XOffset;
-			mImageYoffset=YOffset;
+			mImageXoffset = XOffset;
+			mImageYoffset = YOffset;
 
 			//
 			// Modify bitmap addresses to the correct start points
@@ -200,8 +200,8 @@ class CMikie : public CLynxBase
 			// of the last line of the bitmap.
 			//
 
-			mBitmapBits0=Bits0;
-			mBitmapBits1=Bits1;
+			mBitmapBits0 = Bits0;
+			mBitmapBits1 = Bits1;
 
 			//
 			// Calculate the colour lookup tabes for the relevant mode
@@ -265,8 +265,8 @@ class CMikie : public CLynxBase
 
 			gNextTimerEvent = gSystemCycleCount;
 		}
-		
-		ULONG   GetDisplayBuffer(void) {return (mCurrentBuffer)?0:1;};
+
+		ULONG	GetDisplayBuffer(void) {return (mCurrentBuffer)?0:1;};
 
 		void	BlowOut(void);
 
@@ -274,7 +274,7 @@ class CMikie : public CLynxBase
 		{
 			static ULONG lynx_addr = 0,line_count = 0;
 			static UBYTE *bitmap_addr = NULL;
-			static BOOL	 line_start = FALSE;
+			static BOOL  line_start = FALSE;
 			static SLONG divide = 0;
 			static SLONG decval = 0;
 			static ULONG source;
@@ -302,6 +302,11 @@ class CMikie : public CLynxBase
 				mAUDIO_1_LAST_COUNT -= 0x80000000;
 				mAUDIO_2_LAST_COUNT -= 0x80000000;
 				mAUDIO_3_LAST_COUNT -= 0x80000000;
+				// Only correct if sleep is active
+				if (gCPUWakeupTime) {
+					gCPUWakeupTime -= 0x80000000;
+					gIRQEntryCycle -= 0x80000000;
+				}
 			}
 
 			gNextTimerEvent = 0xffffffff;
@@ -396,7 +401,9 @@ class CMikie : public CLynxBase
 //				if (mTIM_0_LINKING != 7)
 				{
 					tmp = gSystemCycleCount+((mTIM_0_CURRENT+1)<<divide);
-					if (tmp < gNextTimerEvent) gNextTimerEvent = tmp;
+					if (tmp < gNextTimerEvent) {
+						gNextTimerEvent = tmp;
+					}
 				}
 			}
 
@@ -422,8 +429,8 @@ class CMikie : public CLynxBase
 //				else {
 //					// Ordinary clocked mode as opposed to linked mode
 //					// 16MHz clock downto 1us == cyclecount >> 4 
-//					divide = (4+mTIM_2_LINKING);
-//					decval = (gSystemCycleCount-mTIM_2_LAST_COUNT)>>divide;
+//					divide = (4 + mTIM_2_LINKING);
+//					decval = (gSystemCycleCount - mTIM_2_LAST_COUNT) >> divide;
 //				}
 
 				if (decval) {
@@ -448,7 +455,7 @@ class CMikie : public CLynxBase
 
 						// Set timers related to the screen
 						line_count = mTIM_2_BKUP+1;
-						bitmap_addr = (mCurrentBuffer)?mBitmapBits1:mBitmapBits0;
+						bitmap_addr = (mCurrentBuffer) ? mBitmapBits1 : mBitmapBits0;
 					}
 					else {
 						mTIM_2_BORROW_OUT = FALSE;
@@ -693,7 +700,7 @@ class CMikie : public CLynxBase
 				// Prediction for next timer event cycle number
 
 				if (mTIM_1_LINKING != 7) {
-					tmp = gSystemCycleCount+((mTIM_1_CURRENT+1)<<divide);
+					tmp = gSystemCycleCount + ((mTIM_1_CURRENT + 1) << divide);
 					if (tmp < gNextTimerEvent) gNextTimerEvent = tmp;
 				}
 			}
@@ -711,8 +718,8 @@ class CMikie : public CLynxBase
 				else {
 					// Ordinary clocked mode as opposed to linked mode
 					// 16MHz clock downto 1us == cyclecount >> 4 
-					divide = (4+mTIM_3_LINKING);
-					decval = (gSystemCycleCount-mTIM_3_LAST_COUNT)>>divide;
+					divide = (4 + mTIM_3_LINKING);
+					decval = (gSystemCycleCount - mTIM_3_LAST_COUNT)>>divide;
 				}
 
 				if (decval) {
@@ -753,7 +760,7 @@ class CMikie : public CLynxBase
 				// Prediction for next timer event cycle number
 
 				if (mTIM_3_LINKING != 7) {
-					tmp = gSystemCycleCount+((mTIM_3_CURRENT+1)<<divide);
+					tmp = gSystemCycleCount + ((mTIM_3_CURRENT + 1) << divide);
 					if (tmp < gNextTimerEvent) gNextTimerEvent = tmp;
 				}
 			}
@@ -771,8 +778,8 @@ class CMikie : public CLynxBase
 				else {
 					// Ordinary clocked mode as opposed to linked mode
 					// 16MHz clock downto 1us == cyclecount >> 4 
-					divide = (4+mTIM_5_LINKING);
-					decval = (gSystemCycleCount-mTIM_5_LAST_COUNT)>>divide;
+					divide = (4 + mTIM_5_LINKING);
+					decval = (gSystemCycleCount - mTIM_5_LAST_COUNT)>>divide;
 				}
 
 				if (decval) {
@@ -813,7 +820,7 @@ class CMikie : public CLynxBase
 				// Prediction for next timer event cycle number
 
 				if (mTIM_5_LINKING != 7) {
-					tmp = gSystemCycleCount+((mTIM_5_CURRENT+1)<<divide);
+					tmp = gSystemCycleCount + ((mTIM_5_CURRENT + 1) << divide);
 					if (tmp < gNextTimerEvent) gNextTimerEvent = tmp;
 				}
 			}
@@ -874,7 +881,7 @@ class CMikie : public CLynxBase
 				// Prediction for next timer event cycle number
 
 				if (mTIM_7_LINKING != 7) {
-					tmp = gSystemCycleCount+((mTIM_7_CURRENT+1)<<divide);
+					tmp = gSystemCycleCount + ((mTIM_7_CURRENT + 1) << divide);
 					if (tmp < gNextTimerEvent) {
 						gNextTimerEvent = tmp;
 					}
@@ -889,8 +896,8 @@ class CMikie : public CLynxBase
 				{
 					// Ordinary clocked mode as opposed to linked mode
 					// 16MHz clock downto 1us == cyclecount >> 4 
-					divide = (4+mTIM_6_LINKING);
-					decval = (gSystemCycleCount-mTIM_6_LAST_COUNT)>>divide;
+					divide = (4 + mTIM_6_LINKING);
+					decval = (gSystemCycleCount - mTIM_6_LAST_COUNT) >> divide;
 
 					if (decval) {
 						mTIM_6_LAST_COUNT += decval << divide;
@@ -933,7 +940,7 @@ class CMikie : public CLynxBase
 
 //				if (mTIM_6_LINKING != 7)
 				{
-					tmp = gSystemCycleCount+((mTIM_6_CURRENT+1)<<divide);
+					tmp = gSystemCycleCount+((mTIM_6_CURRENT + 1) << divide);
 					if (tmp < gNextTimerEvent) {
 						gNextTimerEvent = tmp;
 					}
@@ -983,8 +990,8 @@ class CMikie : public CLynxBase
 					else {
 						// Ordinary clocked mode as opposed to linked mode
 						// 16MHz clock downto 1us == cyclecount >> 4 
-						divide = (4+mAUDIO_0_LINKING);
-						decval = (gSystemCycleCount-mAUDIO_0_LAST_COUNT)>>divide;
+						divide = (4 + mAUDIO_0_LINKING);
+						decval = (gSystemCycleCount-mAUDIO_0_LAST_COUNT) >> divide;
 					}
 
 					if (decval) {
@@ -1585,6 +1592,9 @@ class CMikie : public CLynxBase
 		UBYTE		*mBitmapBits0;
 		UBYTE		*mBitmapBits1;
 		ULONG		mCurrentBuffer;
+	
+		UBYTE		*mpDisplayBits;
+		UBYTE		*mpDisplayCurrent;
 		UBYTE		*mRamPointer;
 		ULONG		mLynxLine;
 		ULONG		mLynxLineDMACounter;
@@ -1596,6 +1606,11 @@ class CMikie : public CLynxBase
 		ULONG		mImageXoffset;
 		ULONG		mImageYoffset;
 
+		ULONG		mDisplayRotate;
+		ULONG		mDisplayFormat;
+		ULONG		mDisplayPitch;
+		UBYTE		*(*mpDisplayCallback)(ULONG objref);
+		ULONG		mDisplayCallbackObject;
 };
 
 
