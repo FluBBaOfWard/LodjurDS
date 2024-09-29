@@ -19,13 +19,7 @@ const char *gamefile = "toki (1990).lnx";
 
 unsigned short vram[2][160*102];
 int bufIdx = 0;
-/*
-extern "C" {
-  void write(int ff, char *bla, int fd)
-  {
-  }
-}
-*/
+
 int loadFile(const char *fname, void *dest, int start, int maxSize) {
 	FILE *fHandle;
 
@@ -67,7 +61,6 @@ void GpMain(void *args) {
 		for (int i=0;i<1024;i++) {
 			newsystem->Update();
 		}
-		gTimerCount++;
 		newsystem->SetButtonData( 0 );
 
 		if (gScreenUpdateRequired) {

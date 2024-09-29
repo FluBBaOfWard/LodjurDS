@@ -1347,53 +1347,20 @@ void CMikie::Poke(ULONG addr,UBYTE data)
 		case (SDONEACK & 0xff):
 			break;
 		case (CPUSLEEP & 0xff):
+			TRACE_MIKIE2("Poke(CPUSLEEP,%02x) at PC=%04x", data, mSystem.mCpu->GetPC());
 			//
-			// The only use of this I believe is to paint sprites
-			//
-			// When updating we must make sure the CPU is asleep then
-			// only IRQ's will wake it up
+			// We must do "cycles_used" cycles of the system with the CPU sleeping
+			// to compensate for the sprite painting, Mikie update will autowake the
+			// CPU at the right time.
 			//
 			{
-				static BOOL entry = 0; /* FIXME ** CHN */
-				if (entry) {
-					C6502_REGS regs;
-					mSystem.GetRegs(regs);
-					printf("CMikie::Poke(CPUSLEEP) - Sprite paint recursion occured at PC=$%04x.\n",regs.PC);
-					gSystemHalt = TRUE;
-				}
-				else {
-					entry = TRUE;
-
-					SLONG cycles_used = (SLONG)mSystem.PaintSprites();
-					ULONG tmp;
-
-					//
-					// We must do "cycles_used" cycles of the system with the CPU sleeping
-					// to compensate for the sprite painting
-					//
-
-					SetCPUSleep();
-					while (cycles_used > 0) {
-						tmp = gSystemCycleCount;
-						mSystem.Update();
-						if (gSystemCPUSleep) cycles_used -= gSystemCycleCount-tmp;
-
-						//
-						// Throttling code
-						//
-
-						if (gSystemCycleCount > gThrottleNextCycleCheckpoint) {
-							while (gThrottleLastTimerCount == gTimerCount)
-							{
-								// While away the hours.....
-							}
-							gThrottleNextCycleCheckpoint = gSystemCycleCount+(((HANDY_SYSTEM_FREQ/HANDY_TIMER_FREQ)*gThrottleMaxPercentage)/100);
-							gThrottleLastTimerCount = gTimerCount;
-						}
-					}
-					ClearCPUSleep();
-					entry = FALSE;
-				}
+				TRACE_MIKIE0("*********************************************************");
+				TRACE_MIKIE0("****               CPU SLEEP STARTED                 ****");
+				TRACE_MIKIE0("*********************************************************");
+				SLONG cycles_used = (SLONG)mSystem.PaintSprites();
+				gCPUWakeupTime = gSystemCycleCount+cycles_used;
+				SetCPUSleep();
+				TRACE_MIKIE2("Poke(CPUSLEEP,%02x) wakeup at cycle =%012d", data, gCPUWakeupTime);
 			}
 			break;
 

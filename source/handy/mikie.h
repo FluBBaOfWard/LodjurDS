@@ -310,7 +310,23 @@ class CMikie : public CLynxBase
 			}
 
 			gNextTimerEvent = 0xffffffff;
-			
+
+			//
+			// Check if the CPU needs to be woken up from sleep mode
+			//
+			if (gCPUWakeupTime) {
+				if (gSystemCycleCount >= gCPUWakeupTime) {
+					TRACE_MIKIE0("*********************************************************");
+					TRACE_MIKIE0("****              CPU SLEEP COMPLETED                ****");
+					TRACE_MIKIE0("*********************************************************");
+					ClearCPUSleep();
+					gCPUWakeupTime=0;
+				}
+				else {
+					if (gCPUWakeupTime > gSystemCycleCount) gNextTimerEvent = gCPUWakeupTime;
+				}
+			}
+
 			//	Timer updates, rolled out flat in group order
 			//
 			//	Group A:
