@@ -101,7 +101,6 @@ typedef struct
 			UBYTE Flip:1;
 			UBYTE DMAEnable:1;
 #else
-
 			UBYTE DMAEnable:1;
 			UBYTE Flip:1;
 			UBYTE FourColour:1;
@@ -405,7 +404,8 @@ class CMikie : public CLynxMemObj
 			// never placed in link mode
 			//
 
-//			if (mTIM_0_ENABLE_COUNT && !mTIM_0_TIMER_DONE)
+			// KW bugfix 13/4/99 added (mTIM_x_ENABLE_RELOAD ||  ..)
+//			if(mTIM_0_ENABLE_COUNT && (mTIM_0_ENABLE_RELOAD || !mTIM_0_TIMER_DONE))
 			if (mTIM_0_ENABLE_COUNT)
 			{
 				// Timer 0 has no linking
@@ -414,28 +414,24 @@ class CMikie : public CLynxMemObj
 					// Ordinary clocked mode as opposed to linked mode
 					// 16MHz clock downto 1us == cyclecount >> 4 
 					divide = (4+mTIM_0_LINKING);
-					decval = (gSystemCycleCount-mTIM_0_LAST_COUNT)>>divide;
+					decval = (gSystemCycleCount - mTIM_0_LAST_COUNT) >> divide;
 
-					if (decval)
-					{
+					if (decval) {
 						mTIM_0_LAST_COUNT += decval<<divide;
 						mTIM_0_CURRENT -= decval;
 
-						if (mTIM_0_CURRENT & 0x80000000)
-						{
+						if (mTIM_0_CURRENT & 0x80000000) {
 							// Set carry out
 							mTIM_0_BORROW_OUT = TRUE;
-	
+
 							// Set the timer status flag
 							if (mTimerInterruptMask & 0x01) mTimerStatusFlags |= 0x01;
 
 //							// Reload if neccessary
-//							if (mTIM_0_ENABLE_RELOAD)
-//							{
+//							if (mTIM_0_ENABLE_RELOAD) {
 								mTIM_0_CURRENT += mTIM_0_BKUP+1;
 //							}
-//							else
-//							{
+//							else {
 //								// Set timer done
 //								mTIM_0_TIMER_DONE = TRUE;
 //								mTIM_0_CURRENT = 0;
@@ -445,15 +441,13 @@ class CMikie : public CLynxMemObj
 							if (mBitmapBits0 && mBitmapBits1) line_start = TRUE;
 
 						}
-						else
-						{
+						else {
 							mTIM_0_BORROW_OUT = FALSE;
 						}
 						// Set carry in as we did a count
 						mTIM_0_BORROW_IN = TRUE;
 					}
-					else
-					{
+					else {
 						// Clear carry in as we didn't count
 						mTIM_0_BORROW_IN = FALSE;
 						// Clear carry out
@@ -469,71 +463,64 @@ class CMikie : public CLynxMemObj
 					if (tmp < gNextTimerEvent) gNextTimerEvent = tmp;
 				}
 			}
-	
+
 			//
 			// Timer 2 of Group A
 			//
 
 			//
-			// Optimisation, assume T1 (Line timer) is never in one-shot
-			// always in linked mode
+			// Optimisation, assume T2 (Frame timer) is never in one-shot
+			// always in linked mode i.e clocked by Line Timer
 			//
-			
-//			if (mTIM_2_ENABLE_COUNT && !mTIM_2_TIMER_DONE)
-			if (mTIM_2_ENABLE_COUNT)
-			{
+
+			// KW bugfix 13/4/99 added (mTIM_x_ENABLE_RELOAD ||  ..)
+//			if (mTIM_2_ENABLE_COUNT && (mTIM_2_ENABLE_RELOAD || !mTIM_2_TIMER_DONE))
+			if (mTIM_2_ENABLE_COUNT) {
 				decval = 0;
-		
+
 //				if (mTIM_2_LINKING == 0x07)
 				{
 					if (mTIM_0_BORROW_OUT) decval = 1;
 					mTIM_2_LAST_LINK_CARRY = mTIM_0_BORROW_OUT;
 				}
-//				else
-//				{
+//				else {
 //					// Ordinary clocked mode as opposed to linked mode
 //					// 16MHz clock downto 1us == cyclecount >> 4 
 //					divide = (4+mTIM_2_LINKING);
 //					decval = (gSystemCycleCount-mTIM_2_LAST_COUNT)>>divide;
 //				}
-		
-				if (decval)
-				{
+
+				if (decval) {
 					mTIM_2_LAST_COUNT += decval<<divide;
 					mTIM_2_CURRENT -= decval;
-					if (mTIM_2_CURRENT & 0x80000000)
-					{
+					if (mTIM_2_CURRENT & 0x80000000) {
 						// Set carry out
 						mTIM_2_BORROW_OUT = TRUE;
-		
+
 						// Set the timer status flag
 						if (mTimerInterruptMask & 0x04) mTimerStatusFlags |= 0x04;
-		
+
 //						// Reload if neccessary
-//						if (mTIM_2_ENABLE_RELOAD)
-//						{
+//						if (mTIM_2_ENABLE_RELOAD) {
 							mTIM_2_CURRENT += mTIM_2_BKUP+1;
 //						}
-//						else
-//						{
+//						else {
 //							// Set timer done
 //							mTIM_2_TIMER_DONE = TRUE;
 //							mTIM_2_CURRENT = 0;
 //						}
-		
+
 						// Set timers related to the screen
 						line_count = mTIM_2_BKUP+1;
 						bitmap_addr = (mCurrentBuffer)?mBitmapBits1:mBitmapBits0;
 					}
-					else
-					{
+					else {
 						mTIM_2_BORROW_OUT = FALSE;
 					}
 					// Set carry in as we did a count
 					mTIM_2_BORROW_IN = TRUE;
 				}
-				else
-				{
+				else {
 					// Clear carry in as we didn't count
 					mTIM_2_BORROW_IN = FALSE;
 					// Clear carry out
@@ -548,7 +535,7 @@ class CMikie : public CLynxMemObj
 //					if (tmp < gNextTimerEvent) gNextTimerEvent = tmp;
 //				}
 			}
-		
+
 			//
 			// Timer 4 of Group A
 			//
@@ -561,7 +548,7 @@ class CMikie : public CLynxMemObj
 //			if (mTIM_4_ENABLE_COUNT && !mTIM_4_TIMER_DONE)
 			if (mTIM_4_ENABLE_COUNT) {
 				decval = 0;
-		
+
 //				if (mTIM_4_LINKING == 0x07) {
 //					if (mTIM_2_BORROW_OUT && !mTIM_4_LAST_LINK_CARRY) decval = 1;
 //					if (mTIM_2_BORROW_OUT) decval = 1;
@@ -573,70 +560,114 @@ class CMikie : public CLynxMemObj
 					// 16MHz clock downto 1us == cyclecount >> 4
 					// Additional /8 (+3) for 8 clocks per bit transmit
 					divide = 4 + 3 + mTIM_4_LINKING;
-					decval = (gSystemCycleCount-mTIM_4_LAST_COUNT)>>divide;
+					decval = (gSystemCycleCount - mTIM_4_LAST_COUNT) >> divide;
 				}
-		
+
 				if (decval) {
 					mTIM_4_LAST_COUNT += decval<<divide;
 					mTIM_4_CURRENT -= decval;
 					if (mTIM_4_CURRENT & 0x80000000) {
 						// Set carry out
 						mTIM_4_BORROW_OUT = TRUE;
-		
+
 						//
 						// Update the UART counter models for Rx & Tx
 						//
-		
+
 						//
 						// According to the docs IRQ's are level triggered and hence will always assert
 						// what a pain in the arse
 						//
 						// Rx & Tx are loopedback due to comlynx structure
 
+						//
+						// Receive
+						//
 						if (!mUART_RX_COUNTDOWN) {
-//							if (mUART_RX_IRQ_ENABLE && (mTimerInterruptMask & 0x10)) mTimerStatusFlags |= 0x10;
-							if (mUART_RX_IRQ_ENABLE) mTimerStatusFlags |= 0x10;
+							// Fetch a byte from the input queue
+							if (mUART_Rx_waiting > 0) {
+								mUART_RX_DATA = mUART_Rx_input_queue[mUART_Rx_output_ptr];
+								mUART_Rx_output_ptr = (mUART_Rx_output_ptr + 1) % UART_MAX_RX_QUEUE;
+								mUART_Rx_waiting--;
+								TRACE_MIKIE2("Update() - RX Byte output ptr=%02d waiting=%02d", mUART_Rx_output_ptr, mUART_Rx_waiting);
+							}
+							else {
+								TRACE_MIKIE0("Update() - RX Byte but no data waiting ????");
+							}
+
+							// Retrigger input if more bytes waiting
+							if (mUART_Rx_waiting > 0) {
+								mUART_RX_COUNTDOWN = UART_RX_TIME_PERIOD + UART_RX_NEXT_DELAY;
+								TRACE_MIKIE1("Update() - RX Byte retriggered, %d waiting", mUART_Rx_waiting);
+							}
+							else {
+								mUART_RX_COUNTDOWN = UART_RX_INACTIVE;
+								TRACE_MIKIE0("Update() - RX Byte nothing waiting, deactivated");
+							}
+
+							// If RX_READY already set then we have an overrun
+							// as previous byte hasnt been read
+							if (mUART_RX_READY) mUART_Rx_overun_error = 1;
+
+							// Flag byte as being recvd
+							mUART_RX_READY = 1;
 						}
-						else {
+						else if(!(mUART_RX_COUNTDOWN&UART_RX_INACTIVE)) {
 							mUART_RX_COUNTDOWN--;
 						}
-		
-		
+
 						if (!mUART_TX_COUNTDOWN) {
-//							if (mUART_TX_IRQ_ENABLE && (mTimerInterruptMask & 0x10)) mTimerStatusFlags |= 0x10;
-							if (mUART_TX_IRQ_ENABLE) mTimerStatusFlags |= 0x10;
+							if (mUART_SENDBREAK) {
+								mUART_TX_DATA = UART_BREAK_CODE;
+								// Auto-Respawn new transmit
+								mUART_TX_COUNTDOWN = UART_TX_TIME_PERIOD;
+								// Loop back what we transmitted
+								ComLynxTxLoopback(mUART_TX_DATA);
+							}
+							else {
+								// Serial activity finished
+								mUART_TX_COUNTDOWN = UART_TX_INACTIVE;
+							}
+
+							// If a networking object is attached then use its callback to send the data byte.
+							if (mpUART_TX_CALLBACK) {
+								TRACE_MIKIE0("Update() - UART_TX_CALLBACK");
+								(*mpUART_TX_CALLBACK)(mUART_TX_DATA, mUART_TX_CALLBACK_OBJECT);
+							}
+
 						}
-						else {
+						else if (!(mUART_TX_COUNTDOWN&UART_TX_INACTIVE)) {
 							mUART_TX_COUNTDOWN--;
 						}
-		
-		
+
 						// Set the timer status flag
 						// Timer 4 is the uart timer and doesn't generate IRQ's using this method
-		
+
 						// 16 Clocks = 1 bit transmission. Hold separate Rx & Tx counters
-		
+
 						// Reload if neccessary
-//						if (mTIM_4_ENABLE_RELOAD)
-//						{
-							mTIM_4_CURRENT += mTIM_4_BKUP+1;
+//						if (mTIM_4_ENABLE_RELOAD) {
+							mTIM_4_CURRENT += mTIM_4_BKUP + 1;
+							// The low reload values on TIM4 coupled with a longer
+							// timer service delay can sometimes cause
+							// an underun, check and fix
+							if (mTIM_4_CURRENT & 0x80000000) {
+								mTIM_4_CURRENT = mTIM_4_BKUP;
+								mTIM_4_LAST_COUNT = gSystemCycleCount;
+							}
 //						}
-//						else
-//						{
-//							// Set timer done
-//							mTIM_4_TIMER_DONE = TRUE;
+//						else {
 //							mTIM_4_CURRENT = 0;
 //						}
+//						mTIM_4_TIMER_DONE = TRUE;
 					}
-//					else
-//					{
+//					else {
 //						mTIM_4_BORROW_OUT = FALSE;
 //					}
 //					// Set carry in as we did a count
 //					mTIM_4_BORROW_IN = TRUE;
 				}
-//				else
-//				{
+//				else {
 //					// Clear carry in as we didn't count
 //					mTIM_4_BORROW_IN = FALSE;
 //					// Clear carry out
@@ -645,58 +676,77 @@ class CMikie : public CLynxMemObj
 //
 //				// Prediction for next timer event cycle number
 //
-//				if (mTIM_4_LINKING != 7)
-//				{
-//					tmp = gSystemCycleCount+((mTIM_4_CURRENT+1)<<divide);
-//					if (tmp < gNextTimerEvent) gNextTimerEvent = tmp;
+//				if (mTIM_4_LINKING != 7) {
+					// Sometimes timeupdates can be >2x rollover in which case
+					// then CURRENT may still be negative and we can use it to
+					// calc the next timer value, we just want another update ASAP
+					tmp = (mTIM_4_CURRENT&0x80000000)?1:((mTIM_4_CURRENT+1)<<divide);
+					tmp += gSystemCycleCount;
+					if (tmp < gNextTimerEvent) {
+						gNextTimerEvent = tmp;
+						TRACE_MIKIE1("Update() - TIMER 4 Set NextTimerEvent = %012d", gNextTimerEvent);
+					}
 //				}
 			}
-		
+
+			// Emulate the UART bug where UART IRQ is level sensitive
+			// in that it will continue to generate interrupts as long
+			// as they are enabled and the interrupt condition is true
+
+			// If Tx is inactive i.e ready for a byte to eat and the
+			// IRQ is enabled then generate it always
+			if ((mUART_TX_COUNTDOWN&UART_TX_INACTIVE) && mUART_TX_IRQ_ENABLE) {
+				TRACE_MIKIE0("Update() - UART TX IRQ Triggered");
+				mTimerStatusFlags|=0x10;
+				gSystemIRQ=TRUE;	// Added 19/09/06 fix for IRQ issue
+			}
+			// Is data waiting and the interrupt enabled, if so then
+			// what are we waiting for....
+			if (mUART_RX_READY && mUART_RX_IRQ_ENABLE) {
+				TRACE_MIKIE0("Update() - UART RX IRQ Triggered");
+				mTimerStatusFlags |= 0x10;
+				gSystemIRQ = TRUE;	// Added 19/09/06 fix for IRQ issue
+			}
+
 			//
 			// Timer 1 of Group B
 			//
-			if (mTIM_1_ENABLE_COUNT && !mTIM_1_TIMER_DONE)
-			{
-				if (mTIM_1_LINKING != 0x07)
-				{
+			if (mTIM_1_ENABLE_COUNT && !mTIM_1_TIMER_DONE) {
+				if (mTIM_1_LINKING != 0x07) {
 					// Ordinary clocked mode as opposed to linked mode
 					// 16MHz clock downto 1us == cyclecount >> 4 
-					divide = (4+mTIM_1_LINKING);
-					decval = (gSystemCycleCount-mTIM_1_LAST_COUNT)>>divide;
-		
-					if (decval)
-					{
+					divide = (4 + mTIM_1_LINKING);
+					decval = (gSystemCycleCount - mTIM_1_LAST_COUNT) >> divide;
+
+					if (decval) {
 						mTIM_1_LAST_COUNT += decval<<divide;
 						mTIM_1_CURRENT -= decval;
-						if (mTIM_1_CURRENT & 0x80000000)
-						{
+						if (mTIM_1_CURRENT & 0x80000000) {
 							// Set carry out
 							mTIM_1_BORROW_OUT = TRUE;
-		
+
 							// Set the timer status flag
-							if (mTimerInterruptMask & 0x02) mTimerStatusFlags |= 0x02;
-		
+							if (mTimerInterruptMask & 0x02) {
+								mTimerStatusFlags |= 0x02;
+							}
+
 							// Reload if neccessary
-							if (mTIM_1_ENABLE_RELOAD)
-							{
+							if (mTIM_1_ENABLE_RELOAD) {
 								mTIM_1_CURRENT += mTIM_1_BKUP+1;
 							}
-							else
-							{
+							else {
 								// Set timer done
 								mTIM_1_TIMER_DONE = TRUE;
 								mTIM_1_CURRENT = 0;
 							}
 						}
-						else
-						{
+						else {
 							mTIM_1_BORROW_OUT = FALSE;
 						}
 						// Set carry in as we did a count
 						mTIM_1_BORROW_IN = TRUE;
 					}
-					else
-					{
+					else {
 						// Clear carry in as we didn't count
 						mTIM_1_BORROW_IN = FALSE;
 						// Clear carry out
@@ -706,66 +756,58 @@ class CMikie : public CLynxMemObj
 
 				// Prediction for next timer event cycle number
 
-				if (mTIM_1_LINKING != 7)
-				{
+				if (mTIM_1_LINKING != 7) {
 					tmp = gSystemCycleCount+((mTIM_1_CURRENT+1)<<divide);
 					if (tmp < gNextTimerEvent) gNextTimerEvent = tmp;
 				}
 			}
-		
+
 			//
 			// Timer 3 of Group A
 			//
-			if (mTIM_3_ENABLE_COUNT && !mTIM_3_TIMER_DONE)
-			{
+			if (mTIM_3_ENABLE_COUNT && !mTIM_3_TIMER_DONE) {
 				decval = 0;
-		
-				if (mTIM_3_LINKING == 0x07)
-				{
+
+				if (mTIM_3_LINKING == 0x07) {
 					if (mTIM_1_BORROW_OUT) decval = 1;
 					mTIM_3_LAST_LINK_CARRY = mTIM_1_BORROW_OUT;
 				}
-				else
-				{
+				else {
 					// Ordinary clocked mode as opposed to linked mode
 					// 16MHz clock downto 1us == cyclecount >> 4 
 					divide = (4+mTIM_3_LINKING);
 					decval = (gSystemCycleCount-mTIM_3_LAST_COUNT)>>divide;
 				}
-		
-				if (decval)
-				{
+
+				if (decval) {
 					mTIM_3_LAST_COUNT += decval<<divide;
 					mTIM_3_CURRENT -= decval;
-					if (mTIM_3_CURRENT & 0x80000000)
-					{
+					if (mTIM_3_CURRENT & 0x80000000) {
 						// Set carry out
 						mTIM_3_BORROW_OUT = TRUE;
-		
+
 						// Set the timer status flag
-						if (mTimerInterruptMask & 0x08) mTimerStatusFlags |= 0x08;
-		
+						if (mTimerInterruptMask & 0x08) {
+							mTimerStatusFlags |= 0x08;
+						}
+
 						// Reload if neccessary
-						if (mTIM_3_ENABLE_RELOAD)
-						{
+						if (mTIM_3_ENABLE_RELOAD) {
 							mTIM_3_CURRENT += mTIM_3_BKUP+1;
 						}
-						else
-						{
+						else {
 							// Set timer done
 							mTIM_3_TIMER_DONE = TRUE;
 							mTIM_3_CURRENT = 0;
 						}
 					}
-					else
-					{
+					else {
 						mTIM_3_BORROW_OUT = FALSE;
 					}
 					// Set carry in as we did a count
 					mTIM_3_BORROW_IN = TRUE;
 				}
-				else
-				{
+				else {
 					// Clear carry in as we didn't count
 					mTIM_3_BORROW_IN = FALSE;
 					// Clear carry out
@@ -774,66 +816,58 @@ class CMikie : public CLynxMemObj
 
 				// Prediction for next timer event cycle number
 
-				if (mTIM_3_LINKING != 7)
-				{
+				if (mTIM_3_LINKING != 7) {
 					tmp = gSystemCycleCount+((mTIM_3_CURRENT+1)<<divide);
 					if (tmp < gNextTimerEvent) gNextTimerEvent = tmp;
 				}
 			}
-		
+
 			//
 			// Timer 5 of Group A
 			//
-			if (mTIM_5_ENABLE_COUNT && !mTIM_5_TIMER_DONE)
-			{
+			if (mTIM_5_ENABLE_COUNT && !mTIM_5_TIMER_DONE) {
 				decval = 0;
-		
-				if (mTIM_5_LINKING == 0x07)
-				{
+
+				if (mTIM_5_LINKING == 0x07) {
 					if (mTIM_3_BORROW_OUT) decval = 1;
 					mTIM_5_LAST_LINK_CARRY = mTIM_3_BORROW_OUT;
 				}
-				else
-				{
+				else {
 					// Ordinary clocked mode as opposed to linked mode
 					// 16MHz clock downto 1us == cyclecount >> 4 
 					divide = (4+mTIM_5_LINKING);
 					decval = (gSystemCycleCount-mTIM_5_LAST_COUNT)>>divide;
 				}
-		
-				if (decval)
-				{
+
+				if (decval) {
 					mTIM_5_LAST_COUNT += decval<<divide;
 					mTIM_5_CURRENT -= decval;
-					if (mTIM_5_CURRENT & 0x80000000)
-					{
+					if (mTIM_5_CURRENT & 0x80000000) {
 						// Set carry out
 						mTIM_5_BORROW_OUT = TRUE;
-		
+
 						// Set the timer status flag
-						if (mTimerInterruptMask & 0x20) mTimerStatusFlags |= 0x20;
-		
+						if (mTimerInterruptMask & 0x20) {
+							mTimerStatusFlags |= 0x20;
+						}
+
 						// Reload if neccessary
-						if (mTIM_5_ENABLE_RELOAD)
-						{
+						if (mTIM_5_ENABLE_RELOAD) {
 							mTIM_5_CURRENT += mTIM_5_BKUP+1;
 						}
-						else
-						{
+						else {
 							// Set timer done
 							mTIM_5_TIMER_DONE = TRUE;
 							mTIM_5_CURRENT = 0;
 						}
 					}
-					else
-					{
+					else {
 						mTIM_5_BORROW_OUT = FALSE;
 					}
 					// Set carry in as we did a count
 					mTIM_5_BORROW_IN = TRUE;
 				}
-				else
-				{
+				else {
 					// Clear carry in as we didn't count
 					mTIM_5_BORROW_IN = FALSE;
 					// Clear carry out
@@ -842,67 +876,59 @@ class CMikie : public CLynxMemObj
 
 				// Prediction for next timer event cycle number
 
-				if (mTIM_5_LINKING != 7)
-				{
+				if (mTIM_5_LINKING != 7) {
 					tmp = gSystemCycleCount+((mTIM_5_CURRENT+1)<<divide);
 					if (tmp < gNextTimerEvent) gNextTimerEvent = tmp;
 				}
 			}
-		
+
 			//
 			// Timer 7 of Group A
 			//
-			if (mTIM_7_ENABLE_COUNT && !mTIM_7_TIMER_DONE)
-			{
+			if (mTIM_7_ENABLE_COUNT && !mTIM_7_TIMER_DONE) {
 				decval = 0;
-		
-				if (mTIM_7_LINKING == 0x07)
-				{
+
+				if (mTIM_7_LINKING == 0x07) {
 					if (mTIM_5_BORROW_OUT) decval = 1;
 					mTIM_7_LAST_LINK_CARRY = mTIM_5_BORROW_OUT;
 				}
-				else
-				{
+				else {
 					// Ordinary clocked mode as opposed to linked mode
 					// 16MHz clock downto 1us == cyclecount >> 4 
-					divide = (4+mTIM_7_LINKING);
-					decval = (gSystemCycleCount-mTIM_7_LAST_COUNT)>>divide;
+					divide = (4 + mTIM_7_LINKING);
+					decval = (gSystemCycleCount - mTIM_7_LAST_COUNT) >> divide;
 				}
-		
-				if (decval)
-				{
-					mTIM_7_LAST_COUNT += decval<<divide;
+
+				if (decval) {
+					mTIM_7_LAST_COUNT += decval << divide;
 					mTIM_7_CURRENT -= decval;
-					if (mTIM_7_CURRENT & 0x80000000)
-					{
+					if (mTIM_7_CURRENT & 0x80000000) {
 						// Set carry out
 						mTIM_7_BORROW_OUT = TRUE;
-		
+
 						// Set the timer status flag
-						if (mTimerInterruptMask & 0x80) mTimerStatusFlags |= 0x80;
-		
-						// Reload if neccessary
-						if (mTIM_7_ENABLE_RELOAD)
-						{
-							mTIM_7_CURRENT += mTIM_7_BKUP+1;
+						if (mTimerInterruptMask & 0x80) {
+							mTimerStatusFlags |= 0x80;
 						}
-						else
-						{
+
+						// Reload if neccessary
+						if (mTIM_7_ENABLE_RELOAD) {
+							mTIM_7_CURRENT += mTIM_7_BKUP + 1;
+						}
+						else {
 							// Set timer done
 							mTIM_7_TIMER_DONE = TRUE;
 							mTIM_7_CURRENT = 0;
 						}
-		
+
 					}
-					else
-					{
+					else {
 						mTIM_7_BORROW_OUT = FALSE;
 					}
 					// Set carry in as we did a count
 					mTIM_7_BORROW_IN = TRUE;
 				}
-				else
-				{
+				else {
 					// Clear carry in as we didn't count
 					mTIM_7_BORROW_IN = FALSE;
 					// Clear carry out
@@ -911,58 +937,54 @@ class CMikie : public CLynxMemObj
 
 				// Prediction for next timer event cycle number
 
-				if (mTIM_7_LINKING != 7)
-				{
+				if (mTIM_7_LINKING != 7) {
 					tmp = gSystemCycleCount+((mTIM_7_CURRENT+1)<<divide);
-					if (tmp < gNextTimerEvent) gNextTimerEvent = tmp;
+					if (tmp < gNextTimerEvent) {
+						gNextTimerEvent = tmp;
+					}
 				}
 			}
-		
+
 			//
 			// Timer 6 has no group
 			//
-			if (mTIM_6_ENABLE_COUNT && !mTIM_6_TIMER_DONE)
-			{
+			if (mTIM_6_ENABLE_COUNT && !mTIM_6_TIMER_DONE) {
 //				if (mTIM_6_LINKING != 0x07)
 				{
 					// Ordinary clocked mode as opposed to linked mode
 					// 16MHz clock downto 1us == cyclecount >> 4 
 					divide = (4+mTIM_6_LINKING);
 					decval = (gSystemCycleCount-mTIM_6_LAST_COUNT)>>divide;
-		
-					if (decval)
-					{
-						mTIM_6_LAST_COUNT += decval<<divide;
+
+					if (decval) {
+						mTIM_6_LAST_COUNT += decval << divide;
 						mTIM_6_CURRENT -= decval;
-						if (mTIM_6_CURRENT & 0x80000000)
-						{
+						if (mTIM_6_CURRENT & 0x80000000) {
 							// Set carry out
 							mTIM_6_BORROW_OUT = TRUE;
-		
+
 							// Set the timer status flag
-							if (mTimerInterruptMask & 0x40) mTimerStatusFlags |= 0x40;
-		
+							if (mTimerInterruptMask & 0x40) {
+								mTimerStatusFlags |= 0x40;
+							}
+
 							// Reload if neccessary
-							if (mTIM_6_ENABLE_RELOAD)
-							{
+							if (mTIM_6_ENABLE_RELOAD) {
 								mTIM_6_CURRENT += mTIM_6_BKUP+1;
 							}
-							else
-							{
+							else {
 								// Set timer done
 								mTIM_6_TIMER_DONE = TRUE;
 								mTIM_6_CURRENT = 0;
 							}
 						}
-						else
-						{
+						else {
 							mTIM_6_BORROW_OUT = FALSE;
 						}
 						// Set carry in as we did a count
 						mTIM_6_BORROW_IN = TRUE;
 					}
-					else
-					{
+					else {
 						// Clear carry in as we didn't count
 						mTIM_6_BORROW_IN = FALSE;
 						// Clear carry out
@@ -976,15 +998,16 @@ class CMikie : public CLynxMemObj
 //				if (mTIM_6_LINKING != 7)
 				{
 					tmp = gSystemCycleCount+((mTIM_6_CURRENT+1)<<divide);
-					if (tmp < gNextTimerEvent) gNextTimerEvent = tmp;
+					if (tmp < gNextTimerEvent) {
+						gNextTimerEvent = tmp;
+					}
 				}
 			}
 
 			//
 			// If sound is enabled then update the sound subsystem
 			//
-			if (gAudioEnabled)
-			{
+			if (gAudioEnabled) {
 				// static ULONG audio_buffer_pointer = 0;
 				// static SLONG sample = 0;
 
@@ -1014,40 +1037,33 @@ class CMikie : public CLynxMemObj
 				// Audio 0 
 				//
 //				if (mAUDIO_0_ENABLE_COUNT && !mAUDIO_0_TIMER_DONE)
-				if (mAUDIO_0_ENABLE_COUNT && !mAUDIO_0_TIMER_DONE && mAUDIO_0_VOLUME && mAUDIO_0_BKUP)
-				{
+				if (mAUDIO_0_ENABLE_COUNT && !mAUDIO_0_TIMER_DONE && mAUDIO_0_VOLUME && mAUDIO_0_BKUP) {
 					decval = 0;
-		
-					if (mAUDIO_0_LINKING == 0x07)
-					{
+
+					if (mAUDIO_0_LINKING == 0x07) {
 						if (mTIM_7_BORROW_OUT) decval = 1;
 						mAUDIO_0_LAST_LINK_CARRY = mTIM_7_BORROW_OUT;
 					}
-					else
-					{
+					else {
 						// Ordinary clocked mode as opposed to linked mode
 						// 16MHz clock downto 1us == cyclecount >> 4 
 						divide = (4+mAUDIO_0_LINKING);
 						decval = (gSystemCycleCount-mAUDIO_0_LAST_COUNT)>>divide;
 					}
-		
-					if (decval)
-					{
+
+					if (decval) {
 						mAUDIO_0_LAST_COUNT += decval<<divide;
 						mAUDIO_0_CURRENT -= decval;
-						if (mAUDIO_0_CURRENT & 0x80000000)
-						{
+						if (mAUDIO_0_CURRENT & 0x80000000) {
 							// Set carry out
 							mAUDIO_0_BORROW_OUT = TRUE;
-		
+
 							// Reload if neccessary
-							if (mAUDIO_0_ENABLE_RELOAD)
-							{
-								mAUDIO_0_CURRENT += mAUDIO_0_BKUP+1;
+							if (mAUDIO_0_ENABLE_RELOAD) {
+								mAUDIO_0_CURRENT += mAUDIO_0_BKUP + 1;
 								if (mAUDIO_0_CURRENT & 0x80000000) mAUDIO_0_CURRENT = 0;
 							}
-							else
-							{
+							else {
 								// Set timer done
 								mAUDIO_0_TIMER_DONE = TRUE;
 								mAUDIO_0_CURRENT = 0;
@@ -1059,28 +1075,24 @@ class CMikie : public CLynxMemObj
 
 							mAUDIO_0_WAVESHAPER = GetLfsrNext(mAUDIO_0_WAVESHAPER);
 
-							if (mAUDIO_0_INTEGRATE_ENABLE)
-							{
+							if (mAUDIO_0_INTEGRATE_ENABLE) {
 								SLONG temp = mAUDIO_0_OUTPUT;
 								if (mAUDIO_0_WAVESHAPER & 0x0001) temp += mAUDIO_0_VOLUME; else temp -= mAUDIO_0_VOLUME;
 								if (temp > 127) temp = 127;
 								if (temp < -128) temp = -128;
 								mAUDIO_0_OUTPUT = (SBYTE)temp;
 							}
-							else
-							{
+							else {
 								if (mAUDIO_0_WAVESHAPER & 0x0001) mAUDIO_0_OUTPUT = mAUDIO_0_VOLUME; else mAUDIO_0_OUTPUT = -mAUDIO_0_VOLUME;
 							}
 						}
-						else
-						{
+						else {
 							mAUDIO_0_BORROW_OUT = FALSE;
 						}
 						// Set carry in as we did a count
 						mAUDIO_0_BORROW_IN = TRUE;
 					}
-					else
-					{
+					else {
 						// Clear carry in as we didn't count
 						mAUDIO_0_BORROW_IN = FALSE;
 						// Clear carry out
@@ -1089,8 +1101,7 @@ class CMikie : public CLynxMemObj
 
 					// Prediction for next timer event cycle number
 
-					if (mAUDIO_0_LINKING != 7)
-					{
+					if (mAUDIO_0_LINKING != 7) {
 						tmp = gSystemCycleCount+((mAUDIO_0_CURRENT+1)<<divide);
 						if (tmp < gNextTimerEvent) gNextTimerEvent = tmp;
 					}
@@ -1100,40 +1111,33 @@ class CMikie : public CLynxMemObj
 				// Audio 1 
 				//
 //				if (mAUDIO_1_ENABLE_COUNT && !mAUDIO_1_TIMER_DONE)
-				if (mAUDIO_1_ENABLE_COUNT && !mAUDIO_1_TIMER_DONE && mAUDIO_1_VOLUME && mAUDIO_1_BKUP)
-				{
+				if (mAUDIO_1_ENABLE_COUNT && !mAUDIO_1_TIMER_DONE && mAUDIO_1_VOLUME && mAUDIO_1_BKUP) {
 					decval = 0;
-		
-					if (mAUDIO_1_LINKING == 0x07)
-					{
+
+					if (mAUDIO_1_LINKING == 0x07) {
 						if (mAUDIO_0_BORROW_OUT) decval = 1;
 						mAUDIO_1_LAST_LINK_CARRY = mAUDIO_0_BORROW_OUT;
 					}
-					else
-					{
+					else {
 						// Ordinary clocked mode as opposed to linked mode
 						// 16MHz clock downto 1us == cyclecount >> 4 
 						divide = (4+mAUDIO_1_LINKING);
 						decval = (gSystemCycleCount-mAUDIO_1_LAST_COUNT)>>divide;
 					}
-		
-					if (decval)
-					{
+
+					if (decval) {
 						mAUDIO_1_LAST_COUNT += decval<<divide;
 						mAUDIO_1_CURRENT -= decval;
-						if (mAUDIO_1_CURRENT & 0x80000000)
-						{
+						if (mAUDIO_1_CURRENT & 0x80000000) {
 							// Set carry out
 							mAUDIO_1_BORROW_OUT = TRUE;
-		
+
 							// Reload if neccessary
-							if (mAUDIO_1_ENABLE_RELOAD)
-							{
+							if (mAUDIO_1_ENABLE_RELOAD) {
 								mAUDIO_1_CURRENT += mAUDIO_1_BKUP+1;
 								if (mAUDIO_1_CURRENT & 0x80000000) mAUDIO_1_CURRENT = 0;
 							}
-							else
-							{
+							else {
 								// Set timer done
 								mAUDIO_1_TIMER_DONE = TRUE;
 								mAUDIO_1_CURRENT = 0;
@@ -1145,28 +1149,24 @@ class CMikie : public CLynxMemObj
 
 							mAUDIO_1_WAVESHAPER = GetLfsrNext(mAUDIO_1_WAVESHAPER);
 
-							if (mAUDIO_1_INTEGRATE_ENABLE)
-							{
+							if (mAUDIO_1_INTEGRATE_ENABLE) {
 								SLONG temp = mAUDIO_1_OUTPUT;
 								if (mAUDIO_1_WAVESHAPER & 0x0001) temp += mAUDIO_1_VOLUME; else temp -= mAUDIO_1_VOLUME;
 								if (temp > 127) temp = 127;
 								if (temp < -128) temp = -128;
 								mAUDIO_1_OUTPUT = (SBYTE)temp;
 							}
-							else
-							{
+							else {
 								if (mAUDIO_1_WAVESHAPER & 0x0001) mAUDIO_1_OUTPUT = mAUDIO_1_VOLUME; else mAUDIO_1_OUTPUT = -mAUDIO_1_VOLUME;
 							}
 						}
-						else
-						{
+						else {
 							mAUDIO_1_BORROW_OUT = FALSE;
 						}
 						// Set carry in as we did a count
 						mAUDIO_1_BORROW_IN = TRUE;
 					}
-					else
-					{
+					else {
 						// Clear carry in as we didn't count
 						mAUDIO_1_BORROW_IN = FALSE;
 						// Clear carry out
@@ -1175,10 +1175,11 @@ class CMikie : public CLynxMemObj
 
 					// Prediction for next timer event cycle number
 
-					if (mAUDIO_1_LINKING != 7)
-					{
+					if (mAUDIO_1_LINKING != 7) {
 						tmp = gSystemCycleCount+((mAUDIO_1_CURRENT+1)<<divide);
-						if (tmp < gNextTimerEvent) gNextTimerEvent = tmp;
+						if (tmp < gNextTimerEvent) {
+							gNextTimerEvent = tmp;
+						}
 					}
 				}
 
@@ -1186,40 +1187,33 @@ class CMikie : public CLynxMemObj
 				// Audio 2 
 				//
 //				if (mAUDIO_2_ENABLE_COUNT && !mAUDIO_2_TIMER_DONE)
-				if (mAUDIO_2_ENABLE_COUNT && !mAUDIO_2_TIMER_DONE && mAUDIO_2_VOLUME && mAUDIO_2_BKUP)
-				{
+				if (mAUDIO_2_ENABLE_COUNT && !mAUDIO_2_TIMER_DONE && mAUDIO_2_VOLUME && mAUDIO_2_BKUP) {
 					decval = 0;
-		
-					if (mAUDIO_2_LINKING == 0x07)
-					{
+
+					if (mAUDIO_2_LINKING == 0x07) {
 						if (mAUDIO_1_BORROW_OUT) decval = 1;
 						mAUDIO_2_LAST_LINK_CARRY = mAUDIO_1_BORROW_OUT;
 					}
-					else
-					{
+					else {
 						// Ordinary clocked mode as opposed to linked mode
 						// 16MHz clock downto 1us == cyclecount >> 4 
 						divide = (4+mAUDIO_2_LINKING);
 						decval = (gSystemCycleCount-mAUDIO_2_LAST_COUNT)>>divide;
 					}
-		
-					if (decval)
-					{
+
+					if (decval) {
 						mAUDIO_2_LAST_COUNT += decval<<divide;
 						mAUDIO_2_CURRENT -= decval;
-						if (mAUDIO_2_CURRENT & 0x80000000)
-						{
+						if (mAUDIO_2_CURRENT & 0x80000000) {
 							// Set carry out
 							mAUDIO_2_BORROW_OUT = TRUE;
-		
+
 							// Reload if neccessary
-							if (mAUDIO_2_ENABLE_RELOAD)
-							{
-								mAUDIO_2_CURRENT += mAUDIO_2_BKUP+1;
+							if (mAUDIO_2_ENABLE_RELOAD) {
+								mAUDIO_2_CURRENT += mAUDIO_2_BKUP + 1;
 								if (mAUDIO_2_CURRENT & 0x80000000) mAUDIO_2_CURRENT = 0;
 							}
-							else
-							{
+							else {
 								// Set timer done
 								mAUDIO_2_TIMER_DONE = TRUE;
 								mAUDIO_2_CURRENT = 0;
@@ -1231,28 +1225,24 @@ class CMikie : public CLynxMemObj
 
 							mAUDIO_2_WAVESHAPER = GetLfsrNext(mAUDIO_2_WAVESHAPER);
 
-							if (mAUDIO_2_INTEGRATE_ENABLE)
-							{
+							if (mAUDIO_2_INTEGRATE_ENABLE) {
 								SLONG temp = mAUDIO_2_OUTPUT;
 								if (mAUDIO_2_WAVESHAPER & 0x0001) temp += mAUDIO_2_VOLUME; else temp -= mAUDIO_2_VOLUME;
 								if (temp > 127) temp = 127;
 								if (temp < -128) temp = -128;
 								mAUDIO_2_OUTPUT = (SBYTE)temp;
 							}
-							else
-							{
+							else {
 								if (mAUDIO_2_WAVESHAPER & 0x0001) mAUDIO_2_OUTPUT = mAUDIO_2_VOLUME; else mAUDIO_2_OUTPUT = -mAUDIO_2_VOLUME;
 							}
 						}
-						else
-						{
+						else {
 							mAUDIO_2_BORROW_OUT = FALSE;
 						}
 						// Set carry in as we did a count
 						mAUDIO_2_BORROW_IN = TRUE;
 					}
-					else
-					{
+					else {
 						// Clear carry in as we didn't count
 						mAUDIO_2_BORROW_IN = FALSE;
 						// Clear carry out
@@ -1261,10 +1251,11 @@ class CMikie : public CLynxMemObj
 
 					// Prediction for next timer event cycle number
 
-					if (mAUDIO_2_LINKING != 7)
-					{
+					if (mAUDIO_2_LINKING != 7) {
 						tmp = gSystemCycleCount+((mAUDIO_2_CURRENT+1)<<divide);
-						if (tmp<gNextTimerEvent) gNextTimerEvent = tmp;
+						if (tmp < gNextTimerEvent) {
+							gNextTimerEvent = tmp;
+						}
 					}
 				}
 
@@ -1272,40 +1263,33 @@ class CMikie : public CLynxMemObj
 				// Audio 3
 				//
 //				if (mAUDIO_3_ENABLE_COUNT && !mAUDIO_3_TIMER_DONE)
-				if (mAUDIO_3_ENABLE_COUNT && !mAUDIO_3_TIMER_DONE && mAUDIO_3_VOLUME && mAUDIO_3_BKUP)
-				{
+				if (mAUDIO_3_ENABLE_COUNT && !mAUDIO_3_TIMER_DONE && mAUDIO_3_VOLUME && mAUDIO_3_BKUP) {
 					decval = 0;
-		
-					if (mAUDIO_3_LINKING == 0x07)
-					{
+
+					if (mAUDIO_3_LINKING == 0x07) {
 						if (mAUDIO_2_BORROW_OUT) decval = 1;
 						mAUDIO_3_LAST_LINK_CARRY = mAUDIO_2_BORROW_OUT;
 					}
-					else
-					{
+					else {
 						// Ordinary clocked mode as opposed to linked mode
 						// 16MHz clock downto 1us == cyclecount >> 4 
 						divide = (4+mAUDIO_3_LINKING);
 						decval = (gSystemCycleCount-mAUDIO_3_LAST_COUNT)>>divide;
 					}
-		
-					if (decval)
-					{
+
+					if (decval) {
 						mAUDIO_3_LAST_COUNT += decval<<divide;
 						mAUDIO_3_CURRENT -= decval;
-						if (mAUDIO_3_CURRENT & 0x80000000)
-						{
+						if (mAUDIO_3_CURRENT & 0x80000000) {
 							// Set carry out
 							mAUDIO_3_BORROW_OUT = TRUE;
-		
+
 							// Reload if neccessary
-							if (mAUDIO_3_ENABLE_RELOAD)
-							{
+							if (mAUDIO_3_ENABLE_RELOAD) {
 								mAUDIO_3_CURRENT += mAUDIO_3_BKUP+1;
 								if (mAUDIO_3_CURRENT & 0x80000000) mAUDIO_3_CURRENT = 0;
 							}
-							else
-							{
+							else {
 								// Set timer done
 								mAUDIO_3_TIMER_DONE = TRUE;
 								mAUDIO_3_CURRENT = 0;
@@ -1316,28 +1300,24 @@ class CMikie : public CLynxMemObj
 							//
 							mAUDIO_3_WAVESHAPER = GetLfsrNext(mAUDIO_3_WAVESHAPER);
 
-							if (mAUDIO_3_INTEGRATE_ENABLE)
-							{
+							if (mAUDIO_3_INTEGRATE_ENABLE) {
 								SLONG temp = mAUDIO_3_OUTPUT;
 								if (mAUDIO_3_WAVESHAPER&0x0001) temp += mAUDIO_3_VOLUME; else temp -= mAUDIO_3_VOLUME;
 								if (temp > 127) temp = 127;
 								if (temp < -128) temp = -128;
 								mAUDIO_3_OUTPUT = (SBYTE)temp;
 							}
-							else
-							{
+							else {
 								if (mAUDIO_3_WAVESHAPER&0x0001) mAUDIO_3_OUTPUT = mAUDIO_3_VOLUME; else mAUDIO_3_OUTPUT = -mAUDIO_3_VOLUME;
 							}
 						}
-						else
-						{
+						else {
 							mAUDIO_3_BORROW_OUT = FALSE;
 						}
 						// Set carry in as we did a count
 						mAUDIO_3_BORROW_IN = TRUE;
 					}
-					else
-					{
+					else {
 						// Clear carry in as we didn't count
 						mAUDIO_3_BORROW_IN = FALSE;
 						// Clear carry out
@@ -1346,17 +1326,18 @@ class CMikie : public CLynxMemObj
 
 					// Prediction for next timer event cycle number
 
-					if (mAUDIO_3_LINKING != 7)
-					{
+					if (mAUDIO_3_LINKING != 7) {
 						tmp = gSystemCycleCount+((mAUDIO_3_CURRENT+1)<<divide);
-						if (tmp < gNextTimerEvent) gNextTimerEvent = tmp;
+						if (tmp < gNextTimerEvent) {
+							gNextTimerEvent = tmp;
+						}
 					}
 				}
 			}
 
 			// Update system IRQ status as a result of timer activity
 			// OR is required to ensure serial IRQ's are not masked accidentally
-		
+
 			gSystemIRQ=mTimerStatusFlags;
 
 			//
@@ -1367,16 +1348,16 @@ class CMikie : public CLynxMemObj
 				if (line_count > 102)
 				{
 					// VBL Period emulation
-		
+
 					line_start = FALSE;
 					line_count--;
-		
+
 					// This is a waste as these variables get set 3 times
 					// but I can't think of a better place to put it.
 					// If the address is set by the timer overflow then frame
 					// flipping doesnt work correctly. The three blank lines
 					// are usually used to set the frame address.
-		
+
 					if (mDISPCTL_Flip)
 					{
 						lynx_addr = mDisplayAddress & 0xfffc;
@@ -1391,7 +1372,7 @@ class CMikie : public CLynxMemObj
 				{
 					// Mikie screen DMA can only see the system RAM....
 					// (Step through bitmap, line at a time)
-		
+
 					// Speedup, code change:
 					//
 					//    from
@@ -1450,7 +1431,7 @@ class CMikie : public CLynxMemObj
 							}
 							bitmap_addr -= (LYNX_SCREEN_WIDTH*2)*2;
 							break;
-	
+
 						case MIKIE_BITMAP_ROTATE_L_BPP8_X1:
 						case MIKIE_BITMAP_ROTATE_L_BPP16_X1:
 						case MIKIE_BITMAP_ROTATE_R_BPP8_X1:
@@ -1480,9 +1461,9 @@ class CMikie : public CLynxMemObj
 
 					// Cycle hit for a 80 RAM access
 					gSystemCycleCount += 80*5;
-		
+
 					// Check for end of line
-			
+
 					line_start = FALSE;
 					if (!--line_count)
 					{
@@ -1499,7 +1480,7 @@ class CMikie : public CLynxMemObj
 		CSystem		&mSystem;
 
 		// Hardware storage
-		
+
 		ULONG		mDisplayAddress;
 		BOOL		mAudioInputComparator;
 		ULONG		mTimerStatusFlags;

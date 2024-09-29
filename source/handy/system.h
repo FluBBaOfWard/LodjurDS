@@ -36,8 +36,11 @@
 
 #define HANDY_FILETYPE_LNX		0
 #define HANDY_FILETYPE_HOMEBREW	1
-#define HANDY_FILETYPE_ILLEGAL	2
+#define HANDY_FILETYPE_SNAPSHOT	2
+#define HANDY_FILETYPE_ILLEGAL	3
 
+#define HANDY_SCREEN_WIDTH	160
+#define HANDY_SCREEN_HEIGHT	102
 //
 // Define the global variable list
 //
@@ -63,8 +66,6 @@
 	ULONG	gThrottleNextCycleCheckpoint = 0;
 
 	volatile ULONG gTimerCount = 0;
-	volatile ULONG gEmulationSpeed = 0;
-	volatile ULONG gFramesPerSecond = 0;
 
 	ULONG	gAudioEnabled = FALSE;
 	UBYTE	*gAudioBuffer0; // UBYTE	gAudioBuffer0[HANDY_AUDIO_BUFFER_SIZE];
@@ -97,8 +98,6 @@
 	extern ULONG	gThrottleNextCycleCheckpoint;
 
 	extern volatile ULONG gTimerCount;
-	extern volatile ULONG gEmulationSpeed;
-	extern volatile ULONG gFramesPerSecond;
 
 	extern ULONG	gAudioEnabled;
 	extern UBYTE	*gAudioBuffer0; // extern UBYTE	gAudioBuffer0[HANDY_AUDIO_BUFFER_SIZE];

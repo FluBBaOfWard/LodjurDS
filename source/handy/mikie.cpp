@@ -287,7 +287,7 @@ ULONG CMikie::GetLfsrNext(ULONG current)
 	// table will give the next value.
 
 	static ULONG switches,lfsr,next,swloop,result;
-	static ULONG switchbits[9]={7,0,1,2,3,4,5,10,11};
+	static const ULONG switchbits[9]={7,0,1,2,3,4,5,10,11};
 
 	switches = current >> 12;
 	lfsr = current & 0xfff;
@@ -321,6 +321,56 @@ void CMikie::PresetForHomebrew(void)
 	mDISPCTL_Colour = TRUE;
 }
 
+void CMikie::ComLynxCable(int status)
+{
+	mUART_CABLE_PRESENT = status;
+}
+
+void CMikie::ComLynxRxData(int data)
+{
+	TRACE_MIKIE1("ComLynxRxData() - Received %04x", data);
+	// Copy over the data
+	if (mUART_Rx_waiting < UART_MAX_RX_QUEUE) {
+		// Trigger incoming receive IF none waiting otherwise
+		// we NEVER get to receive it!!!
+		if (!mUART_Rx_waiting) mUART_RX_COUNTDOWN = UART_RX_TIME_PERIOD;
+
+		// Receive the byte
+		mUART_Rx_input_queue[mUART_Rx_input_ptr] = data;
+		mUART_Rx_input_ptr = (mUART_Rx_input_ptr + 1) % UART_MAX_RX_QUEUE;
+		mUART_Rx_waiting++;
+		TRACE_MIKIE2("ComLynxRxData() - input ptr=%02d waiting=%02d", mUART_Rx_input_ptr, mUART_Rx_waiting);
+	}
+	else {
+		TRACE_MIKIE0("ComLynxRxData() - UART RX Overun");
+	}
+}
+
+void CMikie::ComLynxTxLoopback(int data)
+{
+	TRACE_MIKIE1("ComLynxTxLoopback() - Received %04x", data);
+
+	if (mUART_Rx_waiting < UART_MAX_RX_QUEUE) {
+		// Trigger incoming receive IF none waiting otherwise
+		// we NEVER get to receive it!!!
+		if (!mUART_Rx_waiting) mUART_RX_COUNTDOWN = UART_RX_TIME_PERIOD;
+
+		// Receive the byte - INSERT into front of queue
+		mUART_Rx_output_ptr = (mUART_Rx_output_ptr - 1) % UART_MAX_RX_QUEUE;
+		mUART_Rx_input_queue[mUART_Rx_output_ptr] = data;
+		mUART_Rx_waiting++;
+		TRACE_MIKIE2("ComLynxTxLoopback() - input ptr=%02d waiting=%02d", mUART_Rx_input_ptr, mUART_Rx_waiting);
+	}
+	else {
+		TRACE_MIKIE0("ComLynxTxLoopback() - UART RX Overun");
+	}
+}
+
+void CMikie::ComLynxTxCallback(void (*function)(int data, ULONG objref), ULONG objref)
+{
+	mpUART_TX_CALLBACK = function;
+	mUART_TX_CALLBACK_OBJECT = objref;
+}
 
 // Peek/Poke memory handlers
 

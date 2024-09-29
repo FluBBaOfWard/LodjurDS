@@ -14,6 +14,7 @@ extern "C" void GpMain(void *args);
 const char *romfile = "LYNXBOOT.IMG";
 //const char *gamefile = "apb - all points bulletin (1990).lnx";
 //const char *gamefile = "blue lightning (1989).lnx";
+//const char *gamefile = "electrocop (1989).lnx";
 //const char *gamefile = "lynx diagnostic cart v0.02 (1989)[crc-2].lnx";
 const char *gamefile = "toki (1990).lnx";
 

@@ -348,8 +348,6 @@ void CSystem::Reset(void)
 	gThrottleNextCycleCheckpoint = 0;
 
 	gTimerCount = 0;
-	gEmulationSpeed = 0;
-	gFramesPerSecond = 0;
 
 	gAudioBufferPointer = 0;
 	gAudioLastUpdateCycle = 0;
