@@ -656,8 +656,8 @@ class CMikie : public CLynxBase
 			// IRQ is enabled then generate it always
 			if ((mUART_TX_COUNTDOWN&UART_TX_INACTIVE) && mUART_TX_IRQ_ENABLE) {
 				TRACE_MIKIE0("Update() - UART TX IRQ Triggered");
-				mTimerStatusFlags|=0x10;
-				gSystemIRQ=TRUE;	// Added 19/09/06 fix for IRQ issue
+				mTimerStatusFlags |= 0x10;
+				gSystemIRQ = TRUE;	// Added 19/09/06 fix for IRQ issue
 			}
 			// Is data waiting and the interrupt enabled, if so then
 			// what are we waiting for....
