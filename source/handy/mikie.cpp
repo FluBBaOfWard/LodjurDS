@@ -406,7 +406,6 @@ ULONG CMikie::DisplayRenderLine(void)
 	if (mTimerInterruptMask & 0x01) {
 		TRACE_MIKIE0("Update() - TIMER0 IRQ Triggered (Line Timer)");
 		mTimerStatusFlags |= 0x01;
-		gSystemIRQ = TRUE;	// Added 19/09/06 fix for IRQ issue
 	}
 
 // Logic says it should be 101 but testing on an actual lynx shows the rest
@@ -746,7 +745,6 @@ ULONG CMikie::DisplayEndOfFrame(void)
 	if (mTimerInterruptMask & 0x04) {
 		TRACE_MIKIE0("Update() - TIMER2 IRQ Triggered (Frame Timer)");
 		mTimerStatusFlags |= 0x04;
-		gSystemIRQ = TRUE;	// Added 19/09/06 fix for IRQ issue
 	}
 
 //	TRACE_MIKIE0("Update() - Frame end");
@@ -1261,13 +1259,14 @@ void CMikie::Poke(ULONG addr,UBYTE data)
 			break;
 
 		case (INTRST & 0xff):
-			data ^= 0xff;
-			mTimerStatusFlags &= data;
+			mTimerStatusFlags &= ~data;
+			gSystemIRQ = mTimerStatusFlags;
 			gNextTimerEvent = gSystemCycleCount;
 			break;
 
 		case (INTSET & 0xff):
 			mTimerStatusFlags |= data;
+			gSystemIRQ = mTimerStatusFlags;
 			gNextTimerEvent = gSystemCycleCount;
 			break;
 

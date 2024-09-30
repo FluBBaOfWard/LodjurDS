@@ -1,7 +1,29 @@
+//
+// Copyright (c) 2004 K. Wilkins
+//
+// This software is provided 'as-is', without any express or implied warranty.
+// In no event will the authors be held liable for any damages arising from
+// the use of this software.
+//
+// Permission is granted to anyone to use this software for any purpose,
+// including commercial applications, and to alter it and redistribute it
+// freely, subject to the following restrictions:
+//
+// 1. The origin of this software must not be misrepresented; you must not
+//    claim that you wrote the original software. If you use this software
+//    in a product, an acknowledgment in the product documentation would be
+//    appreciated but is not required.
+//
+// 2. Altered source versions must be plainly marked as such, and must not
+//    be misrepresented as being the original software.
+//
+// 3. This notice may not be removed or altered from any source distribution.
+//
+
 //////////////////////////////////////////////////////////////////////////////
 //                       Handy - An Atari Lynx Emulator                     //
 //                          Copyright (c) 1996,1997                         //
-//                              Keith Wilkins                               //
+//                                 K. Wilkins                               //
 //////////////////////////////////////////////////////////////////////////////
 // 65C02 Macro definitions                                                  //
 //////////////////////////////////////////////////////////////////////////////
@@ -9,7 +31,7 @@
 // This file contains all of the required address mode and operand          //
 // macro definitions for the 65C02 emulation                                //
 //                                                                          //
-// Keith Wilkins                                                            //
+//    K. Wilkins                                                            //
 // August 1997                                                              //
 //                                                                          //
 //////////////////////////////////////////////////////////////////////////////
@@ -29,58 +51,76 @@
 #define xZEROPAGE()				{mOperand=CPU_PEEK(mPC);mPC++;}
 #define xZEROPAGE_X()			{mOperand=CPU_PEEK(mPC)+mX;mPC++;mOperand&=0xff;}
 #define xZEROPAGE_Y()			{mOperand=CPU_PEEK(mPC)+mY;mPC++;mOperand&=0xff;}
-#define xABSOLUTE_X()			{mOperand=CPU_PEEKW(mPC);mPC+=2;mOperand+=mX;}
-#define	xABSOLUTE_Y()			{mOperand=CPU_PEEKW(mPC);mPC+=2;mOperand+=mY;}
-#define xINDIRECT_ABSOLUTE_X()	{mOperand=CPU_PEEKW(mPC);mPC+=2;mOperand+=mX;mOperand=CPU_PEEKW(mOperand);}
+#define xABSOLUTE_X()			{mOperand=CPU_PEEKW(mPC);mPC+=2;mOperand+=mX;mOperand&=0xffff;}
+#define	xABSOLUTE_Y()			{mOperand=CPU_PEEKW(mPC);mPC+=2;mOperand+=mY;mOperand&=0xffff;}
+#define xINDIRECT_ABSOLUTE_X()	{mOperand=CPU_PEEKW(mPC);mPC+=2;mOperand+=mX;mOperand&=0xffff;mOperand=CPU_PEEKW(mOperand);}
 #define xRELATIVE()				{mOperand=CPU_PEEK(mPC);mPC++;mOperand=(mPC+mOperand)&0xffff;}
-#define xINDIRECT_X()			{mOperand=CPU_PEEK(mPC);mPC++;mOperand=mOperand+mX;mOperand=CPU_PEEKW(mOperand);}
-#define xINDIRECT_Y()			{mOperand=CPU_PEEK(mPC);mPC++;mOperand=CPU_PEEKW(mOperand);mOperand=mOperand+mY;}
+#define xINDIRECT_X()			{mOperand=CPU_PEEK(mPC);mPC++;mOperand=mOperand+mX;mOperand&=0x00ff;mOperand=CPU_PEEKW(mOperand);}
+#define xINDIRECT_Y()			{mOperand=CPU_PEEK(mPC);mPC++;mOperand=CPU_PEEKW(mOperand);mOperand=mOperand+mY;mOperand&=0xffff;}
 #define xINDIRECT_ABSOLUTE()	{mOperand=CPU_PEEKW(mPC);mPC+=2;mOperand=CPU_PEEKW(mOperand);}
 #define xINDIRECT()				{mOperand=CPU_PEEK(mPC);mPC++;mOperand=CPU_PEEKW(mOperand);}
 
 //
-// Opcode execution 
+// Helper Macros
+//
+//#define SET_Z(m)				{ mZ=(m)?false:true; }
+//#define SET_N(m)				{ mN=(m&0x80)?true:false; }
+//#define SET_NZ(m)				SET_Z(m) SET_N(m)
+#define SET_Z(m)				{ mZ=!(m); }
+#define SET_N(m)				{ mN=(m)&0x80; }
+#define SET_NZ(m)				{ mZ=!(m); mN=(m)&0x80; }
+#define PULL(m)					{ mSP++; mSP&=0xff; m=CPU_PEEK(mSP+0x0100); }
+#define PUSH(m)					{ CPU_POKE(0x0100+mSP,m); mSP--; mSP&=0xff; }
+//
+// Opcode execution
 //
 
-#define	xADC()\
+#define xADC()\
 {\
-	UBYTE	value=CPU_PEEK(mOperand);\
-	UBYTE	oldA=mA;\
-	if(!mD)\
+	int value=CPU_PEEK(mOperand);\
+	if(mD)\
 	{\
-		SWORD sum=(SWORD)((SBYTE)mA)+(SWORD)((SBYTE)value)+(mC?1:0);\
-		mV=((sum > 127) || (sum < -128));\
-		sum=(SWORD)mA + (SWORD)value + (mC?1:0);\
-		mA=(UBYTE)sum;\
-		mC=(sum>0xff);\
-		mZ=!mA;\
-		mN=mA & 0x80;\
+		int c = mC?1:0;\
+		int lo = (mA & 0x0f) + (value & 0x0f) + c;\
+		int hi = (mA & 0xf0) + (value & 0xf0);\
+		mV=0;\
+		mC=0;\
+		if (lo > 0x09)\
+		{\
+			hi += 0x10;\
+			lo += 0x06;\
+		}\
+		if (~(mA^value) & (mA^hi) & 0x80) mV=1;\
+		if (hi > 0x90) hi += 0x60;\
+		if (hi & 0xff00) mC=1;\
+		mA = (lo & 0x0f) + (hi & 0xf0);\
 	}\
 	else\
 	{\
-		SWORD sum=mBCDTable[0][mA]+mBCDTable[0][value]+(mC?1:0);\
-		mC=(sum > 99);\
-		mA=mBCDTable[1][sum & 0xff];\
-		mZ=!mA;\
-		mN=mA&0x80;\
-		mV=((oldA^mA)&0x80) && ((mA^value)&0x80);\
+		int c = mC?1:0;\
+		int sum = mA + value + c;\
+		mV=0;\
+		mC=0;\
+		if (~(mA^value) & (mA^sum) & 0x80) mV=1;\
+		if (sum & 0xff00) mC=1;\
+		mA = (UBYTE) sum;\
 	}\
+	SET_NZ(mA)\
 }
 
 #define xAND()\
 {\
 	mA&=CPU_PEEK(mOperand);\
-	mZ=!mA;\
-	mN=mA&0x80;\
+	SET_NZ(mA);\
 }
 
 #define xASL()\
 {\
-	UBYTE value=CPU_PEEK(mOperand);\
+	int value=CPU_PEEK(mOperand);\
 	mC=value&0x80;\
 	value<<=1;\
-	mZ=!value;\
-	mN=value&0x80;\
+	value&=0xff;\
+	SET_NZ(value);\
 	CPU_POKE(mOperand,value);\
 }
 
@@ -88,21 +128,23 @@
 {\
 	mC=mA&0x80;\
 	mA<<=1;\
-	mZ=!mA;\
-	mN=mA&0x80;\
+	mA&=0xff;\
+	SET_NZ(mA);\
 }
 
 #define xBCC()\
 {\
 	if(!mC)\
 	{\
-		SBYTE offset=CPU_PEEK(mPC);\
+		int offset=(signed char)CPU_PEEK(mPC);\
 		mPC++;\
 		mPC+=offset;\
+		mPC&=0xffff;\
 	}\
 	else\
 	{\
 		mPC++;\
+		mPC&=0xffff;\
 	}\
 }
 
@@ -110,13 +152,15 @@
 {\
 	if(mC)\
 	{\
-		SBYTE offset=CPU_PEEK(mPC);\
+		int offset=(signed char)CPU_PEEK(mPC);\
 		mPC++;\
 		mPC+=offset;\
+		mPC&=0xffff;\
 	}\
 	else\
 	{\
 		mPC++;\
+		mPC&=0xffff;\
 	}\
 }
 
@@ -124,20 +168,22 @@
 {\
 	if(mZ)\
 	{\
-		SBYTE offset=CPU_PEEK(mPC);\
+		int offset=(signed char)CPU_PEEK(mPC);\
 		mPC++;\
 		mPC+=offset;\
+		mPC&=0xffff;\
 	}\
 	else\
 	{\
 		mPC++;\
+		mPC&=0xffff;\
 	}\
 }
 
 #define	xBIT()\
 {\
-	UBYTE value=CPU_PEEK(mOperand);\
-	mZ=!(mA&value);\
+	int value=CPU_PEEK(mOperand);\
+	SET_Z(mA&value);\
 \
 	if(mOpcode!=0x89)\
 	{\
@@ -146,17 +192,31 @@
 	}\
 }
 
+//
+// DONT USE THIS VERSION OF BIT, IT BREAKS CALGAMES TITLE SCREEN !!!!
+//
+/*//#define	xBIT()\
+//{\
+//	int value=CPU_PEEK(mOperand);\
+//	SET_Z(mA&value);\
+//\
+//	mN=value&0x80;\
+//	mV=value&0x40;\
+//}*/
+
 #define	xBMI()\
 {\
 	if(mN)\
 	{\
-		SBYTE offset=CPU_PEEK(mPC);\
+		int offset=(signed char)CPU_PEEK(mPC);\
 		mPC++;\
 		mPC+=offset;\
+		mPC&=0xffff;\
 	}\
 	else\
 	{\
 		mPC++;\
+		mPC&=0xffff;\
 	}\
 }
 
@@ -164,13 +224,15 @@
 {\
 	if(!mZ)\
 	{\
-		SBYTE offset=CPU_PEEK(mPC);\
+		int offset=(signed char)CPU_PEEK(mPC);\
 		mPC++;\
 		mPC+=offset;\
+		mPC&=0xffff;\
 	}\
 	else\
 	{\
 		mPC++;\
+		mPC&=0xffff;\
 	}\
 }
 
@@ -178,51 +240,53 @@
 {\
 	if(!mN)\
 	{\
-		SBYTE offset=CPU_PEEK(mPC);\
+		int offset=(signed char)CPU_PEEK(mPC);\
 		mPC++;\
 		mPC+=offset;\
+		mPC&=0xffff;\
 	}\
 	else\
 	{\
 		mPC++;\
+		mPC&=0xffff;\
 	}\
 }
 
 #define	xBRA()\
 {\
-	SBYTE offset=CPU_PEEK(mPC);\
+	int offset=(signed char)CPU_PEEK(mPC);\
 	mPC++;\
 	mPC+=offset;\
+	mPC&=0xffff;\
 }
 
 #define	xBRK()\
 {\
 	mPC++;\
-	CPU_POKE(0x0100+mSP,mPC>>8);\
-	mSP--;\
-	CPU_POKE(0x0100+mSP,mPC&0x00ff);\
-	mSP--;\
-	CPU_POKE(0x0100+mSP,PS());\
-	mSP--;\
+	PUSH(mPC>>8);\
+	PUSH(mPC&0xff);\
+	PUSH(PS()|0x10);\
 \
-	mB=TRUE;\
 	mD=FALSE;\
 	mI=TRUE;\
 \
 	mPC=CPU_PEEKW(IRQ_VECTOR);\
 }
+// KW 4/11/98 B flag needed to be set IN the stack status word = 0x10.
 
 #define	xBVC()\
 {\
 	if(!mV)\
 	{\
-		SBYTE offset=CPU_PEEK(mPC);\
+		int offset=(signed char)CPU_PEEK(mPC);\
 		mPC++;\
 		mPC+=offset;\
+		mPC&=0xffff;\
 	}\
 	else\
 	{\
 		mPC++;\
+		mPC&=0xffff;\
 	}\
 }
 
@@ -230,13 +294,15 @@
 {\
 	if(mV)\
 	{\
-		SBYTE offset=CPU_PEEK(mPC);\
+		int offset=(signed char)CPU_PEEK(mPC);\
 		mPC++;\
 		mPC+=offset;\
+		mPC&=0xffff;\
 	}\
 	else\
 	{\
 		mPC++;\
+		mPC&=0xffff;\
 	}\
 }
 
@@ -263,7 +329,7 @@
 //
 // Alternate CMP code
 //
-//#define	xCMP()\
+/*//#define	xCMP()\
 //{\
 //	UBYTE value=CPU_PEEK(mOperand);\
 //	if(mA+0x100-value>0xff) mC=TRUE; else mC=FALSE;\
@@ -290,93 +356,110 @@
 //	mN=value&0x0080;\
 //}
 
+//#define	xCMP()\
+//{\
+//	UWORD value=(UWORD)mA-CPU_PEEK(mOperand);\
+//	SET_NZ(value);\
+//	mC=!(value&0x0100);\
+//}*/
 #define	xCMP()\
 {\
-	UWORD value=(UWORD)mA-CPU_PEEK(mOperand);\
-	mZ=!value;\
-	mN=value&0x0080;\
-	mC=!(value&0x0100);\
+	int value=CPU_PEEK(mOperand);\
+	mC=0;\
+	if (mA >= value) mC=1;\
+	SET_NZ((UBYTE)(mA - value))\
 }
 
+/*//#define	xCPX()\
+//{\
+//	UWORD value=(UWORD)mX-CPU_PEEK(mOperand);\
+//	SET_NZ(value);\
+//	mC=!(value&0x0100);\
+//}*/
 #define	xCPX()\
 {\
-	UWORD value=(UWORD)mX-CPU_PEEK(mOperand);\
-	mZ=!value;\
-	mN=value&0x0080;\
-	mC=!(value&0x0100);\
+	int value=CPU_PEEK(mOperand);\
+	mC=0;\
+	if (mX >= value) mC=1;\
+	SET_NZ((UBYTE)(mX - value))\
 }
 
+/*//#define	xCPY()\
+//{\
+//	UWORD value=(UWORD)mY-CPU_PEEK(mOperand);\
+//	SET_NZ(value);\
+//	mC=!(value&0x0100);\
+//}*/
 #define	xCPY()\
 {\
-	UWORD value=(UWORD)mY-CPU_PEEK(mOperand);\
-	mZ=!value;\
-	mN=value&0x0080;\
-	mC=!(value&0x0100);\
+	int value=CPU_PEEK(mOperand);\
+	mC=0;\
+	if (mY >= value) mC=1;\
+	SET_NZ((UBYTE)(mY - value))\
 }
 
 #define	xDEC()\
 {\
-	UBYTE value=CPU_PEEK(mOperand)-1;\
+	int value=CPU_PEEK(mOperand)-1;\
+	value&=0xff;\
 	CPU_POKE(mOperand,value);\
-	mZ=!value;\
-	mN=value&0x80;\
+	SET_NZ(value);\
 }
 
 #define	xDECA()\
 {\
 	mA--;\
-	mZ=!mA;\
-	mN=mA&0x80;\
+	mA&=0xff;\
+	SET_NZ(mA);\
 }
 
 #define	xDEX()\
 {\
 	mX--;\
-	mZ=!mX;\
-	mN=mX&0x80;\
+	mX&=0xff;\
+	SET_NZ(mX);\
 }
 
 #define	xDEY()\
 {\
 	mY--;\
-	mZ=!mY;\
-	mN=mY&0x80;\
+	mY&=0xff;\
+	SET_NZ(mY);\
 }
 
 #define	xEOR()\
 {\
 	mA^=CPU_PEEK(mOperand);\
-	mZ=!mA;\
-	mN=mA&0x80;\
+	SET_NZ(mA);\
 }
 
 #define	xINC()\
 {\
-	UBYTE value=CPU_PEEK(mOperand)+1;\
+	int value=CPU_PEEK(mOperand)+1;\
+	value&=0xff;\
 	CPU_POKE(mOperand,value);\
-	mZ=!value;\
-	mN=value&0x80;\
+	SET_NZ(value);\
 }
 
 #define	xINCA()\
 {\
 	mA++;\
-	mZ=!mA;\
-	mN=mA&0x80;\
+	mA&=0xff;\
+	SET_NZ(mA);\
 }
 
 #define	xINX()\
 {\
 	mX++;\
-	mZ=!mX;\
-	mN=mX&0x80;\
+	mX&=0xff;\
+	SET_NZ(mX);\
 }
 
 #define	xINY()\
 {\
 	mY++;\
-	mZ=!mY;\
-	mN=mY&0x80;\
+	mY&=0xff;\
+	SET_NZ(mY);\
 }
 
 #define	xJMP()\
@@ -386,50 +469,43 @@
 
 #define	xJSR()\
 {\
-	CPU_POKE(0x0100+mSP,(mPC-1)>>8);\
-	mSP--;\
-	CPU_POKE(0x0100+mSP,(mPC-1)&0xff);\
-	mSP--;\
+	PUSH((mPC-1)>>8);\
+	PUSH((mPC-1)&0xff);\
 	mPC=mOperand;\
 }
 
 #define	xLDA()\
 {\
 	mA=CPU_PEEK(mOperand);\
-	mZ=!mA;\
-	mN=mA&0x80;\
+	SET_NZ(mA);\
 }
 
 #define	xLDX()\
 {\
 	mX=CPU_PEEK(mOperand);\
-	mZ=!mX;\
-	mN=mX&0x80;\
+	SET_NZ(mX);\
 }
 
 #define	xLDY()\
 {\
 	mY=CPU_PEEK(mOperand);\
-	mZ=!mY;\
-	mN=mY&0x80;\
+	SET_NZ(mY);\
 }
 
 #define	xLSR()\
 {\
-	UBYTE value=CPU_PEEK(mOperand);\
+	int value=CPU_PEEK(mOperand);\
 	mC=value&0x01;\
 	value=(value>>1)&0x7f;\
 	CPU_POKE(mOperand,value);\
-	mZ=!value;\
-	mN=value&0x80;\
+	SET_NZ(value);\
 }
 
 #define	xLSRA()\
 {\
 	mC=mA&0x01;\
 	mA=(mA>>1)&0x7f;\
-	mZ=!mA;\
-	mN=mA&0x80;\
+	SET_NZ(mA);\
 }
 
 #define	xNOP()\
@@ -439,165 +515,182 @@
 #define	xORA()\
 {\
 	mA|=CPU_PEEK(mOperand);\
-	mZ=!mA;\
-	mN=mA&0x80;\
+	SET_NZ(mA);\
 }
 
 #define	xPHA()\
 {\
-	CPU_POKE(0x0100+mSP,mA);\
-	mSP--;\
+	PUSH(mA);\
 }
 
 #define	xPHP()\
 {\
-	CPU_POKE(0x0100+mSP,PS());\
-	mSP--;\
+	PUSH(PS()|0x10);\
 }
 
 #define	xPHX()\
 {\
-	CPU_POKE(0x0100+mSP,mX);\
-	mSP--;\
+	PUSH(mX);\
 }
 
 #define	xPHY()\
 {\
-	CPU_POKE(0x0100+mSP,mY);\
-	mSP--;\
+	PUSH(mY);\
 }
 
 #define	xPLA()\
 {\
-	mSP++;\
-	mA=CPU_PEEK(mSP+0x0100);\
-	mZ=!mA;\
-	mN=mA&0x80;\
+	PULL(mA);\
+	SET_NZ(mA);\
 }
 
 #define	xPLP()\
 {\
-	mSP++;\
-	PS(CPU_PEEK(mSP+0x0100));\
+	int P;\
+	PULL(P);\
+	PS(P);\
 }
 
 #define	xPLX()\
 {\
-	mSP++;\
-	mX=CPU_PEEK(mSP+0x0100);\
-	mZ=!mX;\
-	mN=mX&0x80;\
+	PULL(mX);\
+	SET_NZ(mX);\
 }
 
 #define	xPLY()\
 {\
-	mSP++;\
-	mY=CPU_PEEK(mSP+0x0100);\
-	mZ=!mY;\
-	mN=mY&0x80;\
+	PULL(mY);\
+	SET_NZ(mY);\
 }
 
 #define	xROL()\
 {\
-	UBYTE value=CPU_PEEK(mOperand);\
-	BOOL oldC=mC;\
+	int value=CPU_PEEK(mOperand);\
+	int oldC=mC;\
 	mC=value&0x80;\
 	value=(value<<1)|(oldC?1:0);\
+	value&=0xff;\
 	CPU_POKE(mOperand,value);\
-	mZ=!value;\
-	mN=value&0x80;\
+	SET_NZ(value);\
 }
 
 #define	xROLA()\
 {\
-	BOOL oldC=mC;\
+	int oldC=mC;\
 	mC=mA&0x80;\
 	mA=(mA<<1)|(oldC?1:0);\
-	mZ=!mA;\
-	mN=mA&0x80;\
+	mA&=0xff;\
+	SET_NZ(mA);\
 }
 
 #define	xROR()\
 {\
-	UBYTE value=CPU_PEEK(mOperand);\
-	BOOL oldC=mC;\
+	int value=CPU_PEEK(mOperand);\
+	int oldC=mC;\
 	mC=value&0x01;\
 	value=((value>>1)&0x7f)|(oldC?0x80:0x00);\
+	value&=0xff;\
 	CPU_POKE(mOperand,value);\
-	mZ=!value;\
-	mN=value&0x80;\
+	SET_NZ(value);\
 }
 
 #define	xRORA()\
 {\
-	BOOL oldC=mC;\
+	int oldC=mC;\
 	mC=mA&0x01;\
 	mA=((mA>>1)&0x7f)|(oldC?0x80:0x00);\
-	mZ=!mA;\
-	mN=mA&0x80;\
+	mA&=0xff;\
+	SET_NZ(mA);\
 }
 
 #define	xRTI()\
 {\
-	mSP++;\
-	PS(CPU_PEEK(mSP+0x0100));\
-	mSP++;\
-	mPC=CPU_PEEK(mSP+0x0100);\
-	mSP++;\
-	mPC|=CPU_PEEK(mSP+0x0100)<<8;\
-	gSystemCPUSleep=gSystemCPUSleep_Saved;\
-	mIRQActive--;\
+	int tmp;\
+	PULL(tmp);\
+	PS(tmp);\
+	PULL(mPC);\
+	PULL(tmp);\
+	mPC|=tmp<<8;\
 }
 
 #define	xRTS()\
 {\
-	mSP++;\
-	mPC=CPU_PEEK(mSP+0x0100);\
-	mSP++;\
-	mPC|=CPU_PEEK(mSP+0x0100)<<8;\
+	int tmp;\
+	PULL(mPC);\
+	PULL(tmp);\
+	mPC|=tmp<<8;\
 	mPC++;\
 }
 
+/*//#define	xSBC()\
+//{\
+//	UBYTE oldA=mA;\
+//	if(!mD)\
+//	{\
+//		UBYTE value=~(CPU_PEEK(mOperand));\
+//		SWORD difference=(SWORD)((SBYTE)mA)+(SWORD)((SBYTE)value)+(mC?1:0);\
+//		mV=((difference>127)||(difference<-128));\
+//		difference=((SWORD)mA)+((SWORD)value)+ (mC?1:0);\
+//		mA=(UBYTE)difference;\
+//		mC=(difference>0xff);\
+//		SET_NZ(mA);\
+//	}\
+//	else\
+//	{\
+//		UBYTE value=CPU_PEEK(mOperand);\
+//		SWORD difference=mBCDTable[0][mA]-mBCDTable[0][value]-(mC?0:1);\
+//		if(difference<0) difference+=100;\
+//		mA=mBCDTable[1][difference];\
+//		mC=(oldA>=(value+(mC?0:1)));\
+//		mV=((oldA^mA)&0x80)&&((mA^value)&0x80);\
+//		SET_NZ(mA);\
+//	}\
+//}*/
+
 #define	xSBC()\
 {\
-	UBYTE oldA=mA;\
-	if(!mD)\
+	int value=CPU_PEEK(mOperand);\
+	if (mD)\
 	{\
-		UBYTE value=~(CPU_PEEK(mOperand));\
-		SWORD difference=(SWORD)((SBYTE)mA)+(SWORD)((SBYTE)value)+(mC?1:0);\
-		mV=((difference>127)||(difference<-128));\
-		difference=((SWORD)mA)+((SWORD)value)+ (mC?1:0);\
-		mA=(UBYTE)difference;\
-		mC=(difference>0xff);\
-		mZ=!mA;\
-		mN=mA & 0x80;\
+		int c = mC?0:1;\
+		int sum = mA - value - c;\
+		int lo = (mA & 0x0f) - (value & 0x0f) - c;\
+		int hi = (mA & 0xf0) - (value & 0xf0);\
+		mV=0;\
+		mC=0;\
+		if ((mA^value) & (mA^sum) & 0x80) mV=1;\
+		if (lo & 0xf0) lo -= 6;\
+		if (lo & 0x80) hi -= 0x10;\
+		if (hi & 0x0f00) hi -= 0x60;\
+		if ((sum & 0xff00) == 0) mC=1;\
+		mA = (lo & 0x0f) + (hi & 0xf0);\
 	}\
 	else\
 	{\
-		UBYTE value=CPU_PEEK(mOperand);\
-		SWORD difference=mBCDTable[0][mA]-mBCDTable[0][value]-(mC?0:1);\
-		if(difference<0) difference+=100;\
-		mA=mBCDTable[1][difference];\
-		mZ=!mA;\
-		mN=mA&0x80;\
-		mC=(oldA>=(value+(mC?0:1)));\
-		mV=((oldA^mA)&0x80)&&((mA^value)&0x80);\
+		int c = mC?0:1;\
+		int sum = mA - value - c;\
+		mV=0;\
+		mC=0;\
+		if ((mA^value) & (mA^sum) & 0x80) mV=1;\
+		if ((sum & 0xff00) == 0) mC=1;\
+		mA = (UBYTE) sum;\
 	}\
+	SET_NZ(mA)\
 }
 
 #define	xSEC()\
 {\
-	mC=TRUE;\
+	mC=true;\
 }
 
 #define	xSED()\
 {\
-	mD=TRUE;\
+	mD=true;\
 }
 
 #define	xSEI()\
 {\
-	mI=TRUE;\
+	mI=true;\
 }
 
 #define	xSTA()\
@@ -628,29 +721,27 @@
 #define	xTAX()\
 {\
 	mX=mA;\
-	mZ=!mX;\
-	mN=mX&0x80;\
+	SET_NZ(mX);\
 }
 
 #define	xTAY()\
 {\
 	mY=mA;\
-	mZ=!mY;\
-	mN=mY&0x80;\
+	SET_NZ(mY);\
 }
 
 #define	xTRB()\
 {\
-	UBYTE value=CPU_PEEK(mOperand);\
-	mZ=!(mA&value);\
+	int value=CPU_PEEK(mOperand);\
+	SET_Z(mA&value);\
 	value=value&(mA^0xff);\
 	CPU_POKE(mOperand,value);\
 }
 
 #define	xTSB()\
 {\
-	UBYTE value=CPU_PEEK(mOperand);\
-	mZ=!(mA&value);\
+	int value=CPU_PEEK(mOperand);\
+	SET_Z(mA&value);\
 	value=value|mA;\
 	CPU_POKE(mOperand,value);\
 }
@@ -658,15 +749,13 @@
 #define	xTSX()\
 {\
 	mX=mSP;\
-	mZ=!mX;\
-	mN=mX&0x80;\
+	SET_NZ(mX);\
 }
 
 #define	xTXA()\
 {\
 	mA=mX;\
-	mZ=!mA;\
-	mN=mA&0x80;\
+	SET_NZ(mA);\
 }
 
 #define	xTXS()\
@@ -677,12 +766,10 @@
 #define	xTYA()\
 {\
 	mA=mY;\
-	mZ=!mA;\
-	mN=mA&0x80;\
+	SET_NZ(mA);\
 }
 
 #define	xWAI()\
 {\
 	gSystemCPUSleep=TRUE;\
 }
-

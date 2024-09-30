@@ -382,7 +382,8 @@ class CMikie : public CLynxBase
 							mTIM_0_BORROW_OUT = TRUE;
 
 							// Set the timer status flag
-							if (mTimerInterruptMask & 0x01) mTimerStatusFlags |= 0x01;
+							if (mTimerInterruptMask & 0x01)
+								mTimerStatusFlags |= 0x01;
 
 //							// Reload if neccessary
 //							if (mTIM_0_ENABLE_RELOAD) {
@@ -457,7 +458,8 @@ class CMikie : public CLynxBase
 						mTIM_2_BORROW_OUT = TRUE;
 
 						// Set the timer status flag
-						if (mTimerInterruptMask & 0x04) mTimerStatusFlags |= 0x04;
+						if (mTimerInterruptMask & 0x04)
+							mTimerStatusFlags |= 0x04;
 
 //						// Reload if neccessary
 //						if (mTIM_2_ENABLE_RELOAD) {
@@ -657,14 +659,12 @@ class CMikie : public CLynxBase
 			if ((mUART_TX_COUNTDOWN&UART_TX_INACTIVE) && mUART_TX_IRQ_ENABLE) {
 				TRACE_MIKIE0("Update() - UART TX IRQ Triggered");
 				mTimerStatusFlags |= 0x10;
-				gSystemIRQ = TRUE;	// Added 19/09/06 fix for IRQ issue
 			}
 			// Is data waiting and the interrupt enabled, if so then
 			// what are we waiting for....
 			if (mUART_RX_READY && mUART_RX_IRQ_ENABLE) {
 				TRACE_MIKIE0("Update() - UART RX IRQ Triggered");
 				mTimerStatusFlags |= 0x10;
-				gSystemIRQ = TRUE;	// Added 19/09/06 fix for IRQ issue
 			}
 
 			//

@@ -1,7 +1,29 @@
+//
+// Copyright (c) 2004 K. Wilkins
+//
+// This software is provided 'as-is', without any express or implied warranty.
+// In no event will the authors be held liable for any damages arising from
+// the use of this software.
+//
+// Permission is granted to anyone to use this software for any purpose,
+// including commercial applications, and to alter it and redistribute it
+// freely, subject to the following restrictions:
+//
+// 1. The origin of this software must not be misrepresented; you must not
+//    claim that you wrote the original software. If you use this software
+//    in a product, an acknowledgment in the product documentation would be
+//    appreciated but is not required.
+//
+// 2. Altered source versions must be plainly marked as such, and must not
+//    be misrepresented as being the original software.
+//
+// 3. This notice may not be removed or altered from any source distribution.
+//
+
 //////////////////////////////////////////////////////////////////////////////
 //                       Handy - An Atari Lynx Emulator                     //
 //                          Copyright (c) 1996,1997                         //
-//                              Keith Wilkins                               //
+//                                 K. Wilkins                               //
 //////////////////////////////////////////////////////////////////////////////
 // 65C02 Emulation class                                                    //
 //////////////////////////////////////////////////////////////////////////////
@@ -9,7 +31,7 @@
 // This class emulates a 65C02 processor. It is interfaced to the rest of   //
 // the system via the PEEK/POKE macros and a number of global variables     //
 //                                                                          //
-// Keith Wilkins                                                            //
+//    K. Wilkins                                                            //
 // August 1997                                                              //
 //                                                                          //
 //////////////////////////////////////////////////////////////////////////////
@@ -23,6 +45,27 @@
 #ifndef C65C02_H
 #define C65C02_H
 
+//#include <crtdbg.h>
+//#define	TRACE_CPU
+
+#include <string.h>
+
+#ifdef TRACE_CPU
+
+#define TRACE_CPU0(msg)					_RPT1(_CRT_WARN,"C65C02::"msg" (Time=%012d)\n",gSystemCycleCount)
+#define TRACE_CPU1(msg,arg1)			_RPT2(_CRT_WARN,"C65C02::"msg" (Time=%012d)\n",arg1,gSystemCycleCount)
+#define TRACE_CPU2(msg,arg1,arg2)		_RPT3(_CRT_WARN,"C65C02::"msg" (Time=%012d)\n",arg1,arg2,gSystemCycleCount)
+#define TRACE_CPU3(msg,arg1,arg2,arg3)	_RPT4(_CRT_WARN,"C65C02::"msg" (Time=%012d)\n",arg1,arg2,arg3,gSystemCycleCount)
+
+#else
+
+#define TRACE_CPU0(msg)
+#define TRACE_CPU1(msg,arg1)
+#define TRACE_CPU2(msg,arg1,arg2)
+#define TRACE_CPU3(msg,arg1,arg2,arg3)
+
+#endif
+
 //
 // Handy definitions
 //
@@ -30,6 +73,8 @@
 #define NMI_VECTOR	0xfffa
 #define BOOT_VECTOR	0xfffc
 #define IRQ_VECTOR	0xfffe
+
+#define MAX_CPU_BREAKPOINTS	8
 
 //
 // ACCESS MACROS
@@ -65,18 +110,20 @@ enum {	illegal=0,
 
 typedef struct
 {
-	UBYTE PS;		// Processor status register   8 bits
-	UBYTE A;		// Accumulator                 8 bits
-	UBYTE X;		// X index register            8 bits
-	UBYTE Y;		// Y index register            8 bits
-	UBYTE SP;		// Stack Pointer               8 bits
-	UBYTE Opcode;	// Instruction opcode          8 bits
-	UWORD Operand;	// Intructions operand		  16 bits
-	UWORD PC;		// Program Counter            16 bits
-	BOOL  NMI;
-	BOOL  IRQ;
-	BOOL  WAIT;
-	ULONG PCBREAKPOINT;
+	int PS;		// Processor status register   8 bits
+	int A;		// Accumulator                 8 bits
+	int X;		// X index register            8 bits
+	int Y;		// Y index register            8 bits
+	int SP;		// Stack Pointer               8 bits
+	int Opcode;	// Instruction opcode          8 bits
+	int Operand;// Intructions operand		  16 bits
+	int PC;		// Program Counter            16 bits
+	bool NMI;
+	bool IRQ;
+	bool WAIT;
+#ifdef _LYNXDBG
+	int	cpuBreakpoints[MAX_CPU_BREAKPOINTS];
+#endif
 }C6502_REGS;
 
 //
@@ -93,37 +140,43 @@ class C65C02
 		C65C02(CSystemBase& parent)
 			:mSystem(parent)
 		{
+			TRACE_CPU0("C65C02()");
 			// Compute the BCD lookup table
-			for(UWORD t=0;t<256;++t)
-			{
+			for (UWORD t=0;t<256;++t) {
 				mBCDTable[0][t] = ((t >> 4) * 10) + (t & 0x0f);
 				mBCDTable[1][t] = (((t % 100) / 10) << 4) | (t % 10);
 			}
-			mPcBreakpoint = 0xffffffff;
+#ifdef _LYNXDBG
+			for (int loop=0;loop<MAX_CPU_BREAKPOINTS;loop++) mPcBreakpoints[loop] = 0xfffffff;
+			mDbgFlag = 0;
+#endif
 			Reset();
+			
 		}
 
-		~C65C02(){}
+		~C65C02()
+		{
+			TRACE_CPU0("~C65C02()");
+		}
 
 	public:
 		inline void Reset(void)
 		{
+			TRACE_CPU0("Reset()");
 			mRamPointer = mSystem.GetRamPointer();
 			mA = 0;
-		    mX = 0;
-		    mY = 0;
+			mX = 0;
+			mY = 0;
 			mSP = 0xff;
 			mOpcode = 0;
 			mOperand = 0;
 			mPC = CPU_PEEKW(BOOT_VECTOR);
 			mN = FALSE;
 			mV = FALSE;
-			mB = FALSE;
 			mD = FALSE;
 			mI = TRUE;
-			mZ = FALSE;
+			mZ = TRUE;
 			mC = FALSE;
-			mIRQActive = FALSE;
 
 			gSystemNMI = FALSE;
 			gSystemIRQ = FALSE;
@@ -132,48 +185,36 @@ class C65C02
 		}
 
 		inline void Update(void)
-{
-	// Check NMI & IRQ status, prioritise NMI then IRQ
-
+		{
 //
 // NMI is currently unused by the lynx so lets save some time
 //
-//	if (mNMI) {
-//		// Mark the NMI as services
+//			Check NMI & IRQ status, prioritise NMI then IRQ
+//			if (mNMI) {
+//				// Mark the NMI as services
+//				mNMI = FALSE;
+//				mProcessingInterrupt++;
 //
-//		mNMI = FALSE;
-//		mProcessingInterrupt++;
+//				// Push processor status
+//				CPU_POKE(0x0100 + mSP--, mPC >> 8);
+//				CPU_POKE(0x0100 + mSP--, mPC & 0x00ff);
+//				CPU_POKE(0x0100 + mSP--, PS());
 //
-//		// Push processor status
-//
-//		CPU_POKE(0x0100 + mSP--, mPC >> 8);
-//		CPU_POKE(0x0100 + mSP--, mPC & 0xff);
-//		CPU_POKE(0x0100 + mSP--, PS() & ~0x10);
-//
-//		// Stop further interrupts
-//		mI = TRUE;
-//		mD = FALSE;				// Clear decimal mode
-//
-//		// Pick up the new PC
-//		mPC = CPU_PEEKW(NMI_VECTOR);
-//	}
+//				// Pick up the new PC
+//				mPC = CPU_PEEKW(NMI_VECTOR);
+//			}
 
-	if (gSystemIRQ && !mI && !mIRQActive)
-	{
+	if (gSystemIRQ && !mI) {
+		TRACE_CPU1("Update() IRQ taken at PC=%04x", mPC);
 		// IRQ signal clearance is handled by CMikie::Update() as this
 		// is the only source of interrupts
 
 		// Push processor status
+		PUSH(mPC >> 8);
+		PUSH(mPC & 0xff);
+		PUSH(PS());
 
-		CPU_POKE(0x0100+mSP, mPC >> 8);
-		mSP--;
-		CPU_POKE(0x0100+mSP, mPC & 0xff);
-		mSP--;
-		CPU_POKE(0x0100+mSP, PS() & ~0x10);
-		mSP--;
-
-		// Stop further interrupts
-		mI = TRUE;
+		mI = TRUE;				// Stop further interrupts
 		mD = FALSE;				// Clear decimal mode
 
 		// Pick up the new PC
@@ -183,7 +224,8 @@ class C65C02
 		gSystemCPUSleep_Saved = gSystemCPUSleep;
 		gSystemCPUSleep = FALSE;
 
-		mIRQActive++;
+		// Log the irq entry time
+		gIRQEntryCycle = gSystemCycleCount;
 	}
 
 	//
@@ -195,8 +237,8 @@ class C65C02
 	}
 
 	// Fetch opcode
-
 	mOpcode = CPU_PEEK(mPC);
+	TRACE_CPU2("Update() PC=$%04x, Opcode=%02x", mPC, mOpcode);
 	mPC++;
 
 	// Execute Opcode
@@ -1568,12 +1610,42 @@ class C65C02
 
 	// Trigger breakpoint if required
 
-	if (mPcBreakpoint == mPC) gBreakpointHit = TRUE;
+	for (int loop=0;loop<MAX_CPU_BREAKPOINTS;loop++) {
+		if (mPcBreakpoints[loop] == mPC) {
+			gBreakpointHit = TRUE;
+			mSystem.DebugTrace(0);
+		}
+	}
 
+	// Check code level debug features
+	// back to back CPX ($Absolute)
+	// on the 2nd Occurance we do some debug
+	if (mOpcode == 0xec) {
+		if (mDbgFlag) {
+			// We shoud do some debug now
+			if (!mOperand) {
+				// Trigger a breakpoint
+				gBreakpointHit = TRUE;
+				// Generate a debug trail output
+				mSystem.DebugTrace(0);
+			}
+			else {
+				// Generate a debug trail output
+				mSystem.DebugTrace(mOperand);
+			}
+			mDbgFlag = 0;
+		}
+		else {
+			if (mOperand == 0x5aa5) mDbgFlag = 1; else mDbgFlag = 0;
+		}
+	}
+	else {
+		mDbgFlag = 0;
+	}
 #endif
 }
 
-		inline void SetBreakpoint(ULONG breakpoint) {mPcBreakpoint = breakpoint;};
+//		inline void SetBreakpoint(ULONG breakpoint) {mPcBreakpoint = breakpoint;};
 
 		inline void SetRegs(C6502_REGS &regs)
 		{
@@ -1586,8 +1658,9 @@ class C65C02
 			mOperand = regs.Operand;
 			mPC = regs.PC;
 			gSystemCPUSleep = regs.WAIT;
-			mPcBreakpoint = regs.PCBREAKPOINT;
-
+#ifdef _LYNXDBG
+			for(int loop=0;loop<MAX_CPU_BREAKPOINTS;loop++)	mPcBreakpoints[loop] = regs.cpuBreakpoints[loop];
+#endif
 			gSystemNMI = regs.NMI;
 			gSystemIRQ = regs.IRQ;
 		}
@@ -1602,20 +1675,21 @@ class C65C02
 			regs.Opcode = mOpcode;
 			regs.Operand = mOperand;
 			regs.PC = mPC;
-			regs.WAIT = gSystemCPUSleep;
-			regs.PCBREAKPOINT = mPcBreakpoint;
-
-			regs.NMI = gSystemNMI;
-			regs.IRQ = gSystemIRQ;
+			regs.WAIT = (gSystemCPUSleep) ? true : false;
+#ifdef _LYNXDBG
+			for(int loop=0;loop<MAX_CPU_BREAKPOINTS;loop++)	regs.cpuBreakpoints[loop] = mPcBreakpoints[loop];
+#endif
+			regs.NMI = (gSystemNMI) ? true : false;
+			regs.IRQ = (gSystemIRQ) ? true : false;
 		}
+
+		inline int GetPC(void) { return mPC; }
 
 		inline void xILLEGAL(void)
 		{
-/*			CString addr;
-			addr.Format("C65C02::Update() - Illegal opcode (%02x) at PC=$%04x.",mOpcode,mPC);
-			::MessageBox(NULL,addr,"Runtime Error - System Halted", MB_OK | MB_ICONERROR);*/
-			mSystem.Reset();
-//			mSystem.mHaltSystem=TRUE;
+			char addr[1024];
+			sprintf(addr,"C65C02::Update() - Illegal opcode (%02x) at PC=$%04x.",mOpcode,mPC);
+//			gError->Warning(addr);
 		}
 
 	private:
@@ -1623,31 +1697,30 @@ class C65C02
 
 		// CPU Flags & status
 
-		UBYTE mA;		// Accumulator                 8 bits
-		UBYTE mX;		// X index register            8 bits
-		UBYTE mY;		// Y index register            8 bits
-		UBYTE mSP;		// Stack Pointer               8 bits
-		UBYTE mOpcode;  // Instruction opcode          8 bits
-		UWORD mOperand; // Intructions operand		  16 bits
-		UWORD mPC;		// Program Counter            16 bits
+		int mA;       // Accumulator                 8 bits
+		int mX;       // X index register            8 bits
+		int mY;       // Y index register            8 bits
+		int mSP;      // Stack Pointer               8 bits
+		int mOpcode;  // Instruction opcode          8 bits
+		int mOperand; // Intructions operand        16 bits
+		int mPC;      // Program Counter            16 bits
 
-		BOOL mN;		// N flag for processor status register
-		BOOL mV;		// V flag for processor status register
-		BOOL mB;		// B flag for processor status register
-		BOOL mD;		// D flag for processor status register
-		BOOL mI;		// I flag for processor status register
-		BOOL mZ;		// Z flag for processor status register
-		BOOL mC;		// C flag for processor status register
+		int mN;		// N flag for processor status register
+		int mV;		// V flag for processor status register
+		int mD;		// D flag for processor status register
+		int mI;		// I flag for processor status register
+		int mZ;		// Z flag for processor status register
+		int mC;		// C flag for processor status register
 
-		BOOL mIRQActive;
-
-		ULONG mPcBreakpoint;
-
+#ifdef _LYNXDBG
+		int mPcBreakpoints[MAX_CPU_BREAKPOINTS];
+		int mDbgFlag;
+#endif
 		UBYTE *mRamPointer;
 
 		// Associated lookup tables
 
-		UBYTE mBCDTable[2][256];
+		int mBCDTable[2][256];
 
 	//
 	// Opcode prototypes
@@ -1656,12 +1729,10 @@ class C65C02
 	private:
 
 		// Answers value of the Processor Status register
-		UBYTE PS() const
-		{
+		int PS() const {
 			UBYTE ps = 0x20;
 			if (mN) ps |= 0x80;
 			if (mV) ps |= 0x40;
-			if (mB) ps |= 0x10;
 			if (mD) ps |= 0x08;
 			if (mI) ps |= 0x04;
 			if (mZ) ps |= 0x02;
@@ -1671,11 +1742,9 @@ class C65C02
 
 
 		// Change the processor flags to correspond to the given value
-		void PS(UBYTE ps)
-		{
+		void PS(int ps) {
 			mN = ps & 0x80;
 			mV = ps & 0x40;
-			mB = ps & 0x10;
 			mD = ps & 0x08;
 			mI = ps & 0x04;
 			mZ = ps & 0x02;
