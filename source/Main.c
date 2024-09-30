@@ -81,14 +81,15 @@ int main(int argc, char **argv) {
 		infoOutput("fatInitDefault() failure.");
 	}
 
-	GpMain(NULL);
+	GpInit();
 
 	while (1) {
 		waitVBlank();
 		checkTimeOut();
 		guiRunLoop();
 		if (!pauseEmulation) {
-			run();
+			GpMain(NULL);
+//			run();
 		}
 	}
 	free(memPtr);

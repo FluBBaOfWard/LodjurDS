@@ -78,21 +78,21 @@ refreshEMUjoypads:			;@ Call every frame
 	adr r1,rlud2rldu
 	ldrb r0,[r1,r0,lsr#4]
 
-	and r1,r4,#0x0C				;@ NDS Select/Start
-	orr r0,r0,r1,lsl#4			;@ SV Select/Start
+	and r1,r4,#0x08				;@ NDS Start
+	orr r0,r0,r1,lsl#5			;@ Lynx Start
 	tst r4,#0x400				;@ NDS X button
-	orrne r0,r0,#0x80			;@ SV Start
+	orrne r0,r0,#0x04			;@ Lynx Option1
 	tst r4,#0x800				;@ NDS Y button
-	orrne r0,r0,#0x40			;@ SV Select
+	orrne r0,r0,#0x08			;@ Lynx Option2
 
 	ands r1,r3,#3				;@ A/B buttons
 	cmpne r1,#3
 	eorne r1,r1,#3
 	tst r2,#0x400				;@ Swap A/B?
-	andne r1,r3,#3
-	orr r0,r0,r1,lsl#4
+	andeq r1,r3,#3
+	orr r0,r0,r1
 
-	strb r0,joy0State
+	str r0,joy0State
 	bx lr
 ;@----------------------------------------------------------------------------
 joyCfg: .long 0x00ff01ff	;@ byte0=auto mask, byte1=(saves R), byte2=R auto mask
@@ -100,16 +100,19 @@ joyCfg: .long 0x00ff01ff	;@ byte0=auto mask, byte1=(saves R), byte2=R auto mask
 playerCount:.long 0			;@ Number of players in multilink.
 joy0State:	.long 0
 abslst2baslst:	.byte 0x00,0x02,0x01,0x03, 0x04,0x06,0x05,0x07, 0x08,0x0A,0x09,0x0B, 0x0C,0x0E,0x0D,0x0F
-rlud2rldu:		.byte 0x00,0x01,0x02,0x03, 0x08,0x09,0x0A,0x0B, 0x04,0x05,0x06,0x07, 0x0C,0x0D,0x0E,0x0F
+rlud2rldu:		.byte 0x00,0x20,0x10,0x30, 0x40,0x60,0x50,0x70, 0x80,0xA0,0x90,0xB0, 0xC0,0xE0,0xD0,0xF0
 
 EMUinput:			;@ This label here for main.c to use
 	.long 0			;@ EMUjoypad (this is what Emu sees)
 
 ;@----------------------------------------------------------------------------
 joy0_R:			;@ 0x2000
+	.type joy0_R STT_FUNC
 ;@----------------------------------------------------------------------------
-	ldrb r0,joy0State
-	eor r0,r0,#0xFF
+	stmfd sp!,{r4,lr}
+	bl refreshEMUjoypads
+	ldmfd sp!,{r4,lr}
+	ldr r0,joy0State
 
 	bx lr
 

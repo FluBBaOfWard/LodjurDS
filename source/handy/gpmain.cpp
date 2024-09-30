@@ -6,7 +6,9 @@
 
 #include "system.h"
 #include "../Shared/FileHelper.h"
+#include "../io.h"
 
+extern "C" void GpInit(void);
 extern "C" void GpMain(void *args);
 
 
@@ -19,6 +21,8 @@ const char *gamefile = "toki (1990).lnx";
 
 unsigned short vram[2][160*102];
 int bufIdx = 0;
+
+CSystem *newsystem;
 
 int loadFile(const char *fname, void *dest, int start, int maxSize) {
 	FILE *fHandle;
@@ -51,17 +55,19 @@ UBYTE *handy_nds_display_callback(ULONG objref)
 }
 
 
-void GpMain(void *args) {
-
-	CSystem *newsystem = new CSystem(gamefile, HANDY_FILETYPE_LNX, romfile);
+void GpInit() {
+	newsystem = new CSystem(gamefile, HANDY_FILETYPE_LNX, romfile);
 	newsystem->SetScreenAttributes(MIKIE_PIXEL_FORMAT_16BPP_555, 160, 102, 0, 0, (UBYTE*)vram[0], (UBYTE*)vram[1]);
+}
+
+void GpMain(void *args) {
 
 	while (1) {
 
 		for (int i=0;i<1024;i++) {
 			newsystem->Update();
 		}
-		newsystem->SetButtonData( 0 );
+		newsystem->SetButtonData( joy0_R() );
 
 		if (gScreenUpdateRequired) {
 			unsigned short *srcbuf;
@@ -80,6 +86,7 @@ void GpMain(void *args) {
 					((unsigned short *)0x06000000)[x+(y*256)] = srcbuf[x+(y*160)] | 0x8000;
 				}
 			}
+			return;
 		}
 	}
 
