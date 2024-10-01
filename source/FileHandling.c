@@ -163,7 +163,9 @@ bool loadGame(const char *gameName) {
 		drawText("     Please wait, loading.", 11, 0);
 		gRomSize = loadROM(romSpacePtr, gameName, maxRomSize);
 		if (gRomSize) {
-			checkMachine();
+			GpDelete();
+			GpInit(romSpacePtr, gRomSize);
+/*			checkMachine();
 			setEmuSpeed(0);
 			loadCart();
 			gameInserted = true;
@@ -172,7 +174,7 @@ bool loadGame(const char *gameName) {
 			}
 			if (emuSettings & AUTOLOAD_STATE) {
 				loadState();
-			}
+			}*/
 			closeMenu();
 			return false;
 		}

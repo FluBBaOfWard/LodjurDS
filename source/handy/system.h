@@ -131,7 +131,7 @@ class CSystem;
 class CSystem : public CSystemBase
 {
 	public:
-		CSystem(const char *gamefile, ULONG filetype, const char *romfile);
+		CSystem(const UBYTE *gamefile, int size, ULONG filetype, const char *romfile);
 		~CSystem();
 
 	public:

@@ -8,7 +8,8 @@
 #include "../Shared/FileHelper.h"
 #include "../io.h"
 
-extern "C" void GpInit(void);
+extern "C" void GpInit(const unsigned char *gamerom, int size);
+extern "C" void GpDelete(void);
 extern "C" void GpMain(void *args);
 
 
@@ -17,12 +18,12 @@ const char *romfile = "LYNXBOOT.IMG";
 //const char *gamefile = "blue lightning (1989).lnx";
 //const char *gamefile = "electrocop (1989).lnx";
 //const char *gamefile = "lynx diagnostic cart v0.02 (1989)[crc-2].lnx";
-const char *gamefile = "toki (1990).lnx";
+//const char *gamefile = "toki (1990).lnx";
 
 unsigned short vram[2][160*102];
 int bufIdx = 0;
 
-CSystem *newsystem;
+CSystem *newsystem = NULL;
 
 int loadFile(const char *fname, void *dest, int start, int maxSize) {
 	FILE *fHandle;
@@ -55,14 +56,21 @@ UBYTE *handy_nds_display_callback(ULONG objref)
 }
 
 
-void GpInit() {
-	newsystem = new CSystem(gamefile, HANDY_FILETYPE_LNX, romfile);
+void GpInit(const unsigned char *gamerom, int size) {
+	newsystem = new CSystem(gamerom, size, HANDY_FILETYPE_LNX, romfile);
 	newsystem->SetScreenAttributes(MIKIE_PIXEL_FORMAT_16BPP_555, 160, 102, 0, 0, (UBYTE*)vram[0], (UBYTE*)vram[1]);
+}
+
+void GpDelete() {
+	if ( newsystem != NULL) {
+		delete newsystem;
+		newsystem = NULL;
+	}
 }
 
 void GpMain(void *args) {
 
-	while (1) {
+	while (newsystem != NULL) {
 
 		for (int i=0;i<1024;i++) {
 			newsystem->Update();

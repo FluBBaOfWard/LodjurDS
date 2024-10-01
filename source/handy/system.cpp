@@ -36,7 +36,7 @@ extern UBYTE *romSpacePtr;
 
 int loadFile(const char *fname, void *dest, int start, int size);
 
-CSystem::CSystem(const char *gamefile, ULONG filetype, const char *romfile)
+CSystem::CSystem(const UBYTE *gamefile, int size, ULONG filetype, const char *romfile)
 	:mRom(NULL),
 	mCart(NULL),
 	mMemMap(NULL),
@@ -45,8 +45,6 @@ CSystem::CSystem(const char *gamefile, ULONG filetype, const char *romfile)
 	mMikie(NULL),
 	mSusie(NULL)
 {
-//	gamefile.MakeUpper();
-
 	mFileType = filetype;
 
 	mCycleCountBreakpoint = 0xffffffff;
@@ -87,7 +85,7 @@ CSystem::CSystem(const char *gamefile, ULONG filetype, const char *romfile)
 	// An exception from this will be caught by the level above
 
 	if (mFileType == HANDY_FILETYPE_LNX) {
-		int size = loadFile(gamefile, romSpacePtr, -1, 0x80000);
+//		int size = loadFile(gamefile, romSpacePtr, -1, 0x80000);
 		mCart = new CCart(romSpacePtr, size);
 		if (mCart->CartHeaderLess()) {
 			char drive[3];

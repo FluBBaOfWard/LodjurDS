@@ -15,6 +15,8 @@
 #include "io.h"
 #include "Sound.h"
 
+extern int fpsValue;
+
 static void checkTimeOut(void);
 static void setupGraphics(void);
 static void setupStream(void);
@@ -81,14 +83,13 @@ int main(int argc, char **argv) {
 		infoOutput("fatInitDefault() failure.");
 	}
 
-	GpInit();
-
 	while (1) {
 		waitVBlank();
 		checkTimeOut();
 		guiRunLoop();
 		if (!pauseEmulation) {
 			GpMain(NULL);
+			fpsValue += 1;
 //			run();
 		}
 	}

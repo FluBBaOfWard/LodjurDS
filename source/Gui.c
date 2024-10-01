@@ -13,7 +13,7 @@
 #include "ARM6502/Version.h"
 #include "ARMSuzy/Version.h"
 
-#define EMUVERSION "V0.0.1 2024-09-30"
+#define EMUVERSION "V0.0.1 2024-10-01"
 
 static void gammaChange(void);
 static void paletteChange(void);
@@ -35,20 +35,20 @@ const MItem dummyItems[] = {
 	{"", uiDummy}
 };
 const MItem fileItems[] = {
-	{"Load Game",selectGame},
-	{"Load State",loadState},
-	{"Save State",saveState},
-	{"Save Settings",saveSettings},
-	{"Eject Game",ejectGame},
-	{"Reset Console",resetGame},
-	{"Quit Emulator",ui9}
+	{"Load Game", selectGame},
+	{"Load State", loadState},
+	{"Save State", saveState},
+	{"Save Settings", saveSettings},
+	{"Eject Game", ejectGame},
+	{"Reset Console", resetGame},
+	{"Quit Emulator", ui9}
 };
 const MItem optionItems[] = {
-	{"Controller",ui4},
-	{"Display",ui5},
-	{"Machine",ui6},
-	{"Settings",ui7},
-	{"Debug",ui8}
+	{"Controller", ui4},
+	{"Display", ui5},
+	{"Machine", ui6},
+	{"Settings", ui7},
+	{"Debug", ui8}
 };
 const MItem ctrlItems[] = {
 	{"B Autofire:", autoBSet, getAutoBText},
