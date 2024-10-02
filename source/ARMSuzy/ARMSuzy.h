@@ -142,7 +142,6 @@ int svVideoLoadState(SUZY *chip, const void *source);
 int svVideoGetStateSize(void);
 
 void svDoScanline(void);
-void svConvertScreen(void *destination);
 
 #ifdef __cplusplus
 } // extern "C"

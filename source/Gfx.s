@@ -331,8 +331,6 @@ exit75Hz:
 	ldrb r0,frameDone
 	cmp r0,#0
 	beq nothingNew
-	ldr r0,=BG_GFX+0x8000
-	bl svConvertScreen
 	mov r0,#0
 	strb r0,frameDone
 nothingNew:

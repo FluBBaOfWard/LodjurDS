@@ -25,7 +25,6 @@
 	.global svVideoGetStateSize
 	.global svDoScanline
 	.global copyScrollValues
-	.global svConvertScreen
 	.global svBufferWindows
 	.global svRead
 	.global svWrite
@@ -763,51 +762,6 @@ setScrlLoop:
 	bne setScrlLoop
 
 	bx lr
-
-;@----------------------------------------------------------------------------
-svConvertScreen:			;@ In r0 = dest
-;@----------------------------------------------------------------------------
-	stmfd sp!,{r3-r8,lr}
-
-	ldr r1,[suzptr,#gfxRAM]		;@ Source
-	ldr r4,=CHR_DECODE
-	ldr lr,=0x1FE
-	ldrb r8,[suzptr,#svvHScroll]
-	ldrb r2,[suzptr,#svvVScroll]
-	cmp r2,#0xAB				;@ 171
-	addpl r8,r8,#0x40
-	mov r8,r8,lsr#3
-	add r1,r1,r8,lsl#1
-
-	mov r7,#22					;@ 22 tiles high screen
-scLoop:
-	mov r6,#8					;@ 8 pix high tiles
-tiLoop:
-	mov r5,#21					;@ 21*8=168 pix
-rwLoop:
-	ldrh r3,[r1],#2				;@ Read 8 pixels
-	ands r2,lr,r3,lsl#1
-	ldrhne r2,[r4,r2]
-	ands r3,lr,r3,lsr#7
-	ldrhne r3,[r4,r3]
-	orr r3,r2,r3,lsl#16
-	and r8,r8,#0x1F
-	str r3,[r0,r8,lsl#5]
-	add r8,r8,#1
-	subs r5,r5,#1
-	bne rwLoop
-
-	add r8,r8,#11
-	add r1,r1,#6
-	add r0,r0,#4
-	subs r6,r6,#1
-	bne tiLoop
-
-	add r0,r0,#32*31
-	subs r7,r7,#1
-	bne scLoop
-
-	ldmfd sp!,{r3-r8,pc}
 
 ;@----------------------------------------------------------------------------
 #ifdef GBA

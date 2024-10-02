@@ -6,7 +6,7 @@ ifeq ($(strip $(DEVKITARM)),)
 $(error "Please set DEVKITARM in your environment. export DEVKITARM=<path to>devkitARM")
 endif
 
-GAME_TITLE		:=	HandyDS
+GAME_TITLE		:=	LodjurDS
 GAME_SUBTITLE1	:=	Lynx Emulator
 GAME_SUBTITLE2	:=	github.com/FluBBaOfWard
 GAME_ICON		:=	$(CURDIR)/../LynxLogo.bmp
