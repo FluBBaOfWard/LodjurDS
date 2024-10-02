@@ -47,17 +47,8 @@ void CMikie::BlowOut(void)
 CMikie::CMikie(CSystem& parent)
 	:mSystem(parent)
 {
-	mScreenMode = 0;					// Initialise to unusable
-	mBitmapBits0 = NULL;				// Dangerous indeed
-	mBitmapBits1 = NULL;				// Dangerous indeed
-	mScreenXsize = 0;
-	mScreenYsize = 0;
-	mImageXoffset = 0;
-	mImageYoffset = 0;
-
 	int loop;
 	for (loop=0;loop<16;loop++) mPalette[loop].Index = loop;
-	for (loop=0;loop<4096;loop++) mColourMap[loop] = 0;
 
 	Reset();
 }
@@ -390,47 +381,13 @@ void CMikie::ComLynxTxCallback(void (*function)(int data, ULONG objref), ULONG o
 	mUART_TX_CALLBACK_OBJECT = objref;
 }
 
-void CMikie::DisplaySetAttributes(ULONG Rotate, ULONG Format, ULONG Pitch, UBYTE *(*RenderCallback)(ULONG objref), ULONG objref)
+void CMikie::DisplaySetAttributes(void (*DisplayCallback)(void), void (*RenderCallback)(UBYTE *ram, ULONG *palette, bool flip))
 {
-	mDisplayRotate = Rotate;
-	mDisplayFormat = Format;
-	mDisplayPitch = Pitch;
-	mpDisplayCallback = RenderCallback;
-	mDisplayCallbackObject = objref;
-
-	mpDisplayCurrent = NULL;
+	mpDisplayCallback = DisplayCallback;
+	mpRenderCallback = RenderCallback;
 
 	if (mpDisplayCallback) {
-		mpDisplayBits = (*mpDisplayCallback)(mDisplayCallbackObject);
-	}
-	else {
-		mpDisplayBits = NULL;
-	}
-
-	//
-	// Calculate the colour lookup tabes for the relevant mode
-	//
-	TPALETTE Spot;
-
-	switch(mDisplayFormat)
-	{
-		case MIKIE_PIXEL_FORMAT_8BPP:
-			for (Spot.Index=0;Spot.Index<4096;Spot.Index++) {
-				mColourMap[Spot.Index] = (Spot.Colours.Red<<4) & 0xe0;
-				mColourMap[Spot.Index] |= (Spot.Colours.Green<<1) & 0x1c;
-				mColourMap[Spot.Index] |= (Spot.Colours.Blue>>2) & 0x03;
-			}
-			break;
-		case MIKIE_PIXEL_FORMAT_16BPP_555:
-			for(Spot.Index=0;Spot.Index<4096;Spot.Index++) {
-				mColourMap[Spot.Index] = (Spot.Colours.Blue<<11) & 0x7c00;
-				mColourMap[Spot.Index] |= (Spot.Colours.Green<<6) & 0x03e0;
-				mColourMap[Spot.Index] |= (Spot.Colours.Red<<1) & 0x001f;
-			}
-			break;
-		default:
-			for(Spot.Index=0;Spot.Index<4096;Spot.Index++) mColourMap[Spot.Index] = 0;
-			break;
+		(*mpDisplayCallback)();
 	}
 
 	// Reset screen related counters/vars
@@ -447,21 +404,16 @@ void CMikie::DisplaySetAttributes(ULONG Rotate, ULONG Format, ULONG Pitch, UBYTE
 
 ULONG CMikie::DisplayRenderLine(void)
 {
-	UBYTE *bitmap_tmp = NULL;
-	ULONG source, loop;
 	ULONG work_done = 0;
-
-	if (!mpDisplayBits) return 0;
-	if (!mpDisplayCurrent) return 0;
-	if (!mDISPCTL_DMAEnable) return 0;
-
-//	if (mLynxLine & 0x80000000) return 0;
 
 	// Set the timer interrupt flag
 	if (mTimerInterruptMask & 0x01) {
 		TRACE_MIKIE0("Update() - TIMER0 IRQ Triggered (Line Timer)");
 		mTimerStatusFlags |= 0x01;
 	}
+
+	if (!mDISPCTL_DMAEnable) return 0;
+//	if (mLynxLine & 0x80000000) return 0;
 
 // Logic says it should be 101 but testing on an actual lynx shows the rest
 // period is between lines 102,101,100 with the new line being latched at
@@ -499,48 +451,17 @@ ULONG CMikie::DisplayRenderLine(void)
 		// Mikie screen DMA can only see the system RAM....
 		// (Step through bitmap, line at a time)
 
-		// Assign the temporary pointer;
-		bitmap_tmp = mpDisplayCurrent;
+		if (mpRenderCallback) {
+			(*mpRenderCallback)(&mRamPointer[mLynxAddr], (ULONG *)mPalette, mDISPCTL_Flip);
+		}
 
-		if (mDisplayFormat == MIKIE_PIXEL_FORMAT_8BPP) {
-			for (loop=0;loop<LYNX_SCREEN_WIDTH/2;loop++) {
-				source = mRamPointer[mLynxAddr];
-				if (mDISPCTL_Flip) {
-					mLynxAddr--;
-					*(bitmap_tmp) = (UBYTE)mColourMap[mPalette[source & 0x0f].Index];
-					bitmap_tmp += sizeof(UBYTE);
-					*(bitmap_tmp) = (UBYTE)mColourMap[mPalette[source >> 4].Index];
-					bitmap_tmp += sizeof(UBYTE);
-				}
-				else {
-					mLynxAddr++;
-					*(bitmap_tmp) = (UBYTE)mColourMap[mPalette[source >> 4].Index];
-					bitmap_tmp += sizeof(UBYTE);
-					*(bitmap_tmp) = (UBYTE)mColourMap[mPalette[source & 0x0f].Index];
-					bitmap_tmp += sizeof(UBYTE);
-				}
-			}
+		if (mDISPCTL_Flip) {
+			mLynxAddr -= LYNX_SCREEN_WIDTH/2;
 		}
-		else if (mDisplayFormat == MIKIE_PIXEL_FORMAT_16BPP_555 || mDisplayFormat == MIKIE_PIXEL_FORMAT_16BPP_565) {
-			for (loop=0;loop<LYNX_SCREEN_WIDTH/2;loop++) {
-				source = mRamPointer[mLynxAddr];
-				if (mDISPCTL_Flip) {
-					mLynxAddr--;
-					*((UWORD*)bitmap_tmp) = (UWORD)mColourMap[mPalette[source & 0x0f].Index];
-					bitmap_tmp += sizeof(UWORD);
-					*((UWORD*)bitmap_tmp) = (UWORD)mColourMap[mPalette[source >> 4].Index];
-					bitmap_tmp += sizeof(UWORD);
-				}
-				else {
-					mLynxAddr++;
-					*((UWORD*)bitmap_tmp) = (UWORD)mColourMap[mPalette[source >> 4].Index];
-					bitmap_tmp += sizeof(UWORD);
-					*((UWORD*)bitmap_tmp) = (UWORD)mColourMap[mPalette[source & 0x0f].Index];
-					bitmap_tmp += sizeof(UWORD);
-				}
-			}
+		else {
+			mLynxAddr += LYNX_SCREEN_WIDTH/2;
 		}
-		mpDisplayCurrent += mDisplayPitch;
+
 	}
 	return work_done;
 }
@@ -561,10 +482,8 @@ ULONG CMikie::DisplayEndOfFrame(void)
 	// Trigger the callback to the display sub-system to render the
 	// display and fetch the new pointer to be used for the lynx
 	// display buffer for the forthcoming frame
-	if (mpDisplayCallback) mpDisplayBits = (*mpDisplayCallback)(mDisplayCallbackObject);
+	if (mpDisplayCallback) (*mpDisplayCallback)();
 
-	// Reinitialise the screen buffer pointer
-	mpDisplayCurrent = mpDisplayBits;
 	return 0;
 }
 

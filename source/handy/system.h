@@ -225,7 +225,7 @@ class CSystem : public CSystemBase
 
 // Mikey system interfacing
 
-		void	DisplaySetAttributes(ULONG Rotate, ULONG Format, ULONG Pitch, UBYTE *(*DisplayCallback)(ULONG objref),ULONG objref) { mMikie->DisplaySetAttributes(Rotate, Format, Pitch, DisplayCallback, objref); };
+		void	DisplaySetAttributes(void (*DisplayCallback)(void),void (*RenderCallback)(UBYTE *ram, ULONG *palette, bool flip)) { mMikie->DisplaySetAttributes(DisplayCallback, RenderCallback); };
 
 		void	ComLynxCable(int status) { mMikie->ComLynxCable(status); };
 		void	ComLynxRxData(int data)  { mMikie->ComLynxRxData(data); };

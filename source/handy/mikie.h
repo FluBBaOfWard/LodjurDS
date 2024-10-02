@@ -176,7 +176,7 @@ class CMikie : public CLynxBase
 		void	ComLynxTxLoopback(int data);
 		void	ComLynxTxCallback(void (*function)(int data,ULONG objref),ULONG objref);
 
-		void	DisplaySetAttributes(ULONG Rotate, ULONG Format, ULONG Pitch, UBYTE *(*DisplayCallback)(ULONG objref), ULONG objref);
+		void	DisplaySetAttributes(void (*DisplayCallback)(void), void (*mpRenderCallback)(UBYTE *ram, ULONG *palette, bool flip));
 
 		void	BlowOut(void);
 
@@ -1223,7 +1223,6 @@ class CMikie : public CLynxBase
 		ULONG		mTimerInterruptMask;
 
 		TPALETTE	mPalette[16];
-		ULONG		mColourMap[4096];
 
 		ULONG		mIODAT;
 		ULONG		mIODIR;
@@ -1431,28 +1430,15 @@ class CMikie : public CLynxBase
 		// Screen related
 		//
 
-		UBYTE		*mBitmapBits0;
-		UBYTE		*mBitmapBits1;
 		ULONG		mCurrentBuffer;
 	
-		UBYTE		*mpDisplayBits;
-		UBYTE		*mpDisplayCurrent;
 		UBYTE		*mRamPointer;
 		ULONG		mLynxLine;
 		ULONG		mLynxLineDMACounter;
 		ULONG		mLynxAddr;
 
-		ULONG		mScreenMode;
-		ULONG		mScreenXsize;
-		ULONG		mScreenYsize;
-		ULONG		mImageXoffset;
-		ULONG		mImageYoffset;
-
-		ULONG		mDisplayRotate;
-		ULONG		mDisplayFormat;
-		ULONG		mDisplayPitch;
-		UBYTE		*(*mpDisplayCallback)(ULONG objref);
-		ULONG		mDisplayCallbackObject;
+		void		(*mpDisplayCallback)(void);
+		void		(*mpRenderCallback)(UBYTE *ram, ULONG *palette, bool flip);
 };
 
 
