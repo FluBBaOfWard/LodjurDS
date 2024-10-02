@@ -176,109 +176,20 @@ class CMikie : public CLynxBase
 		void	ComLynxTxLoopback(int data);
 		void	ComLynxTxCallback(void (*function)(int data,ULONG objref),ULONG objref);
 
+		void	DisplaySetAttributes(ULONG Rotate, ULONG Format, ULONG Pitch, UBYTE *(*DisplayCallback)(ULONG objref), ULONG objref);
+
+		void	BlowOut(void);
+
 		ULONG	DisplayRenderLine(void);
 		ULONG	DisplayEndOfFrame(void);
 
 		inline void SetCPUSleep(void) {gSystemCPUSleep=TRUE;};
 		inline void ClearCPUSleep(void) {gSystemCPUSleep=FALSE;gSystemCPUSleep_Saved=FALSE;};
 
-		void	SetScreenAttributes(ULONG Mode,ULONG XSize,ULONG YSize,ULONG XOffset,ULONG YOffset,UBYTE *Bits0,UBYTE *Bits1)
-		{
-			mScreenMode = Mode;
-
-			mScreenXsize = XSize;
-			mScreenYsize = YSize;
-
-			mImageXoffset = XOffset;
-			mImageYoffset = YOffset;
-
-			//
-			// Modify bitmap addresses to the correct start points
-			//
-			// To get the correct bitmap orientation copy lines from
-			// the end first so the 1st address needs to be the start
-			// of the last line of the bitmap.
-			//
-
-			mBitmapBits0 = Bits0;
-			mBitmapBits1 = Bits1;
-
-			//
-			// Calculate the colour lookup tabes for the relevant mode
-			//
-
-			TPALETTE Spot;
-
-			switch(mScreenMode)
-			{
-				case MIKIE_PIXEL_FORMAT_8BPP:
-					for(Spot.Index=0;Spot.Index<4096;Spot.Index++)
-					{
-						mColourMap[Spot.Index] = (Spot.Colours.Red<<4)&0xe0;
-						mColourMap[Spot.Index] |= (Spot.Colours.Green<<1)&0x1c;
-						mColourMap[Spot.Index] |= (Spot.Colours.Blue>>2)&0x03;
-					}
-					break;
-				case MIKIE_PIXEL_FORMAT_16BPP_555:
-					for(Spot.Index=0;Spot.Index<4096;Spot.Index++) {
-						mColourMap[Spot.Index] = (Spot.Colours.Blue<<11) & 0x7c00;
-						mColourMap[Spot.Index] |= (Spot.Colours.Green<<6) & 0x03e0;
-						mColourMap[Spot.Index] |= (Spot.Colours.Red<<1) & 0x001f;
-					}
-					break;
-				case MIKIE_PIXEL_FORMAT_16BPP_565:
-					for(Spot.Index=0;Spot.Index<4096;Spot.Index++) {
-						mColourMap[Spot.Index] = (Spot.Colours.Red<<12) & 0xf800;
-						mColourMap[Spot.Index] |= (Spot.Colours.Green<<7) & 0x07e0;
-						mColourMap[Spot.Index] |= (Spot.Colours.Blue<<1) & 0x001f;
-					}
-					break;
-				case MIKIE_PIXEL_FORMAT_24BPP:
-					for(Spot.Index=0;Spot.Index<4096;Spot.Index++) {
-						mColourMap[Spot.Index] = (Spot.Colours.Red<<20) & 0x00ff0000;
-						mColourMap[Spot.Index] |= (Spot.Colours.Green<<12) & 0x0000ff00;
-						mColourMap[Spot.Index] |= (Spot.Colours.Blue<<4) & 0x000000ff;
-					}
-					break;
-				case MIKIE_PIXEL_FORMAT_32BPP:
-					for(Spot.Index=0;Spot.Index<4096;Spot.Index++) {
-						mColourMap[Spot.Index] = 0xff000000 | ((Spot.Colours.Blue<<20) & 0x00ff0000);
-						mColourMap[Spot.Index] |= (Spot.Colours.Green<<12) & 0x0000ff00;
-						mColourMap[Spot.Index] |= (Spot.Colours.Red<<4) & 0x000000ff;
-					}
-				default:
-					for(Spot.Index=0;Spot.Index<4096;Spot.Index++) mColourMap[Spot.Index] = 0;
-					break;
-			}
-
-			// Reset screen related counters/vars
-
-			mTIM_0_CURRENT = 0;
-			mTIM_2_CURRENT = 0;
-
-			// Fix lastcount so that timer update will definatly occur
-
-			mTIM_0_LAST_COUNT -= (1<<(4+mTIM_0_LINKING))+1;
-			mTIM_2_LAST_COUNT -= (1<<(4+mTIM_2_LINKING))+1;
-
-			// Force immediate timer update
-
-			gNextTimerEvent = gSystemCycleCount;
-		}
-
-		ULONG	GetDisplayBuffer(void) {return (mCurrentBuffer)?0:1;};
-
-		void	BlowOut(void);
-
 		inline void	Update(void)
 		{
-			static ULONG lynx_addr = 0,line_count = 0;
-			static UBYTE *bitmap_addr = NULL;
-			static BOOL  line_start = FALSE;
-			static SLONG divide = 0;
-			static SLONG decval = 0;
-			static ULONG source;
-			ULONG loop;
+			SLONG divide = 0;
+			SLONG decval = 0;
 			ULONG tmp;
 			ULONG mikie_work_done=0;
 
@@ -382,23 +293,22 @@ class CMikie : public CLynxBase
 							// Set carry out
 							mTIM_0_BORROW_OUT = TRUE;
 
-							// Set the timer status flag
-							if (mTimerInterruptMask & 0x01)
-								mTimerStatusFlags |= 0x01;
-
 //							// Reload if neccessary
 //							if (mTIM_0_ENABLE_RELOAD) {
 								mTIM_0_CURRENT += mTIM_0_BKUP+1;
 //							}
 //							else {
 //								// Set timer done
-//								mTIM_0_TIMER_DONE = TRUE;
 //								mTIM_0_CURRENT = 0;
 //							}
+								mTIM_0_TIMER_DONE = TRUE;
 
-							// Set timers related to the screen
-							if (mBitmapBits0 && mBitmapBits1) line_start = TRUE;
+							// Interupt flag setting code moved into DisplayRenderLine()
 
+							// Line timer has expired, render a line, we cannot incrememnt
+							// the global counter at this point as it will screw the other timers
+							// so we save under work done and inc at the end.
+							mikie_work_done += DisplayRenderLine();
 						}
 						else {
 							mTIM_0_BORROW_OUT = FALSE;
@@ -458,10 +368,6 @@ class CMikie : public CLynxBase
 						// Set carry out
 						mTIM_2_BORROW_OUT = TRUE;
 
-						// Set the timer status flag
-//						if (mTimerInterruptMask & 0x04)
-//							mTimerStatusFlags |= 0x04;
-
 //						// Reload if neccessary
 //						if (mTIM_2_ENABLE_RELOAD) {
 							mTIM_2_CURRENT += mTIM_2_BKUP+1;
@@ -475,9 +381,6 @@ class CMikie : public CLynxBase
 						// Interupt flag setting code moved into DisplayEndOfFrame(), also
 						// park any CPU cycles lost for later inclusion
 						mikie_work_done += DisplayEndOfFrame();
-						// Set timers related to the screen
-						line_count = mTIM_2_BKUP+1;
-						bitmap_addr = (mCurrentBuffer) ? mBitmapBits1 : mBitmapBits0;
 					}
 					else {
 						mTIM_2_BORROW_OUT = FALSE;
@@ -1303,91 +1206,10 @@ class CMikie : public CLynxBase
 
 			gSystemIRQ = mTimerStatusFlags;
 
-			//
-			// Perform screen bitmap update
-			//
-			if (line_start && mDISPCTL_DMAEnable) {
-				if (line_count > 102) {
-					// VBL Period emulation
-
-					line_start = FALSE;
-					line_count--;
-
-					// This is a waste as these variables get set 3 times
-					// but I can't think of a better place to put it.
-					// If the address is set by the timer overflow then frame
-					// flipping doesnt work correctly. The three blank lines
-					// are usually used to set the frame address.
-
-					if (mDISPCTL_Flip) {
-						lynx_addr = mDisplayAddress & 0xfffc;
-						lynx_addr += 3;
-					}
-					else {
-						lynx_addr = mDisplayAddress & 0xfffc;
-					}
-				}
-				else {
-					// Mikie screen DMA can only see the system RAM....
-					// (Step through bitmap, line at a time)
-
-					switch (mScreenMode) {
-						case MIKIE_PIXEL_FORMAT_8BPP:
-							for (loop=0;loop<LYNX_SCREEN_WIDTH/2;loop++) {
-								source = mRamPointer[lynx_addr];
-								if (mDISPCTL_Flip) {
-									lynx_addr--;
-									*(bitmap_addr) = (UBYTE)mColourMap[mPalette[source & 0x0f].Index];
-									bitmap_addr += sizeof(UBYTE);
-									*(bitmap_addr) = (UBYTE)mColourMap[mPalette[source >> 4].Index];
-									bitmap_addr += sizeof(UBYTE);
-								}
-								else {
-									lynx_addr++;
-									*(bitmap_addr) = (UBYTE)mColourMap[mPalette[source >> 4].Index];
-									bitmap_addr += sizeof(UBYTE);
-									*(bitmap_addr) = (UBYTE)mColourMap[mPalette[source & 0x0f].Index];
-									bitmap_addr += sizeof(UBYTE);
-								}
-							}
-							break;
-						case MIKIE_PIXEL_FORMAT_16BPP_555:
-							for (loop=0;loop<LYNX_SCREEN_WIDTH/2;loop++) {
-								source = mRamPointer[lynx_addr];
-								if (mDISPCTL_Flip) {
-									lynx_addr--;
-									*((UWORD*)bitmap_addr) = (UWORD)mColourMap[mPalette[source & 0x0f].Index];
-									bitmap_addr += sizeof(UWORD);
-									*((UWORD*)bitmap_addr) = (UWORD)mColourMap[mPalette[source >> 4].Index];
-									bitmap_addr += sizeof(UWORD);
-								}
-								else {
-									lynx_addr++;
-									*((UWORD*)bitmap_addr) = (UWORD)mColourMap[mPalette[source >> 4].Index];
-									bitmap_addr += sizeof(UWORD);
-									*((UWORD*)bitmap_addr) = (UWORD)mColourMap[mPalette[source & 0x0f].Index];
-									bitmap_addr += sizeof(UWORD);
-								}
-							}
-							break;
-						default:
-							break;
-					}
-
-					// Cycle hit for a 80 RAM access in rendering a line
-					gSystemCycleCount += 80 * DMA_RDWR_CYC;
-
-					// Check for end of line
-
-					line_start = FALSE;
-					if (!--line_count) {
-						// Flip screen buffers
-						mCurrentBuffer = (mCurrentBuffer) ? 0 : 1;
-						// Indicate to upstairs the old buffer is ready
-						gScreenUpdateRequired = TRUE;
-					}
-				}
-			}
+			// Now all the timer updates are done we can increment the system
+			// counter for any work done within the Update() function, gSystemCycleCounter
+			// cannot be updated until this point otherwise it screws up the counters.
+			gSystemCycleCount += mikie_work_done;
 		}
 
 	private:

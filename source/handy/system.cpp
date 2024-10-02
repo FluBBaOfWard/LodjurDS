@@ -239,7 +239,6 @@ void CSystem::Reset(void)
 	gSystemCycleCount = 0;
 	gNextTimerEvent = 0;
 	gCPUBootAddress = 0;
-	gScreenUpdateRequired = FALSE;
 	gEmulatorAbort = FALSE;
 	gBreakpointHit = FALSE;
 	gSingleStepMode = FALSE;

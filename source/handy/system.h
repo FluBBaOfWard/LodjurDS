@@ -52,7 +52,6 @@
 	ULONG	gIRQEntryCycle = 0;
 	ULONG	gCPUBootAddress = 0;
 	ULONG	gSingleStepModeSprites = FALSE;
-	BOOL	gScreenUpdateRequired = FALSE;
 	BOOL	gEmulatorAbort = FALSE;
 	BOOL	gBreakpointHit = FALSE;
 	BOOL	gSingleStepMode = FALSE;
@@ -84,7 +83,6 @@
 	extern ULONG	gIRQEntryCycle;
 	extern ULONG	gCPUBootAddress;
 	extern ULONG	gSingleStepModeSprites;
-	extern BOOL		gScreenUpdateRequired;
 	extern BOOL		gEmulatorAbort;
 	extern BOOL		gBreakpointHit;
 	extern BOOL		gSingleStepMode;
@@ -227,14 +225,11 @@ class CSystem : public CSystemBase
 
 // Mikey system interfacing
 
-		ULONG   GetDisplayBuffer(void) {return mMikie->GetDisplayBuffer();};
-		void	SetScreenAttributes(ULONG Mode,ULONG XSize,ULONG YSize,ULONG XOffset,ULONG YOffset,UBYTE *Bits0,UBYTE *Bits1)
-			{ mMikie->SetScreenAttributes(Mode,XSize,YSize,XOffset,YOffset,Bits0,Bits1); };
-//		void	DisplaySetAttributes(ULONG Rotate, ULONG Format, ULONG Pitch, UBYTE *(*DisplayCallback)(ULONG objref),ULONG objref) { mMikie->DisplaySetAttributes(Rotate, Format, Pitch, DisplayCallback, objref); };
+		void	DisplaySetAttributes(ULONG Rotate, ULONG Format, ULONG Pitch, UBYTE *(*DisplayCallback)(ULONG objref),ULONG objref) { mMikie->DisplaySetAttributes(Rotate, Format, Pitch, DisplayCallback, objref); };
 
-//		void	ComLynxCable(int status) { mMikie->ComLynxCable(status); };
-//		void	ComLynxRxData(int data)  { mMikie->ComLynxRxData(data); };
-//		void	ComLynxTxCallback(void (*function)(int data, ULONG objref), ULONG objref) { mMikie->ComLynxTxCallback(function, objref); };
+		void	ComLynxCable(int status) { mMikie->ComLynxCable(status); };
+		void	ComLynxRxData(int data)  { mMikie->ComLynxRxData(data); };
+		void	ComLynxTxCallback(void (*function)(int data, ULONG objref), ULONG objref) { mMikie->ComLynxTxCallback(function, objref); };
 
 // Suzy system interfacing
 

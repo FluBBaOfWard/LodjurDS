@@ -390,6 +390,61 @@ void CMikie::ComLynxTxCallback(void (*function)(int data, ULONG objref), ULONG o
 	mUART_TX_CALLBACK_OBJECT = objref;
 }
 
+void CMikie::DisplaySetAttributes(ULONG Rotate, ULONG Format, ULONG Pitch, UBYTE *(*RenderCallback)(ULONG objref), ULONG objref)
+{
+	mDisplayRotate = Rotate;
+	mDisplayFormat = Format;
+	mDisplayPitch = Pitch;
+	mpDisplayCallback = RenderCallback;
+	mDisplayCallbackObject = objref;
+
+	mpDisplayCurrent = NULL;
+
+	if (mpDisplayCallback) {
+		mpDisplayBits = (*mpDisplayCallback)(mDisplayCallbackObject);
+	}
+	else {
+		mpDisplayBits = NULL;
+	}
+
+	//
+	// Calculate the colour lookup tabes for the relevant mode
+	//
+	TPALETTE Spot;
+
+	switch(mDisplayFormat)
+	{
+		case MIKIE_PIXEL_FORMAT_8BPP:
+			for (Spot.Index=0;Spot.Index<4096;Spot.Index++) {
+				mColourMap[Spot.Index] = (Spot.Colours.Red<<4) & 0xe0;
+				mColourMap[Spot.Index] |= (Spot.Colours.Green<<1) & 0x1c;
+				mColourMap[Spot.Index] |= (Spot.Colours.Blue>>2) & 0x03;
+			}
+			break;
+		case MIKIE_PIXEL_FORMAT_16BPP_555:
+			for(Spot.Index=0;Spot.Index<4096;Spot.Index++) {
+				mColourMap[Spot.Index] = (Spot.Colours.Blue<<11) & 0x7c00;
+				mColourMap[Spot.Index] |= (Spot.Colours.Green<<6) & 0x03e0;
+				mColourMap[Spot.Index] |= (Spot.Colours.Red<<1) & 0x001f;
+			}
+			break;
+		default:
+			for(Spot.Index=0;Spot.Index<4096;Spot.Index++) mColourMap[Spot.Index] = 0;
+			break;
+	}
+
+	// Reset screen related counters/vars
+	mTIM_0_CURRENT = 0;
+	mTIM_2_CURRENT = 0;
+
+	// Fix lastcount so that timer update will definately occur
+	mTIM_0_LAST_COUNT -= (1<<(4+mTIM_0_LINKING))+1;
+	mTIM_2_LAST_COUNT -= (1<<(4+mTIM_2_LINKING))+1;
+
+	// Force immediate timer update
+	gNextTimerEvent = gSystemCycleCount;
+}
+
 ULONG CMikie::DisplayRenderLine(void)
 {
 	UBYTE *bitmap_tmp = NULL;

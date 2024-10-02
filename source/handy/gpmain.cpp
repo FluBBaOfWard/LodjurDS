@@ -22,6 +22,7 @@ const char *romfile = "LYNXBOOT.IMG";
 
 unsigned short vram[2][160*102];
 int bufIdx = 0;
+bool gScreenUpdateRequired = FALSE;
 
 CSystem *newsystem = NULL;
 
@@ -52,13 +53,14 @@ UBYTE *handy_nds_display_callback(ULONG objref)
 			((unsigned short *)0x06000000)[x+(y*256)] = srcbuf[x+(y*160)] | 0x8000;
 		}
 	}
+	gScreenUpdateRequired = TRUE;
 	return (UBYTE *)vram[bufIdx];
 }
 
 
 void GpInit(const unsigned char *gamerom, int size) {
 	newsystem = new CSystem(gamerom, size, HANDY_FILETYPE_LNX, romfile);
-	newsystem->SetScreenAttributes(MIKIE_PIXEL_FORMAT_16BPP_555, 160, 102, 0, 0, (UBYTE*)vram[0], (UBYTE*)vram[1]);
+	newsystem->DisplaySetAttributes(0, MIKIE_PIXEL_FORMAT_16BPP_555, 160*2, handy_nds_display_callback, 0);
 }
 
 void GpDelete() {
@@ -78,22 +80,7 @@ void GpMain(void *args) {
 		newsystem->SetButtonData( joy0_R() );
 
 		if (gScreenUpdateRequired) {
-			unsigned short *srcbuf;
-
 			gScreenUpdateRequired = FALSE;
-
-			if (newsystem->GetDisplayBuffer()) {
-				srcbuf = vram[0];
-			}
-			else {
-				srcbuf = vram[1];
-			}
-
-			for (int y=0;y<102;y++) {
-				for (int x=0;x<160;x++) {
-					((unsigned short *)0x06000000)[x+(y*256)] = srcbuf[x+(y*160)] | 0x8000;
-				}
-			}
 			return;
 		}
 	}
