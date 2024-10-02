@@ -15,7 +15,7 @@
 #include "io.h"
 #include "Memory.h"
 
-static const char *const folderName = "wasabi";
+static const char *const folderName = "handyds";
 static const char *const settingName = "settings.cfg";
 
 ConfigData cfg;

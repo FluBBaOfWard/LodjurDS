@@ -280,6 +280,7 @@ class CMikie : public CLynxBase
 			static ULONG source;
 			ULONG loop;
 			ULONG tmp;
+			ULONG mikie_work_done=0;
 
 			//
 			// To stop problems with cycle count wrap we will check and then correct the
@@ -458,8 +459,8 @@ class CMikie : public CLynxBase
 						mTIM_2_BORROW_OUT = TRUE;
 
 						// Set the timer status flag
-						if (mTimerInterruptMask & 0x04)
-							mTimerStatusFlags |= 0x04;
+//						if (mTimerInterruptMask & 0x04)
+//							mTimerStatusFlags |= 0x04;
 
 //						// Reload if neccessary
 //						if (mTIM_2_ENABLE_RELOAD) {
@@ -467,10 +468,13 @@ class CMikie : public CLynxBase
 //						}
 //						else {
 //							// Set timer done
-//							mTIM_2_TIMER_DONE = TRUE;
 //							mTIM_2_CURRENT = 0;
 //						}
+						mTIM_2_TIMER_DONE = TRUE;
 
+						// Interupt flag setting code moved into DisplayEndOfFrame(), also
+						// park any CPU cycles lost for later inclusion
+						mikie_work_done += DisplayEndOfFrame();
 						// Set timers related to the screen
 						line_count = mTIM_2_BKUP+1;
 						bitmap_addr = (mCurrentBuffer) ? mBitmapBits1 : mBitmapBits0;

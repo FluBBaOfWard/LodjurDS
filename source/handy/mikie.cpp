@@ -447,290 +447,45 @@ ULONG CMikie::DisplayRenderLine(void)
 		// Assign the temporary pointer;
 		bitmap_tmp = mpDisplayCurrent;
 
-		switch(mDisplayRotate)
-		{
-			case MIKIE_NO_ROTATE:
-				if (mDisplayFormat == MIKIE_PIXEL_FORMAT_8BPP) {
-					for (loop=0;loop<LYNX_SCREEN_WIDTH/2;loop++) {
-						source = mRamPointer[mLynxAddr];
-						if (mDISPCTL_Flip) {
-							mLynxAddr--;
-							*(bitmap_tmp) = (UBYTE)mColourMap[mPalette[source & 0x0f].Index];
-							bitmap_tmp += sizeof(UBYTE);
-							*(bitmap_tmp) = (UBYTE)mColourMap[mPalette[source >> 4].Index];
-							bitmap_tmp += sizeof(UBYTE);
-						}
-						else {
-							mLynxAddr++;
-							*(bitmap_tmp) = (UBYTE)mColourMap[mPalette[source >> 4].Index];
-							bitmap_tmp += sizeof(UBYTE);
-							*(bitmap_tmp) = (UBYTE)mColourMap[mPalette[source & 0x0f].Index];
-							bitmap_tmp += sizeof(UBYTE);
-						}
-					}
+		if (mDisplayFormat == MIKIE_PIXEL_FORMAT_8BPP) {
+			for (loop=0;loop<LYNX_SCREEN_WIDTH/2;loop++) {
+				source = mRamPointer[mLynxAddr];
+				if (mDISPCTL_Flip) {
+					mLynxAddr--;
+					*(bitmap_tmp) = (UBYTE)mColourMap[mPalette[source & 0x0f].Index];
+					bitmap_tmp += sizeof(UBYTE);
+					*(bitmap_tmp) = (UBYTE)mColourMap[mPalette[source >> 4].Index];
+					bitmap_tmp += sizeof(UBYTE);
 				}
-				else if (mDisplayFormat == MIKIE_PIXEL_FORMAT_16BPP_555 || mDisplayFormat == MIKIE_PIXEL_FORMAT_16BPP_565)
-				{
-					for (loop=0;loop<LYNX_SCREEN_WIDTH/2;loop++) {
-						source = mRamPointer[mLynxAddr];
-						if (mDISPCTL_Flip) {
-							mLynxAddr--;
-							*((UWORD*)bitmap_tmp) = (UWORD)mColourMap[mPalette[source & 0x0f].Index];
-							bitmap_tmp += sizeof(UWORD);
-							*((UWORD*)bitmap_tmp) = (UWORD)mColourMap[mPalette[source >> 4].Index];
-							bitmap_tmp += sizeof(UWORD);
-						}
-						else {
-							mLynxAddr++;
-							*((UWORD*)bitmap_tmp) = (UWORD)mColourMap[mPalette[source >> 4].Index];
-							bitmap_tmp += sizeof(UWORD);
-							*((UWORD*)bitmap_tmp) = (UWORD)mColourMap[mPalette[source & 0x0f].Index];
-							bitmap_tmp += sizeof(UWORD);
-						}
-					}
+				else {
+					mLynxAddr++;
+					*(bitmap_tmp) = (UBYTE)mColourMap[mPalette[source >> 4].Index];
+					bitmap_tmp += sizeof(UBYTE);
+					*(bitmap_tmp) = (UBYTE)mColourMap[mPalette[source & 0x0f].Index];
+					bitmap_tmp += sizeof(UBYTE);
 				}
-				else if(mDisplayFormat == MIKIE_PIXEL_FORMAT_24BPP) {
-					ULONG pixel;
-					for (loop=0;loop<LYNX_SCREEN_WIDTH/2;loop++) {
-						source = mRamPointer[mLynxAddr];
-						if (mDISPCTL_Flip) {
-							mLynxAddr--;
-							pixel = mColourMap[mPalette[source & 0x0f].Index];
-							*bitmap_tmp++ = (UBYTE)pixel; pixel >>= 8;
-							*bitmap_tmp++ = (UBYTE)pixel; pixel >>= 8;
-							*bitmap_tmp++ = (UBYTE)pixel;
-							pixel = mColourMap[mPalette[source >> 4].Index];
-							*bitmap_tmp++ = (UBYTE)pixel; pixel >>= 8;
-							*bitmap_tmp++ = (UBYTE)pixel; pixel >>= 8;
-							*bitmap_tmp++ = (UBYTE)pixel;
-						}
-						else {
-							mLynxAddr++;
-							pixel = mColourMap[mPalette[source >> 4].Index];
-							*bitmap_tmp++ = (UBYTE)pixel; pixel >>= 8;
-							*bitmap_tmp++ = (UBYTE)pixel; pixel >>= 8;
-							*bitmap_tmp++ = (UBYTE)pixel;
-							pixel = mColourMap[mPalette[source & 0x0f].Index];
-							*bitmap_tmp++ = (UBYTE)pixel; pixel >>= 8;
-							*bitmap_tmp++ = (UBYTE)pixel; pixel >>= 8;
-							*bitmap_tmp++ = (UBYTE)pixel;
-						}
-					}
-				}
-				else if (mDisplayFormat == MIKIE_PIXEL_FORMAT_32BPP) {
-					for (loop=0;loop<LYNX_SCREEN_WIDTH/2;loop++) {
-						source = mRamPointer[mLynxAddr];
-						if (mDISPCTL_Flip) {
-							mLynxAddr--;
-							*((u32*)bitmap_tmp) = mColourMap[mPalette[source & 0x0f].Index];
-							bitmap_tmp += sizeof(u32);
-							*((u32*)bitmap_tmp) = mColourMap[mPalette[source >> 4].Index];
-							bitmap_tmp += sizeof(u32);
-						}
-						else {
-							mLynxAddr++;
-							*((u32*)bitmap_tmp) = mColourMap[mPalette[source >> 4].Index];
-							bitmap_tmp += sizeof(u32);
-							*((u32*)bitmap_tmp) = mColourMap[mPalette[source & 0x0f].Index];
-							bitmap_tmp += sizeof(u32);
-						}
-					}
-				}
-				mpDisplayCurrent += mDisplayPitch;
-				break;
-			case MIKIE_ROTATE_L:
-				if (mDisplayFormat == MIKIE_PIXEL_FORMAT_8BPP) {
-					for (loop=0;loop<LYNX_SCREEN_WIDTH/2;loop++) {
-						source = mRamPointer[mLynxAddr];
-						if (mDISPCTL_Flip) {
-							mLynxAddr--;
-							*(bitmap_tmp) = (UBYTE)mColourMap[mPalette[source & 0x0f].Index];
-							bitmap_tmp += mDisplayPitch;
-							*(bitmap_tmp) = (UBYTE)mColourMap[mPalette[source >> 4].Index];
-							bitmap_tmp += mDisplayPitch;
-						}
-						else {
-							mLynxAddr++;
-							*(bitmap_tmp) = (UBYTE)mColourMap[mPalette[source >> 4].Index];
-							bitmap_tmp += mDisplayPitch;
-							*(bitmap_tmp) = (UBYTE)mColourMap[mPalette[source & 0x0f].Index];
-							bitmap_tmp += mDisplayPitch;
-						}
-					}
-					mpDisplayCurrent -= sizeof(UBYTE);
-				}
-				else if (mDisplayFormat == MIKIE_PIXEL_FORMAT_16BPP_555 || mDisplayFormat == MIKIE_PIXEL_FORMAT_16BPP_565) {
-					for (loop=0;loop<LYNX_SCREEN_WIDTH/2;loop++) {
-						source = mRamPointer[mLynxAddr];
-						if (mDISPCTL_Flip) {
-							mLynxAddr--;
-							*((UWORD*)bitmap_tmp) = (UWORD)mColourMap[mPalette[source & 0x0f].Index];
-							bitmap_tmp += mDisplayPitch;
-							*((UWORD*)bitmap_tmp) = (UWORD)mColourMap[mPalette[source >> 4].Index];
-							bitmap_tmp += mDisplayPitch;
-						}
-						else {
-							mLynxAddr++;
-							*((UWORD*)bitmap_tmp) = (UWORD)mColourMap[mPalette[source >> 4].Index];
-							bitmap_tmp += mDisplayPitch;
-							*((UWORD*)bitmap_tmp) = (UWORD)mColourMap[mPalette[source & 0x0f].Index];
-							bitmap_tmp += mDisplayPitch;
-						}
-					}
-					mpDisplayCurrent -= sizeof(UWORD);
-				}
-				else if (mDisplayFormat == MIKIE_PIXEL_FORMAT_24BPP) {
-					ULONG pixel;
-					for (loop=0;loop<LYNX_SCREEN_WIDTH/2;loop++) {
-						source = mRamPointer[mLynxAddr];
-						if (mDISPCTL_Flip) {
-							mLynxAddr--;
-							pixel = mColourMap[mPalette[source & 0x0f].Index];
-							*(bitmap_tmp) = (UBYTE)pixel; pixel >>= 8;
-							*(bitmap_tmp+1) = (UBYTE)pixel; pixel >>= 8;
-							*(bitmap_tmp+2) = (UBYTE)pixel;
-							bitmap_tmp += mDisplayPitch;
-							pixel = mColourMap[mPalette[source >> 4].Index];
-							*(bitmap_tmp) = (UBYTE)pixel; pixel >>= 8;
-							*(bitmap_tmp+1) = (UBYTE)pixel; pixel >>= 8;
-							*(bitmap_tmp+2) = (UBYTE)pixel;
-							bitmap_tmp += mDisplayPitch;
-						}
-						else {
-							mLynxAddr++;
-							pixel = mColourMap[mPalette[source >> 4].Index];
-							*(bitmap_tmp) = (UBYTE)pixel; pixel >>= 8;
-							*(bitmap_tmp+1) = (UBYTE)pixel; pixel >>= 8;
-							*(bitmap_tmp+2) = (UBYTE)pixel;
-							bitmap_tmp += mDisplayPitch;
-							pixel = mColourMap[mPalette[source & 0x0f].Index];
-							*(bitmap_tmp) = (UBYTE)pixel; pixel >>= 8;
-							*(bitmap_tmp+1) = (UBYTE)pixel; pixel >>= 8;
-							*(bitmap_tmp+2) = (UBYTE)pixel;
-							bitmap_tmp += mDisplayPitch;
-						}
-					}
-					mpDisplayCurrent -= 3;
-				}
-				else if (mDisplayFormat==MIKIE_PIXEL_FORMAT_32BPP) {
-					for (loop=0;loop<LYNX_SCREEN_WIDTH/2;loop++) {
-						source = mRamPointer[mLynxAddr];
-						if (mDISPCTL_Flip) {
-							mLynxAddr--;
-							*((u32*)bitmap_tmp) = mColourMap[mPalette[source & 0x0f].Index];
-							bitmap_tmp += mDisplayPitch;
-							*((u32*)bitmap_tmp) = mColourMap[mPalette[source >> 4].Index];
-							bitmap_tmp += mDisplayPitch;
-						}
-						else {
-							mLynxAddr++;
-							*((u32*)bitmap_tmp) = mColourMap[mPalette[source >> 4].Index];
-							bitmap_tmp += mDisplayPitch;
-							*((u32*)bitmap_tmp) = mColourMap[mPalette[source & 0x0f].Index];
-							bitmap_tmp += mDisplayPitch;
-						}
-					}
-					mpDisplayCurrent -= sizeof(u32);
-				}
-				break;
-			case MIKIE_ROTATE_R:
-				if (mDisplayFormat == MIKIE_PIXEL_FORMAT_8BPP) {
-					for (loop=0;loop<LYNX_SCREEN_WIDTH/2;loop++) {
-						source = mRamPointer[mLynxAddr];
-						if (mDISPCTL_Flip) {
-							mLynxAddr--;
-							*(bitmap_tmp) = (UBYTE)mColourMap[mPalette[source & 0x0f].Index];
-							bitmap_tmp -= mDisplayPitch;
-							*(bitmap_tmp) = (UBYTE)mColourMap[mPalette[source >> 4].Index];
-							bitmap_tmp -= mDisplayPitch;
-						}
-						else {
-							mLynxAddr++;
-							*(bitmap_tmp) = (UBYTE)mColourMap[mPalette[source >> 4].Index];
-							bitmap_tmp -= mDisplayPitch;
-							*(bitmap_tmp) = (UBYTE)mColourMap[mPalette[source & 0x0f].Index];
-							bitmap_tmp -= mDisplayPitch;
-						}
-					}
-					mpDisplayCurrent += sizeof(UBYTE);
-				}
-				else if (mDisplayFormat == MIKIE_PIXEL_FORMAT_16BPP_555 || mDisplayFormat == MIKIE_PIXEL_FORMAT_16BPP_565) {
-					for (loop=0;loop<LYNX_SCREEN_WIDTH/2;loop++) {
-						source = mRamPointer[mLynxAddr];
-						if (mDISPCTL_Flip) {
-							mLynxAddr--;
-							*((UWORD*)bitmap_tmp) = (UWORD)mColourMap[mPalette[source & 0x0f].Index];
-							bitmap_tmp -= mDisplayPitch;
-							*((UWORD*)bitmap_tmp) = (UWORD)mColourMap[mPalette[source >> 4].Index];
-							bitmap_tmp -= mDisplayPitch;
-						}
-						else {
-							mLynxAddr++;
-							*((UWORD*)bitmap_tmp) = (UWORD)mColourMap[mPalette[source >> 4].Index];
-							bitmap_tmp -= mDisplayPitch;
-							*((UWORD*)bitmap_tmp) = (UWORD)mColourMap[mPalette[source & 0x0f].Index];
-							bitmap_tmp -= mDisplayPitch;
-						}
-					}
-					mpDisplayCurrent += sizeof(UWORD);
-				}
-				else if (mDisplayFormat == MIKIE_PIXEL_FORMAT_24BPP) {
-					ULONG pixel;
-					for (loop=0;loop<LYNX_SCREEN_WIDTH/2;loop++) {
-						source = mRamPointer[mLynxAddr];
-						if (mDISPCTL_Flip) {
-							mLynxAddr--;
-							pixel = mColourMap[mPalette[source & 0x0f].Index];
-							*(bitmap_tmp) = (UBYTE)pixel; pixel >>= 8;
-							*(bitmap_tmp+1) = (UBYTE)pixel; pixel >>= 8;
-							*(bitmap_tmp+2) = (UBYTE)pixel;
-							bitmap_tmp -= mDisplayPitch;
-							pixel = mColourMap[mPalette[source >> 4].Index];
-							*(bitmap_tmp) = (UBYTE)pixel; pixel >>= 8;
-							*(bitmap_tmp+1) = (UBYTE)pixel; pixel >>= 8;
-							*(bitmap_tmp+2) = (UBYTE)pixel;
-							bitmap_tmp -= mDisplayPitch;
-						}
-						else {
-							mLynxAddr++;
-							pixel = mColourMap[mPalette[source >> 4].Index];
-							*(bitmap_tmp) = (UBYTE)pixel; pixel >>= 8;
-							*(bitmap_tmp+1) = (UBYTE)pixel; pixel >>= 8;
-							*(bitmap_tmp+2) = (UBYTE)pixel;
-							bitmap_tmp -= mDisplayPitch;
-							pixel = mColourMap[mPalette[source & 0x0f].Index];
-							*(bitmap_tmp) = (UBYTE)pixel; pixel >>= 8;
-							*(bitmap_tmp+1) = (UBYTE)pixel; pixel >>= 8;
-							*(bitmap_tmp+2) = (UBYTE)pixel;
-							bitmap_tmp -= mDisplayPitch;
-						}
-					}
-					mpDisplayCurrent += 3;
-				}
-				else if (mDisplayFormat == MIKIE_PIXEL_FORMAT_32BPP) {
-					for (loop=0;loop<LYNX_SCREEN_WIDTH/2;loop++) {
-						source = mRamPointer[mLynxAddr];
-						if (mDISPCTL_Flip) {
-							mLynxAddr--;
-							*((u32*)bitmap_tmp) = mColourMap[mPalette[source & 0x0f].Index];
-							bitmap_tmp -= mDisplayPitch;
-							*((u32*)bitmap_tmp) = mColourMap[mPalette[source >> 4].Index];
-							bitmap_tmp -= mDisplayPitch;
-						}
-						else {
-							mLynxAddr++;
-							*((u32*)bitmap_tmp) = mColourMap[mPalette[source >> 4].Index];
-							bitmap_tmp -= mDisplayPitch;
-							*((u32*)bitmap_tmp) = mColourMap[mPalette[source & 0x0f].Index];
-							bitmap_tmp -= mDisplayPitch;
-						}
-					}
-					mpDisplayCurrent += sizeof(u32);
-				}
-				break;
-			default:
-				break;
+			}
 		}
+		else if (mDisplayFormat == MIKIE_PIXEL_FORMAT_16BPP_555 || mDisplayFormat == MIKIE_PIXEL_FORMAT_16BPP_565) {
+			for (loop=0;loop<LYNX_SCREEN_WIDTH/2;loop++) {
+				source = mRamPointer[mLynxAddr];
+				if (mDISPCTL_Flip) {
+					mLynxAddr--;
+					*((UWORD*)bitmap_tmp) = (UWORD)mColourMap[mPalette[source & 0x0f].Index];
+					bitmap_tmp += sizeof(UWORD);
+					*((UWORD*)bitmap_tmp) = (UWORD)mColourMap[mPalette[source >> 4].Index];
+					bitmap_tmp += sizeof(UWORD);
+				}
+				else {
+					mLynxAddr++;
+					*((UWORD*)bitmap_tmp) = (UWORD)mColourMap[mPalette[source >> 4].Index];
+					bitmap_tmp += sizeof(UWORD);
+					*((UWORD*)bitmap_tmp) = (UWORD)mColourMap[mPalette[source & 0x0f].Index];
+					bitmap_tmp += sizeof(UWORD);
+				}
+			}
+		}
+		mpDisplayCurrent += mDisplayPitch;
 	}
 	return work_done;
 }
@@ -754,38 +509,7 @@ ULONG CMikie::DisplayEndOfFrame(void)
 	if (mpDisplayCallback) mpDisplayBits = (*mpDisplayCallback)(mDisplayCallbackObject);
 
 	// Reinitialise the screen buffer pointer
-	// Make any necessary adjustment for rotation
-	switch(mDisplayRotate)
-	{
-		case MIKIE_ROTATE_L:
-			mpDisplayCurrent = mpDisplayBits;
-			switch(mDisplayFormat)
-			{
-				case MIKIE_PIXEL_FORMAT_8BPP:
-					mpDisplayCurrent += 1 * (HANDY_SCREEN_HEIGHT - 1);
-					break;
-				case MIKIE_PIXEL_FORMAT_16BPP_555:
-				case MIKIE_PIXEL_FORMAT_16BPP_565:
-					mpDisplayCurrent += 2 * (HANDY_SCREEN_HEIGHT - 1);
-					break;
-				case MIKIE_PIXEL_FORMAT_24BPP:
-					mpDisplayCurrent += 3 * (HANDY_SCREEN_HEIGHT - 1);
-					break;
-				case MIKIE_PIXEL_FORMAT_32BPP:
-					mpDisplayCurrent += 4 * (HANDY_SCREEN_HEIGHT - 1);
-					break;
-				default:
-					break;
-			}
-			break;
-		case MIKIE_ROTATE_R:
-			mpDisplayCurrent = mpDisplayBits + (mDisplayPitch * (HANDY_SCREEN_WIDTH - 1));
-			break;
-		case MIKIE_NO_ROTATE:
-			default:
-			mpDisplayCurrent = mpDisplayBits;
-			break;
-	}
+	mpDisplayCurrent = mpDisplayBits;
 	return 0;
 }
 
