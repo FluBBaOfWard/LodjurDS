@@ -135,13 +135,14 @@ void uiAbout() {
 	drawTabs();
 	drawMenuText("B:          Lynx B button", 4, 0);
 	drawMenuText("A:          Lynx A button", 5, 0);
-	drawMenuText("Start:      Lynx Start button", 6, 0);
-	drawMenuText("Select:     Lynx Select button", 7, 0);
+	drawMenuText("Y:          Lynx Option I", 6, 0);
+	drawMenuText("X:          Lynx Option II", 7, 0);
+	drawMenuText("Start:      Lynx Start button", 8, 0);
 
-	drawMenuText("LodjurDS     " EMUVERSION, 20, 0);
-	drawMenuText("Suzy         " ARMSUZYVERSION, 21, 0);
-	drawMenuText("Mikey        " EMUVERSION, 22, 0);
-	drawMenuText("ARM6502      " ARM6502VERSION, 23, 0);
+	drawMenuText("HandyDS      " EMUVERSION, 23, 0);
+//	drawMenuText("Suzy         " ARMSUZYVERSION, 21, 0);
+//	drawMenuText("Mikey        " EMUVERSION, 22, 0);
+//	drawMenuText("ARM6502      " ARM6502VERSION, 23, 0);
 }
 
 void nullUINormal(int key) {
