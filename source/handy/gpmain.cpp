@@ -27,23 +27,6 @@ bool gScreenUpdateRequired = false;
 
 CSystem *newsystem = NULL;
 
-int loadFile(const char *fname, void *dest, int start, int maxSize) {
-	FILE *fHandle;
-
-	findFolder("Lynx");
-
-	if ( !(fHandle = fopen(fname, "r" ))) {
-		printf("Couldn't load file **1**\n");
-		return -1;
-	}
-	if (start > 0) {
-		fseek(fHandle, start, SEEK_SET);
-	}
-	int size = fread(dest, 1, maxSize, fHandle);
-	fclose(fHandle);
-	return size;
-}
-
 void handy_nds_render_callback(UBYTE *ram, ULONG *palette, bool flip) {
 	UWORD *bitmap_tmp = currentDest;
 	for (int loop=0;loop<LYNX_SCREEN_WIDTH/2;loop++) {

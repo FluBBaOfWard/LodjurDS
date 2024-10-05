@@ -953,13 +953,13 @@ void CMikie::Poke(ULONG addr,UBYTE data)
 
 		case (INTRST & 0xff):
 			mTimerStatusFlags &= ~data;
-			gSystemIRQ = mTimerStatusFlags;
+			gSystemIRQ = (mTimerStatusFlags & mTimerInterruptMask);
 			gNextTimerEvent = gSystemCycleCount;
 			break;
 
 		case (INTSET & 0xff):
 			mTimerStatusFlags |= data;
-			gSystemIRQ = mTimerStatusFlags;
+			gSystemIRQ = (mTimerStatusFlags & mTimerInterruptMask);
 			gNextTimerEvent = gSystemCycleCount;
 			break;
 

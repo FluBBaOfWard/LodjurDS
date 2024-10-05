@@ -141,25 +141,12 @@ class CSystem : public CSystemBase
 	public:
 		void	Reset(void);
 
-		//
-		// **********************************
-		// **** WARNING WARNIING WARNING ****
-		// **********************************
-		//
-		// This function IS recursively called when sprite painting
-		// occurs. Call points are:
-		//
-		//		CLynxWindow::Update()
-		//		CMikie::Poke(CPUSLEEP)
-		//
-
 		inline void Update(void)
 		{
 			// 
 			// Only update if there is a predicted timer event
 			//
-			if (gSystemCycleCount >= gNextTimerEvent)
-			{
+			if (gSystemCycleCount >= gNextTimerEvent) {
 				mMikie->Update();
 			}
 			//
@@ -176,6 +163,13 @@ class CSystem : public CSystemBase
 			// Check single step mode
 			if (gSingleStepMode) gBreakpointHit = TRUE;
 #endif
+
+			//
+			// If the CPU is asleep then skip to the next timer event
+			//
+			if (gSystemCPUSleep) {
+				gSystemCycleCount = gNextTimerEvent;
+			}
 		}
 
 		//
