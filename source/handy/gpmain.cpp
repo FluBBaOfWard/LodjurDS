@@ -9,8 +9,6 @@
 #include "../io.h"
 
 extern "C" {
-void pokeCPU(ULONG addr, UBYTE data);
-UBYTE peekCPU(ULONG addr);
 UWORD peekCPUW(ULONG addr);
 void susiePoke(ULONG addr, UBYTE data);
 void mikiePoke(ULONG addr, UBYTE data);
@@ -20,13 +18,6 @@ void GpInit(const unsigned char *gamerom, int size);
 void GpDelete(void);
 void GpMain(void *args);
 }
-
-const char *romfile = "LYNXBOOT.IMG";
-//const char *gamefile = "apb - all points bulletin (1990).lnx";
-//const char *gamefile = "blue lightning (1989).lnx";
-//const char *gamefile = "electrocop (1989).lnx";
-//const char *gamefile = "lynx diagnostic cart v0.02 (1989)[crc-2].lnx";
-//const char *gamefile = "toki (1990).lnx";
 
 ULONG		mColourMap[4096];
 unsigned short vram[2][160*102];
@@ -82,90 +73,6 @@ void handy_nds_display_callback(void)
 	gScreenUpdateRequired = TRUE;
 }
 
-void pokeCPU(ULONG addr, UBYTE data) {
-	if (addr < 0xFC00) {
-		ramPoke(addr,data);
-		return;
-	}
-	switch (addr & 0x0300) {
-		case 0x0000:
-			if (!(memSelector & 0x01)) {
-				susiePoke(addr,data);
-				return;
-			}
-			break;
-		case 0x0100:
-			if (!(memSelector & 0x02)) {
-				mikiePoke(addr,data);
-				return;
-			}
-			break;
-		case 0x0300:
-			if (addr >= 0xFFF8) {
-				if (addr == 0xFFF8) {
-					ramPoke(addr,data);
-					return;
-				}
-				if (addr == 0xFFF9) {
-					memSelector = data & 0xF;
-					return;
-				}
-				if (!(memSelector & 0x08)) {
-					rom_W(addr,data);
-					return;
-				} else {
-					ramPoke(addr,data);
-					return;
-				}
-			}
-		case 0x0200:
-			if (!(memSelector & 0x04)) {
-				rom_W(addr,data);
-				return;
-			}
-			break;
-	}
-	ramPoke(addr,data);
-}
-
-UBYTE peekCPU(ULONG addr) {
-	if (addr < 0xFC00) {
-		return ramPeek(addr);
-	}
-	switch (addr & 0x0300) {
-		case 0x0000:
-			if (!(memSelector & 0x01)) {
-				return susiePeek(addr);
-			}
-			break;
-		case 0x0100:
-			if (!(memSelector & 0x02)) {
-				return mikiePeek(addr);
-			}
-			break;
-		case 0x0300:
-			if (addr >= 0xFFF8) {
-				if (addr == 0xFFF8) {
-					return ramPeek(addr);
-				}
-				if (addr == 0xFFF9) {
-					return memSelector;
-				}
-				if (!(memSelector & 0x08)) {
-					return romPeek(addr);
-				} else {
-					return ramPeek(addr);
-				}
-			}
-		case 0x0200:
-			if (!(memSelector & 0x04)) {
-				return romPeek(addr);
-			}
-			break;
-	}
-	return ramPeek(addr);
-}
-
 UWORD peekCPUW(ULONG addr) {
 	return ((peekCPU(addr))+(peekCPU(addr+1)<<8));
 }
@@ -184,7 +91,7 @@ UBYTE mikiePeek(ULONG addr) {
 }
 
 void GpInit(const unsigned char *gamerom, int size) {
-	newsystem = new CSystem(gamerom, size, HANDY_FILETYPE_LNX, romfile);
+	newsystem = new CSystem(gamerom, size, HANDY_FILETYPE_LNX, NULL);
 	newsystem->DisplaySetAttributes(handy_nds_display_callback, handy_nds_render_callback);
 	currentDest = ((unsigned short *)0x06000000);
 	for (int i=0;i<4096;i++) {
