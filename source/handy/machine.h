@@ -72,23 +72,4 @@ typedef unsigned long ULONG;
 
 #include "lynxbase.h"
 
-class CLynxMemObj
-{
-	// Function members
-
-	public:
-		virtual ~CLynxMemObj() {};
-
-	public:
-	virtual void	Reset(void) {};
-		virtual void	Poke(ULONG addr, UBYTE data) = 0;
-		virtual UBYTE	Peek(ULONG addr) = 0;
-		virtual void	PokeW(ULONG addr, UWORD data) {};	// ONLY mSystem overloads these, they are never used by the clients
-		virtual UWORD	PeekW(ULONG addr) {return 0;};
-		virtual ULONG	ReadCycle(void) {return 0;};
-		virtual ULONG	WriteCycle(void) {return 0;};
-		virtual void	BankSelect(EMMODE newbank){};
-		virtual ULONG	ObjectSize(void) {return 1;};
-};
-
 #endif

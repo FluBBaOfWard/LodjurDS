@@ -2,6 +2,8 @@
 
 #include "ARM6502/M6502mac.h"
 
+	.global memSelector
+
 	.global empty_R
 	.global empty_W
 	.global empty_IO_R
@@ -47,6 +49,9 @@ rom_W:						;@ Write ROM address (error)
 	mov r0,#0xB0
 	bx lr
 ;@----------------------------------------------------------------------------
+memSelector:
+	.byte 0
+	.align 2
 
 #ifdef NDS
 	.section .itcm						;@ For the NDS ARM9

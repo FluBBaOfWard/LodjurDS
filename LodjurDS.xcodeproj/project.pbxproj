@@ -33,8 +33,6 @@
 		9C41C6CA2CA32F7A0026DE6C /* gpmain.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = gpmain.cpp; sourceTree = "<group>"; };
 		9C41C6CB2CA32F7A0026DE6C /* lynxdef.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = lynxdef.h; sourceTree = "<group>"; };
 		9C41C6CC2CA32F7A0026DE6C /* machine.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = machine.h; sourceTree = "<group>"; };
-		9C41C6D02CA32F7A0026DE6C /* memmap.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = memmap.h; sourceTree = "<group>"; };
-		9C41C6D12CA32F7A0026DE6C /* memmap.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = memmap.cpp; sourceTree = "<group>"; };
 		9C41C6D22CA32F7A0026DE6C /* mikie.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = mikie.h; sourceTree = "<group>"; };
 		9C41C6D32CA32F7A0026DE6C /* mikie.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = mikie.cpp; sourceTree = "<group>"; };
 		9C41C6D42CA32F7A0026DE6C /* ram.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ram.h; sourceTree = "<group>"; };
@@ -190,8 +188,6 @@
 				9C41C6C92CA32F7A0026DE6C /* error.h */,
 				9C41C6CA2CA32F7A0026DE6C /* gpmain.cpp */,
 				9C41C6CB2CA32F7A0026DE6C /* lynxdef.h */,
-				9C41C6D02CA32F7A0026DE6C /* memmap.h */,
-				9C41C6D12CA32F7A0026DE6C /* memmap.cpp */,
 				9C41C6CC2CA32F7A0026DE6C /* machine.h */,
 				9C41C6DF2CA84DBF0026DE6C /* lynxbase.h */,
 				9C41C6C42CA32F7A0026DE6C /* lynxcart.h */,

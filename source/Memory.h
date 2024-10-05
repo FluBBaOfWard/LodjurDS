@@ -7,6 +7,8 @@ extern "C" {
 
 #include <nds.h>
 
+extern u8 memSelector;
+
 u8 cpuReadMem20(u32 addr);
 u16 cpuReadMem20W(u32 addr);
 u16 dmaReadMem20W(u32 addr);

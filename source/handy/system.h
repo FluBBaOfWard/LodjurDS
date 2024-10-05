@@ -115,7 +115,6 @@ class CSystem;
 #include "lynxbase.h"
 #include "ram.h"
 #include "rom.h"
-#include "memmap.h"
 #include "lynxcart.h"
 #include "susie.h"
 #include "mikie.h"
@@ -217,12 +216,6 @@ class CSystem : public CSystemBase
 		inline void  CartAddressStrobe(BOOL strobe) {mCart->CartAddressStrobe(strobe);};
 		inline void  CartAddressData(BOOL data) {mCart->CartAddressData(data);};
 
-// Low level CPU access
-
-		void	SetRegs(C6502_REGS &regs) {mCpu->SetRegs(regs);};
-		void	GetRegs(C6502_REGS &regs) {mCpu->GetRegs(regs);};
-//		void	SetCPUBreakpoint(ULONG breakpoint) {mCpu->SetBreakpoint(breakpoint);};
-
 // Mikey system interfacing
 
 		void	DisplaySetAttributes(void (*DisplayCallback)(void),void (*RenderCallback)(UBYTE *ram, ULONG *palette, bool flip)) { mMikie->DisplaySetAttributes(DisplayCallback, RenderCallback); };
@@ -244,10 +237,9 @@ class CSystem : public CSystemBase
 
 	public:
 		ULONG			mCycleCountBreakpoint;
-//		CLynxMemObj		*mMemoryHandlers[8][SYSTEM_SIZE];
+//		CLynxBase		*mMemoryHandlers[8][SYSTEM_SIZE];
 		CRom			*mRom;
 		CCart			*mCart;
-		CMemMap			*mMemMap;
 		CRam			*mRam;
 		C65C02			*mCpu;
 		CMikie			*mMikie;

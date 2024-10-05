@@ -34,12 +34,7 @@
 
 void CMikie::BlowOut(void)
 {
-//	CString addr;
-	C6502_REGS regs;
-	mSystem.GetRegs(regs);
-//	addr.Format("CMikie::Poke() - Read/Write to counter clocks at PC=$%04x.",regs.PC);
-//	::MessageBox(NULL,addr,"Runtime Error - System Halted", MB_OK | MB_ICONERROR);
-	printf("CMikie::Poke() - Read/Write to counter clocks at PC=$%04x.\n",regs.PC);
+	TRACE_MIKIE1("CMikie::Poke() - Read/Write to counter clocks at PC=$%04x.\n",mSystem.mCpu->GetPC());
 	gSystemHalt = TRUE;
 }
 
@@ -970,12 +965,7 @@ void CMikie::Poke(ULONG addr,UBYTE data)
 
 		case (SYSCTL1 & 0xff):
 			if (!(data & 0x02)) {
-//				CString addr;
-				C6502_REGS regs;
-				mSystem.GetRegs(regs);
-//				addr.Format("CMikie::Poke(SYSCTL1) - Lynx power down occured at PC=$%04x.",regs.PC);
-//				::MessageBox(NULL,addr,"Runtime Alert - System Halted", MB_OK | MB_ICONEXCLAMATION);
-				printf("CMikie::Poke(SYSCTL1) - Lynx power down occured at PC=$%04x.\n",regs.PC);
+				TRACE_MIKIE1("CMikie::Poke(SYSCTL1) - Lynx power down occured at PC=$%04x.\n",mSystem.mCpu->GetPC());
 				mSystem.Reset();
 				gSystemHalt=TRUE;
 			}

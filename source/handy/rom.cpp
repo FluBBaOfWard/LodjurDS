@@ -23,7 +23,7 @@
 #define ROM_CPP
 
 #include <stdlib.h>
-#include "machine.h"
+#include "system.h"
 #include "rom.h"
 
 CRom::CRom(const UBYTE *romData)

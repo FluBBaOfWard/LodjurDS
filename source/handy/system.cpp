@@ -31,6 +31,7 @@
 
 #include <stdlib.h>
 #include "system.h"
+#include "../memory.h"
 
 extern UBYTE *romSpacePtr;
 
@@ -39,7 +40,6 @@ int loadFile(const char *fname, void *dest, int start, int size);
 CSystem::CSystem(const UBYTE *gamefile, int size, ULONG filetype, const char *romfile)
 	:mRom(NULL),
 	mCart(NULL),
-	mMemMap(NULL),
 	mRam(NULL),
 	mCpu(NULL),
 	mMikie(NULL),
@@ -116,9 +116,7 @@ CSystem::CSystem(const UBYTE *gamefile, int size, ULONG filetype, const char *ro
 	mMikie = new CMikie(*this);
 	mSusie = new CSusie(*this);
 
-	mMemMap = new CMemMap(*this);
-
-// Now the handlers are set we can instantiate the CPU as is will use handlers on reset
+// Now the handlers are set we can instantiate the CPU as it will use handlers on reset
 
 	mCpu = new C65C02(*this);
 
@@ -135,13 +133,13 @@ inline void CSystem::Poke_CPU(ULONG addr, UBYTE data) {
 	}
 	switch (addr & 0x0300) {
 		case 0x0000:
-			if (!(mMemMap->mSelector&0x01)) {
+			if (!(memSelector & 0x01)) {
 				mSusie->Poke(addr,data);
 				return;
 			}
 			break;
 		case 0x0100:
-			if (!(mMemMap->mSelector&0x02)) {
+			if (!(memSelector & 0x02)) {
 				mMikie->Poke(addr,data);
 				return;
 			}
@@ -153,10 +151,10 @@ inline void CSystem::Poke_CPU(ULONG addr, UBYTE data) {
 					return;
 				}
 				if (addr == 0xFFF9) {
-					mMemMap->Poke(addr,data);
+					memSelector = data & 0xF;
 					return;
 				}
-				if (!(mMemMap->mSelector&0x08)) {
+				if (!(memSelector & 0x08)) {
 					mRom->Poke(addr,data);
 					return;
 				} else {
@@ -165,7 +163,7 @@ inline void CSystem::Poke_CPU(ULONG addr, UBYTE data) {
 				}
 			}
 		case 0x0200:
-			if (!(mMemMap->mSelector&0x04)) {
+			if (!(memSelector & 0x04)) {
 				mRom->Poke(addr,data);
 				return;
 			}
@@ -180,12 +178,12 @@ inline UBYTE CSystem::Peek_CPU(ULONG addr) {
 	}
 	switch (addr & 0x0300) {
 		case 0x0000:
-			if (!(mMemMap->mSelector&0x01)) {
+			if (!(memSelector & 0x01)) {
 				return mSusie->Peek(addr);
 			}
 			break;
 		case 0x0100:
-			if (!(mMemMap->mSelector&0x02)) {
+			if (!(memSelector & 0x02)) {
 				return mMikie->Peek(addr);
 			}
 			break;
@@ -195,16 +193,16 @@ inline UBYTE CSystem::Peek_CPU(ULONG addr) {
 					return mRam->Peek(addr);
 				}
 				if (addr == 0xFFF9) {
-					return mMemMap->Peek(addr);
+					return memSelector;
 				}
-				if (!(mMemMap->mSelector&0x08)) {
+				if (!(memSelector & 0x08)) {
 					return mRom->Peek(addr);
 				} else {
 					return mRam->Peek(addr);
 				}
 			}
 		case 0x0200:
-			if (!(mMemMap->mSelector&0x04)) {
+			if (!(memSelector & 0x04)) {
 				return mRom->Peek(addr);
 			}
 			break;
@@ -264,7 +262,7 @@ void CSystem::Reset(void)
 	gSystemHalt = TRUE;
 #endif
 
-	mMemMap->Reset();
+	memSelector = 0;
 	mCart->Reset();
 	mRom->Reset();
 	mRam->Reset();
@@ -272,14 +270,4 @@ void CSystem::Reset(void)
 	mSusie->Reset();
 	mCpu->Reset();
 
-	// Homebrew hashup
-
-	if (mFileType == HANDY_FILETYPE_HOMEBREW) {
-		mMikie->PresetForHomebrew();
-
-		C6502_REGS regs;
-		mCpu->GetRegs(regs);
-		regs.PC = (UWORD)gCPUBootAddress;
-		mCpu->SetRegs(regs);
-	}
 }
