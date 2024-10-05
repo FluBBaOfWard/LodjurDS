@@ -131,16 +131,8 @@ memoryMapInit:
 	str r1,[r0,#m6502ReadTbl+0*4]
 	ldr r1,=lnxReadIO
 	str r1,[r0,#m6502ReadTbl+1*4]
-	ldr r1,=vram6502R
-	str r1,[r0,#m6502ReadTbl+2*4]
 	ldr r1,=empty_R
 	str r1,[r0,#m6502ReadTbl+3*4]
-	ldr r1,=mem6502R4
-	str r1,[r0,#m6502ReadTbl+4*4]
-	ldr r1,=mem6502R5
-	str r1,[r0,#m6502ReadTbl+5*4]
-	ldr r1,=mem6502R6
-	str r1,[r0,#m6502ReadTbl+6*4]
 	ldr r1,=mem6502R7
 	str r1,[r0,#m6502ReadTbl+7*4]
 
@@ -148,8 +140,6 @@ memoryMapInit:
 	str r1,[r0,#m6502WriteTbl+0*4]
 	ldr r1,=lnxWriteIO
 	str r1,[r0,#m6502WriteTbl+1*4]
-	ldr r1,=vram6502W
-	str r1,[r0,#m6502WriteTbl+2*4]
 	ldr r1,=empty_W
 	str r1,[r0,#m6502WriteTbl+3*4]
 	ldr r1,=rom_W

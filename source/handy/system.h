@@ -113,17 +113,24 @@ class CSystem;
 
 #include "sysbase.h"
 #include "lynxbase.h"
-#include "ram.h"
 #include "rom.h"
 #include "lynxcart.h"
 #include "susie.h"
 #include "mikie.h"
 #include "c65c02.h"
+#include "../memory.h"
+
+extern "C" {
+	extern UBYTE lynxRAM[0x10000];
+}
 
 #define TOP_START	0xfc00
 #define TOP_MASK	0x03ff
 #define TOP_SIZE	0x400
 #define SYSTEM_SIZE	65536
+
+#define RAM_SIZE				65536
+#define DEFAULT_RAM_CONTENTS	0xff
 
 class CSystem : public CSystemBase
 {
@@ -186,16 +193,7 @@ class CSystem : public CSystemBase
 		//
 		inline void  Poke_CPU(ULONG addr, UBYTE data);
 		inline UBYTE Peek_CPU(ULONG addr);
-		inline void  PokeW_CPU(ULONG addr,UWORD data);
 		inline UWORD PeekW_CPU(ULONG addr);
-
-		//
-		// RAM
-		//
-		inline void  Poke_RAM(ULONG addr, UBYTE data) { mRam->Poke(addr,data);};
-		inline UBYTE Peek_RAM(ULONG addr) { return mRam->Peek(addr);};
-		inline void  PokeW_RAM(ULONG addr,UWORD data) { mRam->Poke(addr,data&0xff);addr++;mRam->Poke(addr,data>>8);};
-		inline UWORD PeekW_RAM(ULONG addr) {return ((mRam->Peek(addr))+(mRam->Peek(addr+1)<<8));};
 
 // High level cart access for debug etc
 
@@ -233,14 +231,13 @@ class CSystem : public CSystemBase
 		void	SetButtonData(ULONG data) {mSusie->SetButtonData(data);};
 		ULONG	GetButtonData(void) {return mSusie->GetButtonData();};
 		void	SetCycleBreakpoint(ULONG breakpoint) {mCycleCountBreakpoint = breakpoint;};
-		UBYTE	*GetRamPointer(void) {return mRam->GetRamPointer();};
+		UBYTE	*GetRamPointer(void) {return lynxRAM;};
 
 	public:
 		ULONG			mCycleCountBreakpoint;
 //		CLynxBase		*mMemoryHandlers[8][SYSTEM_SIZE];
 		CRom			*mRom;
 		CCart			*mCart;
-		CRam			*mRam;
 		C65C02			*mCpu;
 		CMikie			*mMikie;
 		CSusie			*mSusie;

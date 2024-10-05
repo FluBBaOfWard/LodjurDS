@@ -4,6 +4,8 @@
 
 	.global memSelector
 
+	.global ramPoke
+	.global ramPeek
 	.global empty_R
 	.global empty_W
 	.global empty_IO_R
@@ -11,11 +13,7 @@
 	.global rom_W
 	.global ram6502W
 	.global ram6502R
-	.global vram6502R
-	.global vram6502W
-	.global mem6502R4
-	.global mem6502R5
-	.global mem6502R6
+	.global mem6502W7
 	.global mem6502R7
 
 
@@ -54,53 +52,37 @@ memSelector:
 	.align 2
 
 #ifdef NDS
-	.section .itcm						;@ For the NDS ARM9
+//	.section .itcm						;@ For the NDS ARM9
 #elif GBA
 	.section .iwram, "ax", %progbits	;@ For the GBA
 #endif
 	.align 2
 
+ramPoke:
+	.type ramPoke STT_FUNC
+	ldr r2,=lynxRAM
+	strb r1,[r2,r0]
+	bx lr
+ramPeek:
+	.type ramPeek STT_FUNC
+	ldr r1,=lynxRAM
+	ldrb r0,[r1,r0]
+	bx lr
 ;@----------------------------------------------------------------------------
-ram6502W:					;@ Ram write ($0000-$1FFF)
+ram6502W:					;@ Ram write ($0000-$FFFF)
 ;@----------------------------------------------------------------------------
 	strb r0,[m6502zpage,addy]
 	bx lr
 ;@----------------------------------------------------------------------------
-vram6502W:					;@ VRam write ($4000-$5FFF)
-;@----------------------------------------------------------------------------
-	add r1,m6502zpage,#0x2000-0x4000
-	strb r0,[r1,addy]
-//	add r1,m6502zpage,#0x4000
-//	strb m6502a,[r1,addy,lsr#11]
-	bx lr
-;@----------------------------------------------------------------------------
-ram6502R:					;@ Ram read ($0000-$1FFF)
+ram6502R:					;@ Ram read ($0000-$FFFF)
 ;@----------------------------------------------------------------------------
 	ldrb r0,[m6502zpage,addy]
 	bx lr
 ;@----------------------------------------------------------------------------
-vram6502R:					;@ VRam read ($4000-$5FFF)
+mem6502W7:					;@ Mem read ($E000-$FFFF)
 ;@----------------------------------------------------------------------------
-	add r1,m6502zpage,#0x2000-0x4000
-	ldrb r0,[r1,addy]
-	bx lr
-;@----------------------------------------------------------------------------
-mem6502R4:					;@ Mem read ($8000-$9FFF)
-;@----------------------------------------------------------------------------
-	ldr r1,[m6502ptr,#m6502MemTbl+16]
-	ldrb r0,[r1,addy]
-	bx lr
-;@----------------------------------------------------------------------------
-mem6502R5:					;@ Mem read ($A000-$BFFF)
-;@----------------------------------------------------------------------------
-	ldr r1,[m6502ptr,#m6502MemTbl+20]
-	ldrb r0,[r1,addy]
-	bx lr
-;@----------------------------------------------------------------------------
-mem6502R6:					;@ Mem read ($C000-$DFFF)
-;@----------------------------------------------------------------------------
-	ldr r1,[m6502ptr,#m6502MemTbl+24]
-	ldrb r0,[r1,addy]
+	ldr r1,[m6502ptr,#m6502MemTbl+28]
+	strb r0,[r1,addy]
 	bx lr
 ;@----------------------------------------------------------------------------
 mem6502R7:					;@ Mem read ($E000-$FFFF)

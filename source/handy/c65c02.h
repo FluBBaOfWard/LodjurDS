@@ -80,10 +80,6 @@
 // ACCESS MACROS
 //
 
-//#define CPU_PEEK(m)				(mSystem.Peek_CPU(m))
-//#define CPU_PEEKW(m)				(mSystem.PeekW_CPU(m))
-//#define CPU_POKE(m1,m2)			(mSystem.Poke_CPU(m1,m2))
-
 #define CPU_PEEK(m)				(((m<0xfc00)?mRamPointer[m]:mSystem.Peek_CPU(m)))
 #define CPU_PEEKW(m)			(((m<0xfc00)?(mRamPointer[m]+(mRamPointer[m+1]<<8)):mSystem.PeekW_CPU(m)))
 #define CPU_POKE(m1,m2)			{if(m1<0xfc00) mRamPointer[m1]=m2; else mSystem.Poke_CPU(m1,m2);}

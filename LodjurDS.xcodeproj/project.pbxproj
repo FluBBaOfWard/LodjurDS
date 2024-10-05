@@ -29,14 +29,11 @@
 		9C41C6C32CA32F7A0026DE6C /* c6502mak.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = c6502mak.h; sourceTree = "<group>"; };
 		9C41C6C42CA32F7A0026DE6C /* lynxcart.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = lynxcart.h; sourceTree = "<group>"; };
 		9C41C6C52CA32F7A0026DE6C /* lynxcart.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = lynxcart.cpp; sourceTree = "<group>"; };
-		9C41C6C92CA32F7A0026DE6C /* error.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = error.h; sourceTree = "<group>"; };
 		9C41C6CA2CA32F7A0026DE6C /* gpmain.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = gpmain.cpp; sourceTree = "<group>"; };
 		9C41C6CB2CA32F7A0026DE6C /* lynxdef.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = lynxdef.h; sourceTree = "<group>"; };
 		9C41C6CC2CA32F7A0026DE6C /* machine.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = machine.h; sourceTree = "<group>"; };
 		9C41C6D22CA32F7A0026DE6C /* mikie.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = mikie.h; sourceTree = "<group>"; };
 		9C41C6D32CA32F7A0026DE6C /* mikie.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = mikie.cpp; sourceTree = "<group>"; };
-		9C41C6D42CA32F7A0026DE6C /* ram.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ram.h; sourceTree = "<group>"; };
-		9C41C6D52CA32F7A0026DE6C /* ram.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = ram.cpp; sourceTree = "<group>"; };
 		9C41C6D62CA32F7A0026DE6C /* readme.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = readme.txt; sourceTree = "<group>"; };
 		9C41C6D72CA32F7A0026DE6C /* rom.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = rom.h; sourceTree = "<group>"; };
 		9C41C6D82CA32F7A0026DE6C /* rom.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = rom.cpp; sourceTree = "<group>"; };
@@ -185,7 +182,6 @@
 				9C41C6D62CA32F7A0026DE6C /* readme.txt */,
 				9C41C6C22CA32F7A0026DE6C /* c65c02.h */,
 				9C41C6C32CA32F7A0026DE6C /* c6502mak.h */,
-				9C41C6C92CA32F7A0026DE6C /* error.h */,
 				9C41C6CA2CA32F7A0026DE6C /* gpmain.cpp */,
 				9C41C6CB2CA32F7A0026DE6C /* lynxdef.h */,
 				9C41C6CC2CA32F7A0026DE6C /* machine.h */,
@@ -194,8 +190,6 @@
 				9C41C6C52CA32F7A0026DE6C /* lynxcart.cpp */,
 				9C41C6D22CA32F7A0026DE6C /* mikie.h */,
 				9C41C6D32CA32F7A0026DE6C /* mikie.cpp */,
-				9C41C6D42CA32F7A0026DE6C /* ram.h */,
-				9C41C6D52CA32F7A0026DE6C /* ram.cpp */,
 				9C41C6D72CA32F7A0026DE6C /* rom.h */,
 				9C41C6D82CA32F7A0026DE6C /* rom.cpp */,
 				9C41C6D92CA32F7A0026DE6C /* susie.h */,

@@ -40,7 +40,6 @@ int loadFile(const char *fname, void *dest, int start, int size);
 CSystem::CSystem(const UBYTE *gamefile, int size, ULONG filetype, const char *romfile)
 	:mRom(NULL),
 	mCart(NULL),
-	mRam(NULL),
 	mCpu(NULL),
 	mMikie(NULL),
 	mSusie(NULL)
@@ -51,38 +50,13 @@ CSystem::CSystem(const UBYTE *gamefile, int size, ULONG filetype, const char *ro
 
 	// Create the system objects that we'll use
 
-	// Attempt to load the cartridge & catch errors
+	// Attempt to load the cartridge
 //	try
 //	{
 		UBYTE romData[ROM_SIZE];
 		loadFile(romfile, romData, -1, ROM_SIZE);
 		mRom = new CRom(romData);
 //	}
-/*	catch(CFileException *filerr)
-	{
-		CLynxException lynxerr;
-
-		if(filerr->m_cause==CFileException::fileNotFound)
-		{
-			lynxerr.Message() << "The Lynx Boot ROM image couldn't be located!";
-			lynxerr.Description()
-				<< "The lynx emulator will not run without the Boot ROM image." << endl
-				<< "\"" << romfile << "\" was not found in the lynx emulator " << endl
-				<< "directory (see the LynxEmu User Guide for more information).";
-		}
-		else
-		{
-			lynxerr.Message() << "The Lynx Boot ROM image couldn't be loaded!";
-			lynxerr.Description()
-				<< "The lynx emulator will not run without the Boot ROM image." << endl
-				<< "It appears that your BOOT image may be corrupted or there is" << endl
-				<< "some other error.(see the LynxEmu User Guide for more information)";
-		}
-		filerr->Delete();
-		throw(lynxerr);
-	}*/
-
-	// An exception from this will be caught by the level above
 
 	if (mFileType == HANDY_FILETYPE_LNX) {
 //		int size = loadFile(gamefile, romSpacePtr, -1, 0x80000);
@@ -97,19 +71,13 @@ CSystem::CSystem(const UBYTE *gamefile, int size, ULONG filetype, const char *ro
 			strcat(cartgo,dir);
 			strcat(cartgo,"howard.o");
 			int size = loadFile(cartgo, romSpacePtr, -1, 0x10000);
-			mRam = new CRam(romSpacePtr, size);
-		}
-		else {
-			mRam = new CRam(NULL, 0);
 		}
 	}
 	else if (mFileType == HANDY_FILETYPE_HOMEBREW) {
 		mCart = new CCart(NULL, 0);
-		mRam = new CRam(romSpacePtr, 0);
 	}
 	else {
 		mCart = new CCart(NULL, 0);
-		mRam = new CRam(NULL, 0);
 	}
 
 	// These can generate exceptions
@@ -128,7 +96,7 @@ CSystem::CSystem(const UBYTE *gamefile, int size, ULONG filetype, const char *ro
 
 inline void CSystem::Poke_CPU(ULONG addr, UBYTE data) {
 	if ((addr & 0xFC00) != 0xFC00) {
-		mRam->Poke(addr,data);
+		ramPoke(addr,data);
 		return;
 	}
 	switch (addr & 0x0300) {
@@ -147,7 +115,7 @@ inline void CSystem::Poke_CPU(ULONG addr, UBYTE data) {
 		case 0x0300:
 			if (addr >= 0xFFF8) {
 				if (addr == 0xFFF8) {
-					mRam->Poke(addr,data);
+					ramPoke(addr,data);
 					return;
 				}
 				if (addr == 0xFFF9) {
@@ -158,7 +126,7 @@ inline void CSystem::Poke_CPU(ULONG addr, UBYTE data) {
 					mRom->Poke(addr,data);
 					return;
 				} else {
-					mRam->Poke(addr,data);
+					ramPoke(addr,data);
 					return;
 				}
 			}
@@ -169,12 +137,12 @@ inline void CSystem::Poke_CPU(ULONG addr, UBYTE data) {
 			}
 			break;
 	}
-	mRam->Poke(addr,data);
+	ramPoke(addr,data);
 };
 
 inline UBYTE CSystem::Peek_CPU(ULONG addr) {
 	if ((addr & 0xFC00) != 0xFC00) {
-		return mRam->Peek(addr);
+		return ramPeek(addr);
 	}
 	switch (addr & 0x0300) {
 		case 0x0000:
@@ -190,7 +158,7 @@ inline UBYTE CSystem::Peek_CPU(ULONG addr) {
 		case 0x0300:
 			if (addr >= 0xFFF8) {
 				if (addr == 0xFFF8) {
-					return mRam->Peek(addr);
+					return ramPeek(addr);
 				}
 				if (addr == 0xFFF9) {
 					return memSelector;
@@ -198,7 +166,7 @@ inline UBYTE CSystem::Peek_CPU(ULONG addr) {
 				if (!(memSelector & 0x08)) {
 					return mRom->Peek(addr);
 				} else {
-					return mRam->Peek(addr);
+					return ramPeek(addr);
 				}
 			}
 		case 0x0200:
@@ -207,12 +175,7 @@ inline UBYTE CSystem::Peek_CPU(ULONG addr) {
 			}
 			break;
 	}
-	return mRam->Peek(addr);
-};
-
-inline void  CSystem::PokeW_CPU(ULONG addr,UWORD data) {
-	Poke_CPU(addr, data & 0xff);
-	Poke_CPU(addr+1, data>>8);
+	return ramPeek(addr);
 };
 
 inline UWORD CSystem::PeekW_CPU(ULONG addr) {
@@ -225,7 +188,6 @@ CSystem::~CSystem()
 
 	if (mCart != NULL) delete mCart;
 	if (mRom != NULL) delete mRom;
-	if (mRam != NULL) delete mRam;
 	if (mCpu != NULL) delete mCpu;
 	if (mMikie != NULL) delete mMikie;
 	if (mSusie != NULL) delete mSusie;
@@ -258,6 +220,8 @@ void CSystem::Reset(void)
 	memset(gAudioBuffer2, 128, HANDY_AUDIO_BUFFER_SIZE);
 	memset(gAudioBuffer3, 128, HANDY_AUDIO_BUFFER_SIZE);
 
+	memset(lynxRAM, DEFAULT_RAM_CONTENTS, RAM_SIZE);
+
 #ifdef _LYNXDBG
 	gSystemHalt = TRUE;
 #endif
@@ -265,7 +229,6 @@ void CSystem::Reset(void)
 	memSelector = 0;
 	mCart->Reset();
 	mRom->Reset();
-	mRam->Reset();
 	mMikie->Reset();
 	mSusie->Reset();
 	mCpu->Reset();
