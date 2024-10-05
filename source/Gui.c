@@ -63,6 +63,7 @@ const MItem displayItems[] = {
 };
 const MItem machineItems[] = {
 	{"Machine:", machineSet, getMachineText},
+	{"Select Bios", selectBios},
 };
 const MItem setItems[] = {
 	{"Speed:", speedSet, getSpeedText},

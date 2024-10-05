@@ -72,7 +72,7 @@ int main(int argc, char **argv) {
 	loadCart();
 	if (initFileHelper()) {
 		loadSettings();
-		loadBnWBIOS();
+		loadBios();
 		if (argc > 1) {
 			loadGame(argv[1]);
 			setMuteSoundGUI();

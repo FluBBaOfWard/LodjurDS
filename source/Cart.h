@@ -17,6 +17,7 @@ extern u8 gGameID;
 
 extern u8 lynxRAM[0x10000];
 extern u8 svVRAM[0x2000];
+extern u8 biosSpace[0x200];
 extern u8 *romSpacePtr;
 
 void machineInit(void);

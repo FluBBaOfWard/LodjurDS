@@ -23,8 +23,8 @@ void loadState(void);
 void saveState(void);
 void ejectCart(void);
 void selectGame(void);
-void selectBnWBios(void);
-int loadBnWBIOS(void);
+void selectBios(void);
+int loadBios(void);
 
 #ifdef __cplusplus
 } // extern "C"

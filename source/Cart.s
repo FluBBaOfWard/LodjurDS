@@ -5,19 +5,10 @@
 #include "ARMSuzy/ARMSuzy.i"
 #include "ARM6502/M6502.i"
 
-	.global machineInit
-	.global loadCart
-	.global romNum
 	.global cartFlags
-	.global romStart
-	.global bankSwitchCart
-	.global reBankSwitchCart
-	.global BankSwitch89AB_W
-	.global clearDirtyTiles
-
 	.global romSpacePtr
-	.global MEMMAPTBL_
-
+	.global biosSpace
+	.global romStart
 	.global lynxRAM
 	.global svVRAM
 	.global DIRTYTILES
@@ -32,6 +23,13 @@
 	.global gLang
 	.global gPaletteBank
 
+	.global machineInit
+	.global loadCart
+	.global bankSwitchCart
+	.global reBankSwitchCart
+	.global BankSwitch89AB_W
+	.global clearDirtyTiles
+
 	.syntax unified
 	.arm
 
@@ -45,9 +43,9 @@ ROM_Space:
 //	.incbin "roms/Double Dragon (1993) (Telegames).lnx"
 //	.incbin "roms/Dracula - The Undead (1991).lnx"
 ROM_SpaceEnd:
-#endif
 LYNX_BIOS_INTERNAL:
 	.incbin "roms/lynxboot.img"
+#endif
 
 	.align 2
 ;@----------------------------------------------------------------------------
@@ -257,6 +255,8 @@ lynxRAM:
 svVRAM:
 	.space 0x2000
 DIRTYTILES:
+	.space 0x200
+biosSpace:
 	.space 0x200
 ;@----------------------------------------------------------------------------
 	.end

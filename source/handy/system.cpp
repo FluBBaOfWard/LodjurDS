@@ -51,12 +51,6 @@ CSystem::CSystem(const UBYTE *gamefile, int size, ULONG filetype, const char *ro
 	// Create the system objects that we'll use
 
 	// Attempt to load the cartridge
-//	try
-//	{
-		UBYTE romData[ROM_SIZE];
-		loadFile(romfile, romData, -1, ROM_SIZE);
-		mRom = new CRom(romData);
-//	}
 
 	if (mFileType == HANDY_FILETYPE_LNX) {
 //		int size = loadFile(gamefile, romSpacePtr, -1, 0x80000);
@@ -95,7 +89,7 @@ CSystem::CSystem(const UBYTE *gamefile, int size, ULONG filetype, const char *ro
 }
 
 inline void CSystem::Poke_CPU(ULONG addr, UBYTE data) {
-	if ((addr & 0xFC00) != 0xFC00) {
+	if (addr < 0xFC00) {
 		ramPoke(addr,data);
 		return;
 	}
@@ -123,7 +117,7 @@ inline void CSystem::Poke_CPU(ULONG addr, UBYTE data) {
 					return;
 				}
 				if (!(memSelector & 0x08)) {
-					mRom->Poke(addr,data);
+					rom_W(addr,data);
 					return;
 				} else {
 					ramPoke(addr,data);
@@ -132,7 +126,7 @@ inline void CSystem::Poke_CPU(ULONG addr, UBYTE data) {
 			}
 		case 0x0200:
 			if (!(memSelector & 0x04)) {
-				mRom->Poke(addr,data);
+				rom_W(addr,data);
 				return;
 			}
 			break;
@@ -141,7 +135,7 @@ inline void CSystem::Poke_CPU(ULONG addr, UBYTE data) {
 };
 
 inline UBYTE CSystem::Peek_CPU(ULONG addr) {
-	if ((addr & 0xFC00) != 0xFC00) {
+	if (addr < 0xFC00) {
 		return ramPeek(addr);
 	}
 	switch (addr & 0x0300) {
@@ -164,14 +158,14 @@ inline UBYTE CSystem::Peek_CPU(ULONG addr) {
 					return memSelector;
 				}
 				if (!(memSelector & 0x08)) {
-					return mRom->Peek(addr);
+					return romPeek(addr);
 				} else {
 					return ramPeek(addr);
 				}
 			}
 		case 0x0200:
 			if (!(memSelector & 0x04)) {
-				return mRom->Peek(addr);
+				return romPeek(addr);
 			}
 			break;
 	}
@@ -187,7 +181,6 @@ CSystem::~CSystem()
 	// Cleanup all our objects
 
 	if (mCart != NULL) delete mCart;
-	if (mRom != NULL) delete mRom;
 	if (mCpu != NULL) delete mCpu;
 	if (mMikie != NULL) delete mMikie;
 	if (mSusie != NULL) delete mSusie;
@@ -228,7 +221,6 @@ void CSystem::Reset(void)
 
 	memSelector = 0;
 	mCart->Reset();
-	mRom->Reset();
 	mMikie->Reset();
 	mSusie->Reset();
 	mCpu->Reset();

@@ -227,14 +227,14 @@ static int loadBIOS(void *dest, const char *fPath, const int maxSize) {
 	return 0;
 }
 
-int loadBnWBIOS(void) {
-	if (loadBIOS(NULL, cfg.monoBiosPath, 0)) {
+int loadBios(void) {
+	if (loadBIOS(biosSpace, cfg.biosPath, 0x200)) {
 		return 1;
 	}
 	return 0;
 }
 
-static bool selectBios(char *dest, const char *fileTypes) {
+static bool selectBIOS(char *dest, const char *fileTypes) {
 	const char *biosName = browseForFileType(fileTypes);
 
 	if (biosName) {
@@ -246,9 +246,9 @@ static bool selectBios(char *dest, const char *fileTypes) {
 	return false;
 }
 
-void selectBnWBios() {
-	if (selectBios(cfg.monoBiosPath, ".sv.bin.zip")) {
-		loadBnWBIOS();
+void selectBios() {
+	if (selectBIOS(cfg.biosPath, ".img.bin.zip")) {
+		loadBios();
 	}
 	cls(0);
 }
