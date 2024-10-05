@@ -34,9 +34,6 @@ class CSystemBase
 
 	public:
 		virtual void	Reset(void) = 0;
-		virtual void	Poke_CPU(ULONG addr,UBYTE data) = 0;
-		virtual UBYTE	Peek_CPU(ULONG addr) = 0;
-		virtual UWORD	PeekW_CPU(ULONG addr) = 0;
 
 		virtual UBYTE	*GetRamPointer(void) = 0;
 };

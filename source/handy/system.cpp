@@ -35,8 +35,6 @@
 
 extern UBYTE *romSpacePtr;
 
-int loadFile(const char *fname, void *dest, int start, int size);
-
 CSystem::CSystem(const UBYTE *gamefile, int size, ULONG filetype, const char *romfile)
 	:mRom(NULL),
 	mCart(NULL),
@@ -54,12 +52,10 @@ CSystem::CSystem(const UBYTE *gamefile, int size, ULONG filetype, const char *ro
 //	try
 //	{
 //		UBYTE romData[ROM_SIZE];
-//		loadFile(romfile, romData, -1, ROM_SIZE);
 		mRom = new CRom();
 //	}
 
 	if (mFileType == HANDY_FILETYPE_LNX) {
-//		int size = loadFile(gamefile, romSpacePtr, -1, 0x80000);
 		mCart = new CCart(romSpacePtr, size);
 		if (mCart->CartHeaderLess()) {
 			char drive[3];
@@ -70,7 +66,6 @@ CSystem::CSystem(const UBYTE *gamefile, int size, ULONG filetype, const char *ro
 			strcpy(cartgo,drive);
 			strcat(cartgo,dir);
 			strcat(cartgo,"howard.o");
-			int size = loadFile(cartgo, romSpacePtr, -1, 0x10000);
 		}
 	}
 	else if (mFileType == HANDY_FILETYPE_HOMEBREW) {
@@ -93,94 +88,6 @@ CSystem::CSystem(const UBYTE *gamefile, int size, ULONG filetype, const char *ro
 
 	Reset();
 }
-
-inline void CSystem::Poke_CPU(ULONG addr, UBYTE data) {
-	if (addr < 0xFC00) {
-		ramPoke(addr,data);
-		return;
-	}
-	switch (addr & 0x0300) {
-		case 0x0000:
-			if (!(memSelector & 0x01)) {
-				mSusie->Poke(addr,data);
-				return;
-			}
-			break;
-		case 0x0100:
-			if (!(memSelector & 0x02)) {
-				mMikie->Poke(addr,data);
-				return;
-			}
-			break;
-		case 0x0300:
-			if (addr >= 0xFFF8) {
-				if (addr == 0xFFF8) {
-					ramPoke(addr,data);
-					return;
-				}
-				if (addr == 0xFFF9) {
-					memSelector = data & 0xF;
-					return;
-				}
-				if (!(memSelector & 0x08)) {
-					rom_W(addr,data);
-					return;
-				} else {
-					ramPoke(addr,data);
-					return;
-				}
-			}
-		case 0x0200:
-			if (!(memSelector & 0x04)) {
-				rom_W(addr,data);
-				return;
-			}
-			break;
-	}
-	ramPoke(addr,data);
-};
-
-inline UBYTE CSystem::Peek_CPU(ULONG addr) {
-	if (addr < 0xFC00) {
-		return ramPeek(addr);
-	}
-	switch (addr & 0x0300) {
-		case 0x0000:
-			if (!(memSelector & 0x01)) {
-				return mSusie->Peek(addr);
-			}
-			break;
-		case 0x0100:
-			if (!(memSelector & 0x02)) {
-				return mMikie->Peek(addr);
-			}
-			break;
-		case 0x0300:
-			if (addr >= 0xFFF8) {
-				if (addr == 0xFFF8) {
-					return ramPeek(addr);
-				}
-				if (addr == 0xFFF9) {
-					return memSelector;
-				}
-				if (!(memSelector & 0x08)) {
-					return romPeek(addr);
-				} else {
-					return ramPeek(addr);
-				}
-			}
-		case 0x0200:
-			if (!(memSelector & 0x04)) {
-				return romPeek(addr);
-			}
-			break;
-	}
-	return ramPeek(addr);
-};
-
-inline UWORD CSystem::PeekW_CPU(ULONG addr) {
-	return ((Peek_CPU(addr))+(Peek_CPU(addr+1)<<8));
-};
 
 CSystem::~CSystem()
 {
@@ -214,7 +121,6 @@ void CSystem::Reset(void)
 
 	gAudioBufferPointer = 0;
 	gAudioLastUpdateCycle = 0;
-//	memset(gAudioBuffer, 128, HANDY_AUDIO_BUFFER_SIZE);
 	memset(gAudioBuffer0, 128, HANDY_AUDIO_BUFFER_SIZE);
 	memset(gAudioBuffer1, 128, HANDY_AUDIO_BUFFER_SIZE);
 	memset(gAudioBuffer2, 128, HANDY_AUDIO_BUFFER_SIZE);
@@ -232,5 +138,4 @@ void CSystem::Reset(void)
 	mMikie->Reset();
 	mSusie->Reset();
 	mCpu->Reset();
-
 }

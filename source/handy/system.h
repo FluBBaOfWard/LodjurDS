@@ -184,16 +184,6 @@ class CSystem : public CSystemBase
 		//
 		// BUT, Mikie video refresh & Susie see the whole system as RAM
 		//
-		// Complete and utter wankers, its taken me 1 week to find the 2 lines
-		// in all the documentation that mention this fact, the mother of all
-		// bugs has been found and FIXED.......
-
-		//
-		// CPU
-		//
-		inline void  Poke_CPU(ULONG addr, UBYTE data);
-		inline UBYTE Peek_CPU(ULONG addr);
-		inline UWORD PeekW_CPU(ULONG addr);
 
 // High level cart access for debug etc
 
