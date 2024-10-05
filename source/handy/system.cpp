@@ -51,6 +51,12 @@ CSystem::CSystem(const UBYTE *gamefile, int size, ULONG filetype, const char *ro
 	// Create the system objects that we'll use
 
 	// Attempt to load the cartridge
+//	try
+//	{
+//		UBYTE romData[ROM_SIZE];
+//		loadFile(romfile, romData, -1, ROM_SIZE);
+		mRom = new CRom();
+//	}
 
 	if (mFileType == HANDY_FILETYPE_LNX) {
 //		int size = loadFile(gamefile, romSpacePtr, -1, 0x80000);
@@ -180,6 +186,7 @@ CSystem::~CSystem()
 {
 	// Cleanup all our objects
 
+	if (mRom != NULL) delete mRom;
 	if (mCart != NULL) delete mCart;
 	if (mCpu != NULL) delete mCpu;
 	if (mMikie != NULL) delete mMikie;
@@ -220,6 +227,7 @@ void CSystem::Reset(void)
 #endif
 
 	memSelector = 0;
+	mRom->Reset();
 	mCart->Reset();
 	mMikie->Reset();
 	mSusie->Reset();

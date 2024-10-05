@@ -44,12 +44,9 @@ class CLynxBase
 
 	public:
 		virtual void	Reset(void) {};
-		virtual bool	ContextLoad(FILE *fp) { return 0; };
-		virtual bool	ContextSave(FILE *fp) { return 0; };
 
 		virtual void	Poke(ULONG addr,UBYTE data)=0;
 		virtual UBYTE	Peek(ULONG addr)=0;
-		virtual void	PokeW(ULONG addr,UWORD data) {};	// ONLY mSystem overloads these, they are never use by the clients
 		virtual UWORD	PeekW(ULONG addr) {return 0;};
 		virtual void	BankSelect(EMMODE newbank){};
 		virtual ULONG	ObjectSize(void) {return 1;};
