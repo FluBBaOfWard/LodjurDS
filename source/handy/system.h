@@ -109,7 +109,6 @@ class CSystem;
 
 #include "sysbase.h"
 #include "lynxbase.h"
-#include "rom.h"
 #include "lynxcart.h"
 #include "susie.h"
 #include "mikie.h"
@@ -206,7 +205,6 @@ class CSystem : public CSystemBase
 	public:
 		ULONG			mCycleCountBreakpoint;
 //		CLynxBase		*mMemoryHandlers[8][SYSTEM_SIZE];
-		CRom			*mRom;
 		CCart			*mCart;
 		C65C02			*mCpu;
 		CMikie			*mMikie;
