@@ -454,6 +454,8 @@ class CSusie : public CLynxBase
 		ULONG		mLineBaseAddress;
 		ULONG		mLineCollisionAddress;
 
+		int hquadoff, vquadoff;
+
 		// Joystick switches
 
 		TJOYSTICK	mJOYSTICK;
