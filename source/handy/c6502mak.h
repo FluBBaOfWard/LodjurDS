@@ -188,8 +188,8 @@
 	if(mOpcode!=0x89)\
 	{\
 		SET_N(value);\
+		mV=value&0x40;\
 	}\
-	mV=value&0x40;\
 }
 
 //

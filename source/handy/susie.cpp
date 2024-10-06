@@ -1905,9 +1905,7 @@ UBYTE CSusie::Peek(ULONG addr)
 		case (SPRSYS & 0xff):
 			retval = 0x0000;
 			//	retval += (mSPRSYS_Status) ? 0x0001 : 0x0000;
-			// Use gSystemCPUSleep to signal the status instead, if we are asleep then
-			// we must be rendering sprites
-			retval += (gSystemCPUSleep) ? 0x0001 : 0x0000;
+			retval += (gSuzieDoneTime) ? 0x0001 : 0x0000;
 			retval += (mSPRSYS_StopOnCurrent) ? 0x0002 : 0x0000;
 			retval += (mSPRSYS_UnsafeAccess) ? 0x0004 : 0x0000;
 			retval += (mSPRSYS_LeftHand) ? 0x0008 : 0x0000;

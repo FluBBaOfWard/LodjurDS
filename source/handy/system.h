@@ -48,8 +48,7 @@
 #ifdef SYSTEM_CPP
 	ULONG	gSystemCycleCount = 0;
 	ULONG	gNextTimerEvent = 0;
-	ULONG	gCPUWakeupTime = 0;
-	ULONG	gIRQEntryCycle = 0;
+	ULONG	gSuzieDoneTime = 0;
 	ULONG	gCPUBootAddress = 0;
 	ULONG	gSingleStepModeSprites = FALSE;
 	BOOL	gEmulatorAbort = FALSE;
@@ -58,7 +57,6 @@
 	BOOL	gSystemIRQ = FALSE;
 	BOOL	gSystemNMI = FALSE;
 	BOOL	gSystemCPUSleep = FALSE;
-	BOOL	gSystemCPUSleep_Saved = FALSE;
 	BOOL	gSystemHalt = FALSE;
 	ULONG	gThrottleMaxPercentage = 100;
 	ULONG	gThrottleLastTimerCount = 0;
@@ -79,8 +77,7 @@
 
 	extern ULONG	gSystemCycleCount;
 	extern ULONG	gNextTimerEvent;
-	extern ULONG	gCPUWakeupTime;
-	extern ULONG	gIRQEntryCycle;
+	extern ULONG	gSuzieDoneTime;
 	extern ULONG	gCPUBootAddress;
 	extern ULONG	gSingleStepModeSprites;
 	extern BOOL		gEmulatorAbort;
@@ -89,7 +86,6 @@
 	extern BOOL		gSystemIRQ;
 	extern BOOL		gSystemNMI;
 	extern BOOL		gSystemCPUSleep;
-	extern BOOL		gSystemCPUSleep_Saved;
 	extern BOOL		gSystemHalt;
 	extern ULONG	gThrottleMaxPercentage;
 	extern ULONG	gThrottleLastTimerCount;
@@ -153,16 +149,6 @@ class CSystem : public CSystemBase
 			// Step the processor through 1 instruction
 			//
 			mCpu->Update();
-
-#ifdef _LYNXDBG
-			// Check breakpoint
-			static ULONG lastcycle = 0;
-			if (lastcycle < mCycleCountBreakpoint && gSystemCycleCount >= mCycleCountBreakpoint) gBreakpointHit = TRUE;
-			lastcycle = gSystemCycleCount;
-
-			// Check single step mode
-			if (gSingleStepMode) gBreakpointHit = TRUE;
-#endif
 
 			//
 			// If the CPU is asleep then skip to the next timer event

@@ -182,7 +182,6 @@ class C65C02
 			gSystemNMI = FALSE;
 			gSystemIRQ = FALSE;
 			gSystemCPUSleep = FALSE;
-			gSystemCPUSleep_Saved = FALSE;
 		}
 
 		inline void Update(void)
@@ -205,6 +204,8 @@ class C65C02
 //				mPC = CPU_PEEKW(NMI_VECTOR);
 //			}
 
+	if (gSystemCPUSleep) return;
+
 	if (gSystemIRQ && !mI) {
 		TRACE_CPU1("Update() IRQ taken at PC=%04x", mPC);
 		// IRQ signal clearance is handled by CMikie::Update() as this
@@ -220,19 +221,7 @@ class C65C02
 
 		// Pick up the new PC
 		mPC = CPU_PEEKW(IRQ_VECTOR);
-
-		// Save the sleep state as an irq has possibly woken the processor
-		gSystemCPUSleep_Saved = gSystemCPUSleep;
-		gSystemCPUSleep = FALSE;
-
-		// Log the irq entry time
-		gIRQEntryCycle = gSystemCycleCount;
 	}
-
-	//
-	// If the CPU is asleep then skip to the next timer event
-	//
-	if (gSystemCPUSleep) return;
 
 	// Fetch opcode
 	mOpcode = CPU_PEEK(mPC);

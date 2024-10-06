@@ -1,28 +1,35 @@
-//////////////////////////////////////////////////////////////////////////////
-//                       Handy - An Atari Lynx Emulator                     //
-//                          Copyright (c) 1996,1997                         //
-//                              Keith Wilkins                               //
-//////////////////////////////////////////////////////////////////////////////
-// Mikey class header file                                                  //
-//////////////////////////////////////////////////////////////////////////////
-//                                                                          //
-// This header file provides the interface definition and some of the code  //
-// for the Mikey chip within the Lynx. The most crucial code is the         //
-// Update() function which as you can probably guess updates all of the     //
-// Mikey hardware counters and screen DMA from the prevous time it was      //
-// called. Yes I know how to spell Mikey but I cant be bothered to change   //
-// it everywhere.                                                           //
-//                                                                          //
-// Keith Wilkins                                                            //
-// August 1997                                                              //
-//                                                                          //
-//////////////////////////////////////////////////////////////////////////////
-// Revision History:                                                        //
-// -----------------                                                        //
-//                                                                          //
-// 01Aug1997 KW Document header added & class documented.                   //
-//                                                                          //
-//////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////
+//                       Handy DS - An Atari Lynx Emulator                     //
+//                                                                             //
+//                          Based upon Handy/SDL v0.5                          //
+//                             Copyright (c) 2005                              //
+//                                SDLemu Team                                  //
+//                          Based upon Handy v0.95 WIN32                       //
+//                            Copyright (c) 1996,1997                          //
+//                                  K. Wilkins                                 //
+/////////////////////////////////////////////////////////////////////////////////
+//                                                                             //
+// Copyright (c) 2004 SDLemu Team                                              //
+//                                                                             //
+// This software is provided 'as-is', without any express or implied warranty. //
+// In no event will the authors be held liable for any damages arising from    //
+// the use of this software.                                                   //
+//                                                                             //
+// Permission is granted to anyone to use this software for any purpose,       //
+// including commercial applications, and to alter it and redistribute it      //
+// freely, subject to the following restrictions:                              //
+//                                                                             //
+// 1. The origin of this software must not be misrepresented; you must not     //
+//    claim that you wrote the original software. If you use this software     //
+//    in a product, an acknowledgment in the product documentation would be    //
+//    appreciated but is not required.                                         //
+//                                                                             //
+// 2. Altered source versions must be plainly marked as such, and must not     //
+//    be misrepresented as being the original software.                        //
+//                                                                             //
+// 3. This notice may not be removed or altered from any source distribution.  //
+//                                                                             //
+/////////////////////////////////////////////////////////////////////////////////
 
 #ifndef MIKIE_H
 #define MIKIE_H
@@ -85,7 +92,7 @@ typedef struct
 	UBYTE	count;
 	UBYTE	controlA;
 	UBYTE	controlB;
-	BOOL	linkedlastcarry;
+	bool	linkedlastcarry;
 }MTIMER;
 
 typedef struct
@@ -160,7 +167,7 @@ class CMikie : public CLynxBase
 	public:
 		CMikie(CSystem& parent);
 		~CMikie();
-	
+
 		void	Reset(void);
 
 		UBYTE	Peek(ULONG addr);
@@ -184,12 +191,12 @@ class CMikie : public CLynxBase
 		ULONG	DisplayEndOfFrame(void);
 
 		inline void SetCPUSleep(void) {gSystemCPUSleep=TRUE;};
-		inline void ClearCPUSleep(void) {gSystemCPUSleep=FALSE;gSystemCPUSleep_Saved=FALSE;};
+		inline void ClearCPUSleep(void) {gSystemCPUSleep=FALSE;};
 
 		inline void	Update(void)
 		{
-			SLONG divide = 0;
-			SLONG decval = 0;
+			int divide = 0;
+			int decval = 0;
 			ULONG tmp;
 			ULONG mikie_work_done=0;
 
@@ -215,9 +222,8 @@ class CMikie : public CLynxBase
 				mAUDIO_2_LAST_COUNT -= 0x80000000;
 				mAUDIO_3_LAST_COUNT -= 0x80000000;
 				// Only correct if sleep is active
-				if (gCPUWakeupTime) {
-					gCPUWakeupTime -= 0x80000000;
-					gIRQEntryCycle -= 0x80000000;
+				if (gSuzieDoneTime) {
+					gSuzieDoneTime -= 0x80000000;
 				}
 			}
 
@@ -226,16 +232,13 @@ class CMikie : public CLynxBase
 			//
 			// Check if the CPU needs to be woken up from sleep mode
 			//
-			if (gCPUWakeupTime) {
-				if (gSystemCycleCount >= gCPUWakeupTime) {
-					TRACE_MIKIE0("*********************************************************");
-					TRACE_MIKIE0("****              CPU SLEEP COMPLETED                ****");
-					TRACE_MIKIE0("*********************************************************");
+			if (gSuzieDoneTime) {
+				if (gSystemCycleCount >= gSuzieDoneTime) {
 					ClearCPUSleep();
-					gCPUWakeupTime=0;
+					gSuzieDoneTime=0;
 				}
 				else {
-					if (gCPUWakeupTime > gSystemCycleCount) gNextTimerEvent = gCPUWakeupTime;
+					if (gSuzieDoneTime > gSystemCycleCount) gNextTimerEvent = gSuzieDoneTime;
 				}
 			}
 
@@ -273,10 +276,9 @@ class CMikie : public CLynxBase
 			// never placed in link mode
 			//
 
-			// KW bugfix 13/4/99 added (mTIM_x_ENABLE_RELOAD ||  ..)
+			// KW bugfix 13/4/99 added (mTIM_x_ENABLE_RELOAD ||  ..) 
 //			if(mTIM_0_ENABLE_COUNT && (mTIM_0_ENABLE_RELOAD || !mTIM_0_TIMER_DONE))
-			if (mTIM_0_ENABLE_COUNT)
-			{
+			if (mTIM_0_ENABLE_COUNT) {
 				// Timer 0 has no linking
 //				if (mTIM_0_LINKING != 0x07)
 				{
@@ -286,10 +288,10 @@ class CMikie : public CLynxBase
 					decval = (gSystemCycleCount - mTIM_0_LAST_COUNT) >> divide;
 
 					if (decval) {
-						mTIM_0_LAST_COUNT += decval<<divide;
+						mTIM_0_LAST_COUNT += decval << divide;
 						mTIM_0_CURRENT -= decval;
 
-						if (mTIM_0_CURRENT & 0x80000000) {
+						if (mTIM_0_CURRENT&0x80000000) {
 							// Set carry out
 							mTIM_0_BORROW_OUT = TRUE;
 
@@ -298,10 +300,10 @@ class CMikie : public CLynxBase
 								mTIM_0_CURRENT += mTIM_0_BKUP+1;
 //							}
 //							else {
-//								// Set timer done
 //								mTIM_0_CURRENT = 0;
 //							}
-								mTIM_0_TIMER_DONE = TRUE;
+
+							mTIM_0_TIMER_DONE = TRUE;
 
 							// Interupt flag setting code moved into DisplayRenderLine()
 
@@ -309,6 +311,7 @@ class CMikie : public CLynxBase
 							// the global counter at this point as it will screw the other timers
 							// so we save under work done and inc at the end.
 							mikie_work_done += DisplayRenderLine();
+
 						}
 						else {
 							mTIM_0_BORROW_OUT = FALSE;
@@ -326,13 +329,22 @@ class CMikie : public CLynxBase
 
 				// Prediction for next timer event cycle number
 
-//				if (mTIM_0_LINKING != 7)
+//				if(mTIM_0_LINKING != 7)
 				{
-					tmp = gSystemCycleCount+((mTIM_0_CURRENT+1)<<divide);
+					// Sometimes timeupdates can be >2x rollover in which case
+					// then CURRENT may still be negative and we can use it to
+					// calc the next timer value, we just want another update ASAP
+					tmp = (mTIM_0_CURRENT&0x80000000)?1:((mTIM_0_CURRENT+1)<<divide);
+					tmp += gSystemCycleCount;
 					if (tmp < gNextTimerEvent) {
 						gNextTimerEvent = tmp;
+//						TRACE_MIKIE1("Update() - TIMER 0 Set NextTimerEvent = %012d",gNextTimerEvent);
 					}
 				}
+//				TRACE_MIKIE1("Update() - mTIM_0_CURRENT = %012d",mTIM_0_CURRENT);
+//				TRACE_MIKIE1("Update() - mTIM_0_BKUP    = %012d",mTIM_0_BKUP);
+//				TRACE_MIKIE1("Update() - mTIM_0_LASTCNT = %012d",mTIM_0_LAST_COUNT);
+//				TRACE_MIKIE1("Update() - mTIM_0_LINKING = %012d",mTIM_0_LINKING);
 			}
 
 			//
@@ -344,7 +356,7 @@ class CMikie : public CLynxBase
 			// always in linked mode i.e clocked by Line Timer
 			//
 
-			// KW bugfix 13/4/99 added (mTIM_x_ENABLE_RELOAD ||  ..)
+			// KW bugfix 13/4/99 added (mTIM_x_ENABLE_RELOAD ||  ..) 
 //			if (mTIM_2_ENABLE_COUNT && (mTIM_2_ENABLE_RELOAD || !mTIM_2_TIMER_DONE))
 			if (mTIM_2_ENABLE_COUNT) {
 				decval = 0;
@@ -362,7 +374,7 @@ class CMikie : public CLynxBase
 //				}
 
 				if (decval) {
-					mTIM_2_LAST_COUNT += decval<<divide;
+//					mTIM_2_LAST_COUNT += decval << divide;
 					mTIM_2_CURRENT -= decval;
 					if (mTIM_2_CURRENT & 0x80000000) {
 						// Set carry out
@@ -373,7 +385,6 @@ class CMikie : public CLynxBase
 							mTIM_2_CURRENT += mTIM_2_BKUP+1;
 //						}
 //						else {
-//							// Set timer done
 //							mTIM_2_CURRENT = 0;
 //						}
 						mTIM_2_TIMER_DONE = TRUE;
@@ -396,12 +407,16 @@ class CMikie : public CLynxBase
 				}
 
 				// Prediction for next timer event cycle number
-
-//				if (mTIM_2_LINKING != 7)
-//				{
-//					tmp = gSystemCycleCount+((mTIM_2_CURRENT+1)<<divide);
+// We dont need to predict this as its the frame timer and will always
+// be beaten by the line timer on Timer 0
+//				if (mTIM_2_LINKING != 7) {
+//					tmp = gSystemCycleCount + ((mTIM_2_CURRENT + 1) << divide);
 //					if (tmp < gNextTimerEvent) gNextTimerEvent = tmp;
 //				}
+//				TRACE_MIKIE1("Update() - mTIM_2_CURRENT = %012d",mTIM_2_CURRENT);
+//				TRACE_MIKIE1("Update() - mTIM_2_BKUP    = %012d",mTIM_2_BKUP);
+//				TRACE_MIKIE1("Update() - mTIM_2_LASTCNT = %012d",mTIM_2_LAST_COUNT);
+//				TRACE_MIKIE1("Update() - mTIM_2_LINKING = %012d",mTIM_2_LINKING);
 			}
 
 			//
@@ -413,7 +428,8 @@ class CMikie : public CLynxBase
 			// no reason to update its carry in-out variables
 			//
 
-//			if (mTIM_4_ENABLE_COUNT && !mTIM_4_TIMER_DONE)
+			// KW bugfix 13/4/99 added (mTIM_x_ENABLE_RELOAD ||  ..) 
+//			if (mTIM_4_ENABLE_COUNT && (mTIM_4_ENABLE_RELOAD || !mTIM_4_TIMER_DONE))
 			if (mTIM_4_ENABLE_COUNT) {
 				decval = 0;
 
@@ -425,14 +441,14 @@ class CMikie : public CLynxBase
 //				else
 				{
 					// Ordinary clocked mode as opposed to linked mode
-					// 16MHz clock downto 1us == cyclecount >> 4
+					// 16MHz clock downto 1us == cyclecount >> 4 
 					// Additional /8 (+3) for 8 clocks per bit transmit
 					divide = 4 + 3 + mTIM_4_LINKING;
 					decval = (gSystemCycleCount - mTIM_4_LAST_COUNT) >> divide;
 				}
 
 				if (decval) {
-					mTIM_4_LAST_COUNT += decval<<divide;
+					mTIM_4_LAST_COUNT += decval << divide;
 					mTIM_4_CURRENT -= decval;
 					if (mTIM_4_CURRENT & 0x80000000) {
 						// Set carry out
@@ -493,7 +509,7 @@ class CMikie : public CLynxBase
 								ComLynxTxLoopback(mUART_TX_DATA);
 							}
 							else {
-								// Serial activity finished
+								// Serial activity finished 
 								mUART_TX_COUNTDOWN = UART_TX_INACTIVE;
 							}
 
@@ -555,6 +571,10 @@ class CMikie : public CLynxBase
 						TRACE_MIKIE1("Update() - TIMER 4 Set NextTimerEvent = %012d", gNextTimerEvent);
 					}
 //				}
+//				TRACE_MIKIE1("Update() - mTIM_4_CURRENT = %012d",mTIM_4_CURRENT);
+//				TRACE_MIKIE1("Update() - mTIM_4_BKUP    = %012d",mTIM_4_BKUP);
+//				TRACE_MIKIE1("Update() - mTIM_4_LASTCNT = %012d",mTIM_4_LAST_COUNT);
+//				TRACE_MIKIE1("Update() - mTIM_4_LINKING = %012d",mTIM_4_LINKING);
 			}
 
 			// Emulate the UART bug where UART IRQ is level sensitive
@@ -563,7 +583,7 @@ class CMikie : public CLynxBase
 
 			// If Tx is inactive i.e ready for a byte to eat and the
 			// IRQ is enabled then generate it always
-			if ((mUART_TX_COUNTDOWN&UART_TX_INACTIVE) && mUART_TX_IRQ_ENABLE) {
+			if ((mUART_TX_COUNTDOWN & UART_TX_INACTIVE) && mUART_TX_IRQ_ENABLE) {
 				TRACE_MIKIE0("Update() - UART TX IRQ Triggered");
 				mTimerStatusFlags |= 0x10;
 			}
@@ -577,7 +597,8 @@ class CMikie : public CLynxBase
 			//
 			// Timer 1 of Group B
 			//
-			if (mTIM_1_ENABLE_COUNT && !mTIM_1_TIMER_DONE) {
+			// KW bugfix 13/4/99 added (mTIM_x_ENABLE_RELOAD ||  ..) 
+			if (mTIM_1_ENABLE_COUNT && (mTIM_1_ENABLE_RELOAD || !mTIM_1_TIMER_DONE)) {
 				if (mTIM_1_LINKING != 0x07) {
 					// Ordinary clocked mode as opposed to linked mode
 					// 16MHz clock downto 1us == cyclecount >> 4 
@@ -585,7 +606,7 @@ class CMikie : public CLynxBase
 					decval = (gSystemCycleCount - mTIM_1_LAST_COUNT) >> divide;
 
 					if (decval) {
-						mTIM_1_LAST_COUNT += decval<<divide;
+						mTIM_1_LAST_COUNT += decval << divide;
 						mTIM_1_CURRENT -= decval;
 						if (mTIM_1_CURRENT & 0x80000000) {
 							// Set carry out
@@ -593,18 +614,18 @@ class CMikie : public CLynxBase
 
 							// Set the timer status flag
 							if (mTimerInterruptMask & 0x02) {
+								TRACE_MIKIE0("Update() - TIMER1 IRQ Triggered");
 								mTimerStatusFlags |= 0x02;
 							}
 
 							// Reload if neccessary
 							if (mTIM_1_ENABLE_RELOAD) {
-								mTIM_1_CURRENT += mTIM_1_BKUP+1;
+								mTIM_1_CURRENT += mTIM_1_BKUP + 1;
 							}
 							else {
-								// Set timer done
-								mTIM_1_TIMER_DONE = TRUE;
 								mTIM_1_CURRENT = 0;
 							}
+							mTIM_1_TIMER_DONE = TRUE;
 						}
 						else {
 							mTIM_1_BORROW_OUT = FALSE;
@@ -623,15 +644,27 @@ class CMikie : public CLynxBase
 				// Prediction for next timer event cycle number
 
 				if (mTIM_1_LINKING != 7) {
-					tmp = gSystemCycleCount + ((mTIM_1_CURRENT + 1) << divide);
-					if (tmp < gNextTimerEvent) gNextTimerEvent = tmp;
+					// Sometimes timeupdates can be >2x rollover in which case
+					// then CURRENT may still be negative and we can use it to
+					// calc the next timer value, we just want another update ASAP
+					tmp = (mTIM_1_CURRENT & 0x80000000) ? 1 : ((mTIM_1_CURRENT + 1) << divide);
+					tmp += gSystemCycleCount;
+					if (tmp < gNextTimerEvent) {
+						gNextTimerEvent = tmp;
+						TRACE_MIKIE1("Update() - TIMER 1 Set NextTimerEvent = %012d", gNextTimerEvent);
+					}
 				}
+//				TRACE_MIKIE1("Update() - mTIM_1_CURRENT = %012d",mTIM_1_CURRENT);
+//				TRACE_MIKIE1("Update() - mTIM_1_BKUP    = %012d",mTIM_1_BKUP);
+//				TRACE_MIKIE1("Update() - mTIM_1_LASTCNT = %012d",mTIM_1_LAST_COUNT);
+//				TRACE_MIKIE1("Update() - mTIM_1_LINKING = %012d",mTIM_1_LINKING);
 			}
 
 			//
 			// Timer 3 of Group A
 			//
-			if (mTIM_3_ENABLE_COUNT && !mTIM_3_TIMER_DONE) {
+			// KW bugfix 13/4/99 added (mTIM_x_ENABLE_RELOAD ||  ..) 
+			if (mTIM_3_ENABLE_COUNT && (mTIM_3_ENABLE_RELOAD || !mTIM_3_TIMER_DONE)) {
 				decval = 0;
 
 				if (mTIM_3_LINKING == 0x07) {
@@ -642,11 +675,11 @@ class CMikie : public CLynxBase
 					// Ordinary clocked mode as opposed to linked mode
 					// 16MHz clock downto 1us == cyclecount >> 4 
 					divide = (4 + mTIM_3_LINKING);
-					decval = (gSystemCycleCount - mTIM_3_LAST_COUNT)>>divide;
+					decval = (gSystemCycleCount - mTIM_3_LAST_COUNT) >> divide;
 				}
 
 				if (decval) {
-					mTIM_3_LAST_COUNT += decval<<divide;
+					mTIM_3_LAST_COUNT += decval << divide;
 					mTIM_3_CURRENT -= decval;
 					if (mTIM_3_CURRENT & 0x80000000) {
 						// Set carry out
@@ -654,18 +687,18 @@ class CMikie : public CLynxBase
 
 						// Set the timer status flag
 						if (mTimerInterruptMask & 0x08) {
+							TRACE_MIKIE0("Update() - TIMER3 IRQ Triggered");
 							mTimerStatusFlags |= 0x08;
 						}
 
 						// Reload if neccessary
 						if (mTIM_3_ENABLE_RELOAD) {
-							mTIM_3_CURRENT += mTIM_3_BKUP+1;
+							mTIM_3_CURRENT += mTIM_3_BKUP + 1;
 						}
 						else {
-							// Set timer done
-							mTIM_3_TIMER_DONE = TRUE;
 							mTIM_3_CURRENT = 0;
 						}
+						mTIM_3_TIMER_DONE = TRUE;
 					}
 					else {
 						mTIM_3_BORROW_OUT = FALSE;
@@ -683,15 +716,27 @@ class CMikie : public CLynxBase
 				// Prediction for next timer event cycle number
 
 				if (mTIM_3_LINKING != 7) {
-					tmp = gSystemCycleCount + ((mTIM_3_CURRENT + 1) << divide);
-					if (tmp < gNextTimerEvent) gNextTimerEvent = tmp;
+					// Sometimes timeupdates can be >2x rollover in which case
+					// then CURRENT may still be negative and we can use it to
+					// calc the next timer value, we just want another update ASAP
+					tmp = (mTIM_3_CURRENT & 0x80000000) ? 1 : ((mTIM_3_CURRENT + 1) << divide);
+					tmp += gSystemCycleCount;
+					if (tmp < gNextTimerEvent) {
+						gNextTimerEvent = tmp;
+						TRACE_MIKIE1("Update() - TIMER 3 Set NextTimerEvent = %012d", gNextTimerEvent);
+					}
 				}
+//				TRACE_MIKIE1("Update() - mTIM_3_CURRENT = %012d",mTIM_3_CURRENT);
+//				TRACE_MIKIE1("Update() - mTIM_3_BKUP    = %012d",mTIM_3_BKUP);
+//				TRACE_MIKIE1("Update() - mTIM_3_LASTCNT = %012d",mTIM_3_LAST_COUNT);
+//				TRACE_MIKIE1("Update() - mTIM_3_LINKING = %012d",mTIM_3_LINKING);
 			}
 
 			//
 			// Timer 5 of Group A
 			//
-			if (mTIM_5_ENABLE_COUNT && !mTIM_5_TIMER_DONE) {
+			// KW bugfix 13/4/99 added (mTIM_x_ENABLE_RELOAD ||  ..) 
+			if (mTIM_5_ENABLE_COUNT && (mTIM_5_ENABLE_RELOAD || !mTIM_5_TIMER_DONE)) {
 				decval = 0;
 
 				if (mTIM_5_LINKING == 0x07) {
@@ -702,7 +747,7 @@ class CMikie : public CLynxBase
 					// Ordinary clocked mode as opposed to linked mode
 					// 16MHz clock downto 1us == cyclecount >> 4 
 					divide = (4 + mTIM_5_LINKING);
-					decval = (gSystemCycleCount - mTIM_5_LAST_COUNT)>>divide;
+					decval = (gSystemCycleCount - mTIM_5_LAST_COUNT) >> divide;
 				}
 
 				if (decval) {
@@ -714,18 +759,18 @@ class CMikie : public CLynxBase
 
 						// Set the timer status flag
 						if (mTimerInterruptMask & 0x20) {
+							TRACE_MIKIE0("Update() - TIMER5 IRQ Triggered");
 							mTimerStatusFlags |= 0x20;
 						}
 
 						// Reload if neccessary
 						if (mTIM_5_ENABLE_RELOAD) {
-							mTIM_5_CURRENT += mTIM_5_BKUP+1;
+							mTIM_5_CURRENT += mTIM_5_BKUP + 1;
 						}
 						else {
-							// Set timer done
-							mTIM_5_TIMER_DONE = TRUE;
 							mTIM_5_CURRENT = 0;
 						}
+						mTIM_5_TIMER_DONE = TRUE;
 					}
 					else {
 						mTIM_5_BORROW_OUT = FALSE;
@@ -743,17 +788,29 @@ class CMikie : public CLynxBase
 				// Prediction for next timer event cycle number
 
 				if (mTIM_5_LINKING != 7) {
-					tmp = gSystemCycleCount + ((mTIM_5_CURRENT + 1) << divide);
-					if (tmp < gNextTimerEvent) gNextTimerEvent = tmp;
+					// Sometimes timeupdates can be >2x rollover in which case
+					// then CURRENT may still be negative and we can use it to
+					// calc the next timer value, we just want another update ASAP
+					tmp = (mTIM_5_CURRENT & 0x80000000) ? 1 : ((mTIM_5_CURRENT + 1) << divide);
+					tmp += gSystemCycleCount;
+					if (tmp < gNextTimerEvent) {
+						gNextTimerEvent = tmp;
+						TRACE_MIKIE1("Update() - TIMER 5 Set NextTimerEvent = %012d", gNextTimerEvent);
+					}
 				}
+//				TRACE_MIKIE1("Update() - mTIM_5_CURRENT = %012d",mTIM_5_CURRENT);
+//				TRACE_MIKIE1("Update() - mTIM_5_BKUP    = %012d",mTIM_5_BKUP);
+//				TRACE_MIKIE1("Update() - mTIM_5_LASTCNT = %012d",mTIM_5_LAST_COUNT);
+//				TRACE_MIKIE1("Update() - mTIM_5_LINKING = %012d",mTIM_5_LINKING);
 			}
 
 			//
 			// Timer 7 of Group A
 			//
-			if (mTIM_7_ENABLE_COUNT && !mTIM_7_TIMER_DONE) {
+			// KW bugfix 13/4/99 added (mTIM_x_ENABLE_RELOAD ||  ..) 
+			if (mTIM_7_ENABLE_COUNT && (mTIM_7_ENABLE_RELOAD || !mTIM_7_TIMER_DONE)) {
 				decval = 0;
-
+		
 				if (mTIM_7_LINKING == 0x07) {
 					if (mTIM_5_BORROW_OUT) decval = 1;
 					mTIM_7_LAST_LINK_CARRY = mTIM_5_BORROW_OUT;
@@ -764,29 +821,28 @@ class CMikie : public CLynxBase
 					divide = (4 + mTIM_7_LINKING);
 					decval = (gSystemCycleCount - mTIM_7_LAST_COUNT) >> divide;
 				}
-
+		
 				if (decval) {
 					mTIM_7_LAST_COUNT += decval << divide;
 					mTIM_7_CURRENT -= decval;
 					if (mTIM_7_CURRENT & 0x80000000) {
 						// Set carry out
 						mTIM_7_BORROW_OUT = TRUE;
-
+		
 						// Set the timer status flag
 						if (mTimerInterruptMask & 0x80) {
+							TRACE_MIKIE0("Update() - TIMER7 IRQ Triggered");
 							mTimerStatusFlags |= 0x80;
 						}
-
+		
 						// Reload if neccessary
 						if (mTIM_7_ENABLE_RELOAD) {
 							mTIM_7_CURRENT += mTIM_7_BKUP + 1;
 						}
 						else {
-							// Set timer done
-							mTIM_7_TIMER_DONE = TRUE;
 							mTIM_7_CURRENT = 0;
 						}
-
+						mTIM_7_TIMER_DONE = TRUE;
 					}
 					else {
 						mTIM_7_BORROW_OUT = FALSE;
@@ -804,24 +860,34 @@ class CMikie : public CLynxBase
 				// Prediction for next timer event cycle number
 
 				if (mTIM_7_LINKING != 7) {
-					tmp = gSystemCycleCount + ((mTIM_7_CURRENT + 1) << divide);
+					// Sometimes timeupdates can be >2x rollover in which case
+					// then CURRENT may still be negative and we can use it to
+					// calc the next timer value, we just want another update ASAP
+					tmp = (mTIM_7_CURRENT & 0x80000000) ? 1 : ((mTIM_7_CURRENT + 1) << divide);
+					tmp += gSystemCycleCount;
 					if (tmp < gNextTimerEvent) {
 						gNextTimerEvent = tmp;
+						TRACE_MIKIE1("Update() - TIMER 7 Set NextTimerEvent = %012d", gNextTimerEvent);
 					}
 				}
+//				TRACE_MIKIE1("Update() - mTIM_7_CURRENT = %012d",mTIM_7_CURRENT);
+//				TRACE_MIKIE1("Update() - mTIM_7_BKUP    = %012d",mTIM_7_BKUP);
+//				TRACE_MIKIE1("Update() - mTIM_7_LASTCNT = %012d",mTIM_7_LAST_COUNT);
+//				TRACE_MIKIE1("Update() - mTIM_7_LINKING = %012d",mTIM_7_LINKING);
 			}
 
 			//
 			// Timer 6 has no group
 			//
-			if (mTIM_6_ENABLE_COUNT && !mTIM_6_TIMER_DONE) {
+			// KW bugfix 13/4/99 added (mTIM_x_ENABLE_RELOAD ||  ..) 
+			if (mTIM_6_ENABLE_COUNT && (mTIM_6_ENABLE_RELOAD || !mTIM_6_TIMER_DONE)) {
 //				if (mTIM_6_LINKING != 0x07)
 				{
 					// Ordinary clocked mode as opposed to linked mode
 					// 16MHz clock downto 1us == cyclecount >> 4 
 					divide = (4 + mTIM_6_LINKING);
 					decval = (gSystemCycleCount - mTIM_6_LAST_COUNT) >> divide;
-
+		
 					if (decval) {
 						mTIM_6_LAST_COUNT += decval << divide;
 						mTIM_6_CURRENT -= decval;
@@ -831,18 +897,18 @@ class CMikie : public CLynxBase
 
 							// Set the timer status flag
 							if (mTimerInterruptMask & 0x40) {
+								TRACE_MIKIE0("Update() - TIMER6 IRQ Triggered");
 								mTimerStatusFlags |= 0x40;
 							}
 
 							// Reload if neccessary
 							if (mTIM_6_ENABLE_RELOAD) {
-								mTIM_6_CURRENT += mTIM_6_BKUP+1;
+								mTIM_6_CURRENT += mTIM_6_BKUP + 1;
 							}
 							else {
-								// Set timer done
-								mTIM_6_TIMER_DONE = TRUE;
 								mTIM_6_CURRENT = 0;
 							}
+							mTIM_6_TIMER_DONE = TRUE;
 						}
 						else {
 							mTIM_6_BORROW_OUT = FALSE;
@@ -863,23 +929,57 @@ class CMikie : public CLynxBase
 
 //				if (mTIM_6_LINKING != 7)
 				{
-					tmp = gSystemCycleCount+((mTIM_6_CURRENT + 1) << divide);
+					// Sometimes timeupdates can be >2x rollover in which case
+					// then CURRENT may still be negative and we can use it to
+					// calc the next timer value, we just want another update ASAP
+					tmp = (mTIM_6_CURRENT & 0x80000000) ? 1 : ((mTIM_6_CURRENT + 1) << divide);
+					tmp += gSystemCycleCount;
 					if (tmp < gNextTimerEvent) {
 						gNextTimerEvent = tmp;
+						TRACE_MIKIE1("Update() - TIMER 6 Set NextTimerEvent = %012d", gNextTimerEvent);
 					}
 				}
+//				TRACE_MIKIE1("Update() - mTIM_6_CURRENT = %012d",mTIM_6_CURRENT);
+//				TRACE_MIKIE1("Update() - mTIM_6_BKUP    = %012d",mTIM_6_BKUP);
+//				TRACE_MIKIE1("Update() - mTIM_6_LASTCNT = %012d",mTIM_6_LAST_COUNT);
+//				TRACE_MIKIE1("Update() - mTIM_6_LINKING = %012d",mTIM_6_LINKING);
 			}
 
 			//
 			// If sound is enabled then update the sound subsystem
 			//
 			if (gAudioEnabled) {
-				// static ULONG audio_buffer_pointer = 0;
-				// static SLONG sample = 0;
+//				static SLONG sample = 0;
+				// ULONG mix = 0; // unused
 
 				//
 				// Catch audio buffer up to current time
 				//
+
+				// Mix the sample
+
+				/*
+				sample = 0;
+				if (mSTEREO & 0x11) { sample += mAUDIO_0_OUTPUT; mix++; }
+				if (mSTEREO & 0x22) { sample += mAUDIO_1_OUTPUT; mix++; }
+				if (mSTEREO & 0x44) { sample += mAUDIO_2_OUTPUT; mix++; }
+				if (mSTEREO & 0x88) { sample += mAUDIO_3_OUTPUT; mix++; }
+				if (mix) {
+					sample += 128 * mix; // Correct for sign
+					sample /= mix;	// Keep the audio volume at max
+				}
+				else {
+					sample = 128;
+				}
+
+//				sample += (mSTEREO & 0x11) ? mAUDIO_0_OUTPUT : 0;
+//				sample += (mSTEREO & 0x22) ? mAUDIO_1_OUTPUT : 0;
+//				sample += (mSTEREO & 0x44) ? mAUDIO_2_OUTPUT : 0;
+//				sample += (mSTEREO & 0x88) ? mAUDIO_3_OUTPUT : 0;
+//				sample = sample >> 2;
+//				sample += 128;
+				*/
+
 				for (;gAudioLastUpdateCycle+HANDY_AUDIO_SAMPLE_PERIOD<gSystemCycleCount;gAudioLastUpdateCycle+=HANDY_AUDIO_SAMPLE_PERIOD) {
 					// Output audio sample
 //					gAudioBuffer[gAudioBufferPointer++] = (UBYTE)sample;
@@ -902,8 +1002,8 @@ class CMikie : public CLynxBase
 				//
 				// Audio 0 
 				//
-//				if (mAUDIO_0_ENABLE_COUNT && !mAUDIO_0_TIMER_DONE)
-				if (mAUDIO_0_ENABLE_COUNT && !mAUDIO_0_TIMER_DONE && mAUDIO_0_VOLUME && mAUDIO_0_BKUP) {
+//				if (mAUDIO_0_ENABLE_COUNT && !mAUDIO_0_TIMER_DONE && mAUDIO_0_VOLUME && mAUDIO_0_BKUP)
+				if (mAUDIO_0_ENABLE_COUNT && (mAUDIO_0_ENABLE_RELOAD || !mAUDIO_0_TIMER_DONE) && mAUDIO_0_VOLUME && mAUDIO_0_BKUP) {
 					decval = 0;
 
 					if (mAUDIO_0_LINKING == 0x07) {
@@ -914,11 +1014,11 @@ class CMikie : public CLynxBase
 						// Ordinary clocked mode as opposed to linked mode
 						// 16MHz clock downto 1us == cyclecount >> 4 
 						divide = (4 + mAUDIO_0_LINKING);
-						decval = (gSystemCycleCount-mAUDIO_0_LAST_COUNT) >> divide;
+						decval = (gSystemCycleCount - mAUDIO_0_LAST_COUNT) >> divide;
 					}
 
 					if (decval) {
-						mAUDIO_0_LAST_COUNT += decval<<divide;
+						mAUDIO_0_LAST_COUNT += decval << divide;
 						mAUDIO_0_CURRENT -= decval;
 						if (mAUDIO_0_CURRENT & 0x80000000) {
 							// Set carry out
@@ -938,14 +1038,13 @@ class CMikie : public CLynxBase
 							//
 							// Update audio circuitry
 							//
-
 							mAUDIO_0_WAVESHAPER = GetLfsrNext(mAUDIO_0_WAVESHAPER);
 
 							if (mAUDIO_0_INTEGRATE_ENABLE) {
 								SLONG temp = mAUDIO_0_OUTPUT;
 								if (mAUDIO_0_WAVESHAPER & 0x0001) temp += mAUDIO_0_VOLUME; else temp -= mAUDIO_0_VOLUME;
 								if (temp > 127) temp = 127;
-								if (temp < -128) temp = -128;
+								if (temp <- 128) temp = -128;
 								mAUDIO_0_OUTPUT = (SBYTE)temp;
 							}
 							else {
@@ -968,16 +1067,27 @@ class CMikie : public CLynxBase
 					// Prediction for next timer event cycle number
 
 					if (mAUDIO_0_LINKING != 7) {
-						tmp = gSystemCycleCount+((mAUDIO_0_CURRENT+1)<<divide);
-						if (tmp < gNextTimerEvent) gNextTimerEvent = tmp;
+						// Sometimes timeupdates can be >2x rollover in which case
+						// then CURRENT may still be negative and we can use it to
+						// calc the next timer value, we just want another update ASAP
+						tmp = (mAUDIO_0_CURRENT&0x80000000) ? 1 : ((mAUDIO_0_CURRENT + 1) << divide);
+						tmp += gSystemCycleCount;
+						if (tmp < gNextTimerEvent) {
+							gNextTimerEvent = tmp;
+							TRACE_MIKIE1("Update() - AUDIO 0 Set NextTimerEvent = %012d", gNextTimerEvent);
+						}
 					}
+//					TRACE_MIKIE1("Update() - mAUDIO_0_CURRENT = %012d",mAUDIO_0_CURRENT);
+//					TRACE_MIKIE1("Update() - mAUDIO_0_BKUP    = %012d",mAUDIO_0_BKUP);
+//					TRACE_MIKIE1("Update() - mAUDIO_0_LASTCNT = %012d",mAUDIO_0_LAST_COUNT);
+//					TRACE_MIKIE1("Update() - mAUDIO_0_LINKING = %012d",mAUDIO_0_LINKING);
 				}
 
 				//
 				// Audio 1 
 				//
-//				if (mAUDIO_1_ENABLE_COUNT && !mAUDIO_1_TIMER_DONE)
-				if (mAUDIO_1_ENABLE_COUNT && !mAUDIO_1_TIMER_DONE && mAUDIO_1_VOLUME && mAUDIO_1_BKUP) {
+//				if (mAUDIO_1_ENABLE_COUNT && !mAUDIO_1_TIMER_DONE && mAUDIO_1_VOLUME && mAUDIO_1_BKUP)
+				if (mAUDIO_1_ENABLE_COUNT && (mAUDIO_1_ENABLE_RELOAD || !mAUDIO_1_TIMER_DONE) && mAUDIO_1_VOLUME && mAUDIO_1_BKUP) {
 					decval = 0;
 
 					if (mAUDIO_1_LINKING == 0x07) {
@@ -987,8 +1097,8 @@ class CMikie : public CLynxBase
 					else {
 						// Ordinary clocked mode as opposed to linked mode
 						// 16MHz clock downto 1us == cyclecount >> 4 
-						divide = (4+mAUDIO_1_LINKING);
-						decval = (gSystemCycleCount-mAUDIO_1_LAST_COUNT)>>divide;
+						divide = (4 + mAUDIO_1_LINKING);
+						decval = (gSystemCycleCount - mAUDIO_1_LAST_COUNT) >> divide;
 					}
 
 					if (decval) {
@@ -1012,7 +1122,6 @@ class CMikie : public CLynxBase
 							//
 							// Update audio circuitry
 							//
-
 							mAUDIO_1_WAVESHAPER = GetLfsrNext(mAUDIO_1_WAVESHAPER);
 
 							if (mAUDIO_1_INTEGRATE_ENABLE) {
@@ -1042,18 +1151,27 @@ class CMikie : public CLynxBase
 					// Prediction for next timer event cycle number
 
 					if (mAUDIO_1_LINKING != 7) {
-						tmp = gSystemCycleCount+((mAUDIO_1_CURRENT+1)<<divide);
+						// Sometimes timeupdates can be >2x rollover in which case
+						// then CURRENT may still be negative and we can use it to
+						// calc the next timer value, we just want another update ASAP
+						tmp = (mAUDIO_1_CURRENT & 0x80000000) ? 1 : ((mAUDIO_1_CURRENT + 1) << divide);
+						tmp += gSystemCycleCount;
 						if (tmp < gNextTimerEvent) {
 							gNextTimerEvent = tmp;
+							TRACE_MIKIE1("Update() - AUDIO 1 Set NextTimerEvent = %012d", gNextTimerEvent);
 						}
 					}
+//					TRACE_MIKIE1("Update() - mAUDIO_1_CURRENT = %012d",mAUDIO_1_CURRENT);
+//					TRACE_MIKIE1("Update() - mAUDIO_1_BKUP    = %012d",mAUDIO_1_BKUP);
+//					TRACE_MIKIE1("Update() - mAUDIO_1_LASTCNT = %012d",mAUDIO_1_LAST_COUNT);
+//					TRACE_MIKIE1("Update() - mAUDIO_1_LINKING = %012d",mAUDIO_1_LINKING);
 				}
 
 				//
 				// Audio 2 
 				//
-//				if (mAUDIO_2_ENABLE_COUNT && !mAUDIO_2_TIMER_DONE)
-				if (mAUDIO_2_ENABLE_COUNT && !mAUDIO_2_TIMER_DONE && mAUDIO_2_VOLUME && mAUDIO_2_BKUP) {
+//				if (mAUDIO_2_ENABLE_COUNT && !mAUDIO_2_TIMER_DONE && mAUDIO_2_VOLUME && mAUDIO_2_BKUP)
+				if (mAUDIO_2_ENABLE_COUNT && (mAUDIO_2_ENABLE_RELOAD || !mAUDIO_2_TIMER_DONE) && mAUDIO_2_VOLUME && mAUDIO_2_BKUP) {
 					decval = 0;
 
 					if (mAUDIO_2_LINKING == 0x07) {
@@ -1063,8 +1181,8 @@ class CMikie : public CLynxBase
 					else {
 						// Ordinary clocked mode as opposed to linked mode
 						// 16MHz clock downto 1us == cyclecount >> 4 
-						divide = (4+mAUDIO_2_LINKING);
-						decval = (gSystemCycleCount-mAUDIO_2_LAST_COUNT)>>divide;
+						divide = (4 + mAUDIO_2_LINKING);
+						decval = (gSystemCycleCount - mAUDIO_2_LAST_COUNT) >> divide;
 					}
 
 					if (decval) {
@@ -1088,12 +1206,11 @@ class CMikie : public CLynxBase
 							//
 							// Update audio circuitry
 							//
-
 							mAUDIO_2_WAVESHAPER = GetLfsrNext(mAUDIO_2_WAVESHAPER);
 
 							if (mAUDIO_2_INTEGRATE_ENABLE) {
 								SLONG temp = mAUDIO_2_OUTPUT;
-								if (mAUDIO_2_WAVESHAPER & 0x0001) temp += mAUDIO_2_VOLUME; else temp -= mAUDIO_2_VOLUME;
+								if (mAUDIO_2_WAVESHAPER&0x0001) temp += mAUDIO_2_VOLUME; else temp -= mAUDIO_2_VOLUME;
 								if (temp > 127) temp = 127;
 								if (temp < -128) temp = -128;
 								mAUDIO_2_OUTPUT = (SBYTE)temp;
@@ -1118,18 +1235,27 @@ class CMikie : public CLynxBase
 					// Prediction for next timer event cycle number
 
 					if (mAUDIO_2_LINKING != 7) {
-						tmp = gSystemCycleCount+((mAUDIO_2_CURRENT+1)<<divide);
+						// Sometimes timeupdates can be >2x rollover in which case
+						// then CURRENT may still be negative and we can use it to
+						// calc the next timer value, we just want another update ASAP
+						tmp = (mAUDIO_2_CURRENT & 0x80000000) ? 1 : ((mAUDIO_2_CURRENT + 1) << divide);
+						tmp += gSystemCycleCount;
 						if (tmp < gNextTimerEvent) {
 							gNextTimerEvent = tmp;
+							TRACE_MIKIE1("Update() - AUDIO 2 Set NextTimerEvent = %012d", gNextTimerEvent);
 						}
 					}
+//					TRACE_MIKIE1("Update() - mAUDIO_2_CURRENT = %012d",mAUDIO_2_CURRENT);
+//					TRACE_MIKIE1("Update() - mAUDIO_2_BKUP    = %012d",mAUDIO_2_BKUP);
+//					TRACE_MIKIE1("Update() - mAUDIO_2_LASTCNT = %012d",mAUDIO_2_LAST_COUNT);
+//					TRACE_MIKIE1("Update() - mAUDIO_2_LINKING = %012d",mAUDIO_2_LINKING);
 				}
 
 				//
 				// Audio 3
 				//
-//				if (mAUDIO_3_ENABLE_COUNT && !mAUDIO_3_TIMER_DONE)
-				if (mAUDIO_3_ENABLE_COUNT && !mAUDIO_3_TIMER_DONE && mAUDIO_3_VOLUME && mAUDIO_3_BKUP) {
+//				if (mAUDIO_3_ENABLE_COUNT && !mAUDIO_3_TIMER_DONE && mAUDIO_3_VOLUME && mAUDIO_3_BKUP)
+				if (mAUDIO_3_ENABLE_COUNT && (mAUDIO_3_ENABLE_RELOAD || !mAUDIO_3_TIMER_DONE) && mAUDIO_3_VOLUME && mAUDIO_3_BKUP) {
 					decval = 0;
 
 					if (mAUDIO_3_LINKING == 0x07) {
@@ -1139,12 +1265,12 @@ class CMikie : public CLynxBase
 					else {
 						// Ordinary clocked mode as opposed to linked mode
 						// 16MHz clock downto 1us == cyclecount >> 4 
-						divide = (4+mAUDIO_3_LINKING);
-						decval = (gSystemCycleCount-mAUDIO_3_LAST_COUNT)>>divide;
+						divide = (4 + mAUDIO_3_LINKING);
+						decval = (gSystemCycleCount - mAUDIO_3_LAST_COUNT) >> divide;
 					}
 
 					if (decval) {
-						mAUDIO_3_LAST_COUNT += decval<<divide;
+						mAUDIO_3_LAST_COUNT += decval << divide;
 						mAUDIO_3_CURRENT -= decval;
 						if (mAUDIO_3_CURRENT & 0x80000000) {
 							// Set carry out
@@ -1152,7 +1278,7 @@ class CMikie : public CLynxBase
 
 							// Reload if neccessary
 							if (mAUDIO_3_ENABLE_RELOAD) {
-								mAUDIO_3_CURRENT += mAUDIO_3_BKUP+1;
+								mAUDIO_3_CURRENT += mAUDIO_3_BKUP + 1;
 								if (mAUDIO_3_CURRENT & 0x80000000) mAUDIO_3_CURRENT = 0;
 							}
 							else {
@@ -1168,13 +1294,13 @@ class CMikie : public CLynxBase
 
 							if (mAUDIO_3_INTEGRATE_ENABLE) {
 								SLONG temp = mAUDIO_3_OUTPUT;
-								if (mAUDIO_3_WAVESHAPER&0x0001) temp += mAUDIO_3_VOLUME; else temp -= mAUDIO_3_VOLUME;
+								if (mAUDIO_3_WAVESHAPER & 0x0001) temp += mAUDIO_3_VOLUME; else temp -= mAUDIO_3_VOLUME;
 								if (temp > 127) temp = 127;
 								if (temp < -128) temp = -128;
 								mAUDIO_3_OUTPUT = (SBYTE)temp;
 							}
 							else {
-								if (mAUDIO_3_WAVESHAPER&0x0001) mAUDIO_3_OUTPUT = mAUDIO_3_VOLUME; else mAUDIO_3_OUTPUT = -mAUDIO_3_VOLUME;
+								if (mAUDIO_3_WAVESHAPER & 0x0001) mAUDIO_3_OUTPUT = mAUDIO_3_VOLUME; else mAUDIO_3_OUTPUT = -mAUDIO_3_VOLUME;
 							}
 						}
 						else {
@@ -1193,18 +1319,28 @@ class CMikie : public CLynxBase
 					// Prediction for next timer event cycle number
 
 					if (mAUDIO_3_LINKING != 7) {
-						tmp = gSystemCycleCount+((mAUDIO_3_CURRENT+1)<<divide);
+						// Sometimes timeupdates can be >2x rollover in which case
+						// then CURRENT may still be negative and we can use it to
+						// calc the next timer value, we just want another update ASAP
+						tmp = (mAUDIO_3_CURRENT & 0x80000000) ? 1 : ((mAUDIO_3_CURRENT + 1) << divide);
+						tmp += gSystemCycleCount;
 						if (tmp < gNextTimerEvent) {
 							gNextTimerEvent = tmp;
+							TRACE_MIKIE1("Update() - AUDIO 3 Set NextTimerEvent = %012d", gNextTimerEvent);
 						}
 					}
+//					TRACE_MIKIE1("Update() - mAUDIO_3_CURRENT = %012d",mAUDIO_3_CURRENT);
+//					TRACE_MIKIE1("Update() - mAUDIO_3_BKUP    = %012d",mAUDIO_3_BKUP);
+//					TRACE_MIKIE1("Update() - mAUDIO_3_LASTCNT = %012d",mAUDIO_3_LAST_COUNT);
+//					TRACE_MIKIE1("Update() - mAUDIO_3_LINKING = %012d",mAUDIO_3_LINKING);
 				}
 			}
 
-			// Update system IRQ status as a result of timer activity
-			// OR is required to ensure serial IRQ's are not masked accidentally
+//			if (gSystemCycleCount == gNextTimerEvent) gError->Warning("CMikie::Update() - gSystemCycleCount==gNextTimerEvent, system lock likely");
+//			TRACE_MIKIE1("Update() - NextTimerEvent = %012d",gNextTimerEvent);
 
-			gSystemIRQ = mTimerStatusFlags;
+			gSystemIRQ = (mTimerStatusFlags) ? true : false;
+			if (gSystemIRQ && gSystemCPUSleep) { ClearCPUSleep(); }
 
 			// Now all the timer updates are done we can increment the system
 			// counter for any work done within the Update() function, gSystemCycleCounter
@@ -1216,9 +1352,9 @@ class CMikie : public CLynxBase
 		CSystem		&mSystem;
 
 		// Hardware storage
-
+		
 		ULONG		mDisplayAddress;
-		BOOL		mAudioInputComparator;
+		ULONG		mAudioInputComparator;
 		ULONG		mTimerStatusFlags;
 		ULONG		mTimerInterruptMask;
 
@@ -1404,9 +1540,6 @@ class CMikie : public CLynxBase
 		ULONG		mUART_RX_COUNTDOWN;
 		ULONG		mUART_TX_COUNTDOWN;
 
-		// old data
-		ULONG		mUART_DATA;
-
 		ULONG		mUART_SENDBREAK;
 		ULONG		mUART_TX_DATA;
 		ULONG		mUART_RX_DATA;
@@ -1432,7 +1565,7 @@ class CMikie : public CLynxBase
 
 		ULONG		mCurrentBuffer;
 	
-		UBYTE		*mRamPointer;
+		UBYTE		*mpRamPointer;
 		ULONG		mLynxLine;
 		ULONG		mLynxLineDMACounter;
 		ULONG		mLynxAddr;
