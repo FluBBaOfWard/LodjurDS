@@ -161,6 +161,10 @@ class C65C02
 		}
 
 	public:
+		void setIrqPin(int state) {
+			irqPin = state;
+		}
+
 		inline void Reset(void)
 		{
 			TRACE_CPU0("Reset()");
@@ -172,16 +176,13 @@ class C65C02
 			mOpcode = 0;
 			mOperand = 0;
 			mPC = CPU_PEEKW(BOOT_VECTOR);
-			mN = FALSE;
-			mV = FALSE;
-			mD = FALSE;
-			mI = TRUE;
-			mZ = TRUE;
-			mC = FALSE;
-
-			gSystemNMI = FALSE;
-			gSystemIRQ = FALSE;
-			gSystemCPUSleep = FALSE;
+			mN = false;
+			mV = false;
+			mD = false;
+			mI = true;
+			mZ = true;
+			mC = false;
+			irqPin = false;
 		}
 
 		inline void Update(void)
@@ -204,9 +205,7 @@ class C65C02
 //				mPC = CPU_PEEKW(NMI_VECTOR);
 //			}
 
-	if (gSystemCPUSleep) return;
-
-	if (gSystemIRQ && !mI) {
+	if (irqPin && !mI) {
 		TRACE_CPU1("Update() IRQ taken at PC=%04x", mPC);
 		// IRQ signal clearance is handled by CMikie::Update() as this
 		// is the only source of interrupts
@@ -1649,7 +1648,7 @@ class C65C02
 			for(int loop=0;loop<MAX_CPU_BREAKPOINTS;loop++)	mPcBreakpoints[loop] = regs.cpuBreakpoints[loop];
 #endif
 			gSystemNMI = regs.NMI;
-			gSystemIRQ = regs.IRQ;
+			irqPin = regs.IRQ;
 		}
 
 		inline void GetRegs(C6502_REGS &regs)
@@ -1666,8 +1665,7 @@ class C65C02
 #ifdef _LYNXDBG
 			for(int loop=0;loop<MAX_CPU_BREAKPOINTS;loop++)	regs.cpuBreakpoints[loop] = mPcBreakpoints[loop];
 #endif
-			regs.NMI = (gSystemNMI) ? true : false;
-			regs.IRQ = (gSystemIRQ) ? true : false;
+			regs.IRQ = (irqPin) ? true : false;
 		}
 
 		inline int GetPC(void) { return mPC; }
@@ -1698,6 +1696,8 @@ class C65C02
 		int mI;		// I flag for processor status register
 		int mZ;		// Z flag for processor status register
 		int mC;		// C flag for processor status register
+
+		int irqPin;	// State of IRQ pin on cpu.
 
 #ifdef _LYNXDBG
 		int mPcBreakpoints[MAX_CPU_BREAKPOINTS];

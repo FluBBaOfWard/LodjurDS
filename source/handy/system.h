@@ -147,12 +147,11 @@ class CSystem : public CSystemBase
 			//
 			// Step the processor through 1 instruction
 			//
-			mCpu->Update();
-
-			//
+			if (!gSystemCPUSleep) {
+				mCpu->Update();
+			}
 			// If the CPU is asleep then skip to the next timer event
-			//
-			if (gSystemCPUSleep) {
+			else {
 				gSystemCycleCount = gNextTimerEvent;
 			}
 		}
@@ -182,6 +181,10 @@ class CSystem : public CSystemBase
 		inline UBYTE Peek_CARTB1(void) {return mCart->Peek1();}
 		inline void  CartAddressStrobe(BOOL strobe) {mCart->CartAddressStrobe(strobe);};
 		inline void  CartAddressData(BOOL data) {mCart->CartAddressData(data);};
+
+// Low level CPU access
+
+		void setIrqPin(int state) {mCpu->setIrqPin(state);};
 
 // Mikey system interfacing
 

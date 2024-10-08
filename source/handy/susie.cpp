@@ -490,7 +490,7 @@ ULONG CSusie::PaintSprites(void)
 				if (mSPRCTL1_StartUp) quadrant = 2; else quadrant = 3;
 			}
 			else {
-				if(mSPRCTL1_StartUp) quadrant = 1; else quadrant = 0;
+				if (mSPRCTL1_StartUp) quadrant = 1; else quadrant = 0;
 			}
 			TRACE_SUSIE1("PaintSprites() Quadrant=%d", quadrant);
 
@@ -529,10 +529,10 @@ ULONG CSusie::PaintSprites(void)
 
 // Preflip		TRACE_SUSIE2("PaintSprites() hsign=%d vsign=%d",hsign,vsign);
 
-				// Use h/v flip to invert v/hsign
+				// Use h/v flip to invert h/vsign
 
-				if (mSPRCTL0_Vflip) vsign =- vsign;
-				if (mSPRCTL0_Hflip) hsign =- hsign;
+				if (mSPRCTL0_Vflip) vsign = -vsign;
+				if (mSPRCTL0_Hflip) hsign = -hsign;
 
 				TRACE_SUSIE2("PaintSprites() Hflip=%d Vflip=%d", mSPRCTL0_Hflip, mSPRCTL0_Vflip);
 				TRACE_SUSIE2("PaintSprites() Hsign=%d   Vsign=%d", hsign, vsign);
@@ -665,7 +665,7 @@ ULONG CSusie::PaintSprites(void)
 								// get offset by 1 pixel in the other direction, this
 								// fixes the squashed look on the multi-quad sprites.
 //								if (hsign == -1 && loop > 0) hoff += hsign;
-								if (loop ==0)	hquadoff = hsign;
+								if (loop ==0) hquadoff = hsign;
 								if (hsign != hquadoff) hoff += hsign;
 
 								// Initialise our line
@@ -993,7 +993,6 @@ inline void CSusie::ProcessPixel(ULONG hoff, ULONG pixel)
 			}
 			break;
 		default:
-//			_asm int 3;
 			break;
 	}
 }
@@ -1144,8 +1143,7 @@ inline ULONG CSusie::LineGetPixel()
 		}
 
 		// Pixel store is empty what should we do
-		switch(mLineType)
-		{
+		switch (mLineType) {
 			case line_abs_literal:
 				// This means end of line for us
 				mLinePixel = LINE_END;
@@ -1158,7 +1156,7 @@ inline ULONG CSusie::LineGetPixel()
 			case line_packed:
 				//
 				// From reading in between the lines only a packed line with
-				// a zero size i.e 0b00000 as a header is allowable as a packet end
+				// a zero size i.e 0b0000 as a header is allowable as a packet end
 				//
 				mLineRepeatCount = LineGetBits(4);
 				if (!mLineRepeatCount) {
@@ -1177,12 +1175,11 @@ inline ULONG CSusie::LineGetPixel()
 	if (mLinePixel != LINE_END) {
 		mLineRepeatCount--;
 
-		switch(mLineType)
-		{
+		switch(mLineType) {
 			case line_abs_literal:
 				mLinePixel = LineGetBits(mSPRCTL0_PixelBits);
 				// Check the special case of a zero in the last pixel
-				if(!mLineRepeatCount && !mLinePixel)
+				if (!mLineRepeatCount && !mLinePixel)
 					mLinePixel = LINE_END;
 				else
 					mLinePixel = mPenIndex[mLinePixel];

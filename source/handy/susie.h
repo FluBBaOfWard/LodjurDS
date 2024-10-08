@@ -72,7 +72,7 @@ class CSystem;
 #define LINE_END		0x80
 
 //
-// Define button values
+// Define Lynx button values
 //
 
 #define BUTTON_A		0x0001
