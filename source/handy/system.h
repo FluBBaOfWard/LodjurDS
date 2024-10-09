@@ -58,9 +58,6 @@
 	BOOL	gSystemNMI = FALSE;
 	BOOL	gSystemCPUSleep = FALSE;
 	BOOL	gSystemHalt = FALSE;
-	ULONG	gThrottleMaxPercentage = 100;
-	ULONG	gThrottleLastTimerCount = 0;
-	ULONG	gThrottleNextCycleCheckpoint = 0;
 
 	volatile ULONG gTimerCount = 0;
 
@@ -87,9 +84,6 @@
 	extern BOOL		gSystemNMI;
 	extern BOOL		gSystemCPUSleep;
 	extern BOOL		gSystemHalt;
-	extern ULONG	gThrottleMaxPercentage;
-	extern ULONG	gThrottleLastTimerCount;
-	extern ULONG	gThrottleNextCycleCheckpoint;
 
 	extern volatile ULONG gTimerCount;
 
@@ -114,6 +108,7 @@ class CSystem;
 #include "mikie.h"
 #include "c65c02.h"
 #include "../memory.h"
+#include "../cpu.h"
 
 extern "C" {
 	extern UBYTE lynxRAM[0x10000];
@@ -148,6 +143,8 @@ class CSystem : public CSystemBase
 			// Step the processor through 1 instruction
 			//
 			if (!gSystemCPUSleep) {
+//				int cyc = stepInstruction();
+//				gSystemCycleCount += (1+(cyc*CPU_RDWR_CYC));
 				mCpu->Update();
 			}
 			// If the CPU is asleep then skip to the next timer event
@@ -185,6 +182,7 @@ class CSystem : public CSystemBase
 // Low level CPU access
 
 		void setIrqPin(int state) {mCpu->setIrqPin(state);};
+	//	void setIrqPin(int state) {cpuSetIrqPin(state);};
 
 // Mikey system interfacing
 

@@ -18,6 +18,7 @@ void stepFrame(void);
  * Executes one instruction and returns the number of cycles consumed
  */
 int stepInstruction(void);
+void cpuSetIrqPin(int state);
 void cpuReset(void);
 
 #ifdef __cplusplus

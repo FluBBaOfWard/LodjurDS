@@ -1849,7 +1849,6 @@ void CMikie::Update(void)
 
 	if (gSystemCycleCount > 0xf0000000) {
 		gSystemCycleCount -= 0x80000000;
-		gThrottleNextCycleCheckpoint -= 0x80000000;
 		gAudioLastUpdateCycle -= 0x80000000;
 		mTIM_0_LAST_COUNT -= 0x80000000;
 		mTIM_1_LAST_COUNT -= 0x80000000;
@@ -2591,7 +2590,7 @@ void CMikie::Update(void)
 	// If sound is enabled then update the sound subsystem
 	//
 	if (gAudioEnabled) {
-//				static SLONG sample = 0;
+//		static SLONG sample = 0;
 		// ULONG mix = 0; // unused
 
 		//
@@ -2624,7 +2623,7 @@ void CMikie::Update(void)
 
 		for (;gAudioLastUpdateCycle+HANDY_AUDIO_SAMPLE_PERIOD<gSystemCycleCount;gAudioLastUpdateCycle+=HANDY_AUDIO_SAMPLE_PERIOD) {
 			// Output audio sample
-//					gAudioBuffer[gAudioBufferPointer++] = (UBYTE)sample;
+//			gAudioBuffer[gAudioBufferPointer++] = (UBYTE)sample;
 			gAudioBuffer0[gAudioBufferPointer] = (mSTEREO & 0x11) ? mAUDIO_0_OUTPUT : 0;
 			gAudioBuffer1[gAudioBufferPointer] = (mSTEREO & 0x22) ? mAUDIO_1_OUTPUT : 0;
 			gAudioBuffer2[gAudioBufferPointer] = (mSTEREO & 0x33) ? mAUDIO_2_OUTPUT : 0;
@@ -2644,7 +2643,7 @@ void CMikie::Update(void)
 		//
 		// Audio 0
 		//
-//				if (mAUDIO_0_ENABLE_COUNT && !mAUDIO_0_TIMER_DONE && mAUDIO_0_VOLUME && mAUDIO_0_BKUP)
+//		if (mAUDIO_0_ENABLE_COUNT && !mAUDIO_0_TIMER_DONE && mAUDIO_0_VOLUME && mAUDIO_0_BKUP)
 		if (mAUDIO_0_ENABLE_COUNT && (mAUDIO_0_ENABLE_RELOAD || !mAUDIO_0_TIMER_DONE) && mAUDIO_0_VOLUME && mAUDIO_0_BKUP) {
 			decval = 0;
 

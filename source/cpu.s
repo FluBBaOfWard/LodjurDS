@@ -12,6 +12,7 @@
 	.global run
 	.global stepFrame
 	.global stepInstruction
+	.global cpuSetIrqPin
 	.global cpuInit
 	.global cpuReset
 
@@ -86,13 +87,11 @@ stepInstruction:					;@ Return after 1 instruction
 ;@----------------------------------------------------------------------------
 	stmfd sp!,{r4-r11,lr}
 	ldr m6502ptr,=m6502_0
-	add r1,m6502ptr,#m6502Regs
-	ldmia r1,{m6502nz-m6502pc,m6502zpage}	;@ Restore M6502 state
-
 ;@----------------------------------------------------------------------------
-	mov r0,#CYCLE_PSL
-	bl m6502RunXCycles
-	rsb r0,cycles,#CYCLE_PSL
+	mov r0,#8
+	bl m6502RestoreAndRunXCycles
+	mov r0,cycles,asr#CYC_SHIFT
+	rsb r0,r0,#8
 ;@----------------------------------------------------------------------------
 	add r1,m6502ptr,#m6502Regs
 	stmia r1,{m6502nz-m6502pc}	;@ Save M6502 state
@@ -122,6 +121,16 @@ lxStepLoop:
 
 	ldmfd sp!,{r4-r11,lr}
 	bx lr
+
+;@----------------------------------------------------------------------------
+cpuSetIrqPin:
+	.type cpuSetIrqPin STT_FUNC
+;@----------------------------------------------------------------------------
+	stmfd sp!,{m6502ptr,lr}
+	ldr m6502ptr,=m6502_0
+	bl m6502SetIRQPin
+	ldmfd sp!,{m6502ptr,lr}
+	bx lr
 ;@----------------------------------------------------------------------------
 cpuInit:					;@ Called by machineInit
 ;@----------------------------------------------------------------------------
@@ -136,6 +145,7 @@ cpuInit:					;@ Called by machineInit
 	bx lr
 ;@----------------------------------------------------------------------------
 cpuReset:					;@ Called by loadCart/resetGame
+	.type cpuReset STT_FUNC
 ;@----------------------------------------------------------------------------
 	stmfd sp!,{lr}
 

@@ -108,17 +108,14 @@ void CSystem::Reset(void)
 	gSystemCPUSleep = FALSE;
 	gSystemHalt = FALSE;
 
-	gThrottleLastTimerCount = 0;
-	gThrottleNextCycleCheckpoint = 0;
-
 	gTimerCount = 0;
 
 	gAudioBufferPointer = 0;
 	gAudioLastUpdateCycle = 0;
-	memset(gAudioBuffer0, 128, HANDY_AUDIO_BUFFER_SIZE);
-	memset(gAudioBuffer1, 128, HANDY_AUDIO_BUFFER_SIZE);
-	memset(gAudioBuffer2, 128, HANDY_AUDIO_BUFFER_SIZE);
-	memset(gAudioBuffer3, 128, HANDY_AUDIO_BUFFER_SIZE);
+//	memset(gAudioBuffer0, 128, HANDY_AUDIO_BUFFER_SIZE);
+//	memset(gAudioBuffer1, 128, HANDY_AUDIO_BUFFER_SIZE);
+//	memset(gAudioBuffer2, 128, HANDY_AUDIO_BUFFER_SIZE);
+//	memset(gAudioBuffer3, 128, HANDY_AUDIO_BUFFER_SIZE);
 
 	memset(lynxRAM, DEFAULT_RAM_CONTENTS, RAM_SIZE);
 
@@ -131,4 +128,5 @@ void CSystem::Reset(void)
 	mMikie->Reset();
 	mSusie->Reset();
 	mCpu->Reset();
+	cpuReset();
 }

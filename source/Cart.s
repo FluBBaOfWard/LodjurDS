@@ -53,11 +53,15 @@ machineInit: 				;@ Called from C
 
 #ifdef EMBEDDED_ROM
 	ldr r0,=romSize
-	mov r1,#ROM_SpaceEnd-ROM_Space
+	ldr r1,=(ROM_SpaceEnd-ROM_Space)
 	str r1,[r0]
 	ldr r0,=romSpacePtr
-	ldr r7,=ROM_Space
-	str r7,[r0]
+	ldr r1,=ROM_Space
+	str r1,[r0]
+	ldr r0,=biosSpace
+	adr r1,LYNX_BIOS_INTERNAL
+	mov r2,#0x200
+	bl memcpy
 #endif
 	bl memoryMapInit
 	bl gfxInit

@@ -184,7 +184,7 @@ CCart::CCart(UBYTE *gameData, ULONG gameSize)
 	mCartBank1 = mCartBank0+bank0size;
 
 	memset(mCartBank0 + bank0size, DEFAULT_CART_CONTENTS, mMaskBank0+1 - bank0size);
-	memset(mCartBank1 + bank1size, DEFAULT_CART_CONTENTS, mMaskBank1+1 - bank1size);
+//	memset(mCartBank1 + bank1size, DEFAULT_CART_CONTENTS, mMaskBank1+1 - bank1size);
 
 	// Copy the cart banks from the image
 	if (gameSize) {
@@ -211,7 +211,7 @@ CCart::CCart(UBYTE *gameData, ULONG gameSize)
 		mMaskBank1 = 0x00ffff;
 		mShiftCount1 = 8;
 		mCountMask1 = 0x0ff;
-		memset(mCartBank1, DEFAULT_RAM_CONTENTS, mMaskBank1+1);
+//		memset(mCartBank1, DEFAULT_RAM_CONTENTS, mMaskBank1+1);
 		mWriteEnableBank1 = TRUE;
 		mCartRAM = TRUE;
 	}
@@ -231,11 +231,11 @@ void CCart::Reset(void)
 
 inline void CCart::Poke(ULONG addr, UBYTE data)
 {
-	if (mBank == bank0) {
-		if (mWriteEnableBank0) mCartBank0[addr & mMaskBank0] = data;
+	if (mBank == bank0 && mWriteEnableBank0) {
+		mCartBank0[addr & mMaskBank0] = data;
 	}
-	else {
-		if (mWriteEnableBank1) mCartBank1[addr & mMaskBank1] = data;
+	else if (mWriteEnableBank1) {
+		mCartBank1[addr & mMaskBank1] = data;
 	}
 }
 
