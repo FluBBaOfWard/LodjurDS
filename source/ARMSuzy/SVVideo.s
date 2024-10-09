@@ -172,10 +172,6 @@ svVideoLoadState:			;@ In r0=suzptr, r1=source. Out r0=state size.
 
 	bl clearDirtyTiles
 
-	ldrb r0,[suzptr,#wsvLinkPortVal]
-	ldrb r1,[r5,#wsvSystemControl]
-	bl reBankSwitchCart
-
 	ldmfd sp!,{r4,r5,r10,lr}
 ;@----------------------------------------------------------------------------
 svVideoGetStateSize:		;@ Out r0=state size.
@@ -596,7 +592,7 @@ handleLinkPort:
 memoryMap89AB:
 ;@----------------------------------------------------------------------------
 	ldrb r0,[suzptr,#wsvLinkPortVal]
-	b bankSwitchCart
+	bx lr
 ;@----------------------------------------------------------------------------
 newFrame:					;@ Called before line 0
 ;@----------------------------------------------------------------------------

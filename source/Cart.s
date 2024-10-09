@@ -25,9 +25,6 @@
 
 	.global machineInit
 	.global loadCart
-	.global bankSwitchCart
-	.global reBankSwitchCart
-	.global BankSwitch89AB_W
 	.global clearDirtyTiles
 
 	.syntax unified
@@ -85,8 +82,6 @@ loadCart: 					;@ Called from C
 	subne r1,r1,#1
 	str r1,romMask				;@ romMask=romBlocks-1
 
-	bl resetCartridgeBanks
-
 	ldrb r5,gMachine
 	cmp r5,#HW_LYNX_II
 	moveq r4,#SOC_HOWARD2
@@ -101,7 +96,6 @@ loadCart: 					;@ Called from C
 
 //	bl hacksInit
 	bl gfxReset
-	bl resetCartridgeBanks
 	bl ioReset
 	bl soundReset
 	bl cpuReset
@@ -121,87 +115,38 @@ memoryMapInit:
 	ldr r0,=m6502_0
 
 	ldr r1,=lynxRAM
-	str r1,[r0,#m6502MemTbl+0*4]	;@ 0 RAM
-	ldr r1,=svVRAM
-	str r1,[r0,#m6502MemTbl+2*4]	;@ 0 VRAM
+	str r1,[r0,#m6502MemTbl+0*4]
+	str r1,[r0,#m6502MemTbl+1*4]
+	str r1,[r0,#m6502MemTbl+2*4]
+	str r1,[r0,#m6502MemTbl+3*4]
+	str r1,[r0,#m6502MemTbl+4*4]
+	str r1,[r0,#m6502MemTbl+5*4]
+	str r1,[r0,#m6502MemTbl+6*4]
+	str r1,[r0,#m6502MemTbl+7*4]
 
 	ldr r1,=ram6502R
 	str r1,[r0,#m6502ReadTbl+0*4]
-	ldr r1,=lnxReadIO
 	str r1,[r0,#m6502ReadTbl+1*4]
-	ldr r1,=empty_R
+	str r1,[r0,#m6502ReadTbl+2*4]
 	str r1,[r0,#m6502ReadTbl+3*4]
+	str r1,[r0,#m6502ReadTbl+4*4]
+	str r1,[r0,#m6502ReadTbl+5*4]
+	str r1,[r0,#m6502ReadTbl+6*4]
 	ldr r1,=mem6502R7
 	str r1,[r0,#m6502ReadTbl+7*4]
 
 	ldr r1,=ram6502W
 	str r1,[r0,#m6502WriteTbl+0*4]
-	ldr r1,=lnxWriteIO
 	str r1,[r0,#m6502WriteTbl+1*4]
-	ldr r1,=empty_W
+	str r1,[r0,#m6502WriteTbl+2*4]
 	str r1,[r0,#m6502WriteTbl+3*4]
-	ldr r1,=rom_W
 	str r1,[r0,#m6502WriteTbl+4*4]
 	str r1,[r0,#m6502WriteTbl+5*4]
 	str r1,[r0,#m6502WriteTbl+6*4]
+	ldr r1,=mem6502W7
 	str r1,[r0,#m6502WriteTbl+7*4]
 
 	bx lr
-;@----------------------------------------------------------------------------
-resetCartridgeBanks:
-;@----------------------------------------------------------------------------
-	stmfd sp!,{r4,lr}
-	ldr r4,romSpacePtr
-	ldr r0,=bankPointers
-	ldrb r2,romMask
-	mov r1,#0x1F
-bankLoop:
-	and r3,r2,r1
-	add r3,r4,r3,lsl#14
-	str r3,[r0,r1,lsl#2]
-	subs r1,r1,#1
-	bpl bankLoop
-
-	mov r1,#0
-	bl BankSwitch89AB_W
-	bl BankSwitchCDEF_W
-	ldmfd sp!,{r4,pc}
-;@----------------------------------------------------------------------------
-reBankSwitchCart:			;@ r0 = LinkPort val, r1 = BankChip val
-;@----------------------------------------------------------------------------
-	ldr m6502ptr,=m6502_0
-;@----------------------------------------------------------------------------
-bankSwitchCart:				;@ r0 = LinkPort val, r1 = BankChip val
-;@----------------------------------------------------------------------------
-	mov r1,r1,lsr#5
-	ldrb r2,romMask
-	cmp r2,#8
-	bmi BankSwitch89AB_W
-	tst r1,#4
-	orrne r0,r0,#0xF
-	and r1,r1,#1
-	orr r1,r1,r0,lsl#1
-;@----------------------------------------------------------------------------
-BankSwitch89AB_W:			;@ 0x8000-0xBFFF
-;@----------------------------------------------------------------------------
-	adr r2,bankPointers
-	and r1,r1,#0x1F
-	ldr r0,[r2,r1,lsl#2]
-	sub r0,r0,#0x8000
-
-	str r0,[m6502ptr,#m6502MemTbl+4*4]
-	str r0,[m6502ptr,#m6502MemTbl+5*4]
-	bx lr
-;@----------------------------------------------------------------------------
-BankSwitchCDEF_W:			;@ 0xC000-0xFFFF
-;@----------------------------------------------------------------------------
-	ldr r0,bankPointers+31*4
-	sub r0,r0,#0xC000
-	str r0,[m6502ptr,#m6502MemTbl+6*4]
-	str r0,[m6502ptr,#m6502MemTbl+7*4]
-
-	bx lr
-
 ;@----------------------------------------------------------------------------
 
 romNum:
@@ -241,8 +186,6 @@ maxRomSize:
 	.long 0
 romMask:
 	.long 0
-bankPointers:
-	.space 32*4
 
 #ifdef GBA
 	.section .sbss				;@ For the GBA

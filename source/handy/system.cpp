@@ -32,6 +32,7 @@
 #include <stdlib.h>
 #include "system.h"
 #include "../memory.h"
+#include "../cpu.h"
 
 extern UBYTE *romSpacePtr;
 

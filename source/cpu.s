@@ -11,6 +11,7 @@
 
 	.global run
 	.global stepFrame
+	.global stepInstruction
 	.global cpuInit
 	.global cpuReset
 
@@ -80,6 +81,25 @@ waitCountOut:		.byte 0
 waitMaskOut:		.byte 0
 
 ;@----------------------------------------------------------------------------
+stepInstruction:					;@ Return after 1 instruction
+	.type stepInstruction STT_FUNC
+;@----------------------------------------------------------------------------
+	stmfd sp!,{r4-r11,lr}
+	ldr m6502ptr,=m6502_0
+	add r1,m6502ptr,#m6502Regs
+	ldmia r1,{m6502nz-m6502pc,m6502zpage}	;@ Restore M6502 state
+
+;@----------------------------------------------------------------------------
+	mov r0,#CYCLE_PSL
+	bl m6502RunXCycles
+	rsb r0,cycles,#CYCLE_PSL
+;@----------------------------------------------------------------------------
+	add r1,m6502ptr,#m6502Regs
+	stmia r1,{m6502nz-m6502pc}	;@ Save M6502 state
+
+	ldmfd sp!,{r4-r11,lr}
+	bx lr
+;@----------------------------------------------------------------------------
 stepFrame:					;@ Return after 1 frame
 	.type stepFrame STT_FUNC
 ;@----------------------------------------------------------------------------
@@ -88,14 +108,14 @@ stepFrame:					;@ Return after 1 frame
 	add r1,m6502ptr,#m6502Regs
 	ldmia r1,{m6502nz-m6502pc,m6502zpage}	;@ Restore M6502 state
 ;@----------------------------------------------------------------------------
-svStepLoop:
+lxStepLoop:
 ;@----------------------------------------------------------------------------
 	mov r0,#CYCLE_PSL
 	bl m6502RunXCycles
 	ldr suzptr,=suzy_0
 	bl svDoScanline
 	cmp r0,#0
-	bne svStepLoop
+	bne lxStepLoop
 ;@----------------------------------------------------------------------------
 	add r0,m6502ptr,#m6502Regs
 	stmia r0,{m6502nz-m6502pc}	;@ Save M6502 state
