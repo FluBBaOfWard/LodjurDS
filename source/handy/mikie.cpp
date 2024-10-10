@@ -441,12 +441,9 @@ ULONG CMikie::DisplayRenderLine(void)
 		mIODAT_REST_SIGNAL = FALSE;
 
 	if (mLynxLine == (mTIM_2_BKUP-3)) {
+		mLynxAddr = mDisplayAddress & 0xfffc;
 		if (mDISPCTL_Flip) {
-			mLynxAddr = mDisplayAddress & 0xfffc;
 			mLynxAddr += 3;
-		}
-		else {
-			mLynxAddr = mDisplayAddress & 0xfffc;
 		}
 		// Trigger line rending to start
 		mLynxLineDMACounter = 102;
@@ -495,8 +492,7 @@ ULONG CMikie::DisplayEndOfFrame(void)
 
 //	TRACE_MIKIE0("Update() - Frame end");
 	// Trigger the callback to the display sub-system to render the
-	// display and fetch the new pointer to be used for the lynx
-	// display buffer for the forthcoming frame
+	// display.
 	if (mpDisplayCallback) (*mpDisplayCallback)();
 
 	return 0;
@@ -1918,10 +1914,10 @@ void CMikie::Update(void)
 	//
 
 	// KW bugfix 13/4/99 added (mTIM_x_ENABLE_RELOAD ||  ..)
-//			if(mTIM_0_ENABLE_COUNT && (mTIM_0_ENABLE_RELOAD || !mTIM_0_TIMER_DONE))
+//	if(mTIM_0_ENABLE_COUNT && (mTIM_0_ENABLE_RELOAD || !mTIM_0_TIMER_DONE))
 	if (mTIM_0_ENABLE_COUNT) {
 		// Timer 0 has no linking
-//				if (mTIM_0_LINKING != 0x07)
+//		if (mTIM_0_LINKING != 0x07)
 		{
 			// Ordinary clocked mode as opposed to linked mode
 			// 16MHz clock downto 1us == cyclecount >> 4
@@ -1936,13 +1932,13 @@ void CMikie::Update(void)
 					// Set carry out
 					mTIM_0_BORROW_OUT = TRUE;
 
-//							// Reload if neccessary
-//							if (mTIM_0_ENABLE_RELOAD) {
+//					// Reload if neccessary
+//					if (mTIM_0_ENABLE_RELOAD) {
 						mTIM_0_CURRENT += mTIM_0_BKUP+1;
-//							}
-//							else {
-//								mTIM_0_CURRENT = 0;
-//							}
+//					}
+//					else {
+//						mTIM_0_CURRENT = 0;
+//					}
 
 					mTIM_0_TIMER_DONE = TRUE;
 
@@ -1970,22 +1966,22 @@ void CMikie::Update(void)
 
 		// Prediction for next timer event cycle number
 
-//				if(mTIM_0_LINKING != 7)
+//		if(mTIM_0_LINKING != 7)
 		{
 			// Sometimes timeupdates can be >2x rollover in which case
 			// then CURRENT may still be negative and we can use it to
 			// calc the next timer value, we just want another update ASAP
-			tmp = (mTIM_0_CURRENT&0x80000000)?1:((mTIM_0_CURRENT+1)<<divide);
+			tmp = (mTIM_0_CURRENT & 0x80000000) ? 1 : ((mTIM_0_CURRENT+1)<<divide);
 			tmp += gSystemCycleCount;
 			if (tmp < gNextTimerEvent) {
 				gNextTimerEvent = tmp;
-//						TRACE_MIKIE1("Update() - TIMER 0 Set NextTimerEvent = %012d",gNextTimerEvent);
+//				TRACE_MIKIE1("Update() - TIMER 0 Set NextTimerEvent = %012d",gNextTimerEvent);
 			}
 		}
-//				TRACE_MIKIE1("Update() - mTIM_0_CURRENT = %012d",mTIM_0_CURRENT);
-//				TRACE_MIKIE1("Update() - mTIM_0_BKUP    = %012d",mTIM_0_BKUP);
-//				TRACE_MIKIE1("Update() - mTIM_0_LASTCNT = %012d",mTIM_0_LAST_COUNT);
-//				TRACE_MIKIE1("Update() - mTIM_0_LINKING = %012d",mTIM_0_LINKING);
+//		TRACE_MIKIE1("Update() - mTIM_0_CURRENT = %012d",mTIM_0_CURRENT);
+//		TRACE_MIKIE1("Update() - mTIM_0_BKUP    = %012d",mTIM_0_BKUP);
+//		TRACE_MIKIE1("Update() - mTIM_0_LASTCNT = %012d",mTIM_0_LAST_COUNT);
+//		TRACE_MIKIE1("Update() - mTIM_0_LINKING = %012d",mTIM_0_LINKING);
 	}
 
 	//
@@ -1998,21 +1994,21 @@ void CMikie::Update(void)
 	//
 
 	// KW bugfix 13/4/99 added (mTIM_x_ENABLE_RELOAD ||  ..)
-//			if (mTIM_2_ENABLE_COUNT && (mTIM_2_ENABLE_RELOAD || !mTIM_2_TIMER_DONE))
+//	if (mTIM_2_ENABLE_COUNT && (mTIM_2_ENABLE_RELOAD || !mTIM_2_TIMER_DONE))
 	if (mTIM_2_ENABLE_COUNT) {
 		decval = 0;
 
-//				if (mTIM_2_LINKING == 0x07)
+//		if (mTIM_2_LINKING == 0x07)
 		{
 			if (mTIM_0_BORROW_OUT) decval = 1;
 			mTIM_2_LAST_LINK_CARRY = mTIM_0_BORROW_OUT;
 		}
-//				else {
-//					// Ordinary clocked mode as opposed to linked mode
-//					// 16MHz clock downto 1us == cyclecount >> 4
-//					divide = (4 + mTIM_2_LINKING);
-//					decval = (gSystemCycleCount - mTIM_2_LAST_COUNT) >> divide;
-//				}
+//		else {
+//			// Ordinary clocked mode as opposed to linked mode
+//			// 16MHz clock downto 1us == cyclecount >> 4
+//			divide = (4 + mTIM_2_LINKING);
+//			decval = (gSystemCycleCount - mTIM_2_LAST_COUNT) >> divide;
+//		}
 
 		if (decval) {
 //					mTIM_2_LAST_COUNT += decval << divide;
@@ -2021,13 +2017,13 @@ void CMikie::Update(void)
 				// Set carry out
 				mTIM_2_BORROW_OUT = TRUE;
 
-//						// Reload if neccessary
-//						if (mTIM_2_ENABLE_RELOAD) {
+//				// Reload if neccessary
+//				if (mTIM_2_ENABLE_RELOAD) {
 					mTIM_2_CURRENT += mTIM_2_BKUP+1;
-//						}
-//						else {
-//							mTIM_2_CURRENT = 0;
-//						}
+//				}
+//				else {
+//					mTIM_2_CURRENT = 0;
+//				}
 				mTIM_2_TIMER_DONE = TRUE;
 
 				// Interupt flag setting code moved into DisplayEndOfFrame(), also
@@ -2050,14 +2046,14 @@ void CMikie::Update(void)
 		// Prediction for next timer event cycle number
 // We dont need to predict this as its the frame timer and will always
 // be beaten by the line timer on Timer 0
-//				if (mTIM_2_LINKING != 7) {
-//					tmp = gSystemCycleCount + ((mTIM_2_CURRENT + 1) << divide);
-//					if (tmp < gNextTimerEvent) gNextTimerEvent = tmp;
-//				}
-//				TRACE_MIKIE1("Update() - mTIM_2_CURRENT = %012d",mTIM_2_CURRENT);
-//				TRACE_MIKIE1("Update() - mTIM_2_BKUP    = %012d",mTIM_2_BKUP);
-//				TRACE_MIKIE1("Update() - mTIM_2_LASTCNT = %012d",mTIM_2_LAST_COUNT);
-//				TRACE_MIKIE1("Update() - mTIM_2_LINKING = %012d",mTIM_2_LINKING);
+//		if (mTIM_2_LINKING != 7) {
+//			tmp = gSystemCycleCount + ((mTIM_2_CURRENT + 1) << divide);
+//			if (tmp < gNextTimerEvent) gNextTimerEvent = tmp;
+//		}
+//		TRACE_MIKIE1("Update() - mTIM_2_CURRENT = %012d",mTIM_2_CURRENT);
+//		TRACE_MIKIE1("Update() - mTIM_2_BKUP    = %012d",mTIM_2_BKUP);
+//		TRACE_MIKIE1("Update() - mTIM_2_LASTCNT = %012d",mTIM_2_LAST_COUNT);
+//		TRACE_MIKIE1("Update() - mTIM_2_LINKING = %012d",mTIM_2_LINKING);
 	}
 
 	//
@@ -2070,16 +2066,16 @@ void CMikie::Update(void)
 	//
 
 	// KW bugfix 13/4/99 added (mTIM_x_ENABLE_RELOAD ||  ..)
-//			if (mTIM_4_ENABLE_COUNT && (mTIM_4_ENABLE_RELOAD || !mTIM_4_TIMER_DONE))
+//	if (mTIM_4_ENABLE_COUNT && (mTIM_4_ENABLE_RELOAD || !mTIM_4_TIMER_DONE))
 	if (mTIM_4_ENABLE_COUNT) {
 		decval = 0;
 
-//				if (mTIM_4_LINKING == 0x07) {
-//					if (mTIM_2_BORROW_OUT && !mTIM_4_LAST_LINK_CARRY) decval = 1;
-//					if (mTIM_2_BORROW_OUT) decval = 1;
-//					mTIM_4_LAST_LINK_CARRY = mTIM_2_BORROW_OUT;
-//				}
-//				else
+//		if (mTIM_4_LINKING == 0x07) {
+//			if (mTIM_2_BORROW_OUT && !mTIM_4_LAST_LINK_CARRY) decval = 1;
+//			if (mTIM_2_BORROW_OUT) decval = 1;
+//			mTIM_4_LAST_LINK_CARRY = mTIM_2_BORROW_OUT;
+//		}
+//		else
 		{
 			// Ordinary clocked mode as opposed to linked mode
 			// 16MHz clock downto 1us == cyclecount >> 4
@@ -2171,7 +2167,7 @@ void CMikie::Update(void)
 				// 16 Clocks = 1 bit transmission. Hold separate Rx & Tx counters
 
 				// Reload if neccessary
-//						if (mTIM_4_ENABLE_RELOAD) {
+//				if (mTIM_4_ENABLE_RELOAD) {
 					mTIM_4_CURRENT += mTIM_4_BKUP + 1;
 					// The low reload values on TIM4 coupled with a longer
 					// timer service delay can sometimes cause
@@ -2180,28 +2176,28 @@ void CMikie::Update(void)
 						mTIM_4_CURRENT = mTIM_4_BKUP;
 						mTIM_4_LAST_COUNT = gSystemCycleCount;
 					}
-//						}
-//						else {
-//							mTIM_4_CURRENT = 0;
-//						}
-//						mTIM_4_TIMER_DONE = TRUE;
-			}
-//					else {
-//						mTIM_4_BORROW_OUT = FALSE;
-//					}
-//					// Set carry in as we did a count
-//					mTIM_4_BORROW_IN = TRUE;
-		}
-//				else {
-//					// Clear carry in as we didn't count
-//					mTIM_4_BORROW_IN = FALSE;
-//					// Clear carry out
-//					mTIM_4_BORROW_OUT = FALSE;
 //				}
+//				else {
+//					mTIM_4_CURRENT = 0;
+//				}
+//				mTIM_4_TIMER_DONE = TRUE;
+			}
+//			else {
+//				mTIM_4_BORROW_OUT = FALSE;
+//			}
+//			// Set carry in as we did a count
+//			mTIM_4_BORROW_IN = TRUE;
+		}
+//		else {
+//			// Clear carry in as we didn't count
+//			mTIM_4_BORROW_IN = FALSE;
+//			// Clear carry out
+//			mTIM_4_BORROW_OUT = FALSE;
+//		}
 //
-//				// Prediction for next timer event cycle number
+//		// Prediction for next timer event cycle number
 //
-//				if (mTIM_4_LINKING != 7) {
+//		if (mTIM_4_LINKING != 7) {
 			// Sometimes timeupdates can be >2x rollover in which case
 			// then CURRENT may still be negative and we can use it to
 			// calc the next timer value, we just want another update ASAP
@@ -2211,11 +2207,11 @@ void CMikie::Update(void)
 				gNextTimerEvent = tmp;
 				TRACE_MIKIE1("Update() - TIMER 4 Set NextTimerEvent = %012d", gNextTimerEvent);
 			}
-//				}
-//				TRACE_MIKIE1("Update() - mTIM_4_CURRENT = %012d",mTIM_4_CURRENT);
-//				TRACE_MIKIE1("Update() - mTIM_4_BKUP    = %012d",mTIM_4_BKUP);
-//				TRACE_MIKIE1("Update() - mTIM_4_LASTCNT = %012d",mTIM_4_LAST_COUNT);
-//				TRACE_MIKIE1("Update() - mTIM_4_LINKING = %012d",mTIM_4_LINKING);
+//		}
+//		TRACE_MIKIE1("Update() - mTIM_4_CURRENT = %012d",mTIM_4_CURRENT);
+//		TRACE_MIKIE1("Update() - mTIM_4_BKUP    = %012d",mTIM_4_BKUP);
+//		TRACE_MIKIE1("Update() - mTIM_4_LASTCNT = %012d",mTIM_4_LAST_COUNT);
+//		TRACE_MIKIE1("Update() - mTIM_4_LINKING = %012d",mTIM_4_LINKING);
 	}
 
 	// Emulate the UART bug where UART IRQ is level sensitive
@@ -2295,10 +2291,10 @@ void CMikie::Update(void)
 				TRACE_MIKIE1("Update() - TIMER 1 Set NextTimerEvent = %012d", gNextTimerEvent);
 			}
 		}
-//				TRACE_MIKIE1("Update() - mTIM_1_CURRENT = %012d",mTIM_1_CURRENT);
-//				TRACE_MIKIE1("Update() - mTIM_1_BKUP    = %012d",mTIM_1_BKUP);
-//				TRACE_MIKIE1("Update() - mTIM_1_LASTCNT = %012d",mTIM_1_LAST_COUNT);
-//				TRACE_MIKIE1("Update() - mTIM_1_LINKING = %012d",mTIM_1_LINKING);
+//		TRACE_MIKIE1("Update() - mTIM_1_CURRENT = %012d",mTIM_1_CURRENT);
+//		TRACE_MIKIE1("Update() - mTIM_1_BKUP    = %012d",mTIM_1_BKUP);
+//		TRACE_MIKIE1("Update() - mTIM_1_LASTCNT = %012d",mTIM_1_LAST_COUNT);
+//		TRACE_MIKIE1("Update() - mTIM_1_LINKING = %012d",mTIM_1_LINKING);
 	}
 
 	//
@@ -2367,10 +2363,10 @@ void CMikie::Update(void)
 				TRACE_MIKIE1("Update() - TIMER 3 Set NextTimerEvent = %012d", gNextTimerEvent);
 			}
 		}
-//				TRACE_MIKIE1("Update() - mTIM_3_CURRENT = %012d",mTIM_3_CURRENT);
-//				TRACE_MIKIE1("Update() - mTIM_3_BKUP    = %012d",mTIM_3_BKUP);
-//				TRACE_MIKIE1("Update() - mTIM_3_LASTCNT = %012d",mTIM_3_LAST_COUNT);
-//				TRACE_MIKIE1("Update() - mTIM_3_LINKING = %012d",mTIM_3_LINKING);
+//		TRACE_MIKIE1("Update() - mTIM_3_CURRENT = %012d",mTIM_3_CURRENT);
+//		TRACE_MIKIE1("Update() - mTIM_3_BKUP    = %012d",mTIM_3_BKUP);
+//		TRACE_MIKIE1("Update() - mTIM_3_LASTCNT = %012d",mTIM_3_LAST_COUNT);
+//		TRACE_MIKIE1("Update() - mTIM_3_LINKING = %012d",mTIM_3_LINKING);
 	}
 
 	//
@@ -2439,10 +2435,10 @@ void CMikie::Update(void)
 				TRACE_MIKIE1("Update() - TIMER 5 Set NextTimerEvent = %012d", gNextTimerEvent);
 			}
 		}
-//				TRACE_MIKIE1("Update() - mTIM_5_CURRENT = %012d",mTIM_5_CURRENT);
-//				TRACE_MIKIE1("Update() - mTIM_5_BKUP    = %012d",mTIM_5_BKUP);
-//				TRACE_MIKIE1("Update() - mTIM_5_LASTCNT = %012d",mTIM_5_LAST_COUNT);
-//				TRACE_MIKIE1("Update() - mTIM_5_LINKING = %012d",mTIM_5_LINKING);
+//		TRACE_MIKIE1("Update() - mTIM_5_CURRENT = %012d",mTIM_5_CURRENT);
+//		TRACE_MIKIE1("Update() - mTIM_5_BKUP    = %012d",mTIM_5_BKUP);
+//		TRACE_MIKIE1("Update() - mTIM_5_LASTCNT = %012d",mTIM_5_LAST_COUNT);
+//		TRACE_MIKIE1("Update() - mTIM_5_LINKING = %012d",mTIM_5_LINKING);
 	}
 
 	//
@@ -2511,10 +2507,10 @@ void CMikie::Update(void)
 				TRACE_MIKIE1("Update() - TIMER 7 Set NextTimerEvent = %012d", gNextTimerEvent);
 			}
 		}
-//				TRACE_MIKIE1("Update() - mTIM_7_CURRENT = %012d",mTIM_7_CURRENT);
-//				TRACE_MIKIE1("Update() - mTIM_7_BKUP    = %012d",mTIM_7_BKUP);
-//				TRACE_MIKIE1("Update() - mTIM_7_LASTCNT = %012d",mTIM_7_LAST_COUNT);
-//				TRACE_MIKIE1("Update() - mTIM_7_LINKING = %012d",mTIM_7_LINKING);
+//		TRACE_MIKIE1("Update() - mTIM_7_CURRENT = %012d",mTIM_7_CURRENT);
+//		TRACE_MIKIE1("Update() - mTIM_7_BKUP    = %012d",mTIM_7_BKUP);
+//		TRACE_MIKIE1("Update() - mTIM_7_LASTCNT = %012d",mTIM_7_LAST_COUNT);
+//		TRACE_MIKIE1("Update() - mTIM_7_LINKING = %012d",mTIM_7_LINKING);
 	}
 
 	//
@@ -2522,7 +2518,7 @@ void CMikie::Update(void)
 	//
 	// KW bugfix 13/4/99 added (mTIM_x_ENABLE_RELOAD ||  ..)
 	if (mTIM_6_ENABLE_COUNT && (mTIM_6_ENABLE_RELOAD || !mTIM_6_TIMER_DONE)) {
-//				if (mTIM_6_LINKING != 0x07)
+//		if (mTIM_6_LINKING != 0x07)
 		{
 			// Ordinary clocked mode as opposed to linked mode
 			// 16MHz clock downto 1us == cyclecount >> 4
@@ -2568,7 +2564,7 @@ void CMikie::Update(void)
 		// Prediction for next timer event cycle number
 		// (Timer 6 doesn't support linking)
 
-//				if (mTIM_6_LINKING != 7)
+//		if (mTIM_6_LINKING != 7)
 		{
 			// Sometimes timeupdates can be >2x rollover in which case
 			// then CURRENT may still be negative and we can use it to
@@ -2580,10 +2576,10 @@ void CMikie::Update(void)
 				TRACE_MIKIE1("Update() - TIMER 6 Set NextTimerEvent = %012d", gNextTimerEvent);
 			}
 		}
-//				TRACE_MIKIE1("Update() - mTIM_6_CURRENT = %012d",mTIM_6_CURRENT);
-//				TRACE_MIKIE1("Update() - mTIM_6_BKUP    = %012d",mTIM_6_BKUP);
-//				TRACE_MIKIE1("Update() - mTIM_6_LASTCNT = %012d",mTIM_6_LAST_COUNT);
-//				TRACE_MIKIE1("Update() - mTIM_6_LINKING = %012d",mTIM_6_LINKING);
+//		TRACE_MIKIE1("Update() - mTIM_6_CURRENT = %012d",mTIM_6_CURRENT);
+//		TRACE_MIKIE1("Update() - mTIM_6_BKUP    = %012d",mTIM_6_BKUP);
+//		TRACE_MIKIE1("Update() - mTIM_6_LASTCNT = %012d",mTIM_6_LAST_COUNT);
+//		TRACE_MIKIE1("Update() - mTIM_6_LINKING = %012d",mTIM_6_LINKING);
 	}
 
 	//
@@ -2613,12 +2609,12 @@ void CMikie::Update(void)
 			sample = 128;
 		}
 
-//				sample += (mSTEREO & 0x11) ? mAUDIO_0_OUTPUT : 0;
-//				sample += (mSTEREO & 0x22) ? mAUDIO_1_OUTPUT : 0;
-//				sample += (mSTEREO & 0x44) ? mAUDIO_2_OUTPUT : 0;
-//				sample += (mSTEREO & 0x88) ? mAUDIO_3_OUTPUT : 0;
-//				sample = sample >> 2;
-//				sample += 128;
+//		sample += (mSTEREO & 0x11) ? mAUDIO_0_OUTPUT : 0;
+//		sample += (mSTEREO & 0x22) ? mAUDIO_1_OUTPUT : 0;
+//		sample += (mSTEREO & 0x44) ? mAUDIO_2_OUTPUT : 0;
+//		sample += (mSTEREO & 0x88) ? mAUDIO_3_OUTPUT : 0;
+//		sample = sample >> 2;
+//		sample += 128;
 		*/
 
 		for (;gAudioLastUpdateCycle+HANDY_AUDIO_SAMPLE_PERIOD<gSystemCycleCount;gAudioLastUpdateCycle+=HANDY_AUDIO_SAMPLE_PERIOD) {
@@ -2718,16 +2714,16 @@ void CMikie::Update(void)
 					TRACE_MIKIE1("Update() - AUDIO 0 Set NextTimerEvent = %012d", gNextTimerEvent);
 				}
 			}
-//					TRACE_MIKIE1("Update() - mAUDIO_0_CURRENT = %012d",mAUDIO_0_CURRENT);
-//					TRACE_MIKIE1("Update() - mAUDIO_0_BKUP    = %012d",mAUDIO_0_BKUP);
-//					TRACE_MIKIE1("Update() - mAUDIO_0_LASTCNT = %012d",mAUDIO_0_LAST_COUNT);
-//					TRACE_MIKIE1("Update() - mAUDIO_0_LINKING = %012d",mAUDIO_0_LINKING);
+//			TRACE_MIKIE1("Update() - mAUDIO_0_CURRENT = %012d",mAUDIO_0_CURRENT);
+//			TRACE_MIKIE1("Update() - mAUDIO_0_BKUP    = %012d",mAUDIO_0_BKUP);
+//			TRACE_MIKIE1("Update() - mAUDIO_0_LASTCNT = %012d",mAUDIO_0_LAST_COUNT);
+//			TRACE_MIKIE1("Update() - mAUDIO_0_LINKING = %012d",mAUDIO_0_LINKING);
 		}
 
 		//
 		// Audio 1
 		//
-//				if (mAUDIO_1_ENABLE_COUNT && !mAUDIO_1_TIMER_DONE && mAUDIO_1_VOLUME && mAUDIO_1_BKUP)
+//		if (mAUDIO_1_ENABLE_COUNT && !mAUDIO_1_TIMER_DONE && mAUDIO_1_VOLUME && mAUDIO_1_BKUP)
 		if (mAUDIO_1_ENABLE_COUNT && (mAUDIO_1_ENABLE_RELOAD || !mAUDIO_1_TIMER_DONE) && mAUDIO_1_VOLUME && mAUDIO_1_BKUP) {
 			decval = 0;
 
@@ -2802,16 +2798,16 @@ void CMikie::Update(void)
 					TRACE_MIKIE1("Update() - AUDIO 1 Set NextTimerEvent = %012d", gNextTimerEvent);
 				}
 			}
-//					TRACE_MIKIE1("Update() - mAUDIO_1_CURRENT = %012d",mAUDIO_1_CURRENT);
-//					TRACE_MIKIE1("Update() - mAUDIO_1_BKUP    = %012d",mAUDIO_1_BKUP);
-//					TRACE_MIKIE1("Update() - mAUDIO_1_LASTCNT = %012d",mAUDIO_1_LAST_COUNT);
-//					TRACE_MIKIE1("Update() - mAUDIO_1_LINKING = %012d",mAUDIO_1_LINKING);
+//			TRACE_MIKIE1("Update() - mAUDIO_1_CURRENT = %012d",mAUDIO_1_CURRENT);
+//			TRACE_MIKIE1("Update() - mAUDIO_1_BKUP    = %012d",mAUDIO_1_BKUP);
+//			TRACE_MIKIE1("Update() - mAUDIO_1_LASTCNT = %012d",mAUDIO_1_LAST_COUNT);
+//			TRACE_MIKIE1("Update() - mAUDIO_1_LINKING = %012d",mAUDIO_1_LINKING);
 		}
 
 		//
 		// Audio 2
 		//
-//				if (mAUDIO_2_ENABLE_COUNT && !mAUDIO_2_TIMER_DONE && mAUDIO_2_VOLUME && mAUDIO_2_BKUP)
+//		if (mAUDIO_2_ENABLE_COUNT && !mAUDIO_2_TIMER_DONE && mAUDIO_2_VOLUME && mAUDIO_2_BKUP)
 		if (mAUDIO_2_ENABLE_COUNT && (mAUDIO_2_ENABLE_RELOAD || !mAUDIO_2_TIMER_DONE) && mAUDIO_2_VOLUME && mAUDIO_2_BKUP) {
 			decval = 0;
 
@@ -2886,16 +2882,16 @@ void CMikie::Update(void)
 					TRACE_MIKIE1("Update() - AUDIO 2 Set NextTimerEvent = %012d", gNextTimerEvent);
 				}
 			}
-//					TRACE_MIKIE1("Update() - mAUDIO_2_CURRENT = %012d",mAUDIO_2_CURRENT);
-//					TRACE_MIKIE1("Update() - mAUDIO_2_BKUP    = %012d",mAUDIO_2_BKUP);
-//					TRACE_MIKIE1("Update() - mAUDIO_2_LASTCNT = %012d",mAUDIO_2_LAST_COUNT);
-//					TRACE_MIKIE1("Update() - mAUDIO_2_LINKING = %012d",mAUDIO_2_LINKING);
+//			TRACE_MIKIE1("Update() - mAUDIO_2_CURRENT = %012d",mAUDIO_2_CURRENT);
+//			TRACE_MIKIE1("Update() - mAUDIO_2_BKUP    = %012d",mAUDIO_2_BKUP);
+//			TRACE_MIKIE1("Update() - mAUDIO_2_LASTCNT = %012d",mAUDIO_2_LAST_COUNT);
+//			TRACE_MIKIE1("Update() - mAUDIO_2_LINKING = %012d",mAUDIO_2_LINKING);
 		}
 
 		//
 		// Audio 3
 		//
-//				if (mAUDIO_3_ENABLE_COUNT && !mAUDIO_3_TIMER_DONE && mAUDIO_3_VOLUME && mAUDIO_3_BKUP)
+//		if (mAUDIO_3_ENABLE_COUNT && !mAUDIO_3_TIMER_DONE && mAUDIO_3_VOLUME && mAUDIO_3_BKUP)
 		if (mAUDIO_3_ENABLE_COUNT && (mAUDIO_3_ENABLE_RELOAD || !mAUDIO_3_TIMER_DONE) && mAUDIO_3_VOLUME && mAUDIO_3_BKUP) {
 			decval = 0;
 
@@ -2970,15 +2966,15 @@ void CMikie::Update(void)
 					TRACE_MIKIE1("Update() - AUDIO 3 Set NextTimerEvent = %012d", gNextTimerEvent);
 				}
 			}
-//					TRACE_MIKIE1("Update() - mAUDIO_3_CURRENT = %012d",mAUDIO_3_CURRENT);
-//					TRACE_MIKIE1("Update() - mAUDIO_3_BKUP    = %012d",mAUDIO_3_BKUP);
-//					TRACE_MIKIE1("Update() - mAUDIO_3_LASTCNT = %012d",mAUDIO_3_LAST_COUNT);
-//					TRACE_MIKIE1("Update() - mAUDIO_3_LINKING = %012d",mAUDIO_3_LINKING);
+//			TRACE_MIKIE1("Update() - mAUDIO_3_CURRENT = %012d",mAUDIO_3_CURRENT);
+//			TRACE_MIKIE1("Update() - mAUDIO_3_BKUP    = %012d",mAUDIO_3_BKUP);
+//			TRACE_MIKIE1("Update() - mAUDIO_3_LASTCNT = %012d",mAUDIO_3_LAST_COUNT);
+//			TRACE_MIKIE1("Update() - mAUDIO_3_LINKING = %012d",mAUDIO_3_LINKING);
 		}
 	}
 
-//			if (gSystemCycleCount == gNextTimerEvent) gError->Warning("CMikie::Update() - gSystemCycleCount==gNextTimerEvent, system lock likely");
-//			TRACE_MIKIE1("Update() - NextTimerEvent = %012d",gNextTimerEvent);
+//	if (gSystemCycleCount == gNextTimerEvent) gError->Warning("CMikie::Update() - gSystemCycleCount==gNextTimerEvent, system lock likely");
+//	TRACE_MIKIE1("Update() - NextTimerEvent = %012d",gNextTimerEvent);
 
 	gSystemIRQ = (mTimerStatusFlags) ? true : false;
 	mSystem.setIrqPin(gSystemIRQ);

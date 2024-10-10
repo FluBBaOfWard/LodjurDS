@@ -51,12 +51,9 @@ rom_W:						;@ Write ROM address (error)
 	mov r0,#0xB0
 	bx lr
 ;@----------------------------------------------------------------------------
-memSelector:
-	.byte 0
-	.align 2
 
 #ifdef NDS
-//	.section .itcm						;@ For the NDS ARM9
+	.section .itcm						;@ For the NDS ARM9
 #elif GBA
 	.section .iwram, "ax", %progbits	;@ For the GBA
 #endif
@@ -179,19 +176,22 @@ ram6502R:					;@ Ram read ($0000-$DFFF)
 ;@----------------------------------------------------------------------------
 mem6502W7:					;@ Mem read ($E000-$FFFF)
 ;@----------------------------------------------------------------------------
-	stmfd sp!,{r3,lr}
+	stmfd sp!,{r3,addy,lr}
 	mov r1,r0
-	mov r0,r12
+	mov r0,addy
 	bl pokeCPU
-	ldmfd sp!,{r3,pc}
+	ldmfd sp!,{r3,addy,pc}
 ;@----------------------------------------------------------------------------
 mem6502R7:					;@ Mem read ($E000-$FFFF)
 ;@----------------------------------------------------------------------------
-	stmfd sp!,{r3,lr}
-	mov r0,r12
+	stmfd sp!,{r3,addy,lr}
+	mov r0,addy
 	bl peekCPU
-	ldmfd sp!,{r3,pc}
+	ldmfd sp!,{r3,addy,pc}
 
 ;@----------------------------------------------------------------------------
+memSelector:
+	.byte 0
+	.align 2
 	.end
 #endif // #ifdef __arm__

@@ -92,6 +92,7 @@ void GpDelete() {
 
 void GpMain(void *args) {
 
+	int hazard = 0;
 	while (newsystem != NULL) {
 
 		for (int i=0;i<1024;i++) {
@@ -99,7 +100,8 @@ void GpMain(void *args) {
 		}
 		newsystem->SetButtonData( joy0_R() );
 
-		if (gScreenUpdateRequired) {
+		hazard += 1;
+		if (gScreenUpdateRequired || hazard > 30) {
 			gScreenUpdateRequired = FALSE;
 			return;
 		}
