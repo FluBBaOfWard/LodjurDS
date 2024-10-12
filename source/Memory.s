@@ -106,8 +106,8 @@ peekCPU:
 ;@----------------------------------------------------------------------------
 	cmp r0,#0xFC00
 	bpl checkIOR
-	ldr r2,=lynxRAM
-	ldrb r0,[r2,r0]
+	ldr r1,=lynxRAM
+	ldrb r0,[r1,r0]!
 	bx lr
 checkIOR:
 	ldrb r3,memSelector
@@ -155,12 +155,11 @@ ramPeek:
 	ldrb r0,[r1,r0]!
 	bx lr
 ;@----------------------------------------------------------------------------
-romPeek:
+romPeek:					;@ Rom read ($FE00-$FFFF)
 	.type romPeek STT_FUNC
 ;@----------------------------------------------------------------------------
-	ldr r1,=biosSpace
-	mov r0,r0,lsl#23
-	ldrb r0,[r1,r0,lsr#23]!
+	ldr r1,=biosSpace-0xFE00
+	ldrb r0,[r1,r0]!
 	bx lr
 ;@----------------------------------------------------------------------------
 ram6502W:					;@ Ram write ($0000-$DFFF)

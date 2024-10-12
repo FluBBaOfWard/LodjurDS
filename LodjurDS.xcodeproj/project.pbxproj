@@ -25,8 +25,6 @@
 		9C41C6BD2C9F6DA50026DE6C /* SVAudio.s */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.asm; path = SVAudio.s; sourceTree = "<group>"; };
 		9C41C6BE2C9F6DA50026DE6C /* SVVideo.s */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.asm; path = SVVideo.s; sourceTree = "<group>"; };
 		9C41C6BF2C9F6DA50026DE6C /* Version.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Version.h; sourceTree = "<group>"; };
-		9C41C6C22CA32F7A0026DE6C /* c65c02.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = c65c02.h; sourceTree = "<group>"; };
-		9C41C6C32CA32F7A0026DE6C /* c6502mak.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = c6502mak.h; sourceTree = "<group>"; };
 		9C41C6C42CA32F7A0026DE6C /* lynxcart.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = lynxcart.h; sourceTree = "<group>"; };
 		9C41C6C52CA32F7A0026DE6C /* lynxcart.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = lynxcart.cpp; sourceTree = "<group>"; };
 		9C41C6CA2CA32F7A0026DE6C /* gpmain.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = gpmain.cpp; sourceTree = "<group>"; };
@@ -178,8 +176,6 @@
 			isa = PBXGroup;
 			children = (
 				9C41C6D62CA32F7A0026DE6C /* readme.txt */,
-				9C41C6C22CA32F7A0026DE6C /* c65c02.h */,
-				9C41C6C32CA32F7A0026DE6C /* c6502mak.h */,
 				9C41C6CA2CA32F7A0026DE6C /* gpmain.cpp */,
 				9C41C6CB2CA32F7A0026DE6C /* lynxdef.h */,
 				9C41C6CC2CA32F7A0026DE6C /* machine.h */,

@@ -38,7 +38,6 @@ extern UBYTE *romSpacePtr;
 
 CSystem::CSystem(const UBYTE *gamefile, int size, ULONG filetype, const char *romfile)
 	:mCart(NULL),
-	mCpu(NULL),
 	mMikie(NULL),
 	mSusie(NULL)
 {
@@ -74,10 +73,6 @@ CSystem::CSystem(const UBYTE *gamefile, int size, ULONG filetype, const char *ro
 	mMikie = new CMikie(*this);
 	mSusie = new CSusie(*this);
 
-// Now the handlers are set we can instantiate the CPU as it will use handlers on reset
-
-	mCpu = new C65C02(*this);
-
 // Now init is complete do a reset, this will cause many things to be reset twice
 // but what the hell, who cares, I don't.....
 
@@ -89,7 +84,6 @@ CSystem::~CSystem()
 	// Cleanup all our objects
 
 	if (mCart != NULL) delete mCart;
-	if (mCpu != NULL) delete mCpu;
 	if (mMikie != NULL) delete mMikie;
 	if (mSusie != NULL) delete mSusie;
 }
@@ -127,6 +121,5 @@ void CSystem::Reset(void)
 	mCart->Reset();
 	mMikie->Reset();
 	mSusie->Reset();
-	mCpu->Reset();
 	cpuReset();
 }

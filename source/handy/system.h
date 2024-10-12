@@ -106,7 +106,6 @@ class CSystem;
 #include "lynxcart.h"
 #include "susie.h"
 #include "mikie.h"
-#include "c65c02.h"
 #include "../memory.h"
 #include "../cpu.h"
 
@@ -143,9 +142,8 @@ class CSystem : public CSystemBase
 			// Step the processor through 1 instruction
 			//
 			if (!gSystemCPUSleep) {
-//				int cyc = stepInstruction();
-//				gSystemCycleCount += (1+(cyc*CPU_RDWR_CYC));
-				mCpu->Update();
+				int cyc = stepInstruction();
+				gSystemCycleCount += (1+(cyc*CPU_RDWR_CYC));
 			}
 			// If the CPU is asleep then skip to the next timer event
 			else {
@@ -181,8 +179,7 @@ class CSystem : public CSystemBase
 
 // Low level CPU access
 
-		void setIrqPin(int state) {mCpu->setIrqPin(state);};
-	//	void setIrqPin(int state) {cpuSetIrqPin(state);};
+		void setIrqPin(int state) {cpuSetIrqPin(state);};
 
 // Mikey system interfacing
 
@@ -207,7 +204,6 @@ class CSystem : public CSystemBase
 		ULONG			mCycleCountBreakpoint;
 //		CLynxBase		*mMemoryHandlers[8][SYSTEM_SIZE];
 		CCart			*mCart;
-		C65C02			*mCpu;
 		CMikie			*mMikie;
 		CSusie			*mSusie;
 
