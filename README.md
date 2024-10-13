@@ -75,11 +75,11 @@ Some dumb info about the game and emulator...
 
 ## Controls
 
-* NDS A & B buttons are mapped to Lynx B & A.
-* NDS Start & X is mapped to Lynx Option.
-* NDS Select & Y is mapped to Lynx Power.
+* NDS B & A buttons are mapped to Lynx B & A.
+* NDS X is mapped to Lynx Option I.
+* NDS Y is mapped to Lynx Option II.
 * NDS d-pad is mapped to Lynx d-pad.
-* NDS L button is mapped to Lynx D (debug).
+* NDS Start is mapped to Lynx Start/Pause.
 
 ## Games
 

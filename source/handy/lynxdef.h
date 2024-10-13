@@ -123,8 +123,9 @@
 #define PPORTSTAT		0xfcc2 
 #define PPORTDATA		0xfcc3 
 #define HOWIE			0xfcc4 
+
 #define TIM0BKUP		0xfd00 
-#define TIM0CTLA		0xfd01 
+#define TIM0CTLA		0xfd01
 #define TIM0CNT			0xfd02 
 #define TIM0CTLB		0xfd03 
 #define TIM1BKUP		0xfd04 
