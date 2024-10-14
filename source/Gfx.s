@@ -2,6 +2,7 @@
 
 #include "Shared/nds_asm.h"
 #include "ARMSuzy/ARMSuzy.i"
+#include "ARMMikey/ARMMikey.i"
 
 	.global gfxState
 	.global gFlicker
@@ -27,6 +28,7 @@
 
 
 	.global suzy_0
+	.global mikey_0
 
 
 	.syntax unified
@@ -416,6 +418,8 @@ lnxWriteIO:
 ;@----------------------------------------------------------------------------
 suzy_0:
 	.space suzySize
+mikey_0:
+	.space mikeySize
 ;@----------------------------------------------------------------------------
 
 gfxState:

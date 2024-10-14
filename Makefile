@@ -28,6 +28,7 @@ SOURCES		:=	source \
 				source/Shared \
 				source/Shared/Unzip \
 				source/ARM6502 \
+				source/ARMMikey \
 				source/ARMSuzy \
 				source/handy
 DATA		:=	data

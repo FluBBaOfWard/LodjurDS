@@ -121,6 +121,7 @@ void CMikie::Reset(void)
 
 	mCurrentBuffer = 0;
 
+	ResetTimer(mikey_0.timer0);
 	ResetTimer(mTIM_0);
 	ResetTimer(mTIM_1);
 	ResetTimer(mTIM_2);

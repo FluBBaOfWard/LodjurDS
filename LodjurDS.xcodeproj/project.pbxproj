@@ -104,6 +104,14 @@
 		9C9B0E5C2C5A47C3004AE287 /* LynxLogo.bmp */ = {isa = PBXFileReference; lastKnownFileType = image.bmp; path = LynxLogo.bmp; sourceTree = "<group>"; };
 		9CBC0C8E26DD7C2A0039D17E /* README.md */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
 		9CC013FC2668FDD9005714F7 /* Emubase.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Emubase.h; sourceTree = "<group>"; };
+		9CEE818F2CBD76A300A7B738 /* ARMMikey.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ARMMikey.h; sourceTree = "<group>"; };
+		9CEE81902CBD76A300A7B738 /* ARMMikey.i */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c.preprocessed; path = ARMMikey.i; sourceTree = "<group>"; };
+		9CEE81912CBD76A300A7B738 /* History.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = History.txt; sourceTree = "<group>"; };
+		9CEE81922CBD76A300A7B738 /* Mikey.s */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.asm; path = Mikey.s; sourceTree = "<group>"; };
+		9CEE81932CBD76A300A7B738 /* Mikey_todo.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = Mikey_todo.txt; sourceTree = "<group>"; };
+		9CEE81942CBD76A300A7B738 /* MikeyAudio.s */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.asm; path = MikeyAudio.s; sourceTree = "<group>"; };
+		9CEE81952CBD76A300A7B738 /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
+		9CEE81962CBD76A300A7B738 /* Version.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Version.h; sourceTree = "<group>"; };
 		A47F092B20863AF5004E1DA6 /* EmuMenu.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = EmuMenu.h; sourceTree = "<group>"; };
 		A47F092C20863AF5004E1DA6 /* EmuMenu.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = EmuMenu.c; sourceTree = "<group>"; };
 		A49D34381757E54900BD9B4B /* cpu.s */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.asm; path = cpu.s; sourceTree = "<group>"; };
@@ -251,6 +259,21 @@
 			path = lynx_html;
 			sourceTree = "<group>";
 		};
+		9CEE81972CBD76A300A7B738 /* ARMMikey */ = {
+			isa = PBXGroup;
+			children = (
+				9CEE81932CBD76A300A7B738 /* Mikey_todo.txt */,
+				9CEE81952CBD76A300A7B738 /* README.md */,
+				9CEE81912CBD76A300A7B738 /* History.txt */,
+				9CEE81962CBD76A300A7B738 /* Version.h */,
+				9CEE818F2CBD76A300A7B738 /* ARMMikey.h */,
+				9CEE81902CBD76A300A7B738 /* ARMMikey.i */,
+				9CEE81922CBD76A300A7B738 /* Mikey.s */,
+				9CEE81942CBD76A300A7B738 /* MikeyAudio.s */,
+			);
+			path = ARMMikey;
+			sourceTree = "<group>";
+		};
 		A42D0269205FEC6E00515C72 /* Docs */ = {
 			isa = PBXGroup;
 			children = (
@@ -289,6 +312,7 @@
 			isa = PBXGroup;
 			children = (
 				9C9B0E302C5A3E9F004AE287 /* ARM6502 */,
+				9CEE81972CBD76A300A7B738 /* ARMMikey */,
 				9C41C6C02C9F6DA50026DE6C /* ARMSuzy */,
 				A47F092A20863AF5004E1DA6 /* Shared */,
 				9C41C6DE2CA32F7A0026DE6C /* handy */,

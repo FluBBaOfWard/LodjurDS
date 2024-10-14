@@ -4,3 +4,6 @@
 [submodule "source/Shared"]
 	path = source/Shared
 	url = https://github.com/FluBBaOfWard/NDS_Shared
+[submodule "source/ARMMikey"]
+	path = source/ARMMikey
+	url = https://github.com/FluBBaOfWard/ARMMikey.git
