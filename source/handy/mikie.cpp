@@ -39,6 +39,15 @@
 #include "lynxdef.h"
 #include "nds.h"
 
+#define mTIM_0 mikey_0.timer0
+#define mTIM_1 mikey_0.timer1
+#define mTIM_2 mikey_0.timer2
+#define mTIM_3 mikey_0.timer3
+#define mTIM_4 mikey_0.timer4
+#define mTIM_5 mikey_0.timer5
+#define mTIM_6 mikey_0.timer6
+#define mTIM_7 mikey_0.timer7
+
 
 void CMikie::BlowOut(void)
 {
@@ -121,7 +130,6 @@ void CMikie::Reset(void)
 
 	mCurrentBuffer = 0;
 
-	ResetTimer(mikey_0.timer0);
 	ResetTimer(mTIM_0);
 	ResetTimer(mTIM_1);
 	ResetTimer(mTIM_2);
