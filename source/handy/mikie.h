@@ -192,15 +192,6 @@ class CMikie : public CLynxBase
 		ULONG		mDISPCTL_FourColour;
 		ULONG		mDISPCTL_Colour;
 
-//		MTIMER		mTIM_0;
-//		MTIMER		mTIM_1;
-//		MTIMER		mTIM_2;
-//		MTIMER		mTIM_3;
-//		MTIMER		mTIM_4;
-//		MTIMER		mTIM_5;
-//		MTIMER		mTIM_6;
-//		MTIMER		mTIM_7;
-
 		MAUDIO		mAUDIO_0;
 		MAUDIO		mAUDIO_1;
 		MAUDIO		mAUDIO_2;

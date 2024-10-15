@@ -102,9 +102,6 @@ CMikie::CMikie(CSystem& parent)
 	mUART_CABLE_PRESENT = FALSE;
 	mpUART_TX_CALLBACK = NULL;
 
-	int loop;
-	for (loop=0;loop<16;loop++) mPalette[loop].Index = loop;
-
 	Reset();
 }
 
