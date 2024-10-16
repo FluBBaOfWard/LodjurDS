@@ -289,17 +289,6 @@ void CMikie::DisplaySetAttributes(void (*DisplayCallback)(void), void (*RenderCa
 	if (mpDisplayCallback) {
 		(*mpDisplayCallback)();
 	}
-
-	// Reset screen related counters/vars
-	mTIM_0.CURRENT = 0;
-	mTIM_2.CURRENT = 0;
-
-	// Fix lastcount so that timer update will definately occur
-	mTIM_0.LAST_COUNT -= (1<<(4+mTIM_0.LINKING))+1;
-	mTIM_2.LAST_COUNT -= (1<<(4+mTIM_2.LINKING))+1;
-
-	// Force immediate timer update
-	gNextTimerEvent = gSystemCycleCount;
 }
 
 ULONG CMikie::DisplayRenderLine(void)
@@ -1632,7 +1621,7 @@ void CMikie::Update(void)
 	//
 
 	// KW bugfix 13/4/99 added (mTIM_x.ENABLE_RELOAD ||  ..)
-//	if(mTIM_0.ENABLE_COUNT && (mTIM_0.ENABLE_RELOAD || !mTIM_0.TIMER_DONE))
+//	if (mTIM_0.ENABLE_COUNT && (mTIM_0.ENABLE_RELOAD || !mTIM_0.TIMER_DONE))
 	if (mTIM_0.ENABLE_COUNT) {
 		// Timer 0 has no linking
 //		if (mTIM_0.LINKING != 0x07)

@@ -230,7 +230,6 @@ void paletteChange() {
 	if (gPaletteBank > 4) {
 		gPaletteBank = 0;
 	}
-	monoPalInit();
 	paletteInit(gGammaValue);
 	settingsChanged = true;
 }

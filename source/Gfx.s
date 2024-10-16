@@ -12,11 +12,11 @@
 	.global GFX_BG0CNT
 	.global GFX_BG1CNT
 	.global EMUPALBUFF
+	.global MAPPED_RGB
 	.global frameTotal
 
 	.global gfxInit
 	.global gfxReset
-	.global monoPalInit
 	.global paletteInit
 	.global gfxRefresh
 	.global gfxEndFrame
@@ -69,10 +69,11 @@ gfxReset:					;@ Called with CPU reset
 	ldr r3,=gSOC
 	ldrb r3,[r3]
 	bl svVideoReset0
-	bl monoPalInit
 
 	ldr r0,=gGammaValue
+	ldr r1,=gContrastValue
 	ldrb r0,[r0]
+	ldrb r1,[r1]
 	bl paletteInit				;@ Do palette mapping
 
 	ldr suzptr,=suzy_0
@@ -98,87 +99,53 @@ gfxWinInit:
 	strh r0,[r1,#REG_WINOUT]
 	bx lr
 ;@----------------------------------------------------------------------------
-monoPalInit:
-	.type monoPalInit STT_FUNC
-;@----------------------------------------------------------------------------
-	ldr r0,=gPaletteBank
-	ldrb r0,[r0]
-	adr r1,monoPalette
-	add r1,r1,r0,lsl#3
-	ldr r0,=MAPPED_RGB
-
-	ldmia r1,{r2-r3}
-	stmia r0!,{r2-r3}
-
-	bx lr
-;@----------------------------------------------------------------------------
-monoPalette:
-
-;@ Green
-	.long 0x7FFF7F, 0x102010
-;@ Black & White
-	.long 0xFFFFFF, 0x000000
-;@ Red
-	.long 0xFF7F7F, 0x201010
-;@ Blue
-	.long 0x8080FF, 0x000020
-;@ Classic
-	.long 0xFFDDAA, 0x221100
-;@----------------------------------------------------------------------------
 paletteInit:		;@ r0-r3 modified.
 	.type paletteInit STT_FUNC
-;@ Called by ui.c:  void paletteInit(gammaVal);
+;@ Called by ui.c:  void paletteInit(gammaVal, contrast);
 ;@----------------------------------------------------------------------------
-	stmfd sp!,{r4-r9,lr}
-	mov r8,r0					;@ Gamma value = 0 -> 4
-	ldr r9,=gContrastValue
-	ldrb r9,[r9]
-	ldr r6,=EMUPALBUFF
-	ldr r7,=MAPPED_RGB
-	mov r4,#4
-noMap:							;@ Map rrrrrrrr_gggggggg_bbbbbbbb  ->  0bbbbbgggggrrrrr
-	ldrb r0,[r7,#2]				;@ Red high
-	ldrb r1,[r7,#6]				;@ Red low
-	mov r2,r9
-	bl contrastConvert
-	sub r2,r4,#1
-	bl liConvR2
-	mov r1,r8
-	bl gammaConvert
-	mov r5,r0,lsr#3
+	stmfd sp!,{r4-r8,lr}
+	mov r8,#30
+	rsb r1,r1,#4
+	mul r8,r1,r8
+	mov r1,r0					;@ Gamma value = 0 -> 4
+	mov r7,#0xF					;@ mask
+	ldr r6,=MAPPED_RGB
+	mov r4,#4096*2
+	sub r4,r4,#2
+noMap:							;@ Map 0000ggggrrrrbbbb  ->  0bbbbbgggggrrrrr
+	and r0,r7,r4,lsr#5			;@ Blue ready
+	bl gPrefix
+	mov r5,r0,lsl#10
 
-	ldrb r0,[r7,#1]				;@ Green high
-	ldrb r1,[r7,#5]				;@ Green low
-	mov r2,r9
-	bl contrastConvert
-	sub r2,r4,#1
-	bl liConvR2
-	mov r1,r8
-	bl gammaConvert
-	mov r0,r0,lsr#3
+	and r0,r7,r4,lsr#9			;@ Green ready
+	bl gPrefix
 	orr r5,r5,r0,lsl#5
 
-	ldrb r0,[r7,#0]				;@ Blue high
-	ldrb r1,[r7,#4]				;@ Blue low
-	mov r2,r9
-	bl contrastConvert
-	sub r2,r4,#1
-	bl liConvR2
-	mov r1,r8
-	bl gammaConvert
-	mov r0,r0,lsr#3
-	orr r5,r5,r0,lsl#10
+	and r0,r7,r4,lsr#1			;@ Red ready
+	bl gPrefix
+	orr r5,r5,r0
+	orr r5,r5,#0x8000
 
-	strh r5,[r6],#2
-	subs r4,r4,#1
-	bne noMap
+	strh r5,[r6,r4]
+	subs r4,r4,#2
+	bpl noMap
 
-	ldmfd sp!,{r4-r9,lr}
+	ldmfd sp!,{r4-r8,lr}
 	bx lr
 
 ;@----------------------------------------------------------------------------
-gammaConvert:	;@ Takes value in r0(0-0xFF), gamma in r1(0-4)
-				;@ returns new value in r0=0xFF
+gPrefix:
+	orr r0,r0,r0,lsl#4
+	mov r2,r8
+;@----------------------------------------------------------------------------
+contrastConvert:	;@ Takes value in r0(0-0xFF), gamma in r1(0-4), contrast in r2(0-255) returns new value in r0=0x1F
+;@----------------------------------------------------------------------------
+	rsb r3,r2,#256
+	mul r0,r3,r0
+	add r0,r0,r2,lsl#7
+	mov r0,r0,lsr#8
+;@----------------------------------------------------------------------------
+gammaConvert:	;@ Takes value in r0(0-0xFF), gamma in r1(0-4),returns new value in r0=0x1F
 ;@----------------------------------------------------------------------------
 	rsb r2,r0,#0x100
 	mul r3,r2,r2
@@ -187,36 +154,8 @@ gammaConvert:	;@ Takes value in r0(0-0xFF), gamma in r1(0-4)
 	orr r0,r0,r0,lsl#8
 	mul r2,r1,r2
 	mla r0,r3,r0,r2
-	mov r0,r0,lsr#10
-	bx lr
-;@----------------------------------------------------------------------------
-contrastConvert:	;@ Takes values in r0 & r1(0-0xFF), contrast in r2(0-4)
-					;@ returns new values in r0&r1=0xFF
-;@----------------------------------------------------------------------------
-	movs r2,r2,lsl#8
-	addeq r2,r2,#0x80
-	add r3,r0,r1
-	sub r0,r0,r3,lsr#1
-	sub r1,r1,r3,lsr#1
-	mul r0,r2,r0
-	mul r1,r2,r1
-	mov r0,r0,asr#8+2
-	mov r1,r1,asr#8+2
-	add r0,r0,r3,lsr#1
-	add r1,r1,r3,lsr#1
-	bx lr
+	movs r0,r0,lsr#13
 
-;@----------------------------------------------------------------------------
-liConvR2:
-	orr r2,r2,r2,lsl#2
-	orr r2,r2,r2,lsl#4
-;@----------------------------------------------------------------------------
-lightConvert:	;@ Takes values in r0 & r1(0-0xFF), light in r2(0-0xFF)
-				;@ returns new values in r0=0xFF
-;@----------------------------------------------------------------------------
-	sub r3,r0,r1
-	mul r3,r2,r3
-	add r0,r1,r3,lsr#8
 	bx lr
 
 ;@----------------------------------------------------------------------------

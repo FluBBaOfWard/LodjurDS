@@ -7,6 +7,7 @@
 #include "system.h"
 #include "../Shared/FileHelper.h"
 #include "../io.h"
+#include "../Gfx.h"
 
 extern "C" {
 UWORD peekCPUW(ULONG addr);
@@ -19,9 +20,7 @@ void GpDelete(void);
 void GpMain(void *args);
 }
 
-UWORD mColourMap[4096];
-unsigned short *currentDest;
-int bufIdx = 0;
+u16 *currentDest;
 bool gScreenUpdateRequired = false;
 
 CSystem *newsystem = NULL;
@@ -32,16 +31,16 @@ void handy_nds_render_callback(UBYTE *ram, ULONG *palette, bool flip) {
 		int source = *ram;
 		if (flip) {
 			ram -= 1;
-			*bitmap_tmp = mColourMap[palette[source & 0x0f]];
+			*bitmap_tmp = MAPPED_RGB[palette[source & 0x0f]];
 			bitmap_tmp += 1;
-			*bitmap_tmp = mColourMap[palette[source >> 4]];
+			*bitmap_tmp = MAPPED_RGB[palette[source >> 4]];
 			bitmap_tmp += 1;
 		}
 		else {
 			ram += 1;
-			*bitmap_tmp = mColourMap[palette[source >> 4]];
+			*bitmap_tmp = MAPPED_RGB[palette[source >> 4]];
 			bitmap_tmp += 1;
-			*bitmap_tmp = mColourMap[palette[source & 0x0f]];
+			*bitmap_tmp = MAPPED_RGB[palette[source & 0x0f]];
 			bitmap_tmp += 1;
 		}
 	}
@@ -50,7 +49,6 @@ void handy_nds_render_callback(UBYTE *ram, ULONG *palette, bool flip) {
 
 void handy_nds_display_callback(void)
 {
-	bufIdx ^= 1;
 	currentDest = ((unsigned short *)0x06000000);
 	gScreenUpdateRequired = TRUE;
 }
@@ -76,11 +74,6 @@ void GpInit(const unsigned char *gamerom, int size) {
 	newsystem = new CSystem(gamerom, size, HANDY_FILETYPE_LNX, NULL);
 	newsystem->DisplaySetAttributes(handy_nds_display_callback, handy_nds_render_callback);
 	currentDest = ((unsigned short *)0x06000000);
-	for (int i=0;i<4096;i++) {
-		mColourMap[i] = ((i<<7) & 0x7c00) | 0x8000;
-		mColourMap[i] |= (i>>2) & 0x03e0;
-		mColourMap[i] |= (i<<1) & 0x001f;
-	}
 }
 
 void GpDelete() {
