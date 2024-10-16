@@ -998,9 +998,6 @@ void CMikie::Poke(ULONG addr, UBYTE data)
 			ComLynxTxLoopback(mUART_TX_DATA);
 			break;
 
-		case (SDONEACK & 0xff):
-			TRACE_MIKIE2("Poke(SDONEACK,%02x) at PC=%04x", data, mSystem.mCpu->GetPC());
-			break;
 		case (CPUSLEEP & 0xff):
 			gSuzieDoneTime = gSystemCycleCount+mSystem.PaintSprites();
 			SetCPUSleep();
@@ -1018,10 +1015,6 @@ void CMikie::Poke(ULONG addr, UBYTE data)
 				mDISPCTL_Colour = tmp.Bits.Colour;
 			}
 			break;
-		case (PBKUP & 0xff):
-			TRACE_MIKIE2("Poke(PBKUP,%02x) at PC=%04x", data, mSystem.mCpu->GetPC());
-			break;
-
 		case (DISPADRL & 0xff):
 			TRACE_MIKIE2("Poke(DISPADRL,%02x) at PC=%04x", data, mSystem.mCpu->GetPC());
 			mDisplayAddress &= 0xff00;
@@ -1034,17 +1027,13 @@ void CMikie::Poke(ULONG addr, UBYTE data)
 			mDisplayAddress += (data << 8);
 			break;
 
+		case (SDONEACK & 0xff):
+		case (PBKUP & 0xff):
 		case (Mtest0 & 0xff):
 		case (Mtest1 & 0xff):
-			// Test registers are unimplemented
-			// lets hope no programs use them.
-			TRACE_MIKIE2("Poke(MTEST0/1,%02x) at PC=%04x", data, mSystem.mCpu->GetPC());
 		case (Mtest2 & 0xff):
 			// Test registers are unimplemented
 			// lets hope no programs use them.
-			TRACE_MIKIE2("Poke(MTEST2,%02x) at PC=%04x", data, mSystem.mCpu->GetPC());
-			break;
-
 		case (GREEN0 & 0xff):
 		case (GREEN1 & 0xff):
 		case (GREEN2 & 0xff):
@@ -1086,13 +1075,13 @@ void CMikie::Poke(ULONG addr, UBYTE data)
 		case (MAGRDY1 & 0xff):
 		case (AUDIN & 0xff):
 		case (MIKEYHREV & 0xff):
-			TRACE_MIKIE3("Poke(%04x,%02x) - Poke to read only register location at PC=%04x", addr, data, mSystem.mCpu->GetPC());
+			lnxWriteMikey(addr, data);
 			break;
 
 // Errors on illegal location accesses
 
 		default:
-			TRACE_MIKIE3("Poke(%04x,%02x) - Poke to illegal location at PC=%04x", addr, data, mSystem.mCpu->GetPC());
+			lnxWriteMikey(addr, data);
 			break;
 	}
 }
@@ -1103,39 +1092,30 @@ UBYTE CMikie::Peek(ULONG addr)
 	{
 
 // Timer control registers
-
 		case (TIM0BKUP & 0xff):
 			TRACE_MIKIE2("Peek(TIM0KBUP ,%02x) at PC=%04x", mTIM_0.BKUP, mSystem.mCpu->GetPC());
 			return (UBYTE)mTIM_0.BKUP;
-			break;
 		case (TIM1BKUP & 0xff):
 			TRACE_MIKIE2("Peek(TIM1KBUP ,%02x) at PC=%04x", mTIM_1.BKUP, mSystem.mCpu->GetPC());
 			return (UBYTE)mTIM_1.BKUP;
-			break;
 		case (TIM2BKUP & 0xff):
 			TRACE_MIKIE2("Peek(TIM2KBUP ,%02x) at PC=%04x", mTIM_2_BKUP, mSystem.mCpu->GetPC());
 			return (UBYTE)mTIM_2.BKUP;
-			break;
 		case (TIM3BKUP & 0xff):
 			TRACE_MIKIE2("Peek(TIM3KBUP ,%02x) at PC=%04x", mTIM_3_BKUP, mSystem.mCpu->GetPC());
 			return (UBYTE)mTIM_3.BKUP;
-			break;
 		case (TIM4BKUP & 0xff):
 			TRACE_MIKIE2("Peek(TIM4KBUP ,%02x) at PC=%04x", mTIM_4_BKUP, mSystem.mCpu->GetPC());
 			return (UBYTE)mTIM_4.BKUP;
-			break;
 		case (TIM5BKUP & 0xff):
 			TRACE_MIKIE2("Peek(TIM5KBUP ,%02x) at PC=%04x", mTIM_5_BKUP, mSystem.mCpu->GetPC());
 			return (UBYTE)mTIM_5.BKUP;
-			break;
 		case (TIM6BKUP & 0xff):
 			TRACE_MIKIE2("Peek(TIM6KBUP ,%02x) at PC=%04x", mTIM_6_BKUP, mSystem.mCpu->GetPC());
 			return (UBYTE)mTIM_6.BKUP;
-			break;
 		case (TIM7BKUP & 0xff):
 			TRACE_MIKIE2("Peek(TIM7KBUP ,%02x) at PC=%04x", mTIM_7_BKUP, mSystem.mCpu->GetPC());
 			return (UBYTE)mTIM_7.BKUP;
-			break;
 
 		case (TIM0CTLA & 0xff):
 			{
@@ -1230,42 +1210,34 @@ UBYTE CMikie::Peek(ULONG addr)
 			Update();
 			TRACE_MIKIE2("Peek(TIM0CNT  ,%02x) at PC=%04x", mTIM_0.CURRENT, mSystem.mCpu->GetPC());
 			return (UBYTE)mTIM_0.CURRENT;
-			break;
 		case (TIM1CNT & 0xff):
 			Update();
 			TRACE_MIKIE2("Peek(TIM1CNT  ,%02x) at PC=%04x", mTIM_1.CURRENT, mSystem.mCpu->GetPC());
 			return (UBYTE)mTIM_1.CURRENT;
-			break;
 		case (TIM2CNT & 0xff):
 			Update();
 			TRACE_MIKIE2("Peek(TIM2CNT  ,%02x) at PC=%04x", mTIM_2_CURRENT, mSystem.mCpu->GetPC());
 			return (UBYTE)mTIM_2.CURRENT;
-			break;
 		case (TIM3CNT & 0xff):
 			Update();
 			TRACE_MIKIE2("Peek(TIM3CNT  ,%02x) at PC=%04x", mTIM_3_CURRENT, mSystem.mCpu->GetPC());
 			return (UBYTE)mTIM_3.CURRENT;
-			break;
 		case (TIM4CNT & 0xff):
 			Update();
 			TRACE_MIKIE2("Peek(TIM4CNT  ,%02x) at PC=%04x", mTIM_4_CURRENT, mSystem.mCpu->GetPC());
 			return (UBYTE)mTIM_4.CURRENT;
-			break;
 		case (TIM5CNT & 0xff):
 			Update();
 			TRACE_MIKIE2("Peek(TIM5CNT  ,%02x) at PC=%04x", mTIM_5_CURRENT, mSystem.mCpu->GetPC());
 			return (UBYTE)mTIM_5.CURRENT;
-			break;
 		case (TIM6CNT & 0xff):
 			Update();
 			TRACE_MIKIE2("Peek(TIM6CNT  ,%02x) at PC=%04x", mTIM_6_CURRENT, mSystem.mCpu->GetPC());
 			return (UBYTE)mTIM_6.CURRENT;
-			break;
 		case (TIM7CNT & 0xff):
 			Update();
 			TRACE_MIKIE2("Peek(TIM7CNT  ,%02x) at PC=%04x", mTIM_7_CURRENT, mSystem.mCpu->GetPC());
 			return (UBYTE)mTIM_7.CURRENT;
-			break;
 
 		case (TIM0CTLB & 0xff):
 			{
@@ -1277,7 +1249,6 @@ UBYTE CMikie::Peek(ULONG addr)
 				TRACE_MIKIE2("Peek(TIM0CTLB ,%02x) at PC=%04x", retval, mSystem.mCpu->GetPC());
 				return retval;
 			}
-//			BlowOut();
 			break;
 		case (TIM1CTLB & 0xff):
 			{
@@ -1289,7 +1260,6 @@ UBYTE CMikie::Peek(ULONG addr)
 				TRACE_MIKIE2("Peek(TIM1CTLB ,%02x) at PC=%04x", retval, mSystem.mCpu->GetPC());
 				return retval;
 			}
-//			BlowOut();
 			break;
 		case (TIM2CTLB & 0xff):
 			{
@@ -1301,7 +1271,6 @@ UBYTE CMikie::Peek(ULONG addr)
 				TRACE_MIKIE2("Peek(TIM2CTLB ,%02x) at PC=%04x", retval, mSystem.mCpu->GetPC());
 				return retval;
 			}
-//			BlowOut();
 			break;
 		case (TIM3CTLB & 0xff):
 			{
@@ -1313,7 +1282,6 @@ UBYTE CMikie::Peek(ULONG addr)
 				TRACE_MIKIE2("Peek(TIM3CTLB ,%02x) at PC=%04x", retval, mSystem.mCpu->GetPC());
 				return retval;
 			}
-//			BlowOut();
 			break;
 		case (TIM4CTLB & 0xff):
 			{
@@ -1325,7 +1293,6 @@ UBYTE CMikie::Peek(ULONG addr)
 				TRACE_MIKIE2("Peek(TIM4CTLB ,%02x) at PC=%04x", retval, mSystem.mCpu->GetPC());
 				return retval;
 			}
-//			BlowOut();
 			break;
 		case (TIM5CTLB & 0xff):
 			{
@@ -1337,7 +1304,6 @@ UBYTE CMikie::Peek(ULONG addr)
 				TRACE_MIKIE2("Peek(TIM5CTLB ,%02x) at PC=%04x", retval, mSystem.mCpu->GetPC());
 				return retval;
 			}
-//			BlowOut();
 			break;
 		case (TIM6CTLB & 0xff):
 			{
@@ -1349,7 +1315,6 @@ UBYTE CMikie::Peek(ULONG addr)
 				TRACE_MIKIE2("Peek(TIM6CTLB ,%02x) at PC=%04x", retval, mSystem.mCpu->GetPC());
 				return retval;
 			}
-//			BlowOut();
 			break;
 		case (TIM7CTLB & 0xff):
 			{
@@ -1361,7 +1326,6 @@ UBYTE CMikie::Peek(ULONG addr)
 				TRACE_MIKIE2("Peek(TIM7CTLB ,%02x) at PC=%04x", retval, mSystem.mCpu->GetPC());
 				return retval;
 			}
-//			BlowOut();
 			break;
 
 // Audio control registers
@@ -1369,23 +1333,18 @@ UBYTE CMikie::Peek(ULONG addr)
 		case (AUD0VOL & 0xff):
 			TRACE_MIKIE2("Peek(AUD0VOL,%02x) at PC=%04x", (UBYTE)mAUDIO_0.VOLUME, mSystem.mCpu->GetPC());
 			return (UBYTE)mAUDIO_0.VOLUME;
-			break;
 		case (AUD0SHFTFB & 0xff):
 			TRACE_MIKIE2("Peek(AUD0SHFTFB,%02x) at PC=%04x", (UBYTE)(mAUDIO_0.WAVESHAPER >> 13) & 0xff, mSystem.mCpu->GetPC());
 			return (UBYTE)((mAUDIO_0.WAVESHAPER >> 13) & 0xff);
-			break;
 		case (AUD0OUTVAL & 0xff):
 			TRACE_MIKIE2("Peek(AUD0OUTVAL,%02x) at PC=%04x", (UBYTE)mAUDIO_0.OUTPUT, mSystem.mCpu->GetPC());
 			return (UBYTE)mAUDIO_0.OUTPUT;
-			break;
 		case (AUD0L8SHFT & 0xff):
 			TRACE_MIKIE2("Peek(AUD0L8SHFT,%02x) at PC=%04x", (UBYTE)(mAUDIO_0.WAVESHAPER & 0xff), mSystem.mCpu->GetPC());
 			return (UBYTE)(mAUDIO_0.WAVESHAPER&0xff);
-			break;
 		case (AUD0TBACK & 0xff):
 			TRACE_MIKIE2("Peek(AUD0TBACK,%02x) at PC=%04x", (UBYTE)mAUDIO_0.BKUP, mSystem.mCpu->GetPC());
 			return (UBYTE)mAUDIO_0.BKUP;
-			break;
 		case (AUD0CTL & 0xff):
 			{
 				UBYTE retval = 0;
@@ -1401,7 +1360,6 @@ UBYTE CMikie::Peek(ULONG addr)
 		case (AUD0COUNT & 0xff):
 			TRACE_MIKIE2("Peek(AUD0COUNT,%02x) at PC=%04x", (UBYTE)mAUDIO_0.CURRENT, mSystem.mCpu->GetPC());
 			return (UBYTE)mAUDIO_0.CURRENT;
-			break;
 		case (AUD0MISC & 0xff):
 			{
 				UBYTE retval = 0;
@@ -1417,23 +1375,18 @@ UBYTE CMikie::Peek(ULONG addr)
 		case (AUD1VOL & 0xff):
 			TRACE_MIKIE2("Peek(AUD1VOL,%02x) at PC=%04x", (UBYTE)mAUDIO_1.VOLUME, mSystem.mCpu->GetPC());
 			return (UBYTE)mAUDIO_1.VOLUME;
-			break;
 		case (AUD1SHFTFB & 0xff):
 			TRACE_MIKIE2("Peek(AUD1SHFTFB,%02x) at PC=%04x", (UBYTE)(mAUDIO_1.WAVESHAPER >> 13) & 0xff, mSystem.mCpu->GetPC());
 			return (UBYTE)((mAUDIO_1.WAVESHAPER >> 13) & 0xff);
-			break;
 		case (AUD1OUTVAL & 0xff):
 			TRACE_MIKIE2("Peek(AUD1OUTVAL,%02x) at PC=%04x", (UBYTE)mAUDIO_1.OUTPUT, mSystem.mCpu->GetPC());
 			return (UBYTE)mAUDIO_1.OUTPUT;
-			break;
 		case (AUD1L8SHFT & 0xff):
 			TRACE_MIKIE2("Peek(AUD1L8SHFT,%02x) at PC=%04x", (UBYTE)(mAUDIO_1.WAVESHAPER & 0xff), mSystem.mCpu->GetPC());
 			return (UBYTE)(mAUDIO_1.WAVESHAPER & 0xff);
-			break;
 		case (AUD1TBACK & 0xff):
 			TRACE_MIKIE2("Peek(AUD1TBACK,%02x) at PC=%04x", (UBYTE)mAUDIO_1.BKUP, mSystem.mCpu->GetPC());
 			return (UBYTE)mAUDIO_1.BKUP;
-			break;
 		case (AUD1CTL & 0xff):
 			{
 				UBYTE retval = 0;
@@ -1449,7 +1402,6 @@ UBYTE CMikie::Peek(ULONG addr)
 		case (AUD1COUNT & 0xff):
 			TRACE_MIKIE2("Peek(AUD1COUNT,%02x) at PC=%04x", (UBYTE)mAUDIO_1.CURRENT, mSystem.mCpu->GetPC());
 			return (UBYTE)mAUDIO_1.CURRENT;
-			break;
 		case (AUD1MISC & 0xff):
 			{
 				UBYTE retval = 0;
@@ -1465,23 +1417,18 @@ UBYTE CMikie::Peek(ULONG addr)
 		case (AUD2VOL & 0xff):
 			TRACE_MIKIE2("Peek(AUD2VOL,%02x) at PC=%04x", (UBYTE)mAUDIO_2.VOLUME, mSystem.mCpu->GetPC());
 			return (UBYTE)mAUDIO_2.VOLUME;
-			break;
 		case (AUD2SHFTFB & 0xff):
 			TRACE_MIKIE2("Peek(AUD2SHFTFB,%02x) at PC=%04x", (UBYTE)(mAUDIO_2.WAVESHAPER >> 13) & 0xff, mSystem.mCpu->GetPC());
 			return (UBYTE)((mAUDIO_2.WAVESHAPER >> 13) & 0xff);
-			break;
 		case (AUD2OUTVAL & 0xff):
 			TRACE_MIKIE2("Peek(AUD2OUTVAL,%02x) at PC=%04x", (UBYTE)mAUDIO_2.OUTPUT, mSystem.mCpu->GetPC());
 			return (UBYTE)mAUDIO_2.OUTPUT;
-			break;
 		case (AUD2L8SHFT&0xff):
 			TRACE_MIKIE2("Peek(AUD2L8SHFT,%02x) at PC=%04x", (UBYTE)(mAUDIO_2.WAVESHAPER & 0xff), mSystem.mCpu->GetPC());
 			return (UBYTE)(mAUDIO_2.WAVESHAPER & 0xff);
-			break;
 		case (AUD2TBACK & 0xff):
 			TRACE_MIKIE2("Peek(AUD2TBACK,%02x) at PC=%04x", (UBYTE)mAUDIO_2.BKUP, mSystem.mCpu->GetPC());
 			return (UBYTE)mAUDIO_2.BKUP;
-			break;
 		case (AUD2CTL & 0xff):
 			{
 				UBYTE retval = 0;
@@ -1497,7 +1444,6 @@ UBYTE CMikie::Peek(ULONG addr)
 		case (AUD2COUNT & 0xff):
 			TRACE_MIKIE2("Peek(AUD2COUNT,%02x) at PC=%04x", (UBYTE)mAUDIO_2.CURRENT, mSystem.mCpu->GetPC());
 			return (UBYTE)mAUDIO_2.CURRENT;
-			break;
 		case (AUD2MISC & 0xff):
 			{
 				UBYTE retval = 0;
@@ -1513,23 +1459,18 @@ UBYTE CMikie::Peek(ULONG addr)
 		case (AUD3VOL & 0xff):
 			TRACE_MIKIE2("Peek(AUD3VOL,%02x) at PC=%04x", (UBYTE)mAUDIO_3.VOLUME, mSystem.mCpu->GetPC());
 			return (UBYTE)mAUDIO_3.VOLUME;
-			break;
 		case (AUD3SHFTFB & 0xff):
 			TRACE_MIKIE2("Peek(AUD3SHFTFB,%02x) at PC=%04x", (UBYTE)(mAUDIO_3.WAVESHAPER >> 13) & 0xff, mSystem.mCpu->GetPC());
 			return (UBYTE)((mAUDIO_3.WAVESHAPER >> 13) & 0xff);
-			break;
 		case (AUD3OUTVAL & 0xff):
 			TRACE_MIKIE2("Peek(AUD3OUTVAL,%02x) at PC=%04x", (UBYTE)mAUDIO_3.OUTPUT, mSystem.mCpu->GetPC());
 			return (UBYTE)mAUDIO_3.OUTPUT;
-			break;
 		case (AUD3L8SHFT & 0xff):
 			TRACE_MIKIE2("Peek(AUD3L8SHFT,%02x) at PC=%04x", (UBYTE)(mAUDIO_3.WAVESHAPER & 0xff), mSystem.mCpu->GetPC());
 			return (UBYTE)(mAUDIO_3.WAVESHAPER & 0xff);
-			break;
 		case (AUD3TBACK & 0xff):
 			TRACE_MIKIE2("Peek(AUD3TBACK,%02x) at PC=%04x", (UBYTE)mAUDIO_3.BKUP, mSystem.mCpu->GetPC());
 			return (UBYTE)mAUDIO_3.BKUP;
-			break;
 		case (AUD3CTL & 0xff):
 			{
 				UBYTE retval = 0;
@@ -1545,7 +1486,6 @@ UBYTE CMikie::Peek(ULONG addr)
 		case (AUD3COUNT & 0xff):
 			TRACE_MIKIE2("Peek(AUD3COUNT,%02x) at PC=%04x", (UBYTE)mAUDIO_3.CURRENT, mSystem.mCpu->GetPC());
 			return (UBYTE)mAUDIO_3.CURRENT;
-			break;
 		case (AUD3MISC & 0xff):
 			{
 				UBYTE retval = 0;
@@ -1558,18 +1498,9 @@ UBYTE CMikie::Peek(ULONG addr)
 			}
 			break;
 
-		case (ATTEN_A & 0xff):
-		case (ATTEN_B & 0xff):
-		case (ATTEN_C & 0xff):
-		case (ATTEN_D & 0xff):
-		case (MPAN & 0xff):
-			TRACE_MIKIE1("Peek(ATTEN_A/B/C/D/MPAN) at PC=%04x", mSystem.mCpu->GetPC());
-			break;
-
 		case (MSTEREO & 0xff):
 			TRACE_MIKIE2("Peek(MSTEREO,%02x) at PC=%04x", (UBYTE)mSTEREO ^ 0xff, mSystem.mCpu->GetPC());
 			return (UBYTE) mSTEREO ^ 0xff;
-			break;
 
 // Miscellaneous registers
 
@@ -1591,7 +1522,6 @@ UBYTE CMikie::Peek(ULONG addr)
 			mUART_RX_READY = 0;
 			TRACE_MIKIE2("Peek(SERDAT  ,%02x) at PC=%04x", (UBYTE)mUART_RX_DATA, mSystem.mCpu->GetPC());
 			return (UBYTE)(mUART_RX_DATA & 0xff);
-			break;
 
 		case (IODAT & 0xff):
 			{
@@ -1610,25 +1540,18 @@ UBYTE CMikie::Peek(ULONG addr)
 		case (INTSET & 0xff):
 			TRACE_MIKIE2("Peek(INTSET  ,%02x) at PC=%04x", mTimerStatusFlags, mSystem.mCpu->GetPC());
 			return (UBYTE)mTimerStatusFlags;
-			break;
 
 		case (MAGRDY0 & 0xff):
 		case (MAGRDY1 & 0xff):
-			TRACE_MIKIE2("Peek(MAGRDY0/1,%02x) at PC=%04x", 0x00, mSystem.mCpu->GetPC());
-			return 0x00;
-			break;
-
 		case (AUDIN & 0xff):
-//			TRACE_MIKIE2("Peek(AUDIN,%02x) at PC=%04x", mAudioInputComparator ? 0x80 : 0x00, mSystem.mCpu->GetPC());
 //			if (mAudioInputComparator) return 0x80; else return 0x00;
-			TRACE_MIKIE2("Peek(AUDIN,%02x) at PC=%04x", 0x80, mSystem.mCpu->GetPC());
-			return 0x80;
-			break;
+		case (ATTEN_A & 0xff):
+		case (ATTEN_B & 0xff):
+		case (ATTEN_C & 0xff):
+		case (ATTEN_D & 0xff):
+		case (MPAN & 0xff):
 
 		case (MIKEYHREV & 0xff):
-			TRACE_MIKIE2("Peek(MIKEYHREV,%02x) at PC=%04x", 0x01, mSystem.mCpu->GetPC());
-			return 0x01;
-			break;
 
 // Palette registers
 
@@ -1665,9 +1588,6 @@ UBYTE CMikie::Peek(ULONG addr)
 		case (BLUEREDE & 0xff):
 		case (BLUEREDF & 0xff):
 			return lnxReadMikey(addr);
-			break;
-
-// Errors on write only register accesses
 
 		// For easier debugging
 
@@ -1677,6 +1597,8 @@ UBYTE CMikie::Peek(ULONG addr)
 		case (DISPADRH & 0xff):
 			TRACE_MIKIE2("Peek(DISPADRH,%02x) at PC=%04x", (UBYTE)(mDisplayAddress >> 8) & 0xff, mSystem.mCpu->GetPC());
 			return (UBYTE)(mDisplayAddress >> 8) & 0xff;
+
+		// Errors on write only register accesses
 
 		case (DISPCTL & 0xff):
 		case (SYSCTL1 & 0xff):
@@ -1688,23 +1610,17 @@ UBYTE CMikie::Peek(ULONG addr)
 		case (Mtest0 & 0xff):
 		case (Mtest1 & 0xff):
 		case (Mtest2 & 0xff):
-			TRACE_MIKIE2("Peek(%04x) - Peek from write only register location at PC=$%04x", addr, mSystem.mCpu->GetPC());
-			break;
+			return lnxReadMikey(addr);
 
 // Register to let programs know handy is running
-
 		case (0xfd97 & 0xff):
-			TRACE_MIKIE2("Peek(%04x) - **** HANDY DETECT ATTEMPTED **** at PC=$%04x", addr, mSystem.mCpu->GetPC());
-			return 0x42;
-			break;
+			return lnxReadMikey(addr);
 
 // Errors on illegal location accesses
-
 		default:
-			TRACE_MIKIE2("Peek(%04x) - Peek from illegal location at PC=$%04x", addr, mSystem.mCpu->GetPC());
 			break;
 	}
-	return 0xff;
+	return lnxReadMikey(addr);
 }
 
 void CMikie::Update(void)
