@@ -181,8 +181,6 @@ class CMikie : public CLynxBase
 		ULONG		mTimerStatusFlags;
 		ULONG		mTimerInterruptMask;
 
-		TPALETTE	mPalette[16];
-
 		ULONG		mIODAT;
 		ULONG		mIODIR;
 		ULONG		mIODAT_REST_SIGNAL;

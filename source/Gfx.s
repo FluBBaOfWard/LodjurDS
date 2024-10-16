@@ -23,6 +23,8 @@
 	.global vblIrqHandler
 	.global lnxReadIO
 	.global lnxWriteIO
+	.global lnxReadMikey
+	.global lnxWriteMikey
 	.global updateLCDRefresh
 	.global setScreenRefresh
 
@@ -415,6 +417,28 @@ lnxWriteIO:
 	bl svWrite
 	ldmfd sp!,{r3,r12,lr}
 	bx lr
+;@----------------------------------------------------------------------------
+lnxReadMikey:
+	.type lnxReadMikey STT_FUNC
+;@----------------------------------------------------------------------------
+	stmfd sp!,{r3,r12,lr}
+//	mov r0,r12
+	adr mikptr,mikey_0
+	bl mikeyRead
+	ldmfd sp!,{r3,r12,lr}
+	bx lr
+;@----------------------------------------------------------------------------
+lnxWriteMikey:
+	.type lnxWriteMikey STT_FUNC
+;@----------------------------------------------------------------------------
+	stmfd sp!,{r3,r12,lr}
+//	mov r1,r0
+//	mov r0,r12
+	adr mikptr,mikey_0
+	bl mikeyWrite
+	ldmfd sp!,{r3,r12,lr}
+	bx lr
+
 ;@----------------------------------------------------------------------------
 suzy_0:
 	.space suzySize

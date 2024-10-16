@@ -77,9 +77,9 @@ void GpInit(const unsigned char *gamerom, int size) {
 	newsystem->DisplaySetAttributes(handy_nds_display_callback, handy_nds_render_callback);
 	currentDest = ((unsigned short *)0x06000000);
 	for (int i=0;i<4096;i++) {
-		mColourMap[i] = ((i<<3) & 0x7c00) | 0x8000;
-		mColourMap[i] |= (i<<6) & 0x03e0;
-		mColourMap[i] |= (i>>3) & 0x001f;
+		mColourMap[i] = ((i<<7) & 0x7c00) | 0x8000;
+		mColourMap[i] |= (i>>2) & 0x03e0;
+		mColourMap[i] |= (i<<1) & 0x001f;
 	}
 }
 

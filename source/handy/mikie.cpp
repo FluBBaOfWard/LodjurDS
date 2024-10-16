@@ -143,12 +143,6 @@ void CMikie::Reset(void)
 
 	mSTEREO = 0xff;	// All channels enabled
 
-	// Start with an empty palette
-
-	for (int loop=0;loop<16;loop++) {
-		mPalette[loop].Index = loop;
-	}
-
 	// Initialise IODAT register
 
 	mIODAT = 0x00;
@@ -357,7 +351,7 @@ ULONG CMikie::DisplayRenderLine(void)
 		// (Step through bitmap, line at a time)
 
 		if (mpRenderCallback) {
-			(*mpRenderCallback)(&mpRamPointer[mLynxAddr], (ULONG *)mPalette, mDISPCTL_Flip);
+			(*mpRenderCallback)(&mpRamPointer[mLynxAddr], mikey_0.mikPalette, mDISPCTL_Flip);
 		}
 
 		if (mDISPCTL_Flip) {
@@ -1067,10 +1061,6 @@ void CMikie::Poke(ULONG addr, UBYTE data)
 		case (GREEND & 0xff):
 		case (GREENE & 0xff):
 		case (GREENF & 0xff):
-			TRACE_MIKIE2("Poke(GREENPAL0-F,%02x) at PC=%04x", data, mSystem.mCpu->GetPC());
-			mPalette[addr & 0x0f].Colours.Green = data & 0x0f;
-			break;
-
 		case (BLUERED0 & 0xff):
 		case (BLUERED1 & 0xff):
 		case (BLUERED2 & 0xff):
@@ -1087,9 +1077,7 @@ void CMikie::Poke(ULONG addr, UBYTE data)
 		case (BLUEREDD & 0xff):
 		case (BLUEREDE & 0xff):
 		case (BLUEREDF & 0xff):
-			TRACE_MIKIE2("Poke(BLUEREDPAL0-F,%02x) at PC=%04x", data, mSystem.mCpu->GetPC());
-			mPalette[addr & 0x0f].Colours.Blue = (data & 0xf0) >> 4;
-			mPalette[addr & 0x0f].Colours.Red = data & 0x0f;
+			lnxWriteMikey(addr, data);
 			break;
 
 // Errors on read only register accesses
@@ -1660,10 +1648,6 @@ UBYTE CMikie::Peek(ULONG addr)
 		case (GREEND & 0xff):
 		case (GREENE & 0xff):
 		case (GREENF & 0xff):
-			TRACE_MIKIE2("Peek(GREENPAL0-F,%02x) at PC=%04x",mPalette[addr & 0x0f].Colours.Green,mSystem.mCpu->GetPC());
-			return mPalette[addr & 0x0f].Colours.Green;
-			break;
-
 		case (BLUERED0 & 0xff):
 		case (BLUERED1 & 0xff):
 		case (BLUERED2 & 0xff):
@@ -1680,8 +1664,7 @@ UBYTE CMikie::Peek(ULONG addr)
 		case (BLUEREDD & 0xff):
 		case (BLUEREDE & 0xff):
 		case (BLUEREDF & 0xff):
-			TRACE_MIKIE2("Peek(BLUEREDPAL0-F,%02x) at PC=%04x", (mPalette[addr & 0x0f].Colours.Red | (mPalette[addr & 0x0f].Colours.Blue << 4)), mSystem.mCpu->GetPC());
-			return (mPalette[addr & 0x0f].Colours.Red | (mPalette[addr & 0x0f].Colours.Blue << 4));
+			return lnxReadMikey(addr);
 			break;
 
 // Errors on write only register accesses

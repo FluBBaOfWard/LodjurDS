@@ -79,7 +79,7 @@ Some dumb info about the game and emulator...
 * NDS X is mapped to Lynx Option I.
 * NDS Y is mapped to Lynx Option II.
 * NDS d-pad is mapped to Lynx d-pad.
-* NDS Start is mapped to Lynx Start/Pause.
+* NDS Start is mapped to Lynx Pause.
 
 ## Games
 
