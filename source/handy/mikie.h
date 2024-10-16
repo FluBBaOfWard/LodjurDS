@@ -175,8 +175,7 @@ class CMikie : public CLynxBase
 		CSystem		&mSystem;
 
 		// Hardware storage
-		
-		ULONG		mDisplayAddress;
+
 		ULONG		mAudioInputComparator;
 		ULONG		mTimerStatusFlags;
 		ULONG		mTimerInterruptMask;

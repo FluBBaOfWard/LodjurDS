@@ -24,10 +24,10 @@ void resetGame(void);
 void uiNullNormal(void);
 void uiAbout(void);
 
-void debugIOUnmappedR(u8 port);
-void debugIOUnmappedW(u8 port, u8 val);
-void debugIOUnimplR(u8 port);
-void debugIOUnimplW(u8 port, u8 val);
+void debugIOUnmappedR(u16 port);
+void debugIOUnmappedW(u16 port, u8 val);
+void debugIOUnimplR(u16 port);
+void debugIOUnimplW(u16 port, u8 val);
 void debugUndefinedInstruction(void);
 void debugCrashInstruction(void);
 

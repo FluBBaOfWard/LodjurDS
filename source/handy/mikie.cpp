@@ -115,7 +115,6 @@ void CMikie::Reset(void)
 	TRACE_MIKIE0("Reset()");
 
 	mAudioInputComparator = FALSE;	// Initialises to unknown
-	mDisplayAddress = 0x00;			// Initialises to unknown
 	mLynxLine = 0;
 	mLynxLineDMACounter = 0;
 	mLynxAddr = 0;
@@ -328,7 +327,7 @@ ULONG CMikie::DisplayRenderLine(void)
 		mIODAT_REST_SIGNAL = FALSE;
 
 	if (mLynxLine == (mTIM_2.BKUP-3)) {
-		mLynxAddr = mDisplayAddress & 0xfffc;
+		mLynxAddr = mikey_0.dispAdr & 0xfffc;
 		if (mDISPCTL_Flip) {
 			mLynxAddr += 3;
 		}
@@ -351,7 +350,7 @@ ULONG CMikie::DisplayRenderLine(void)
 		// (Step through bitmap, line at a time)
 
 		if (mpRenderCallback) {
-			(*mpRenderCallback)(&mpRamPointer[mLynxAddr], mikey_0.mikPalette, mDISPCTL_Flip);
+			(*mpRenderCallback)(&mpRamPointer[mLynxAddr], mikey_0.palette, mDISPCTL_Flip);
 		}
 
 		if (mDISPCTL_Flip) {
@@ -1016,17 +1015,7 @@ void CMikie::Poke(ULONG addr, UBYTE data)
 			}
 			break;
 		case (DISPADRL & 0xff):
-			TRACE_MIKIE2("Poke(DISPADRL,%02x) at PC=%04x", data, mSystem.mCpu->GetPC());
-			mDisplayAddress &= 0xff00;
-			mDisplayAddress += data;
-			break;
-
 		case (DISPADRH & 0xff):
-			TRACE_MIKIE2("Poke(DISPADRH,%02x) at PC=%04x", data, mSystem.mCpu->GetPC());
-			mDisplayAddress &= 0x00ff;
-			mDisplayAddress += (data << 8);
-			break;
-
 		case (SDONEACK & 0xff):
 		case (PBKUP & 0xff):
 		case (Mtest0 & 0xff):
@@ -1066,8 +1055,6 @@ void CMikie::Poke(ULONG addr, UBYTE data)
 		case (BLUEREDD & 0xff):
 		case (BLUEREDE & 0xff):
 		case (BLUEREDF & 0xff):
-			lnxWriteMikey(addr, data);
-			break;
 
 // Errors on read only register accesses
 
@@ -1075,8 +1062,6 @@ void CMikie::Poke(ULONG addr, UBYTE data)
 		case (MAGRDY1 & 0xff):
 		case (AUDIN & 0xff):
 		case (MIKEYHREV & 0xff):
-			lnxWriteMikey(addr, data);
-			break;
 
 // Errors on illegal location accesses
 
@@ -1587,16 +1572,11 @@ UBYTE CMikie::Peek(ULONG addr)
 		case (BLUEREDD & 0xff):
 		case (BLUEREDE & 0xff):
 		case (BLUEREDF & 0xff):
-			return lnxReadMikey(addr);
 
 		// For easier debugging
 
 		case (DISPADRL & 0xff):
-			TRACE_MIKIE2("Peek(DISPADRL,%02x) at PC=%04x", (UBYTE)(mDisplayAddress & 0xff), mSystem.mCpu->GetPC());
-			return (UBYTE)(mDisplayAddress & 0xff);
 		case (DISPADRH & 0xff):
-			TRACE_MIKIE2("Peek(DISPADRH,%02x) at PC=%04x", (UBYTE)(mDisplayAddress >> 8) & 0xff, mSystem.mCpu->GetPC());
-			return (UBYTE)(mDisplayAddress >> 8) & 0xff;
 
 		// Errors on write only register accesses
 
@@ -1610,14 +1590,12 @@ UBYTE CMikie::Peek(ULONG addr)
 		case (Mtest0 & 0xff):
 		case (Mtest1 & 0xff):
 		case (Mtest2 & 0xff):
-			return lnxReadMikey(addr);
-
-// Register to let programs know handy is running
+		// Register to let programs know handy is running
 		case (0xfd97 & 0xff):
-			return lnxReadMikey(addr);
 
 // Errors on illegal location accesses
 		default:
+			return lnxReadMikey(addr);
 			break;
 	}
 	return lnxReadMikey(addr);
