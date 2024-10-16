@@ -26,25 +26,7 @@ bool gScreenUpdateRequired = false;
 CSystem *newsystem = NULL;
 
 void handy_nds_render_callback(UBYTE *ram, ULONG *palette, bool flip) {
-	UWORD *bitmap_tmp = currentDest;
-	for (int loop=0;loop<LYNX_SCREEN_WIDTH/2;loop++) {
-		int source = *ram;
-		if (flip) {
-			ram -= 1;
-			*bitmap_tmp = MAPPED_RGB[palette[source & 0x0f]];
-			bitmap_tmp += 1;
-			*bitmap_tmp = MAPPED_RGB[palette[source >> 4]];
-			bitmap_tmp += 1;
-		}
-		else {
-			ram += 1;
-			*bitmap_tmp = MAPPED_RGB[palette[source >> 4]];
-			bitmap_tmp += 1;
-			*bitmap_tmp = MAPPED_RGB[palette[source & 0x0f]];
-			bitmap_tmp += 1;
-		}
-	}
-	currentDest += 256;
+	lodjurRenderCallback(ram , palette, flip);
 }
 
 void handy_nds_display_callback(void)

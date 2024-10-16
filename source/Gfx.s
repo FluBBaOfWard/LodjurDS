@@ -18,6 +18,7 @@
 	.global gfxInit
 	.global gfxReset
 	.global paletteInit
+	.global lodjurRenderCallback
 	.global gfxRefresh
 	.global gfxEndFrame
 	.global vblIrqHandler
@@ -156,6 +157,57 @@ gammaConvert:	;@ Takes value in r0(0-0xFF), gamma in r1(0-4),returns new value i
 	mla r0,r3,r0,r2
 	movs r0,r0,lsr#13
 
+	bx lr
+
+;@----------------------------------------------------------------------------
+lodjurRenderCallback:		;@ (UBYTE *ram, ULONG *palette, bool flip)
+	.type lodjurRenderCallback STT_FUNC
+;@----------------------------------------------------------------------------
+	stmfd sp!,{r4-r7,lr}
+	ldr r4,=MAPPED_RGB
+	ldr r5,=PAL_CACHE
+	mov r6,#16
+palCacheLoop:
+	subs r6,r6,#1
+	ldr r3,[r1,r6,lsl#2]
+	mov r3,r3,lsl#1
+	ldrh r3,[r4,r3]
+	str r3,[r5,r6,lsl#2]
+	bne palCacheLoop
+
+	ldr r7,=currentDest
+	ldr r1,[r7]
+
+	mov r4,#GAME_WIDTH/2
+	cmp r2,#0
+	beq rendLoop
+rendLoopFlip:
+	ldrb r2,[r0],#-1
+	and r3,r2,#0x0F
+	and r2,r2,#0xF0
+	ldr r3,[r5,r3,lsl#2]
+	ldr r2,[r5,r2,lsr#2]
+	orr r3,r3,r2,lsl#16
+	str r3,[r1],#4
+	subs r4,r4,#1
+	bne rendLoopFlip
+	add r1,r1,#(256-160)*2
+	str r1,[r7]
+	ldmfd sp!,{r4-r7,lr}
+	bx lr
+rendLoop:
+	ldrb r2,[r0],#1
+	and r3,r2,#0x0F
+	and r2,r2,#0xF0
+	ldr r3,[r5,r3,lsl#2]
+	ldr r2,[r5,r2,lsr#2]
+	orr r3,r2,r3,lsl#16
+	str r3,[r1],#4
+	subs r4,r4,#1
+	bne rendLoop
+	add r1,r1,#(256-160)*2
+	str r1,[r7]
+	ldmfd sp!,{r4-r7,lr}
 	bx lr
 
 ;@----------------------------------------------------------------------------
@@ -413,6 +465,8 @@ MAPPED_RGB:
 	.space 0x2000				;@ 4096*2
 EMUPALBUFF:
 	.space 0x400
+PAL_CACHE:
+	.space 0x40					;@ 16*4
 
 ;@----------------------------------------------------------------------------
 	.end
