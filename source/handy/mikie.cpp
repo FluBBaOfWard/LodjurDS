@@ -57,7 +57,6 @@ void CMikie::BlowOut(void)
 
 void CMikie::ResetTimer(MTIMER& timer)
 {
-	timer.BKUP = 0;
 	timer.ENABLE_RELOAD = 0;
 	timer.ENABLE_COUNT = 0;
 	timer.LINKING = 0;
@@ -216,11 +215,11 @@ void CMikie::PresetForHomebrew(void)
 	// After all of that nice timer init we'll start timers running as some homebrew
 	// i.e LR.O doesn't bother to setup the timers
 
-	mTIM_0.BKUP = 0x9e;
+	mikey_0.tim0Bkup = 0x9e;
 	mTIM_0.ENABLE_RELOAD = TRUE;
 	mTIM_0.ENABLE_COUNT = TRUE;
 
-	mTIM_2.BKUP = 0x68;
+	mikey_0.tim2Bkup = 0x68;
 	mTIM_2.ENABLE_RELOAD = TRUE;
 	mTIM_2.ENABLE_COUNT = TRUE;
 	mTIM_2.LINKING = 7;
@@ -321,12 +320,13 @@ ULONG CMikie::DisplayRenderLine(void)
 // the beginning of count==99 hence the code below !!
 
 	// Emulate REST signal
-	if (mLynxLine == mTIM_2.BKUP-2 || mLynxLine == mTIM_2.BKUP-3 || mLynxLine == mTIM_2.BKUP-4)
+	u32 tim2 = mikey_0.tim2Bkup;
+	if (mLynxLine == tim2-2 || mLynxLine == tim2-3 || mLynxLine == tim2-4)
 		mIODAT_REST_SIGNAL = TRUE;
 	else
 		mIODAT_REST_SIGNAL = FALSE;
 
-	if (mLynxLine == (mTIM_2.BKUP-3)) {
+	if (mLynxLine == tim2-3) {
 		mLynxAddr = mikey_0.dispAdr & 0xfffc;
 		if (mDISPCTL_Flip) {
 			mLynxAddr += 3;
@@ -368,7 +368,7 @@ ULONG CMikie::DisplayEndOfFrame(void)
 {
 	// Stop any further line rendering
 	mLynxLineDMACounter = 0;
-	mLynxLine = mTIM_2.BKUP;
+	mLynxLine = mikey_0.tim2Bkup;
 
 	// Set the timer status flag
 	if (mTimerInterruptMask & 0x04) {
@@ -390,39 +390,6 @@ void CMikie::Poke(ULONG addr, UBYTE data)
 {
 	switch(addr & 0xff)
 	{
-		case (TIM0BKUP & 0xff):
-			mTIM_0.BKUP = data;
-			TRACE_MIKIE2("Poke(TIM0BKUP,%02x) at PC=%04x", data, mSystem.mCpu->GetPC());
-			break;
-		case (TIM1BKUP & 0xff):
-			mTIM_1.BKUP = data;
-			TRACE_MIKIE2("Poke(TIM1BKUP,%02x) at PC=%04x", data, mSystem.mCpu->GetPC());
-			break;
-		case (TIM2BKUP & 0xff):
-			mTIM_2.BKUP = data;
-			TRACE_MIKIE2("Poke(TIM2BKUP,%02x) at PC=%04x", data, mSystem.mCpu->GetPC());
-			break;
-		case (TIM3BKUP & 0xff):
-			mTIM_3.BKUP = data;
-			TRACE_MIKIE2("Poke(TIM3BKUP,%02x) at PC=%04x", data, mSystem.mCpu->GetPC());
-			break;
-		case (TIM4BKUP & 0xff):
-			mTIM_4.BKUP = data;
-			TRACE_MIKIE2("Poke(TIM4BKUP,%02x) at PC=%04x", data, mSystem.mCpu->GetPC());
-			break;
-		case (TIM5BKUP & 0xff):
-			mTIM_5.BKUP = data;
-			TRACE_MIKIE2("Poke(TIM5BKUP,%02x) at PC=%04x", data, mSystem.mCpu->GetPC());
-			break;
-		case (TIM6BKUP & 0xff):
-			mTIM_6.BKUP = data;
-			TRACE_MIKIE2("Poke(TIM6BKUP,%02x) at PC=%04x", data, mSystem.mCpu->GetPC());
-			break;
-		case (TIM7BKUP & 0xff):
-			mTIM_7.BKUP = data;
-			TRACE_MIKIE2("Poke(TIM7BKUP,%02x) at PC=%04x", data, mSystem.mCpu->GetPC());
-			break;
-
 		case (TIM0CTLA & 0xff):
 			mTimerInterruptMask &= (0x01 ^ 0xff);
 			mTimerInterruptMask |= (data & 0x80) ? 0x01 : 0x00;
@@ -575,7 +542,6 @@ void CMikie::Poke(ULONG addr, UBYTE data)
 			mTIM_0.BORROW_IN = data & 0x02;
 			mTIM_0.BORROW_OUT = data & 0x01;
 			TRACE_MIKIE2("Poke(TIM0CTLB ,%02x) at PC=%04x", data, mSystem.mCpu->GetPC());
-//			BlowOut();
 			break;
 		case (TIM1CTLB & 0xff):
 			mTIM_1.TIMER_DONE = data & 0x08;
@@ -583,7 +549,6 @@ void CMikie::Poke(ULONG addr, UBYTE data)
 			mTIM_1.BORROW_IN = data & 0x02;
 			mTIM_1.BORROW_OUT = data & 0x01;
 			TRACE_MIKIE2("Poke(TIM1CTLB ,%02x) at PC=%04x", data, mSystem.mCpu->GetPC());
-//			BlowOut();
 			break;
 		case (TIM2CTLB & 0xff):
 			mTIM_2.TIMER_DONE = data & 0x08;
@@ -591,7 +556,6 @@ void CMikie::Poke(ULONG addr, UBYTE data)
 			mTIM_2.BORROW_IN = data & 0x02;
 			mTIM_2.BORROW_OUT = data & 0x01;
 			TRACE_MIKIE2("Poke(TIM2CTLB ,%02x) at PC=%04x", data, mSystem.mCpu->GetPC());
-//			BlowOut();
 			break;
 		case (TIM3CTLB & 0xff):
 			mTIM_3.TIMER_DONE = data & 0x08;
@@ -599,7 +563,6 @@ void CMikie::Poke(ULONG addr, UBYTE data)
 			mTIM_3.BORROW_IN = data & 0x02;
 			mTIM_3.BORROW_OUT = data & 0x01;
 			TRACE_MIKIE2("Poke(TIM3CTLB ,%02x) at PC=%04x",data,mSystem.mCpu->GetPC());
-//			BlowOut();
 			break;
 		case (TIM4CTLB & 0xff):
 			mTIM_4.TIMER_DONE = data & 0x08;
@@ -607,7 +570,6 @@ void CMikie::Poke(ULONG addr, UBYTE data)
 			mTIM_4.BORROW_IN = data & 0x02;
 			mTIM_4.BORROW_OUT = data & 0x01;
 			TRACE_MIKIE2("Poke(TIM4CTLB ,%02x) at PC=%04x", data, mSystem.mCpu->GetPC());
-//			BlowOut();
 			break;
 		case (TIM5CTLB & 0xff):
 			mTIM_5.TIMER_DONE = data & 0x08;
@@ -615,7 +577,6 @@ void CMikie::Poke(ULONG addr, UBYTE data)
 			mTIM_5.BORROW_IN = data & 0x02;
 			mTIM_5.BORROW_OUT = data & 0x01;
 			TRACE_MIKIE2("Poke(TIM5CTLB ,%02x) at PC=%04x", data, mSystem.mCpu->GetPC());
-//			BlowOut();
 			break;
 		case (TIM6CTLB & 0xff):
 			mTIM_6.TIMER_DONE = data & 0x08;
@@ -623,7 +584,6 @@ void CMikie::Poke(ULONG addr, UBYTE data)
 			mTIM_6.BORROW_IN = data & 0x02;
 			mTIM_6.BORROW_OUT = data & 0x01;
 			TRACE_MIKIE2("Poke(TIM6CTLB ,%02x) at PC=%04x", data, mSystem.mCpu->GetPC());
-//			BlowOut();
 			break;
 		case (TIM7CTLB & 0xff):
 			mTIM_7.TIMER_DONE = data & 0x08;
@@ -631,7 +591,6 @@ void CMikie::Poke(ULONG addr, UBYTE data)
 			mTIM_7.BORROW_IN = data & 0x02;
 			mTIM_7.BORROW_OUT = data & 0x01;
 			TRACE_MIKIE2("Poke(TIM7CTLB ,%02x) at PC=%04x", data, mSystem.mCpu->GetPC());
-//			BlowOut();
 			break;
 
 		case (AUD0VOL & 0xff):
@@ -882,14 +841,6 @@ void CMikie::Poke(ULONG addr, UBYTE data)
 			TRACE_MIKIE2("Poke(AUD3MISC,%02x) at PC=%04x", data, mSystem.mCpu->GetPC());
 			break;
 
-		case (ATTEN_A & 0xff):
-		case (ATTEN_B & 0xff):
-		case (ATTEN_C & 0xff):
-		case (ATTEN_D & 0xff):
-		case (MPAN & 0xff):
-			TRACE_MIKIE2("Poke(ATTEN_A/B/C/D/MPAN,%02x) at PC=%04x", data, mSystem.mCpu->GetPC());
-			break;
-
 		case (MSTEREO & 0xff):
 			data ^= 0xff;
 //			if (!(mSTEREO & 0x11) && (data & 0x11)) {
@@ -1014,6 +965,21 @@ void CMikie::Poke(ULONG addr, UBYTE data)
 				mDISPCTL_Colour = tmp.Bits.Colour;
 			}
 			break;
+
+
+		case (TIM0BKUP & 0xff):
+		case (TIM1BKUP & 0xff):
+		case (TIM2BKUP & 0xff):
+		case (TIM3BKUP & 0xff):
+		case (TIM4BKUP & 0xff):
+		case (TIM5BKUP & 0xff):
+		case (TIM6BKUP & 0xff):
+		case (TIM7BKUP & 0xff):
+		case (ATTEN_A & 0xff):
+		case (ATTEN_B & 0xff):
+		case (ATTEN_C & 0xff):
+		case (ATTEN_D & 0xff):
+		case (MPAN & 0xff):
 		case (DISPADRL & 0xff):
 		case (DISPADRH & 0xff):
 		case (SDONEACK & 0xff):
@@ -1021,8 +987,6 @@ void CMikie::Poke(ULONG addr, UBYTE data)
 		case (Mtest0 & 0xff):
 		case (Mtest1 & 0xff):
 		case (Mtest2 & 0xff):
-			// Test registers are unimplemented
-			// lets hope no programs use them.
 		case (GREEN0 & 0xff):
 		case (GREEN1 & 0xff):
 		case (GREEN2 & 0xff):
@@ -1077,31 +1041,6 @@ UBYTE CMikie::Peek(ULONG addr)
 	{
 
 // Timer control registers
-		case (TIM0BKUP & 0xff):
-			TRACE_MIKIE2("Peek(TIM0KBUP ,%02x) at PC=%04x", mTIM_0.BKUP, mSystem.mCpu->GetPC());
-			return (UBYTE)mTIM_0.BKUP;
-		case (TIM1BKUP & 0xff):
-			TRACE_MIKIE2("Peek(TIM1KBUP ,%02x) at PC=%04x", mTIM_1.BKUP, mSystem.mCpu->GetPC());
-			return (UBYTE)mTIM_1.BKUP;
-		case (TIM2BKUP & 0xff):
-			TRACE_MIKIE2("Peek(TIM2KBUP ,%02x) at PC=%04x", mTIM_2_BKUP, mSystem.mCpu->GetPC());
-			return (UBYTE)mTIM_2.BKUP;
-		case (TIM3BKUP & 0xff):
-			TRACE_MIKIE2("Peek(TIM3KBUP ,%02x) at PC=%04x", mTIM_3_BKUP, mSystem.mCpu->GetPC());
-			return (UBYTE)mTIM_3.BKUP;
-		case (TIM4BKUP & 0xff):
-			TRACE_MIKIE2("Peek(TIM4KBUP ,%02x) at PC=%04x", mTIM_4_BKUP, mSystem.mCpu->GetPC());
-			return (UBYTE)mTIM_4.BKUP;
-		case (TIM5BKUP & 0xff):
-			TRACE_MIKIE2("Peek(TIM5KBUP ,%02x) at PC=%04x", mTIM_5_BKUP, mSystem.mCpu->GetPC());
-			return (UBYTE)mTIM_5.BKUP;
-		case (TIM6BKUP & 0xff):
-			TRACE_MIKIE2("Peek(TIM6KBUP ,%02x) at PC=%04x", mTIM_6_BKUP, mSystem.mCpu->GetPC());
-			return (UBYTE)mTIM_6.BKUP;
-		case (TIM7BKUP & 0xff):
-			TRACE_MIKIE2("Peek(TIM7KBUP ,%02x) at PC=%04x", mTIM_7_BKUP, mSystem.mCpu->GetPC());
-			return (UBYTE)mTIM_7.BKUP;
-
 		case (TIM0CTLA & 0xff):
 			{
 				UBYTE retval = 0;
@@ -1526,6 +1465,15 @@ UBYTE CMikie::Peek(ULONG addr)
 			TRACE_MIKIE2("Peek(INTSET  ,%02x) at PC=%04x", mTimerStatusFlags, mSystem.mCpu->GetPC());
 			return (UBYTE)mTimerStatusFlags;
 
+		case (TIM0BKUP & 0xff):
+		case (TIM1BKUP & 0xff):
+		case (TIM2BKUP & 0xff):
+		case (TIM3BKUP & 0xff):
+		case (TIM4BKUP & 0xff):
+		case (TIM5BKUP & 0xff):
+		case (TIM6BKUP & 0xff):
+		case (TIM7BKUP & 0xff):
+
 		case (MAGRDY0 & 0xff):
 		case (MAGRDY1 & 0xff):
 		case (AUDIN & 0xff):
@@ -1704,7 +1652,7 @@ void CMikie::Update(void)
 
 //					// Reload if neccessary
 //					if (mTIM_0.ENABLE_RELOAD) {
-						mTIM_0.CURRENT += mTIM_0.BKUP+1;
+						mTIM_0.CURRENT += mikey_0.tim0Bkup+1;
 //					}
 //					else {
 //						mTIM_0.CURRENT = 0;
@@ -1748,10 +1696,10 @@ void CMikie::Update(void)
 //				TRACE_MIKIE1("Update() - TIMER 0 Set NextTimerEvent = %012d", gNextTimerEvent);
 			}
 		}
-//		TRACE_MIKIE1("Update() - mTIM_0_CURRENT = %012d",mTIM_0.CURRENT);
-//		TRACE_MIKIE1("Update() - mTIM_0_BKUP    = %012d",mTIM_0.BKUP);
-//		TRACE_MIKIE1("Update() - mTIM_0_LASTCNT = %012d",mTIM_0.LAST_COUNT);
-//		TRACE_MIKIE1("Update() - mTIM_0_LINKING = %012d",mTIM_0.LINKING);
+//		TRACE_MIKIE1("Update() - mTIM_0_CURRENT = %012d", mTIM_0.CURRENT);
+//		TRACE_MIKIE1("Update() - mTIM_0_BKUP    = %012d", mikey_0.tim0Bkup);
+//		TRACE_MIKIE1("Update() - mTIM_0_LASTCNT = %012d", mTIM_0.LAST_COUNT);
+//		TRACE_MIKIE1("Update() - mTIM_0_LINKING = %012d", mTIM_0.LINKING);
 	}
 
 	//
@@ -1789,7 +1737,7 @@ void CMikie::Update(void)
 
 //				// Reload if neccessary
 //				if (mTIM_2.ENABLE_RELOAD) {
-					mTIM_2.CURRENT += mTIM_2.BKUP+1;
+					mTIM_2.CURRENT += mikey_0.tim2Bkup+1;
 //				}
 //				else {
 //					mTIM_2.CURRENT = 0;
@@ -1820,10 +1768,10 @@ void CMikie::Update(void)
 //			tmp = gSystemCycleCount + ((mTIM_2.CURRENT + 1) << divide);
 //			if (tmp < gNextTimerEvent) gNextTimerEvent = tmp;
 //		}
-//		TRACE_MIKIE1("Update() - mTIM_2_CURRENT = %012d",mTIM_2.CURRENT);
-//		TRACE_MIKIE1("Update() - mTIM_2_BKUP    = %012d",mTIM_2.BKUP);
-//		TRACE_MIKIE1("Update() - mTIM_2_LASTCNT = %012d",mTIM_2.LAST_COUNT);
-//		TRACE_MIKIE1("Update() - mTIM_2_LINKING = %012d",mTIM_2.LINKING);
+//		TRACE_MIKIE1("Update() - mTIM_2_CURRENT = %012d", mTIM_2.CURRENT);
+//		TRACE_MIKIE1("Update() - mTIM_2_BKUP    = %012d", mikey_0.tim2Bkup);
+//		TRACE_MIKIE1("Update() - mTIM_2_LASTCNT = %012d", mTIM_2.LAST_COUNT);
+//		TRACE_MIKIE1("Update() - mTIM_2_LINKING = %012d", mTIM_2.LINKING);
 	}
 
 	//
@@ -1938,12 +1886,12 @@ void CMikie::Update(void)
 
 				// Reload if neccessary
 //				if (mTIM_4.ENABLE_RELOAD) {
-					mTIM_4.CURRENT += mTIM_4.BKUP + 1;
+					mTIM_4.CURRENT += mikey_0.tim4Bkup + 1;
 					// The low reload values on TIM4 coupled with a longer
 					// timer service delay can sometimes cause
 					// an underun, check and fix
 					if (mTIM_4.CURRENT & 0x80000000) {
-						mTIM_4.CURRENT = mTIM_4.BKUP;
+						mTIM_4.CURRENT = mikey_0.tim4Bkup;
 						mTIM_4.LAST_COUNT = gSystemCycleCount;
 					}
 //				}
@@ -1979,7 +1927,7 @@ void CMikie::Update(void)
 			}
 //		}
 //		TRACE_MIKIE1("Update() - mTIM_4_CURRENT = %012d", mTIM_4.CURRENT);
-//		TRACE_MIKIE1("Update() - mTIM_4_BKUP    = %012d", mTIM_4.BKUP);
+//		TRACE_MIKIE1("Update() - mTIM_4_BKUP    = %012d", mikey_0.tim4Bkup);
 //		TRACE_MIKIE1("Update() - mTIM_4_LASTCNT = %012d", mTIM_4.LAST_COUNT);
 //		TRACE_MIKIE1("Update() - mTIM_4_LINKING = %012d", mTIM_4.LINKING);
 	}
@@ -2027,7 +1975,7 @@ void CMikie::Update(void)
 
 					// Reload if neccessary
 					if (mTIM_1.ENABLE_RELOAD) {
-						mTIM_1.CURRENT += mTIM_1.BKUP + 1;
+						mTIM_1.CURRENT += mikey_0.tim1Bkup + 1;
 					}
 					else {
 						mTIM_1.CURRENT = 0;
@@ -2062,7 +2010,7 @@ void CMikie::Update(void)
 			}
 		}
 //		TRACE_MIKIE1("Update() - mTIM_1_CURRENT = %012d", mTIM_1.CURRENT);
-//		TRACE_MIKIE1("Update() - mTIM_1_BKUP    = %012d", mTIM_1.BKUP);
+//		TRACE_MIKIE1("Update() - mTIM_1_BKUP    = %012d", mikey_0.tim1Bkup);
 //		TRACE_MIKIE1("Update() - mTIM_1_LASTCNT = %012d", mTIM_1.LAST_COUNT);
 //		TRACE_MIKIE1("Update() - mTIM_1_LINKING = %012d", mTIM_1.LINKING);
 	}
@@ -2100,7 +2048,7 @@ void CMikie::Update(void)
 
 				// Reload if neccessary
 				if (mTIM_3.ENABLE_RELOAD) {
-					mTIM_3.CURRENT += mTIM_3.BKUP + 1;
+					mTIM_3.CURRENT += mikey_0.tim3Bkup + 1;
 				}
 				else {
 					mTIM_3.CURRENT = 0;
@@ -2134,7 +2082,7 @@ void CMikie::Update(void)
 			}
 		}
 //		TRACE_MIKIE1("Update() - mTIM_3_CURRENT = %012d", mTIM_3.CURRENT);
-//		TRACE_MIKIE1("Update() - mTIM_3_BKUP    = %012d", mTIM_3.BKUP);
+//		TRACE_MIKIE1("Update() - mTIM_3_BKUP    = %012d", mikey_0.tim3Bkup);
 //		TRACE_MIKIE1("Update() - mTIM_3_LASTCNT = %012d", mTIM_3.LAST_COUNT);
 //		TRACE_MIKIE1("Update() - mTIM_3_LINKING = %012d", mTIM_3.LINKING);
 	}
@@ -2172,7 +2120,7 @@ void CMikie::Update(void)
 
 				// Reload if neccessary
 				if (mTIM_5.ENABLE_RELOAD) {
-					mTIM_5.CURRENT += mTIM_5.BKUP + 1;
+					mTIM_5.CURRENT += mikey_0.tim5Bkup + 1;
 				}
 				else {
 					mTIM_5.CURRENT = 0;
@@ -2206,7 +2154,7 @@ void CMikie::Update(void)
 			}
 		}
 //		TRACE_MIKIE1("Update() - mTIM_5_CURRENT = %012d", mTIM_5.CURRENT);
-//		TRACE_MIKIE1("Update() - mTIM_5_BKUP    = %012d", mTIM_5.BKUP);
+//		TRACE_MIKIE1("Update() - mTIM_5_BKUP    = %012d", mikey_0.tim5Bkup);
 //		TRACE_MIKIE1("Update() - mTIM_5_LASTCNT = %012d", mTIM_5.LAST_COUNT);
 //		TRACE_MIKIE1("Update() - mTIM_5_LINKING = %012d", mTIM_5.LINKING);
 	}
@@ -2244,7 +2192,7 @@ void CMikie::Update(void)
 
 				// Reload if neccessary
 				if (mTIM_7.ENABLE_RELOAD) {
-					mTIM_7.CURRENT += mTIM_7.BKUP + 1;
+					mTIM_7.CURRENT += mikey_0.tim7Bkup + 1;
 				}
 				else {
 					mTIM_7.CURRENT = 0;
@@ -2278,7 +2226,7 @@ void CMikie::Update(void)
 			}
 		}
 //		TRACE_MIKIE1("Update() - mTIM_7_CURRENT = %012d", mTIM_7.CURRENT);
-//		TRACE_MIKIE1("Update() - mTIM_7_BKUP    = %012d", mTIM_7.BKUP);
+//		TRACE_MIKIE1("Update() - mTIM_7_BKUP    = %012d", mikey_0.tim7Bkup);
 //		TRACE_MIKIE1("Update() - mTIM_7_LASTCNT = %012d", mTIM_7.LAST_COUNT);
 //		TRACE_MIKIE1("Update() - mTIM_7_LINKING = %012d", mTIM_7.LINKING);
 	}
@@ -2310,7 +2258,7 @@ void CMikie::Update(void)
 
 					// Reload if neccessary
 					if (mTIM_6.ENABLE_RELOAD) {
-						mTIM_6.CURRENT += mTIM_6.BKUP + 1;
+						mTIM_6.CURRENT += mikey_0.tim6Bkup + 1;
 					}
 					else {
 						mTIM_6.CURRENT = 0;
@@ -2347,7 +2295,7 @@ void CMikie::Update(void)
 			}
 		}
 //		TRACE_MIKIE1("Update() - mTIM_6_CURRENT = %012d", mTIM_6.CURRENT);
-//		TRACE_MIKIE1("Update() - mTIM_6_BKUP    = %012d", mTIM_6.BKUP);
+//		TRACE_MIKIE1("Update() - mTIM_6_BKUP    = %012d", mikey_0.tim6Bkup);
 //		TRACE_MIKIE1("Update() - mTIM_6_LASTCNT = %012d", mTIM_6.LAST_COUNT);
 //		TRACE_MIKIE1("Update() - mTIM_6_LINKING = %012d", mTIM_6.LINKING);
 	}
