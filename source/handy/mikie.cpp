@@ -62,7 +62,6 @@ void CMikie::ResetTimer(MTIMER& timer)
 	timer.LINKING = 0;
 	timer.CURRENT = 0;
 	timer.TIMER_DONE = 0;
-	timer.LAST_CLOCK = 0;
 	timer.CTLB = 0;
 	timer.LAST_LINK_CARRY = 0;
 	timer.LAST_COUNT = 0;
@@ -76,7 +75,6 @@ void CMikie::ResetAudio(MAUDIO& audio)
 	audio.LINKING = 0;
 	audio.CURRENT = 0;
 	audio.TIMER_DONE = 0;
-	audio.LAST_CLOCK = 0;
 	audio.CTLB = 0;
 	audio.LAST_LINK_CARRY = 0;
 	audio.LAST_COUNT = 0;
@@ -510,50 +508,42 @@ void CMikie::Poke(ULONG addr, UBYTE data)
 
 		case (TIM0CTLB & 0xff):
 			mTIM_0.TIMER_DONE = data & 0x08;
-			mTIM_0.LAST_CLOCK = data & 0x04;
-			mTIM_0.CTLB = data & (BORROW_OUT | BORROW_IN);
+			mTIM_0.CTLB = data & (BORROW_OUT | BORROW_IN | LAST_CLOCK);
 			TRACE_MIKIE2("Poke(TIM0CTLB ,%02x) at PC=%04x", data, mSystem.mCpu->GetPC());
 			break;
 		case (TIM1CTLB & 0xff):
 			mTIM_1.TIMER_DONE = data & 0x08;
-			mTIM_1.LAST_CLOCK = data & 0x04;
-			mTIM_1.CTLB = data & (BORROW_OUT | BORROW_IN);
+			mTIM_1.CTLB = data & (BORROW_OUT | BORROW_IN | LAST_CLOCK);
 			TRACE_MIKIE2("Poke(TIM1CTLB ,%02x) at PC=%04x", data, mSystem.mCpu->GetPC());
 			break;
 		case (TIM2CTLB & 0xff):
 			mTIM_2.TIMER_DONE = data & 0x08;
-			mTIM_2.LAST_CLOCK = data & 0x04;
-			mTIM_2.CTLB = data & (BORROW_OUT | BORROW_IN);
+			mTIM_2.CTLB = data & (BORROW_OUT | BORROW_IN | LAST_CLOCK);
 			TRACE_MIKIE2("Poke(TIM2CTLB ,%02x) at PC=%04x", data, mSystem.mCpu->GetPC());
 			break;
 		case (TIM3CTLB & 0xff):
 			mTIM_3.TIMER_DONE = data & 0x08;
-			mTIM_3.LAST_CLOCK = data & 0x04;
-			mTIM_3.CTLB = data & (BORROW_OUT | BORROW_IN);
+			mTIM_3.CTLB = data & (BORROW_OUT | BORROW_IN | LAST_CLOCK);
 			TRACE_MIKIE2("Poke(TIM3CTLB ,%02x) at PC=%04x",data,mSystem.mCpu->GetPC());
 			break;
 		case (TIM4CTLB & 0xff):
 			mTIM_4.TIMER_DONE = data & 0x08;
-			mTIM_4.LAST_CLOCK = data & 0x04;
-			mTIM_4.CTLB = data & (BORROW_OUT | BORROW_IN);
+			mTIM_4.CTLB = data & (BORROW_OUT | BORROW_IN | LAST_CLOCK);
 			TRACE_MIKIE2("Poke(TIM4CTLB ,%02x) at PC=%04x", data, mSystem.mCpu->GetPC());
 			break;
 		case (TIM5CTLB & 0xff):
 			mTIM_5.TIMER_DONE = data & 0x08;
-			mTIM_5.LAST_CLOCK = data & 0x04;
-			mTIM_5.CTLB = data & (BORROW_OUT | BORROW_IN);
+			mTIM_5.CTLB = data & (BORROW_OUT | BORROW_IN | LAST_CLOCK);
 			TRACE_MIKIE2("Poke(TIM5CTLB ,%02x) at PC=%04x", data, mSystem.mCpu->GetPC());
 			break;
 		case (TIM6CTLB & 0xff):
 			mTIM_6.TIMER_DONE = data & 0x08;
-			mTIM_6.LAST_CLOCK = data & 0x04;
-			mTIM_6.CTLB = data & (BORROW_OUT | BORROW_IN);
+			mTIM_6.CTLB = data & (BORROW_OUT | BORROW_IN | LAST_CLOCK);
 			TRACE_MIKIE2("Poke(TIM6CTLB ,%02x) at PC=%04x", data, mSystem.mCpu->GetPC());
 			break;
 		case (TIM7CTLB & 0xff):
 			mTIM_7.TIMER_DONE = data & 0x08;
-			mTIM_7.LAST_CLOCK = data & 0x04;
-			mTIM_7.CTLB = data & (BORROW_OUT | BORROW_IN);
+			mTIM_7.CTLB = data & (BORROW_OUT | BORROW_IN | LAST_CLOCK);
 			TRACE_MIKIE2("Poke(TIM7CTLB ,%02x) at PC=%04x", data, mSystem.mCpu->GetPC());
 			break;
 
@@ -613,8 +603,7 @@ void CMikie::Poke(ULONG addr, UBYTE data)
 		case (AUD0MISC & 0xff):
 			mAUDIO_0.WAVESHAPER &= 0x1ff0ff;
 			mAUDIO_0.WAVESHAPER |= (data & 0xf0) << 4;
-			mAUDIO_0.CTLB = data & (BORROW_OUT | BORROW_IN);
-			mAUDIO_0.LAST_CLOCK = data & 0x04;
+			mAUDIO_0.CTLB = data & (BORROW_OUT | BORROW_IN | LAST_CLOCK);
 			TRACE_MIKIE2("Poke(AUD0MISC,%02x) at PC=%04x", data, mSystem.mCpu->GetPC());
 			break;
 
@@ -674,8 +663,7 @@ void CMikie::Poke(ULONG addr, UBYTE data)
 		case (AUD1MISC & 0xff):
 			mAUDIO_1.WAVESHAPER &= 0x1ff0ff;
 			mAUDIO_1.WAVESHAPER |= (data & 0xf0) << 4;
-			mAUDIO_1.CTLB = data & (BORROW_OUT | BORROW_IN);
-			mAUDIO_1.LAST_CLOCK = data & 0x04;
+			mAUDIO_1.CTLB = data & (BORROW_OUT | BORROW_IN | LAST_CLOCK);
 			TRACE_MIKIE2("Poke(AUD1MISC,%02x) at PC=%04x", data, mSystem.mCpu->GetPC());
 			break;
 
@@ -735,8 +723,7 @@ void CMikie::Poke(ULONG addr, UBYTE data)
 		case (AUD2MISC & 0xff):
 			mAUDIO_2.WAVESHAPER &= 0x1ff0ff;
 			mAUDIO_2.WAVESHAPER |= (data&0xf0) << 4;
-			mAUDIO_2.CTLB = data & (BORROW_OUT | BORROW_IN);
-			mAUDIO_2.LAST_CLOCK = data & 0x04;
+			mAUDIO_2.CTLB = data & (BORROW_OUT | BORROW_IN | LAST_CLOCK);
 			TRACE_MIKIE2("Poke(AUD2MISC,%02x) at PC=%04x", data, mSystem.mCpu->GetPC());
 			break;
 
@@ -796,8 +783,7 @@ void CMikie::Poke(ULONG addr, UBYTE data)
 		case (AUD3MISC & 0xff):
 			mAUDIO_3.WAVESHAPER &= 0x1ff0ff;
 			mAUDIO_3.WAVESHAPER |= (data & 0xf0) << 4;
-			mAUDIO_3.CTLB = data & (BORROW_OUT | BORROW_IN);
-			mAUDIO_3.LAST_CLOCK = data & 0x04;
+			mAUDIO_3.CTLB = data & (BORROW_OUT | BORROW_IN | LAST_CLOCK);
 			TRACE_MIKIE2("Poke(AUD3MISC,%02x) at PC=%04x", data, mSystem.mCpu->GetPC());
 			break;
 
@@ -1092,8 +1078,7 @@ UBYTE CMikie::Peek(ULONG addr)
 			{
 				UBYTE retval = 0;
 				retval |= (mTIM_0.TIMER_DONE) ? 0x08 : 0x00;
-				retval |= (mTIM_0.LAST_CLOCK) ? 0x04 : 0x00;
-				retval |= (mTIM_0.CTLB & (BORROW_OUT | BORROW_IN));
+				retval |= (mTIM_0.CTLB & (BORROW_OUT | BORROW_IN | LAST_CLOCK));
 				TRACE_MIKIE2("Peek(TIM0CTLB ,%02x) at PC=%04x", retval, mSystem.mCpu->GetPC());
 				return retval;
 			}
@@ -1102,8 +1087,7 @@ UBYTE CMikie::Peek(ULONG addr)
 			{
 				UBYTE retval = 0;
 				retval |= (mTIM_1.TIMER_DONE) ? 0x08 : 0x00;
-				retval |= (mTIM_1.LAST_CLOCK) ? 0x04 : 0x00;
-				retval |= (mTIM_1.CTLB & (BORROW_OUT | BORROW_IN));
+				retval |= (mTIM_1.CTLB & (BORROW_OUT | BORROW_IN | LAST_CLOCK));
 				TRACE_MIKIE2("Peek(TIM1CTLB ,%02x) at PC=%04x", retval, mSystem.mCpu->GetPC());
 				return retval;
 			}
@@ -1112,8 +1096,7 @@ UBYTE CMikie::Peek(ULONG addr)
 			{
 				UBYTE retval = 0;
 				retval |= (mTIM_2.TIMER_DONE) ? 0x08 : 0x00;
-				retval |= (mTIM_2.LAST_CLOCK) ? 0x04 : 0x00;
-				retval |= (mTIM_2.CTLB & (BORROW_OUT | BORROW_IN));
+				retval |= (mTIM_2.CTLB & (BORROW_OUT | BORROW_IN | LAST_CLOCK));
 				TRACE_MIKIE2("Peek(TIM2CTLB ,%02x) at PC=%04x", retval, mSystem.mCpu->GetPC());
 				return retval;
 			}
@@ -1122,8 +1105,7 @@ UBYTE CMikie::Peek(ULONG addr)
 			{
 				UBYTE retval = 0;
 				retval |= (mTIM_3.TIMER_DONE) ? 0x08 : 0x00;
-				retval |= (mTIM_3.LAST_CLOCK) ? 0x04 : 0x00;
-				retval |= (mTIM_3.CTLB & (BORROW_OUT | BORROW_IN));
+				retval |= (mTIM_3.CTLB & (BORROW_OUT | BORROW_IN | LAST_CLOCK));
 				TRACE_MIKIE2("Peek(TIM3CTLB ,%02x) at PC=%04x", retval, mSystem.mCpu->GetPC());
 				return retval;
 			}
@@ -1132,8 +1114,7 @@ UBYTE CMikie::Peek(ULONG addr)
 			{
 				UBYTE retval = 0;
 				retval |= (mTIM_4.TIMER_DONE) ? 0x08 : 0x00;
-				retval |= (mTIM_4.LAST_CLOCK) ? 0x04 : 0x00;
-				retval |= (mTIM_4.CTLB & (BORROW_OUT | BORROW_IN));
+				retval |= (mTIM_4.CTLB & (BORROW_OUT | BORROW_IN | LAST_CLOCK));
 				TRACE_MIKIE2("Peek(TIM4CTLB ,%02x) at PC=%04x", retval, mSystem.mCpu->GetPC());
 				return retval;
 			}
@@ -1142,8 +1123,7 @@ UBYTE CMikie::Peek(ULONG addr)
 			{
 				UBYTE retval = 0;
 				retval |= (mTIM_5.TIMER_DONE) ? 0x08 : 0x00;
-				retval |= (mTIM_5.LAST_CLOCK) ? 0x04 : 0x00;
-				retval |= (mTIM_5.CTLB & (BORROW_OUT | BORROW_IN));
+				retval |= (mTIM_5.CTLB & (BORROW_OUT | BORROW_IN | LAST_CLOCK));
 				TRACE_MIKIE2("Peek(TIM5CTLB ,%02x) at PC=%04x", retval, mSystem.mCpu->GetPC());
 				return retval;
 			}
@@ -1152,8 +1132,7 @@ UBYTE CMikie::Peek(ULONG addr)
 			{
 				UBYTE retval = 0;
 				retval |= (mTIM_6.TIMER_DONE) ? 0x08 : 0x00;
-				retval |= (mTIM_6.LAST_CLOCK) ? 0x04 : 0x00;
-				retval |= (mTIM_6.CTLB & (BORROW_OUT | BORROW_IN));
+				retval |= (mTIM_6.CTLB & (BORROW_OUT | BORROW_IN | LAST_CLOCK));
 				TRACE_MIKIE2("Peek(TIM6CTLB ,%02x) at PC=%04x", retval, mSystem.mCpu->GetPC());
 				return retval;
 			}
@@ -1162,8 +1141,7 @@ UBYTE CMikie::Peek(ULONG addr)
 			{
 				UBYTE retval = 0;
 				retval |= (mTIM_7.TIMER_DONE) ? 0x08 : 0x00;
-				retval |= (mTIM_7.LAST_CLOCK) ? 0x04 : 0x00;
-				retval |= (mTIM_7.CTLB & (BORROW_OUT | BORROW_IN));
+				retval |= (mTIM_7.CTLB & (BORROW_OUT | BORROW_IN | LAST_CLOCK));
 				TRACE_MIKIE2("Peek(TIM7CTLB ,%02x) at PC=%04x", retval, mSystem.mCpu->GetPC());
 				return retval;
 			}
@@ -1204,8 +1182,7 @@ UBYTE CMikie::Peek(ULONG addr)
 		case (AUD0MISC & 0xff):
 			{
 				UBYTE retval = 0;
-				retval |= (mAUDIO_0.CTLB & (BORROW_OUT | BORROW_IN));
-				retval |= (mAUDIO_0.LAST_CLOCK) ? 0x08 : 0x00;
+				retval |= (mAUDIO_0.CTLB & (BORROW_OUT | BORROW_IN | LAST_CLOCK));
 				retval |= (mAUDIO_0.WAVESHAPER >> 4) & 0xf0;
 				TRACE_MIKIE2("Peek(AUD0MISC,%02x) at PC=%04x", retval, mSystem.mCpu->GetPC());
 				return retval;
@@ -1245,8 +1222,7 @@ UBYTE CMikie::Peek(ULONG addr)
 		case (AUD1MISC & 0xff):
 			{
 				UBYTE retval = 0;
-				retval |= (mAUDIO_1.CTLB & (BORROW_OUT | BORROW_IN));
-				retval |= (mAUDIO_1.LAST_CLOCK) ? 0x08 : 0x00;
+				retval |= (mAUDIO_1.CTLB & (BORROW_OUT | BORROW_IN | LAST_CLOCK));
 				retval |= (mAUDIO_1.WAVESHAPER >> 4) & 0xf0;
 				TRACE_MIKIE2("Peek(AUD1MISC,%02x) at PC=%04x", retval, mSystem.mCpu->GetPC());
 				return retval;
@@ -1286,8 +1262,7 @@ UBYTE CMikie::Peek(ULONG addr)
 		case (AUD2MISC & 0xff):
 			{
 				UBYTE retval = 0;
-				retval |= (mAUDIO_2.CTLB & (BORROW_OUT | BORROW_IN));
-				retval |= (mAUDIO_2.LAST_CLOCK) ? 0x08 : 0x00;
+				retval |= (mAUDIO_2.CTLB & (BORROW_OUT | BORROW_IN | LAST_CLOCK));
 				retval |= (mAUDIO_2.WAVESHAPER >> 4) & 0xf0;
 				TRACE_MIKIE2("Peek(AUD2MISC,%02x) at PC=%04x", retval, mSystem.mCpu->GetPC());
 				return retval;
@@ -1327,8 +1302,7 @@ UBYTE CMikie::Peek(ULONG addr)
 		case (AUD3MISC & 0xff):
 			{
 				UBYTE retval = 0;
-				retval |= (mAUDIO_3.CTLB & (BORROW_OUT | BORROW_IN));
-				retval |= (mAUDIO_3.LAST_CLOCK) ? 0x08 : 0x00;
+				retval |= (mAUDIO_3.CTLB & (BORROW_OUT | BORROW_IN | LAST_CLOCK));
 				retval |= (mAUDIO_3.WAVESHAPER >> 4) & 0xf0;
 				TRACE_MIKIE2("Peek(AUD3MISC,%02x) at PC=%04x", retval, mSystem.mCpu->GetPC());
 				return retval;
