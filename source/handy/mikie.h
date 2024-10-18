@@ -180,14 +180,7 @@ class CMikie : public CLynxBase
 		ULONG		mTimerStatusFlags;
 		ULONG		mTimerInterruptMask;
 
-		ULONG		mIODAT;
-		ULONG		mIODIR;
 		ULONG		mIODAT_REST_SIGNAL;
-
-		ULONG		mDISPCTL_DMAEnable;
-		ULONG		mDISPCTL_Flip;
-		ULONG		mDISPCTL_FourColour;
-		ULONG		mDISPCTL_Colour;
 
 		MAUDIO		mAUDIO_0;
 		MAUDIO		mAUDIO_1;
@@ -228,8 +221,6 @@ class CMikie : public CLynxBase
 		// Screen related
 		//
 
-		ULONG		mCurrentBuffer;
-	
 		UBYTE		*mpRamPointer;
 		ULONG		mLynxLine;
 		ULONG		mLynxLineDMACounter;
