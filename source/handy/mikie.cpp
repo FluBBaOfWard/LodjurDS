@@ -61,7 +61,6 @@ void CMikie::ResetTimer(MTIMER& timer)
 	timer.ENABLE_COUNT = 0;
 	timer.LINKING = 0;
 	timer.CURRENT = 0;
-	timer.CTLB = 0;
 	timer.LAST_LINK_CARRY = 0;
 	timer.LAST_COUNT = 0;
 }
@@ -403,7 +402,7 @@ void CMikie::Poke(ULONG addr, UBYTE data)
 			mTIM_3.ENABLE_RELOAD = data & 0x10;
 			mTIM_3.ENABLE_COUNT = data & 0x08;
 			mTIM_3.LINKING = data & 0x07;
-			if (data & 0x40) mTIM_3.CTLB &= ~TIMER_DONE;
+			if (data & 0x40) mikey_0.tim3CtlB &= ~TIMER_DONE;
 			if (data & 0x48) {
 				mTIM_3.LAST_COUNT = gSystemCycleCount;
 				gNextTimerEvent = gSystemCycleCount;
@@ -416,7 +415,7 @@ void CMikie::Poke(ULONG addr, UBYTE data)
 			mTIM_4.ENABLE_RELOAD = data & 0x10;
 			mTIM_4.ENABLE_COUNT = data & 0x08;
 			mTIM_4.LINKING = data & 0x07;
-			if (data & 0x40) mTIM_4.CTLB &= ~TIMER_DONE;
+			if (data & 0x40) mikey_0.tim4CtlB &= ~TIMER_DONE;
 			if (data & 0x48) {
 				mTIM_4.LAST_COUNT = gSystemCycleCount;
 				gNextTimerEvent = gSystemCycleCount;
@@ -429,7 +428,7 @@ void CMikie::Poke(ULONG addr, UBYTE data)
 			mTIM_5.ENABLE_RELOAD = data & 0x10;
 			mTIM_5.ENABLE_COUNT = data & 0x08;
 			mTIM_5.LINKING = data & 0x07;
-			if (data & 0x40) mTIM_5.CTLB &= ~TIMER_DONE;
+			if (data & 0x40) mikey_0.tim5CtlB &= ~TIMER_DONE;
 			if (data & 0x48) {
 				mTIM_5.LAST_COUNT = gSystemCycleCount;
 				gNextTimerEvent = gSystemCycleCount;
@@ -442,7 +441,7 @@ void CMikie::Poke(ULONG addr, UBYTE data)
 			mTIM_6.ENABLE_RELOAD = data & 0x10;
 			mTIM_6.ENABLE_COUNT = data & 0x08;
 			mTIM_6.LINKING = data & 0x07;
-			if (data & 0x40) mTIM_6.CTLB &= ~TIMER_DONE;
+			if (data & 0x40) mikey_0.tim6CtlB &= ~TIMER_DONE;
 			if (data & 0x48) {
 				mTIM_6.LAST_COUNT = gSystemCycleCount;
 				gNextTimerEvent = gSystemCycleCount;
@@ -455,7 +454,7 @@ void CMikie::Poke(ULONG addr, UBYTE data)
 			mTIM_7.ENABLE_RELOAD = data & 0x10;
 			mTIM_7.ENABLE_COUNT = data & 0x08;
 			mTIM_7.LINKING = data & 0x07;
-			if (data & 0x40) mTIM_7.CTLB &= ~TIMER_DONE;
+			if (data & 0x40) mikey_0.tim7CtlB &= ~TIMER_DONE;
 			if (data & 0x48) {
 				mTIM_7.LAST_COUNT = gSystemCycleCount;
 				gNextTimerEvent = gSystemCycleCount;
@@ -502,27 +501,6 @@ void CMikie::Poke(ULONG addr, UBYTE data)
 			mTIM_7.CURRENT = data;
 			gNextTimerEvent = gSystemCycleCount;
 			TRACE_MIKIE2("Poke(TIM7CNT ,%02x) at PC=%04x", data, mSystem.mCpu->GetPC());
-			break;
-
-		case (TIM3CTLB & 0xff):
-			mTIM_3.CTLB = data & (BORROW_OUT | BORROW_IN | LAST_CLOCK | TIMER_DONE);
-			TRACE_MIKIE2("Poke(TIM3CTLB ,%02x) at PC=%04x",data,mSystem.mCpu->GetPC());
-			break;
-		case (TIM4CTLB & 0xff):
-			mTIM_4.CTLB = data & (BORROW_OUT | BORROW_IN | LAST_CLOCK | TIMER_DONE);
-			TRACE_MIKIE2("Poke(TIM4CTLB ,%02x) at PC=%04x", data, mSystem.mCpu->GetPC());
-			break;
-		case (TIM5CTLB & 0xff):
-			mTIM_5.CTLB = data & (BORROW_OUT | BORROW_IN | LAST_CLOCK | TIMER_DONE);
-			TRACE_MIKIE2("Poke(TIM5CTLB ,%02x) at PC=%04x", data, mSystem.mCpu->GetPC());
-			break;
-		case (TIM6CTLB & 0xff):
-			mTIM_6.CTLB = data & (BORROW_OUT | BORROW_IN | LAST_CLOCK | TIMER_DONE);
-			TRACE_MIKIE2("Poke(TIM6CTLB ,%02x) at PC=%04x", data, mSystem.mCpu->GetPC());
-			break;
-		case (TIM7CTLB & 0xff):
-			mTIM_7.CTLB = data & (BORROW_OUT | BORROW_IN | LAST_CLOCK | TIMER_DONE);
-			TRACE_MIKIE2("Poke(TIM7CTLB ,%02x) at PC=%04x", data, mSystem.mCpu->GetPC());
 			break;
 
 		case (AUD0VOL & 0xff):
@@ -864,6 +842,11 @@ void CMikie::Poke(ULONG addr, UBYTE data)
 		case (TIM0CTLB & 0xff):
 		case (TIM1CTLB & 0xff):
 		case (TIM2CTLB & 0xff):
+		case (TIM3CTLB & 0xff):
+		case (TIM4CTLB & 0xff):
+		case (TIM5CTLB & 0xff):
+		case (TIM6CTLB & 0xff):
+		case (TIM7CTLB & 0xff):
 		case (ATTEN_A & 0xff):
 		case (ATTEN_B & 0xff):
 		case (ATTEN_C & 0xff):
@@ -1054,42 +1037,6 @@ UBYTE CMikie::Peek(ULONG addr)
 			Update();
 			TRACE_MIKIE2("Peek(TIM7CNT  ,%02x) at PC=%04x", mTIM_7_CURRENT, mSystem.mCpu->GetPC());
 			return (UBYTE)mTIM_7.CURRENT;
-
-		case (TIM3CTLB & 0xff):
-			{
-				UBYTE retval = (mTIM_3.CTLB & (BORROW_OUT | BORROW_IN | LAST_CLOCK | TIMER_DONE));
-				TRACE_MIKIE2("Peek(TIM3CTLB ,%02x) at PC=%04x", retval, mSystem.mCpu->GetPC());
-				return retval;
-			}
-			break;
-		case (TIM4CTLB & 0xff):
-			{
-				UBYTE retval = (mTIM_4.CTLB & (BORROW_OUT | BORROW_IN | LAST_CLOCK | TIMER_DONE));
-				TRACE_MIKIE2("Peek(TIM4CTLB ,%02x) at PC=%04x", retval, mSystem.mCpu->GetPC());
-				return retval;
-			}
-			break;
-		case (TIM5CTLB & 0xff):
-			{
-				UBYTE retval = (mTIM_5.CTLB & (BORROW_OUT | BORROW_IN | LAST_CLOCK | TIMER_DONE));
-				TRACE_MIKIE2("Peek(TIM5CTLB ,%02x) at PC=%04x", retval, mSystem.mCpu->GetPC());
-				return retval;
-			}
-			break;
-		case (TIM6CTLB & 0xff):
-			{
-				UBYTE retval = (mTIM_6.CTLB & (BORROW_OUT | BORROW_IN | LAST_CLOCK | TIMER_DONE));
-				TRACE_MIKIE2("Peek(TIM6CTLB ,%02x) at PC=%04x", retval, mSystem.mCpu->GetPC());
-				return retval;
-			}
-			break;
-		case (TIM7CTLB & 0xff):
-			{
-				UBYTE retval = (mTIM_7.CTLB & (BORROW_OUT | BORROW_IN | LAST_CLOCK | TIMER_DONE));
-				TRACE_MIKIE2("Peek(TIM7CTLB ,%02x) at PC=%04x", retval, mSystem.mCpu->GetPC());
-				return retval;
-			}
-			break;
 
 // Audio control registers
 
@@ -1303,6 +1250,11 @@ UBYTE CMikie::Peek(ULONG addr)
 		case (TIM0CTLB & 0xff):
 		case (TIM1CTLB & 0xff):
 		case (TIM2CTLB & 0xff):
+		case (TIM3CTLB & 0xff):
+		case (TIM4CTLB & 0xff):
+		case (TIM5CTLB & 0xff):
+		case (TIM6CTLB & 0xff):
+		case (TIM7CTLB & 0xff):
 
 		case (MAGRDY0 & 0xff):
 		case (MAGRDY1 & 0xff):
@@ -1605,7 +1557,7 @@ void CMikie::Update(void)
 	//
 
 	// KW bugfix 13/4/99 added (mTIM_x.ENABLE_RELOAD ||  ..)
-//	if (mTIM_4.ENABLE_COUNT && (mTIM_4.ENABLE_RELOAD || !(mTIM_4.CTLB & TIMER_DONE)))
+//	if (mTIM_4.ENABLE_COUNT && (mTIM_4.ENABLE_RELOAD || !(mikey_0.tim4CtlB & TIMER_DONE)))
 	if (mTIM_4.ENABLE_COUNT) {
 		decval = 0;
 
@@ -1628,7 +1580,7 @@ void CMikie::Update(void)
 			mTIM_4.CURRENT -= decval;
 			if (mTIM_4.CURRENT & 0x80000000) {
 				// Set carry out
-				mTIM_4.CTLB |= BORROW_OUT;
+				mikey_0.tim4CtlB |= BORROW_OUT;
 
 				//
 				// Update the UART counter models for Rx & Tx
@@ -1719,10 +1671,10 @@ void CMikie::Update(void)
 //				else {
 //					mTIM_4.CURRENT = 0;
 //				}
-//				mTIM_4.CTLB |= TIMER_DONE;
+//				mikey_0.tim4CtlB |= TIMER_DONE;
 			}
 //			else {
-//				mTIM_4.CTLB &= ~BORROW_OUT;
+//				mikey_0.tim4CtlB &= ~BORROW_OUT;
 //			}
 //			// Set carry in as we did a count
 //			mTIM_4.BORROW_IN = TRUE;
@@ -1731,7 +1683,7 @@ void CMikie::Update(void)
 //			// Clear carry in as we didn't count
 //			mTIM_4.BORROW_IN = FALSE;
 //			// Clear carry out
-//			mTIM_4.CTLB &= ~BORROW_OUT;
+//			mikey_0.tim4CtlB &= ~BORROW_OUT;
 //		}
 //
 //		// Prediction for next timer event cycle number
@@ -1839,7 +1791,7 @@ void CMikie::Update(void)
 	// Timer 3 of Group A
 	//
 	// KW bugfix 13/4/99 added (mTIM_x.ENABLE_RELOAD ||  ..)
-	if (mTIM_3.ENABLE_COUNT && (mTIM_3.ENABLE_RELOAD || !(mTIM_3.CTLB & TIMER_DONE))) {
+	if (mTIM_3.ENABLE_COUNT && (mTIM_3.ENABLE_RELOAD || !(mikey_0.tim3CtlB & TIMER_DONE))) {
 		decval = 0;
 
 		if (mTIM_3.LINKING == 0x07) {
@@ -1858,7 +1810,7 @@ void CMikie::Update(void)
 			mTIM_3.CURRENT -= decval;
 			if (mTIM_3.CURRENT & 0x80000000) {
 				// Set carry out
-				mTIM_3.CTLB |= BORROW_OUT;
+				mikey_0.tim3CtlB |= BORROW_OUT;
 
 				// Set the timer status flag
 				if (mTimerInterruptMask & 0x08) {
@@ -1873,18 +1825,18 @@ void CMikie::Update(void)
 				else {
 					mTIM_3.CURRENT = 0;
 				}
-				mTIM_3.CTLB |= TIMER_DONE;
+				mikey_0.tim3CtlB |= TIMER_DONE;
 			}
 			else {
-				mTIM_3.CTLB &= ~BORROW_OUT;
+				mikey_0.tim3CtlB &= ~BORROW_OUT;
 			}
 			// Set carry in as we did a count
-			mTIM_3.CTLB |= BORROW_IN;
+			mikey_0.tim3CtlB |= BORROW_IN;
 		}
 		else {
 			// Clear carry in as we didn't count
 			// Clear carry out
-			mTIM_3.CTLB &= ~(BORROW_OUT | BORROW_IN);
+			mikey_0.tim3CtlB &= ~(BORROW_OUT | BORROW_IN);
 		}
 
 		// Prediction for next timer event cycle number
@@ -1910,12 +1862,12 @@ void CMikie::Update(void)
 	// Timer 5 of Group A
 	//
 	// KW bugfix 13/4/99 added (mTIM_x.ENABLE_RELOAD ||  ..)
-	if (mTIM_5.ENABLE_COUNT && (mTIM_5.ENABLE_RELOAD || !(mTIM_5.CTLB & TIMER_DONE))) {
+	if (mTIM_5.ENABLE_COUNT && (mTIM_5.ENABLE_RELOAD || !(mikey_0.tim5CtlB & TIMER_DONE))) {
 		decval = 0;
 
 		if (mTIM_5.LINKING == 0x07) {
-			if (mTIM_3.CTLB & BORROW_OUT) decval = 1;
-			mTIM_5.LAST_LINK_CARRY = (mTIM_3.CTLB & BORROW_OUT);
+			if (mikey_0.tim3CtlB & BORROW_OUT) decval = 1;
+			mTIM_5.LAST_LINK_CARRY = (mikey_0.tim3CtlB & BORROW_OUT);
 		}
 		else {
 			// Ordinary clocked mode as opposed to linked mode
@@ -1929,7 +1881,7 @@ void CMikie::Update(void)
 			mTIM_5.CURRENT -= decval;
 			if (mTIM_5.CURRENT & 0x80000000) {
 				// Set carry out
-				mTIM_5.CTLB |= BORROW_OUT;
+				mikey_0.tim5CtlB |= BORROW_OUT;
 
 				// Set the timer status flag
 				if (mTimerInterruptMask & 0x20) {
@@ -1944,18 +1896,18 @@ void CMikie::Update(void)
 				else {
 					mTIM_5.CURRENT = 0;
 				}
-				mTIM_5.CTLB |= TIMER_DONE;
+				mikey_0.tim5CtlB |= TIMER_DONE;
 			}
 			else {
-				mTIM_5.CTLB &= ~BORROW_OUT;
+				mikey_0.tim5CtlB &= ~BORROW_OUT;
 			}
 			// Set carry in as we did a count
-			mTIM_5.CTLB |= BORROW_IN;
+			mikey_0.tim5CtlB |= BORROW_IN;
 		}
 		else {
 			// Clear carry in as we didn't count
 			// Clear carry out
-			mTIM_5.CTLB &= ~(BORROW_OUT | BORROW_IN);
+			mikey_0.tim5CtlB &= ~(BORROW_OUT | BORROW_IN);
 		}
 
 		// Prediction for next timer event cycle number
@@ -1981,12 +1933,12 @@ void CMikie::Update(void)
 	// Timer 7 of Group A
 	//
 	// KW bugfix 13/4/99 added (mTIM_x.ENABLE_RELOAD ||  ..)
-	if (mTIM_7.ENABLE_COUNT && (mTIM_7.ENABLE_RELOAD || !(mTIM_7.CTLB & TIMER_DONE))) {
+	if (mTIM_7.ENABLE_COUNT && (mTIM_7.ENABLE_RELOAD || !(mikey_0.tim7CtlB & TIMER_DONE))) {
 		decval = 0;
 
 		if (mTIM_7.LINKING == 0x07) {
-			if (mTIM_5.CTLB & BORROW_OUT) decval = 1;
-			mTIM_7.LAST_LINK_CARRY = (mTIM_5.CTLB & BORROW_OUT);
+			if (mikey_0.tim5CtlB & BORROW_OUT) decval = 1;
+			mTIM_7.LAST_LINK_CARRY = (mikey_0.tim5CtlB & BORROW_OUT);
 		}
 		else {
 			// Ordinary clocked mode as opposed to linked mode
@@ -2000,7 +1952,7 @@ void CMikie::Update(void)
 			mTIM_7.CURRENT -= decval;
 			if (mTIM_7.CURRENT & 0x80000000) {
 				// Set carry out
-				mTIM_7.CTLB |= BORROW_OUT;
+				mikey_0.tim7CtlB |= BORROW_OUT;
 
 				// Set the timer status flag
 				if (mTimerInterruptMask & 0x80) {
@@ -2015,18 +1967,18 @@ void CMikie::Update(void)
 				else {
 					mTIM_7.CURRENT = 0;
 				}
-				mTIM_7.CTLB |= TIMER_DONE;
+				mikey_0.tim7CtlB |= TIMER_DONE;
 			}
 			else {
-				mTIM_7.CTLB &= ~BORROW_OUT;
+				mikey_0.tim7CtlB &= ~BORROW_OUT;
 			}
 			// Set carry in as we did a count
-			mTIM_7.CTLB |= BORROW_IN;
+			mikey_0.tim7CtlB |= BORROW_IN;
 		}
 		else {
 			// Clear carry in as we didn't count
 			// Clear carry out
-			mTIM_7.CTLB &= ~(BORROW_OUT | BORROW_IN);
+			mikey_0.tim7CtlB &= ~(BORROW_OUT | BORROW_IN);
 		}
 
 		// Prediction for next timer event cycle number
@@ -2052,7 +2004,7 @@ void CMikie::Update(void)
 	// Timer 6 has no group
 	//
 	// KW bugfix 13/4/99 added (mTIM_x.ENABLE_RELOAD ||  ..)
-	if (mTIM_6.ENABLE_COUNT && (mTIM_6.ENABLE_RELOAD || !(mTIM_6.CTLB & TIMER_DONE))) {
+	if (mTIM_6.ENABLE_COUNT && (mTIM_6.ENABLE_RELOAD || !(mikey_0.tim6CtlB & TIMER_DONE))) {
 //		if (mTIM_6.LINKING != 0x07)
 		{
 			// Ordinary clocked mode as opposed to linked mode
@@ -2065,7 +2017,7 @@ void CMikie::Update(void)
 				mTIM_6.CURRENT -= decval;
 				if (mTIM_6.CURRENT & 0x80000000) {
 					// Set carry out
-					mTIM_6.CTLB |= BORROW_OUT;
+					mikey_0.tim6CtlB |= BORROW_OUT;
 
 					// Set the timer status flag
 					if (mTimerInterruptMask & 0x40) {
@@ -2080,18 +2032,18 @@ void CMikie::Update(void)
 					else {
 						mTIM_6.CURRENT = 0;
 					}
-					mTIM_6.CTLB |= TIMER_DONE;
+					mikey_0.tim6CtlB |= TIMER_DONE;
 				}
 				else {
-					mTIM_6.CTLB &= ~BORROW_OUT;
+					mikey_0.tim6CtlB &= ~BORROW_OUT;
 				}
 				// Set carry in as we did a count
-				mTIM_6.CTLB |= BORROW_IN;
+				mikey_0.tim6CtlB |= BORROW_IN;
 			}
 			else {
 				// Clear carry in as we didn't count
 				// Clear carry out
-				mTIM_6.CTLB &= ~(BORROW_OUT | BORROW_IN);
+				mikey_0.tim6CtlB &= ~(BORROW_OUT | BORROW_IN);
 			}
 		}
 
@@ -2178,8 +2130,8 @@ void CMikie::Update(void)
 			decval = 0;
 
 			if (mAUDIO_0.LINKING == 0x07) {
-				if (mTIM_7.CTLB & BORROW_OUT) decval = 1;
-				mAUDIO_0.LAST_LINK_CARRY = (mTIM_7.CTLB & BORROW_OUT);
+				if (mikey_0.tim7CtlB & BORROW_OUT) decval = 1;
+				mAUDIO_0.LAST_LINK_CARRY = (mikey_0.tim7CtlB & BORROW_OUT);
 			}
 			else {
 				// Ordinary clocked mode as opposed to linked mode
