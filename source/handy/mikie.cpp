@@ -350,7 +350,7 @@ void CMikie::Poke(ULONG addr, UBYTE data)
 		case (TIM0CTLA & 0xff):
 			mTimerInterruptMask &= ~0x01;
 			mTimerInterruptMask |= (data & 0x80) ? 0x01 : 0x00;
-			mikey_0.tim0CtlA = data;
+			mikey_0.tim0CtlA = data & (CLOCK_SEL | ENABLE_COUNT | ENABLE_RELOAD | 0x80);
 			if (data & 0x40) mikey_0.tim0CtlB &= ~TIMER_DONE;
 			if (data & 0x48) {
 				mTIM_0.LAST_COUNT = gSystemCycleCount;
@@ -361,7 +361,7 @@ void CMikie::Poke(ULONG addr, UBYTE data)
 		case (TIM1CTLA & 0xff):
 			mTimerInterruptMask &= ~0x02;
 			mTimerInterruptMask |= (data & 0x80) ? 0x02 : 0x00;
-			mikey_0.tim1CtlA = data;
+			mikey_0.tim1CtlA = data & (CLOCK_SEL | ENABLE_COUNT | ENABLE_RELOAD | 0x80);
 			if (data & 0x40) mikey_0.tim1CtlB &= ~TIMER_DONE;
 			if (data & 0x48) {
 				mTIM_1.LAST_COUNT = gSystemCycleCount;
@@ -372,7 +372,7 @@ void CMikie::Poke(ULONG addr, UBYTE data)
 		case (TIM2CTLA & 0xff):
 			mTimerInterruptMask &= ~0x04;
 			mTimerInterruptMask |= (data & 0x80) ? 0x04 : 0x00;
-			mikey_0.tim2CtlA = data;
+			mikey_0.tim2CtlA = data & (CLOCK_SEL | ENABLE_COUNT | ENABLE_RELOAD | 0x80);
 			if (data & 0x40) mikey_0.tim2CtlB &= ~TIMER_DONE;
 			if (data & 0x48) {
 				mTIM_2.LAST_COUNT = gSystemCycleCount;
@@ -383,7 +383,7 @@ void CMikie::Poke(ULONG addr, UBYTE data)
 		case (TIM3CTLA & 0xff):
 			mTimerInterruptMask &= ~0x08;
 			mTimerInterruptMask |= (data & 0x80) ? 0x08 : 0x00;
-			mikey_0.tim3CtlA = data;
+			mikey_0.tim3CtlA = data & (CLOCK_SEL | ENABLE_COUNT | ENABLE_RELOAD | 0x80);
 			if (data & 0x40) mikey_0.tim3CtlB &= ~TIMER_DONE;
 			if (data & 0x48) {
 				mTIM_3.LAST_COUNT = gSystemCycleCount;
@@ -394,7 +394,7 @@ void CMikie::Poke(ULONG addr, UBYTE data)
 		case (TIM4CTLA & 0xff):
 			// Timer 4 can never generate interrupts as its timer output is used
 			// to drive the UART clock generator
-			mikey_0.tim4CtlA = data;
+			mikey_0.tim4CtlA = data & (CLOCK_SEL | ENABLE_COUNT | ENABLE_RELOAD | 0x80);
 			if (data & 0x40) mikey_0.tim4CtlB &= ~TIMER_DONE;
 			if (data & 0x48) {
 				mTIM_4.LAST_COUNT = gSystemCycleCount;
@@ -405,7 +405,7 @@ void CMikie::Poke(ULONG addr, UBYTE data)
 		case (TIM5CTLA & 0xff):
 			mTimerInterruptMask &= ~0x20;
 			mTimerInterruptMask |= (data & 0x80) ? 0x20 : 0x00;
-			mikey_0.tim5CtlA = data;
+			mikey_0.tim5CtlA = data & (CLOCK_SEL | ENABLE_COUNT | ENABLE_RELOAD | 0x80);
 			if (data & 0x40) mikey_0.tim5CtlB &= ~TIMER_DONE;
 			if (data & 0x48) {
 				mTIM_5.LAST_COUNT = gSystemCycleCount;
@@ -416,7 +416,7 @@ void CMikie::Poke(ULONG addr, UBYTE data)
 		case (TIM6CTLA & 0xff):
 			mTimerInterruptMask &= ~0x40;
 			mTimerInterruptMask |= (data & 0x80) ? 0x40 : 0x00;
-			mikey_0.tim6CtlA = data;
+			mikey_0.tim6CtlA = data & (CLOCK_SEL | ENABLE_COUNT | ENABLE_RELOAD | 0x80);
 			if (data & 0x40) mikey_0.tim6CtlB &= ~TIMER_DONE;
 			if (data & 0x48) {
 				mTIM_6.LAST_COUNT = gSystemCycleCount;
@@ -427,7 +427,7 @@ void CMikie::Poke(ULONG addr, UBYTE data)
 		case (TIM7CTLA & 0xff):
 			mTimerInterruptMask &= ~0x80;
 			mTimerInterruptMask |= (data & 0x80) ? 0x80 : 0x00;
-			mikey_0.tim7CtlA = data;
+			mikey_0.tim7CtlA = data & (CLOCK_SEL | ENABLE_COUNT | ENABLE_RELOAD | 0x80);
 			if (data & 0x40) mikey_0.tim7CtlB &= ~TIMER_DONE;
 			if (data & 0x48) {
 				mTIM_7.LAST_COUNT = gSystemCycleCount;
@@ -882,63 +882,6 @@ UBYTE CMikie::Peek(ULONG addr)
 	{
 
 // Timer control registers
-		case (TIM0CTLA & 0xff):
-			{
-				UBYTE retval = (mikey_0.tim0CtlA & (CLOCK_SEL | ENABLE_COUNT | ENABLE_RELOAD | 0x80));
-				TRACE_MIKIE2("Peek(TIM0CTLA ,%02x) at PC=%04x", retval, mSystem.mCpu->GetPC());
-				return retval;
-			}
-			break;
-		case (TIM1CTLA & 0xff):
-			{
-				UBYTE retval = (mikey_0.tim1CtlA & (CLOCK_SEL | ENABLE_COUNT | ENABLE_RELOAD | 0x80));
-				TRACE_MIKIE2("Peek(TIM1CTLA ,%02x) at PC=%04x", retval, mSystem.mCpu->GetPC());
-				return retval;
-			}
-			break;
-		case (TIM2CTLA & 0xff):
-			{
-				UBYTE retval = (mikey_0.tim2CtlA & (CLOCK_SEL | ENABLE_COUNT | ENABLE_RELOAD | 0x80));
-				TRACE_MIKIE2("Peek(TIM2CTLA ,%02x) at PC=%04x", retval, mSystem.mCpu->GetPC());
-				return retval;
-			}
-			break;
-		case (TIM3CTLA & 0xff):
-			{
-				UBYTE retval = (mikey_0.tim3CtlA & (CLOCK_SEL | ENABLE_COUNT | ENABLE_RELOAD | 0x80));
-				TRACE_MIKIE2("Peek(TIM3CTLA ,%02x) at PC=%04x", retval, mSystem.mCpu->GetPC());
-				return retval;
-			}
-			break;
-		case (TIM4CTLA & 0xff):
-			{
-				UBYTE retval = (mikey_0.tim4CtlA & (CLOCK_SEL | ENABLE_COUNT | ENABLE_RELOAD | 0x80));
-				TRACE_MIKIE2("Peek(TIM4CTLA ,%02x) at PC=%04x", retval, mSystem.mCpu->GetPC());
-				return retval;
-			}
-			break;
-		case (TIM5CTLA & 0xff):
-			{
-				UBYTE retval = (mikey_0.tim5CtlA & (CLOCK_SEL | ENABLE_COUNT | ENABLE_RELOAD | 0x80));
-				TRACE_MIKIE2("Peek(TIM5CTLA ,%02x) at PC=%04x", retval, mSystem.mCpu->GetPC());
-				return retval;
-			}
-			break;
-		case (TIM6CTLA & 0xff):
-			{
-				UBYTE retval = (mikey_0.tim6CtlA & (CLOCK_SEL | ENABLE_COUNT | ENABLE_RELOAD | 0x80));
-				TRACE_MIKIE2("Peek(TIM6CTLA ,%02x) at PC=%04x", retval, mSystem.mCpu->GetPC());
-				return retval;
-			}
-			break;
-		case (TIM7CTLA & 0xff):
-			{
-				UBYTE retval = (mikey_0.tim7CtlA & (CLOCK_SEL | ENABLE_COUNT | ENABLE_RELOAD | 0x80));
-				TRACE_MIKIE2("Peek(TIM7CTLA ,%02x) at PC=%04x", retval, mSystem.mCpu->GetPC());
-				return retval;
-			}
-			break;
-
 		case (TIM0CNT & 0xff):
 			Update();
 			TRACE_MIKIE2("Peek(TIM0CNT  ,%02x) at PC=%04x", mTIM_0.CURRENT, mSystem.mCpu->GetPC());
@@ -1173,6 +1116,14 @@ UBYTE CMikie::Peek(ULONG addr)
 		case (TIM5BKUP & 0xff):
 		case (TIM6BKUP & 0xff):
 		case (TIM7BKUP & 0xff):
+		case (TIM0CTLA & 0xff):
+		case (TIM1CTLA & 0xff):
+		case (TIM2CTLA & 0xff):
+		case (TIM3CTLA & 0xff):
+		case (TIM4CTLA & 0xff):
+		case (TIM5CTLA & 0xff):
+		case (TIM6CTLA & 0xff):
+		case (TIM7CTLA & 0xff):
 		case (TIM0CTLB & 0xff):
 		case (TIM1CTLB & 0xff):
 		case (TIM2CTLB & 0xff):
