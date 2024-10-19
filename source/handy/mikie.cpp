@@ -1429,19 +1429,19 @@ void CMikie::Update(void)
 	//
 
 	// KW bugfix 13/4/99 added ((mTIM_x.CTLA & ENABLE_RELOAD) ||  ..)
-//	if ((mikey_0.tim2CtlA & ENABLE_COUNT) && ((mikey_0.tim2CtlA & ENABLE_RELOAD) || !(mikey_0.tim4CtlB & TIMER_DONE)))
-	if (mikey_0.tim2CtlA & ENABLE_COUNT) {
+//	if ((mikey_0.tim4CtlA & ENABLE_COUNT) && ((mikey_0.tim4CtlA & ENABLE_RELOAD) || !(mikey_0.tim4CtlB & TIMER_DONE)))
+	if (mikey_0.tim4CtlA & ENABLE_COUNT) {
 		decval = 0;
 
-//		if ((mikey_0.tim2CtlA & CLOCK_SEL) == LINKING) {
-//			if (mikey_0.tim2CtlB & BORROW_OUT) decval = 1;
+//		if ((mikey_0.tim4CtlA & CLOCK_SEL) == LINKING) {
+//			if (mikey_0.tim4CtlB & BORROW_OUT) decval = 1;
 //		}
 //		else
 		{
 			// Ordinary clocked mode as opposed to linked mode
 			// 16MHz clock downto 1us == cyclecount >> 4
 			// Additional /8 (+3) for 8 clocks per bit transmit
-			divide = 4 + 3 + (mikey_0.tim2CtlA & CLOCK_SEL);
+			divide = 4 + 3 + (mikey_0.tim4CtlA & CLOCK_SEL);
 			decval = (gSystemCycleCount - mTIM_4.LAST_COUNT) >> divide;
 		}
 
@@ -1528,7 +1528,7 @@ void CMikie::Update(void)
 				// 16 Clocks = 1 bit transmission. Hold separate Rx & Tx counters
 
 				// Reload if neccessary
-//				if (mikey_0.tim2CtlA & ENABLE_RELOAD) {
+//				if (mikey_0.tim4CtlA & ENABLE_RELOAD) {
 					mTIM_4.CURRENT += mikey_0.tim4Bkup + 1;
 					// The low reload values on TIM4 coupled with a longer
 					// timer service delay can sometimes cause
@@ -1558,7 +1558,7 @@ void CMikie::Update(void)
 //
 //		// Prediction for next timer event cycle number
 //
-//		if ((mikey_0.tim2CtlA & CLOCK_SEL) != LINKING) {
+//		if ((mikey_0.tim4CtlA & CLOCK_SEL) != LINKING) {
 			// Sometimes timeupdates can be >2x rollover in which case
 			// then CURRENT may still be negative and we can use it to
 			// calc the next timer value, we just want another update ASAP
@@ -1651,16 +1651,16 @@ void CMikie::Update(void)
 	// Timer 3 of Group A
 	//
 	// KW bugfix 13/4/99 added ((mTIM_x.CTLA & ENABLE_RELOAD) ||  ..)
-	if ((mikey_0.tim2CtlA & ENABLE_COUNT) && ((mikey_0.tim2CtlA & ENABLE_RELOAD) || !(mikey_0.tim3CtlB & TIMER_DONE))) {
+	if ((mikey_0.tim3CtlA & ENABLE_COUNT) && ((mikey_0.tim3CtlA & ENABLE_RELOAD) || !(mikey_0.tim3CtlB & TIMER_DONE))) {
 		decval = 0;
 
-		if ((mikey_0.tim2CtlA & CLOCK_SEL) == LINKING) {
+		if ((mikey_0.tim3CtlA & CLOCK_SEL) == LINKING) {
 			if (mikey_0.tim1CtlB & BORROW_OUT) decval = 1;
 		}
 		else {
 			// Ordinary clocked mode as opposed to linked mode
 			// 16MHz clock downto 1us == cyclecount >> 4
-			divide = (4 + (mikey_0.tim2CtlA & CLOCK_SEL));
+			divide = (4 + (mikey_0.tim3CtlA & CLOCK_SEL));
 			decval = (gSystemCycleCount - mTIM_3.LAST_COUNT) >> divide;
 		}
 
@@ -1678,7 +1678,7 @@ void CMikie::Update(void)
 				}
 
 				// Reload if neccessary
-				if (mikey_0.tim2CtlA & ENABLE_RELOAD) {
+				if (mikey_0.tim3CtlA & ENABLE_RELOAD) {
 					mTIM_3.CURRENT += mikey_0.tim3Bkup + 1;
 				}
 				else {
@@ -1700,7 +1700,7 @@ void CMikie::Update(void)
 
 		// Prediction for next timer event cycle number
 
-		if ((mikey_0.tim2CtlA & CLOCK_SEL) != LINKING) {
+		if ((mikey_0.tim3CtlA & CLOCK_SEL) != LINKING) {
 			// Sometimes timeupdates can be >2x rollover in which case
 			// then CURRENT may still be negative and we can use it to
 			// calc the next timer value, we just want another update ASAP
@@ -1717,16 +1717,16 @@ void CMikie::Update(void)
 	// Timer 5 of Group A
 	//
 	// KW bugfix 13/4/99 added ((mTIM_x.CTLA & ENABLE_RELOAD) ||  ..)
-	if ((mikey_0.tim2CtlA & ENABLE_COUNT) && ((mikey_0.tim2CtlA & ENABLE_RELOAD) || !(mikey_0.tim5CtlB & TIMER_DONE))) {
+	if ((mikey_0.tim5CtlA & ENABLE_COUNT) && ((mikey_0.tim5CtlA & ENABLE_RELOAD) || !(mikey_0.tim5CtlB & TIMER_DONE))) {
 		decval = 0;
 
-		if ((mikey_0.tim2CtlA & CLOCK_SEL) == LINKING) {
+		if ((mikey_0.tim5CtlA & CLOCK_SEL) == LINKING) {
 			if (mikey_0.tim3CtlB & BORROW_OUT) decval = 1;
 		}
 		else {
 			// Ordinary clocked mode as opposed to linked mode
 			// 16MHz clock downto 1us == cyclecount >> 4
-			divide = (4 + (mikey_0.tim2CtlA & CLOCK_SEL));
+			divide = (4 + (mikey_0.tim5CtlA & CLOCK_SEL));
 			decval = (gSystemCycleCount - mTIM_5.LAST_COUNT) >> divide;
 		}
 
@@ -1744,7 +1744,7 @@ void CMikie::Update(void)
 				}
 
 				// Reload if neccessary
-				if (mikey_0.tim2CtlA & ENABLE_RELOAD) {
+				if (mikey_0.tim5CtlA & ENABLE_RELOAD) {
 					mTIM_5.CURRENT += mikey_0.tim5Bkup + 1;
 				}
 				else {
@@ -1766,7 +1766,7 @@ void CMikie::Update(void)
 
 		// Prediction for next timer event cycle number
 
-		if ((mikey_0.tim2CtlA & CLOCK_SEL) != LINKING) {
+		if ((mikey_0.tim5CtlA & CLOCK_SEL) != LINKING) {
 			// Sometimes timeupdates can be >2x rollover in which case
 			// then CURRENT may still be negative and we can use it to
 			// calc the next timer value, we just want another update ASAP
@@ -1783,16 +1783,16 @@ void CMikie::Update(void)
 	// Timer 7 of Group A
 	//
 	// KW bugfix 13/4/99 added ((mTIM_x.CTLA & ENABLE_RELOAD) ||  ..)
-	if ((mikey_0.tim2CtlA & ENABLE_COUNT) && ((mikey_0.tim2CtlA & ENABLE_RELOAD) || !(mikey_0.tim7CtlB & TIMER_DONE))) {
+	if ((mikey_0.tim7CtlA & ENABLE_COUNT) && ((mikey_0.tim7CtlA & ENABLE_RELOAD) || !(mikey_0.tim7CtlB & TIMER_DONE))) {
 		decval = 0;
 
-		if ((mikey_0.tim2CtlA & CLOCK_SEL) == LINKING) {
+		if ((mikey_0.tim7CtlA & CLOCK_SEL) == LINKING) {
 			if (mikey_0.tim5CtlB & BORROW_OUT) decval = 1;
 		}
 		else {
 			// Ordinary clocked mode as opposed to linked mode
 			// 16MHz clock downto 1us == cyclecount >> 4
-			divide = (4 + (mikey_0.tim2CtlA & CLOCK_SEL));
+			divide = (4 + (mikey_0.tim7CtlA & CLOCK_SEL));
 			decval = (gSystemCycleCount - mTIM_7.LAST_COUNT) >> divide;
 		}
 
@@ -1810,7 +1810,7 @@ void CMikie::Update(void)
 				}
 
 				// Reload if neccessary
-				if (mikey_0.tim2CtlA & ENABLE_RELOAD) {
+				if (mikey_0.tim7CtlA & ENABLE_RELOAD) {
 					mTIM_7.CURRENT += mikey_0.tim7Bkup + 1;
 				}
 				else {
@@ -1832,7 +1832,7 @@ void CMikie::Update(void)
 
 		// Prediction for next timer event cycle number
 
-		if ((mikey_0.tim2CtlA & CLOCK_SEL) != LINKING) {
+		if ((mikey_0.tim7CtlA & CLOCK_SEL) != LINKING) {
 			// Sometimes timeupdates can be >2x rollover in which case
 			// then CURRENT may still be negative and we can use it to
 			// calc the next timer value, we just want another update ASAP
@@ -1849,13 +1849,13 @@ void CMikie::Update(void)
 	// Timer 6 has no group
 	//
 	// KW bugfix 13/4/99 added ((mTIM_x.CTLA & ENABLE_RELOAD) ||  ..)
-	if ((mikey_0.tim2CtlA & ENABLE_COUNT) && ((mikey_0.tim2CtlA & ENABLE_RELOAD) || !(mikey_0.tim6CtlB & TIMER_DONE))) {
+	if ((mikey_0.tim6CtlA & ENABLE_COUNT) && ((mikey_0.tim6CtlA & ENABLE_RELOAD) || !(mikey_0.tim6CtlB & TIMER_DONE))) {
 		// (Timer 6 doesn't support linking)
-//		if ((mikey_0.tim2CtlA & CLOCK_SEL) != LINKING)
+//		if ((mikey_0.tim6CtlA & CLOCK_SEL) != LINKING)
 		{
 			// Ordinary clocked mode as opposed to linked mode
 			// 16MHz clock downto 1us == cyclecount >> 4
-			divide = (4 + (mikey_0.tim2CtlA & CLOCK_SEL));
+			divide = (4 + (mikey_0.tim6CtlA & CLOCK_SEL));
 			decval = (gSystemCycleCount - mTIM_6.LAST_COUNT) >> divide;
 
 			if (decval) {
@@ -1872,7 +1872,7 @@ void CMikie::Update(void)
 					}
 
 					// Reload if neccessary
-					if (mikey_0.tim2CtlA & ENABLE_RELOAD) {
+					if (mikey_0.tim6CtlA & ENABLE_RELOAD) {
 						mTIM_6.CURRENT += mikey_0.tim6Bkup + 1;
 					}
 					else {
