@@ -46,8 +46,6 @@
 //
 
 #ifdef SYSTEM_CPP
-	ULONG	gSystemCycleCount = 0;
-	ULONG	gNextTimerEvent = 0;
 	ULONG	gSuzieDoneTime = 0;
 	ULONG	gCPUBootAddress = 0;
 	ULONG	gSingleStepModeSprites = FALSE;
@@ -72,8 +70,6 @@
 	BOOL	gWindowInFocus = TRUE;
 #else
 
-	extern ULONG	gSystemCycleCount;
-	extern ULONG	gNextTimerEvent;
 	extern ULONG	gSuzieDoneTime;
 	extern ULONG	gCPUBootAddress;
 	extern ULONG	gSingleStepModeSprites;

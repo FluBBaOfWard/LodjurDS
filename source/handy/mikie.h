@@ -55,6 +55,9 @@
 #include "nds.h"
 #include "../Gfx.h"
 
+#define gSystemCycleCount mikey_0.systemCycleCount
+#define gNextTimerEvent mikey_0.nextTimerEvent
+
 class CSystem;
 
 #define MIKIE_START	0xfd00

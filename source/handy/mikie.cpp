@@ -176,7 +176,8 @@ ULONG CMikie::GetLfsrNext(ULONG current)
 	lfsr = current & 0xfff;
 	result = 0;
 	for (swloop=0;swloop<9;swloop++) {
-		if ((switches >> swloop) & 0x001) result ^= (lfsr >> switchbits[swloop]) & 0x001;
+		if ((switches >> swloop) & 0x001)
+			result ^= (lfsr >> switchbits[swloop]) & 0x001;
 	}
 	result = (result) ? 0 : 1;
 	next = (switches << 12) | ((lfsr << 1) & 0xffe) | result;
@@ -261,8 +262,6 @@ void CMikie::DisplaySetAttributes(void (*DisplayCallback)(void), void (*RenderCa
 
 ULONG CMikie::DisplayRenderLine(void)
 {
-	ULONG work_done = 0;
-
 	// Set the timer interrupt flag
 	if (mTimerInterruptMask & 0x01) {
 		TRACE_MIKIE0("Update() - TIMER0 IRQ Triggered (Line Timer)");
@@ -295,13 +294,14 @@ ULONG CMikie::DisplayRenderLine(void)
 	// Decrement line counter logic
 	if (mLynxLine) mLynxLine--;
 
+	ULONG work_done = 0;
 	// Do 102 lines, nothing more, less is OK.
 	if (mLynxLineDMACounter) {
 //		TRACE_MIKIE1("Update() - Screen DMA, line %03d",line_count);
 		mLynxLineDMACounter--;
 
 		// Cycle hit for a 80 RAM access in rendering a line
-		work_done += 80 * DMA_RDWR_CYC;
+		work_done = 80 * DMA_RDWR_CYC;
 
 		// Mikie screen DMA can only see the system RAM....
 		// (Step through bitmap, line at a time)
@@ -437,41 +437,49 @@ void CMikie::Poke(ULONG addr, UBYTE data)
 			break;
 
 		case (TIM0CNT & 0xff):
+			lnxMikeyWrite(addr, data);
 			mTIM_0.CURRENT = data;
 			gNextTimerEvent = gSystemCycleCount;
 			TRACE_MIKIE2("Poke(TIM0CNT ,%02x) at PC=%04x", data, mSystem.mCpu->GetPC());
 			break;
 		case (TIM1CNT & 0xff):
+			lnxMikeyWrite(addr, data);
 			mTIM_1.CURRENT = data;
 			gNextTimerEvent = gSystemCycleCount;
 			TRACE_MIKIE2("Poke(TIM1CNT ,%02x) at PC=%04x", data, mSystem.mCpu->GetPC());
 			break;
 		case (TIM2CNT & 0xff):
+			lnxMikeyWrite(addr, data);
 			mTIM_2.CURRENT = data;
 			gNextTimerEvent = gSystemCycleCount;
 			TRACE_MIKIE2("Poke(TIM2CNT ,%02x) at PC=%04x", data, mSystem.mCpu->GetPC());
 			break;
 		case (TIM3CNT & 0xff):
+			lnxMikeyWrite(addr, data);
 			mTIM_3.CURRENT = data;
 			gNextTimerEvent = gSystemCycleCount;
 			TRACE_MIKIE2("Poke(TIM3CNT ,%02x) at PC=%04x", data, mSystem.mCpu->GetPC());
 			break;
 		case (TIM4CNT & 0xff):
+			lnxMikeyWrite(addr, data);
 			mTIM_4.CURRENT = data;
 			gNextTimerEvent = gSystemCycleCount;
 			TRACE_MIKIE2("Poke(TIM4CNT ,%02x) at PC=%04x", data, mSystem.mCpu->GetPC());
 			break;
 		case (TIM5CNT & 0xff):
+			lnxMikeyWrite(addr, data);
 			mTIM_5.CURRENT = data;
 			gNextTimerEvent = gSystemCycleCount;
 			TRACE_MIKIE2("Poke(TIM5CNT ,%02x) at PC=%04x", data, mSystem.mCpu->GetPC());
 			break;
 		case (TIM6CNT & 0xff):
+			lnxMikeyWrite(addr, data);
 			mTIM_6.CURRENT = data;
 			gNextTimerEvent = gSystemCycleCount;
 			TRACE_MIKIE2("Poke(TIM6CNT ,%02x) at PC=%04x", data, mSystem.mCpu->GetPC());
 			break;
 		case (TIM7CNT & 0xff):
+			lnxMikeyWrite(addr, data);
 			mTIM_7.CURRENT = data;
 			gNextTimerEvent = gSystemCycleCount;
 			TRACE_MIKIE2("Poke(TIM7CNT ,%02x) at PC=%04x", data, mSystem.mCpu->GetPC());
@@ -871,7 +879,7 @@ void CMikie::Poke(ULONG addr, UBYTE data)
 // Errors on illegal location accesses
 
 		default:
-			lnxWriteMikey(addr, data);
+			lnxMikeyWrite(addr, data);
 			break;
 	}
 }
@@ -1202,10 +1210,10 @@ UBYTE CMikie::Peek(ULONG addr)
 
 // Errors on illegal location accesses
 		default:
-			return lnxReadMikey(addr);
+			return lnxMikeyRead(addr);
 			break;
 	}
-	return lnxReadMikey(addr);
+	return lnxMikeyRead(addr);
 }
 
 void CMikie::Update(void)
@@ -1334,8 +1342,7 @@ void CMikie::Update(void)
 				mikey_0.tim0CtlB |= BORROW_IN;
 			}
 			else {
-				// Clear carry in as we didn't count
-				// Clear carry out
+				// Clear carry in/out as we didn't count
 				mikey_0.tim0CtlB &= ~(BORROW_OUT | BORROW_IN);
 			}
 
@@ -1405,8 +1412,7 @@ void CMikie::Update(void)
 			mikey_0.tim2CtlB |= BORROW_IN;
 		}
 		else {
-			// Clear carry in as we didn't count
-			// Clear carry out
+			// Clear carry in/out as we didn't count
 			mikey_0.tim2CtlB &= ~(BORROW_OUT | BORROW_IN);
 		}
 
@@ -1547,13 +1553,11 @@ void CMikie::Update(void)
 //				mikey_0.tim4CtlB &= ~BORROW_OUT;
 //			}
 //			// Set carry in as we did a count
-//			mTIM_4.BORROW_IN = TRUE;
+//			mikey_0.tim4CtlB |= BORROW_IN;
 		}
 //		else {
-//			// Clear carry in as we didn't count
-//			mTIM_4.BORROW_IN = FALSE;
-//			// Clear carry out
-//			mikey_0.tim4CtlB &= ~BORROW_OUT;
+//			// Clear carry in/out as we didn't count
+//			mikey_0.tim4CtlB &= ~(BORROW_OUT | BORROW_IN);
 //		}
 //
 //		// Prediction for next timer event cycle number
@@ -1628,8 +1632,7 @@ void CMikie::Update(void)
 				mikey_0.tim1CtlB |= BORROW_IN;
 			}
 			else {
-				// Clear carry in as we didn't count
-				// Clear carry out
+				// Clear carry in/out as we didn't count
 				mikey_0.tim1CtlB &= ~(BORROW_OUT | BORROW_IN);
 			}
 
@@ -1693,8 +1696,7 @@ void CMikie::Update(void)
 			mikey_0.tim3CtlB |= BORROW_IN;
 		}
 		else {
-			// Clear carry in as we didn't count
-			// Clear carry out
+			// Clear carry in/out as we didn't count
 			mikey_0.tim3CtlB &= ~(BORROW_OUT | BORROW_IN);
 		}
 
@@ -1759,8 +1761,7 @@ void CMikie::Update(void)
 			mikey_0.tim5CtlB |= BORROW_IN;
 		}
 		else {
-			// Clear carry in as we didn't count
-			// Clear carry out
+			// Clear carry in/out as we didn't count
 			mikey_0.tim5CtlB &= ~(BORROW_OUT | BORROW_IN);
 		}
 
@@ -1825,8 +1826,7 @@ void CMikie::Update(void)
 			mikey_0.tim7CtlB |= BORROW_IN;
 		}
 		else {
-			// Clear carry in as we didn't count
-			// Clear carry out
+			// Clear carry in/out as we didn't count
 			mikey_0.tim7CtlB &= ~(BORROW_OUT | BORROW_IN);
 		}
 
@@ -1887,8 +1887,7 @@ void CMikie::Update(void)
 				mikey_0.tim6CtlB |= BORROW_IN;
 			}
 			else {
-				// Clear carry in as we didn't count
-				// Clear carry out
+				// Clear carry in/out as we didn't count
 				mikey_0.tim6CtlB &= ~(BORROW_OUT | BORROW_IN);
 			}
 

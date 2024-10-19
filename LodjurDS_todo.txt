@@ -13,6 +13,9 @@ Mem:
 CPU:
 	See ARM6502 Todo.
 
+Mikey:
+	Move gSystemCycleCount, 
+
 Sound:
 	See Mikey todo.
 
@@ -20,6 +23,7 @@ Misc:
 	Game, slow.
 
 Games Not Working:
+	Baseball Heroes.
 
 Games Not Working Fixed:
 
@@ -28,4 +32,3 @@ Games With Glitches:
 Games With Glitches Fixed:
 
 Speedhacks:
-	* Zakull Bootsplash

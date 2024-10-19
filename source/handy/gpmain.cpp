@@ -15,6 +15,7 @@ void susiePoke(ULONG addr, UBYTE data);
 void mikiePoke(ULONG addr, UBYTE data);
 UBYTE susiePeek(ULONG addr);
 UBYTE mikiePeek(ULONG addr);
+ULONG displayRenderLine(void);
 void GpInit(const unsigned char *gamerom, int size);
 void GpDelete(void);
 void GpMain(void *args);
@@ -50,6 +51,10 @@ UBYTE susiePeek(ULONG addr) {
 }
 UBYTE mikiePeek(ULONG addr) {
 	return newsystem->mMikie->Peek(addr);
+}
+
+ULONG displayRenderLine() {
+	return newsystem->mMikie->DisplayRenderLine();
 }
 
 void GpInit(const unsigned char *gamerom, int size) {

@@ -28,8 +28,8 @@ void updateLCDRefresh(void);
 void gfxRefresh(void);
 u8 lnxReadIO(u16 adr);
 void lnxWriteIO(u16 adr, u8 value);
-u8 lnxReadMikey(u16 adr);
-void lnxWriteMikey(u16 adr, u8 value);
+u8 lnxMikeyRead(u16 adr);
+void lnxMikeyWrite(u16 adr, u8 value);
 
 #ifdef __cplusplus
 } // extern "C"

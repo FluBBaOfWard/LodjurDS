@@ -24,8 +24,8 @@
 	.global vblIrqHandler
 	.global lnxReadIO
 	.global lnxWriteIO
-	.global lnxReadMikey
-	.global lnxWriteMikey
+	.global lnxMikeyRead
+	.global lnxMikeyWrite
 	.global updateLCDRefresh
 	.global setScreenRefresh
 
@@ -409,8 +409,8 @@ lnxWriteIO:
 	ldmfd sp!,{r3,r12,lr}
 	bx lr
 ;@----------------------------------------------------------------------------
-lnxReadMikey:
-	.type lnxReadMikey STT_FUNC
+	lnxMikeyRead:
+	.type lnxMikeyRead STT_FUNC
 ;@----------------------------------------------------------------------------
 	stmfd sp!,{r3,r12,lr}
 //	mov r0,r12
@@ -419,8 +419,8 @@ lnxReadMikey:
 	ldmfd sp!,{r3,r12,lr}
 	bx lr
 ;@----------------------------------------------------------------------------
-lnxWriteMikey:
-	.type lnxWriteMikey STT_FUNC
+lnxMikeyWrite:
+	.type lnxMikeyWrite STT_FUNC
 ;@----------------------------------------------------------------------------
 	stmfd sp!,{r3,r12,lr}
 //	mov r1,r0
