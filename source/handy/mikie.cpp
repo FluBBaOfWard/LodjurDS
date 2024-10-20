@@ -287,25 +287,20 @@ ULONG CMikie::DisplayRenderLine(void)
 		if (mikey_0.dispCtl & 2) {
 			mLynxAddr += 3;
 		}
-		// Trigger line rending to start
+		// Trigger line rendering to start
 		mLynxLineDMACounter = 102;
 	}
 
 	// Decrement line counter logic
 	if (mLynxLine) mLynxLine--;
 
-	ULONG work_done = 0;
 	// Do 102 lines, nothing more, less is OK.
 	if (mLynxLineDMACounter) {
 //		TRACE_MIKIE1("Update() - Screen DMA, line %03d",line_count);
 		mLynxLineDMACounter--;
 
-		// Cycle hit for a 80 RAM access in rendering a line
-		work_done = 80 * DMA_RDWR_CYC;
-
 		// Mikie screen DMA can only see the system RAM....
 		// (Step through bitmap, line at a time)
-
 		if (mpRenderCallback) {
 			(*mpRenderCallback)(&mpRamPointer[mLynxAddr], mikey_0.palette, mikey_0.dispCtl & 2);
 		}
@@ -317,8 +312,10 @@ ULONG CMikie::DisplayRenderLine(void)
 			mLynxAddr += LYNX_SCREEN_WIDTH/2;
 		}
 
+		// Cycle hit for a 80 RAM access in rendering a line
+		return 80 * DMA_RDWR_CYC;
 	}
-	return work_done;
+	return 0;
 }
 
 ULONG CMikie::DisplayEndOfFrame(void)
@@ -1300,22 +1297,26 @@ void CMikie::Update(void)
 
 	// KW bugfix 13/4/99 added ((mTIM_x.CTLA & ENABLE_RELOAD) ||  ..)
 //	if ((mikey_0.tim0CtlA & ENABLE_COUNT) && ((mikey_0.tim0CtlA & ENABLE_RELOAD) || !(mikey_0.tim0CtlB & TIMER_DONE)))
-	if (mikey_0.tim0CtlA & ENABLE_COUNT) {
+/*	if (mikey_0.tim0CtlA & ENABLE_COUNT) {
 		// Timer 0 has no linking
 //		if ((mikey_0.tim0CtlA & CLOCK_SEL) != LINKING)
 		{
+			// Clear carry in/out to begin with
+			mikey_0.tim0CtlB &= ~(BORROW_OUT | BORROW_IN);
 			// Ordinary clocked mode as opposed to linked mode
-			// 16MHz clock downto 1us == cyclecount >> 4
+			// 16MHz clock down to 1us == cyclecount >> 4
 			divide = (4 + (mikey_0.tim0CtlA & CLOCK_SEL));
 			decval = (gSystemCycleCount - mTIM_0.LAST_COUNT) >> divide;
 
 			if (decval) {
 				mTIM_0.LAST_COUNT += decval << divide;
 				mTIM_0.CURRENT -= decval;
+				// Set carry in as we did a count
+				mikey_0.tim0CtlB |= BORROW_IN;
 
 				if (mTIM_0.CURRENT & 0x80000000) {
-					// Set carry out
-					mikey_0.tim0CtlB |= BORROW_OUT;
+					// Set carry out / timer done
+					mikey_0.tim0CtlB |= (BORROW_OUT | TIMER_DONE);
 
 //					// Reload if neccessary
 //					if (mikey_0.tim0CtlA & ENABLE_RELOAD) {
@@ -1325,25 +1326,13 @@ void CMikie::Update(void)
 //						mTIM_0.CURRENT = 0;
 //					}
 
-					mikey_0.tim0CtlB |=  TIMER_DONE;
-
-					// Interupt flag setting code moved into DisplayRenderLine()
+					// Interrupt flag setting code moved into DisplayRenderLine()
 
 					// Line timer has expired, render a line, we cannot incrememnt
 					// the global counter at this point as it will screw the other timers
 					// so we save under work done and inc at the end.
 					mikie_work_done += DisplayRenderLine();
-
 				}
-				else {
-					mikey_0.tim0CtlB &= ~BORROW_OUT;
-				}
-				// Set carry in as we did a count
-				mikey_0.tim0CtlB |= BORROW_IN;
-			}
-			else {
-				// Clear carry in/out as we didn't count
-				mikey_0.tim0CtlB &= ~(BORROW_OUT | BORROW_IN);
 			}
 
 			// Prediction for next timer event cycle number
@@ -1351,13 +1340,15 @@ void CMikie::Update(void)
 			// Sometimes timeupdates can be >2x rollover in which case
 			// then CURRENT may still be negative and we can use it to
 			// calc the next timer value, we just want another update ASAP
-			tmp = (mTIM_0.CURRENT & 0x80000000) ? 1 : ((mTIM_0.CURRENT + 1) << divide);
-			tmp += gSystemCycleCount;
+			tmp = gSystemCycleCount;
+			tmp += (mTIM_0.CURRENT & 0x80000000) ? 1 : ((mTIM_0.CURRENT + 1) << divide);
 			if (tmp < gNextTimerEvent) {
 				gNextTimerEvent = tmp;
-//				TRACE_MIKIE1("Update() - TIMER 0 Set NextTimerEvent = %012d", gNextTimerEvent);
 			}
 		}
+	}*/
+	if (miRunTimer0()) {
+		mikie_work_done += DisplayRenderLine();
 	}
 
 	//
@@ -1391,6 +1382,7 @@ void CMikie::Update(void)
 			if (mTIM_2.CURRENT & 0x80000000) {
 				// Set carry out
 				mikey_0.tim2CtlB |= BORROW_OUT;
+				mikey_0.tim2CtlB |= TIMER_DONE;
 
 //				// Reload if neccessary
 //				if (mikey_0.tim2CtlA & ENABLE_RELOAD) {
@@ -1399,7 +1391,6 @@ void CMikie::Update(void)
 //				else {
 //					mTIM_2.CURRENT = 0;
 //				}
-				mikey_0.tim2CtlB |= TIMER_DONE;
 
 				// Interupt flag setting code moved into DisplayEndOfFrame(), also
 				// park any CPU cycles lost for later inclusion
@@ -1609,6 +1600,7 @@ void CMikie::Update(void)
 				if (mTIM_1.CURRENT & 0x80000000) {
 					// Set carry out
 					mikey_0.tim1CtlB |= BORROW_OUT;
+					mikey_0.tim1CtlB |= TIMER_DONE;
 
 					// Set the timer status flag
 					if (mTimerInterruptMask & 0x02) {
@@ -1623,7 +1615,6 @@ void CMikie::Update(void)
 					else {
 						mTIM_1.CURRENT = 0;
 					}
-					mikey_0.tim1CtlB |= TIMER_DONE;
 				}
 				else {
 					mikey_0.tim1CtlB &= ~BORROW_OUT;
@@ -1673,6 +1664,7 @@ void CMikie::Update(void)
 			if (mTIM_3.CURRENT & 0x80000000) {
 				// Set carry out
 				mikey_0.tim3CtlB |= BORROW_OUT;
+				mikey_0.tim3CtlB |= TIMER_DONE;
 
 				// Set the timer status flag
 				if (mTimerInterruptMask & 0x08) {
@@ -1687,7 +1679,6 @@ void CMikie::Update(void)
 				else {
 					mTIM_3.CURRENT = 0;
 				}
-				mikey_0.tim3CtlB |= TIMER_DONE;
 			}
 			else {
 				mikey_0.tim3CtlB &= ~BORROW_OUT;
@@ -1738,6 +1729,7 @@ void CMikie::Update(void)
 			if (mTIM_5.CURRENT & 0x80000000) {
 				// Set carry out
 				mikey_0.tim5CtlB |= BORROW_OUT;
+				mikey_0.tim5CtlB |= TIMER_DONE;
 
 				// Set the timer status flag
 				if (mTimerInterruptMask & 0x20) {
@@ -1752,7 +1744,6 @@ void CMikie::Update(void)
 				else {
 					mTIM_5.CURRENT = 0;
 				}
-				mikey_0.tim5CtlB |= TIMER_DONE;
 			}
 			else {
 				mikey_0.tim5CtlB &= ~BORROW_OUT;
@@ -1803,6 +1794,7 @@ void CMikie::Update(void)
 			if (mTIM_7.CURRENT & 0x80000000) {
 				// Set carry out
 				mikey_0.tim7CtlB |= BORROW_OUT;
+				mikey_0.tim7CtlB |= TIMER_DONE;
 
 				// Set the timer status flag
 				if (mTimerInterruptMask & 0x80) {
@@ -1817,7 +1809,6 @@ void CMikie::Update(void)
 				else {
 					mTIM_7.CURRENT = 0;
 				}
-				mikey_0.tim7CtlB |= TIMER_DONE;
 			}
 			else {
 				mikey_0.tim7CtlB &= ~BORROW_OUT;
@@ -1864,6 +1855,7 @@ void CMikie::Update(void)
 				if (mTIM_6.CURRENT & 0x80000000) {
 					// Set carry out
 					mikey_0.tim6CtlB |= BORROW_OUT;
+					mikey_0.tim6CtlB |= TIMER_DONE;
 
 					// Set the timer status flag
 					if (mTimerInterruptMask & 0x40) {
@@ -1878,7 +1870,6 @@ void CMikie::Update(void)
 					else {
 						mTIM_6.CURRENT = 0;
 					}
-					mikey_0.tim6CtlB |= TIMER_DONE;
 				}
 				else {
 					mikey_0.tim6CtlB &= ~BORROW_OUT;
