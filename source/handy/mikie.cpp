@@ -1294,9 +1294,6 @@ void CMikie::Update(void)
 	// Optimisation, assume T0 (Line timer) is never in one-shot,
 	// never placed in link mode
 	//
-
-	// KW bugfix 13/4/99 added ((mTIM_x.CTLA & ENABLE_RELOAD) ||  ..)
-//	if ((mikey_0.tim0CtlA & ENABLE_COUNT) && ((mikey_0.tim0CtlA & ENABLE_RELOAD) || !(mikey_0.tim0CtlB & TIMER_DONE)))
 /*	if (mikey_0.tim0CtlA & ENABLE_COUNT) {
 		// Timer 0 has no linking
 //		if ((mikey_0.tim0CtlA & CLOCK_SEL) != LINKING)
@@ -1309,14 +1306,14 @@ void CMikie::Update(void)
 			decval = (gSystemCycleCount - mTIM_0.LAST_COUNT) >> divide;
 
 			if (decval) {
+				// Set carry in as we do a count
+				mikey_0.tim0CtlB |= BORROW_IN;
 				mTIM_0.LAST_COUNT += decval << divide;
 				mTIM_0.CURRENT -= decval;
-				// Set carry in as we did a count
-				mikey_0.tim0CtlB |= BORROW_IN;
 
 				if (mTIM_0.CURRENT & 0x80000000) {
-					// Set carry out / timer done
-					mikey_0.tim0CtlB |= (BORROW_OUT | TIMER_DONE);
+					// Set carry out
+					mikey_0.tim0CtlB |= BORROW_OUT;
 
 //					// Reload if neccessary
 //					if (mikey_0.tim0CtlA & ENABLE_RELOAD) {
@@ -1359,9 +1356,6 @@ void CMikie::Update(void)
 	// Optimisation, assume T2 (Frame timer) is never in one-shot
 	// always in linked mode i.e clocked by Line Timer
 	//
-
-	// KW bugfix 13/4/99 added ((mTIM_x.CTLA & ENABLE_RELOAD) ||  ..)
-//	if ((mikey_0.tim2CtlA & ENABLE_COUNT) && ((mikey_0.tim2CtlA & ENABLE_RELOAD) || !(mikey_0.tim2CtlB & TIMER_DONE)))
 	if (mikey_0.tim2CtlA & ENABLE_COUNT) {
 		decval = 0;
 
@@ -1376,13 +1370,16 @@ void CMikie::Update(void)
 //			decval = (gSystemCycleCount - mTIM_2.LAST_COUNT) >> divide;
 //		}
 
+		// Clear carry in/out to begin with
+		mikey_0.tim2CtlB &= ~(BORROW_OUT | BORROW_IN);
 		if (decval) {
+			// Set carry in as we do a count
+			mikey_0.tim2CtlB |= BORROW_IN;
 //			mTIM_2.LAST_COUNT += decval << divide;
 			mTIM_2.CURRENT -= decval;
 			if (mTIM_2.CURRENT & 0x80000000) {
-				// Set carry out
-				mikey_0.tim2CtlB |= BORROW_OUT;
-				mikey_0.tim2CtlB |= TIMER_DONE;
+				// Set carry out / timer done
+				mikey_0.tim0CtlB |= (BORROW_OUT | TIMER_DONE);
 
 //				// Reload if neccessary
 //				if (mikey_0.tim2CtlA & ENABLE_RELOAD) {
@@ -1396,15 +1393,6 @@ void CMikie::Update(void)
 				// park any CPU cycles lost for later inclusion
 				mikie_work_done += DisplayEndOfFrame();
 			}
-			else {
-				mikey_0.tim2CtlB &= ~BORROW_OUT;
-			}
-			// Set carry in as we did a count
-			mikey_0.tim2CtlB |= BORROW_IN;
-		}
-		else {
-			// Clear carry in/out as we didn't count
-			mikey_0.tim2CtlB &= ~(BORROW_OUT | BORROW_IN);
 		}
 
 		// Prediction for next timer event cycle number
@@ -1421,12 +1409,8 @@ void CMikie::Update(void)
 	//
 	// For the sake of speed it is assumed that Timer 4 (UART timer)
 	// never uses one-shot mode, never uses linking, hence the code
-	// is commented out. Timer 4 is at the end of a chain and seems
-	// no reason to update its carry in-out variables
+	// is commented out.
 	//
-
-	// KW bugfix 13/4/99 added ((mTIM_x.CTLA & ENABLE_RELOAD) ||  ..)
-//	if ((mikey_0.tim4CtlA & ENABLE_COUNT) && ((mikey_0.tim4CtlA & ENABLE_RELOAD) || !(mikey_0.tim4CtlB & TIMER_DONE)))
 	if (mikey_0.tim4CtlA & ENABLE_COUNT) {
 		decval = 0;
 
@@ -1491,7 +1475,7 @@ void CMikie::Update(void)
 					// Flag byte as being recvd
 					mUART_RX_READY = 1;
 				}
-				else if(!(mUART_RX_COUNTDOWN&UART_RX_INACTIVE)) {
+				else if(!(mUART_RX_COUNTDOWN & UART_RX_INACTIVE)) {
 					mUART_RX_COUNTDOWN--;
 				}
 
@@ -1586,21 +1570,23 @@ void CMikie::Update(void)
 	//
 	// Timer 1 of Group B
 	//
-	// KW bugfix 13/4/99 added ((mTIM_x.CTLA & ENABLE_RELOAD) ||  ..)
-	if ((mikey_0.tim1CtlA & ENABLE_COUNT) && ((mikey_0.tim1CtlA & ENABLE_RELOAD) || !(mikey_0.tim1CtlB & TIMER_DONE))) {
+/*	if (mikey_0.tim1CtlA & ENABLE_COUNT) {
 		if ((mikey_0.tim1CtlA & CLOCK_SEL) != LINKING) {
 			// Ordinary clocked mode as opposed to linked mode
 			// 16MHz clock downto 1us == cyclecount >> 4
 			divide = (4 + (mikey_0.tim1CtlA & CLOCK_SEL));
 			decval = (gSystemCycleCount - mTIM_1.LAST_COUNT) >> divide;
 
+			// Clear carry in/out to begin with
+			mikey_0.tim1CtlB &= ~(BORROW_OUT | BORROW_IN);
 			if (decval) {
+				// Set carry in as we do a count
+				mikey_0.tim1CtlB |= BORROW_IN;
 				mTIM_1.LAST_COUNT += decval << divide;
 				mTIM_1.CURRENT -= decval;
 				if (mTIM_1.CURRENT & 0x80000000) {
 					// Set carry out
 					mikey_0.tim1CtlB |= BORROW_OUT;
-					mikey_0.tim1CtlB |= TIMER_DONE;
 
 					// Set the timer status flag
 					if (mTimerInterruptMask & 0x02) {
@@ -1616,15 +1602,6 @@ void CMikie::Update(void)
 						mTIM_1.CURRENT = 0;
 					}
 				}
-				else {
-					mikey_0.tim1CtlB &= ~BORROW_OUT;
-				}
-				// Set carry in as we did a count
-				mikey_0.tim1CtlB |= BORROW_IN;
-			}
-			else {
-				// Clear carry in/out as we didn't count
-				mikey_0.tim1CtlB &= ~(BORROW_OUT | BORROW_IN);
 			}
 
 			// Prediction for next timer event cycle number
@@ -1639,13 +1616,19 @@ void CMikie::Update(void)
 				TRACE_MIKIE1("Update() - TIMER 1 Set NextTimerEvent = %012d", gNextTimerEvent);
 			}
 		}
+	}*/
+	if (miRunTimer1()) {
+		// Set the timer status flag
+		if (mTimerInterruptMask & 0x02) {
+			TRACE_MIKIE0("Update() - TIMER1 IRQ Triggered");
+			mTimerStatusFlags |= 0x02;
+		}
 	}
 
 	//
 	// Timer 3 of Group A
 	//
-	// KW bugfix 13/4/99 added ((mTIM_x.CTLA & ENABLE_RELOAD) ||  ..)
-	if ((mikey_0.tim3CtlA & ENABLE_COUNT) && ((mikey_0.tim3CtlA & ENABLE_RELOAD) || !(mikey_0.tim3CtlB & TIMER_DONE))) {
+	if (mikey_0.tim3CtlA & ENABLE_COUNT) {
 		decval = 0;
 
 		if ((mikey_0.tim3CtlA & CLOCK_SEL) == LINKING) {
@@ -1658,13 +1641,16 @@ void CMikie::Update(void)
 			decval = (gSystemCycleCount - mTIM_3.LAST_COUNT) >> divide;
 		}
 
+		// Clear carry in/out to begin with
+		mikey_0.tim3CtlB &= ~(BORROW_OUT | BORROW_IN);
 		if (decval) {
+			// Set carry in as we do a count
+			mikey_0.tim3CtlB |= BORROW_IN;
 			mTIM_3.LAST_COUNT += decval << divide;
 			mTIM_3.CURRENT -= decval;
 			if (mTIM_3.CURRENT & 0x80000000) {
 				// Set carry out
 				mikey_0.tim3CtlB |= BORROW_OUT;
-				mikey_0.tim3CtlB |= TIMER_DONE;
 
 				// Set the timer status flag
 				if (mTimerInterruptMask & 0x08) {
@@ -1680,15 +1666,6 @@ void CMikie::Update(void)
 					mTIM_3.CURRENT = 0;
 				}
 			}
-			else {
-				mikey_0.tim3CtlB &= ~BORROW_OUT;
-			}
-			// Set carry in as we did a count
-			mikey_0.tim3CtlB |= BORROW_IN;
-		}
-		else {
-			// Clear carry in/out as we didn't count
-			mikey_0.tim3CtlB &= ~(BORROW_OUT | BORROW_IN);
 		}
 
 		// Prediction for next timer event cycle number
@@ -1709,8 +1686,7 @@ void CMikie::Update(void)
 	//
 	// Timer 5 of Group A
 	//
-	// KW bugfix 13/4/99 added ((mTIM_x.CTLA & ENABLE_RELOAD) ||  ..)
-	if ((mikey_0.tim5CtlA & ENABLE_COUNT) && ((mikey_0.tim5CtlA & ENABLE_RELOAD) || !(mikey_0.tim5CtlB & TIMER_DONE))) {
+	if (mikey_0.tim5CtlA & ENABLE_COUNT) {
 		decval = 0;
 
 		if ((mikey_0.tim5CtlA & CLOCK_SEL) == LINKING) {
@@ -1723,13 +1699,16 @@ void CMikie::Update(void)
 			decval = (gSystemCycleCount - mTIM_5.LAST_COUNT) >> divide;
 		}
 
+		// Clear carry in/out to begin with
+		mikey_0.tim5CtlB &= ~(BORROW_OUT | BORROW_IN);
 		if (decval) {
+			// Set carry in as we do a count
+			mikey_0.tim5CtlB |= BORROW_IN;
 			mTIM_5.LAST_COUNT += decval<<divide;
 			mTIM_5.CURRENT -= decval;
 			if (mTIM_5.CURRENT & 0x80000000) {
 				// Set carry out
 				mikey_0.tim5CtlB |= BORROW_OUT;
-				mikey_0.tim5CtlB |= TIMER_DONE;
 
 				// Set the timer status flag
 				if (mTimerInterruptMask & 0x20) {
@@ -1745,15 +1724,6 @@ void CMikie::Update(void)
 					mTIM_5.CURRENT = 0;
 				}
 			}
-			else {
-				mikey_0.tim5CtlB &= ~BORROW_OUT;
-			}
-			// Set carry in as we did a count
-			mikey_0.tim5CtlB |= BORROW_IN;
-		}
-		else {
-			// Clear carry in/out as we didn't count
-			mikey_0.tim5CtlB &= ~(BORROW_OUT | BORROW_IN);
 		}
 
 		// Prediction for next timer event cycle number
@@ -1774,8 +1744,7 @@ void CMikie::Update(void)
 	//
 	// Timer 7 of Group A
 	//
-	// KW bugfix 13/4/99 added ((mTIM_x.CTLA & ENABLE_RELOAD) ||  ..)
-	if ((mikey_0.tim7CtlA & ENABLE_COUNT) && ((mikey_0.tim7CtlA & ENABLE_RELOAD) || !(mikey_0.tim7CtlB & TIMER_DONE))) {
+	if (mikey_0.tim7CtlA & ENABLE_COUNT) {
 		decval = 0;
 
 		if ((mikey_0.tim7CtlA & CLOCK_SEL) == LINKING) {
@@ -1788,13 +1757,16 @@ void CMikie::Update(void)
 			decval = (gSystemCycleCount - mTIM_7.LAST_COUNT) >> divide;
 		}
 
+		// Clear carry in/out to begin with
+		mikey_0.tim7CtlB &= ~(BORROW_OUT | BORROW_IN);
 		if (decval) {
+			// Set carry in as we do a count
+			mikey_0.tim7CtlB |= BORROW_IN;
 			mTIM_7.LAST_COUNT += decval << divide;
 			mTIM_7.CURRENT -= decval;
 			if (mTIM_7.CURRENT & 0x80000000) {
 				// Set carry out
 				mikey_0.tim7CtlB |= BORROW_OUT;
-				mikey_0.tim7CtlB |= TIMER_DONE;
 
 				// Set the timer status flag
 				if (mTimerInterruptMask & 0x80) {
@@ -1810,15 +1782,6 @@ void CMikie::Update(void)
 					mTIM_7.CURRENT = 0;
 				}
 			}
-			else {
-				mikey_0.tim7CtlB &= ~BORROW_OUT;
-			}
-			// Set carry in as we did a count
-			mikey_0.tim7CtlB |= BORROW_IN;
-		}
-		else {
-			// Clear carry in/out as we didn't count
-			mikey_0.tim7CtlB &= ~(BORROW_OUT | BORROW_IN);
 		}
 
 		// Prediction for next timer event cycle number
@@ -1839,27 +1802,27 @@ void CMikie::Update(void)
 	//
 	// Timer 6 has no group
 	//
-	// KW bugfix 13/4/99 added ((mTIM_x.CTLA & ENABLE_RELOAD) ||  ..)
-	if ((mikey_0.tim6CtlA & ENABLE_COUNT) && ((mikey_0.tim6CtlA & ENABLE_RELOAD) || !(mikey_0.tim6CtlB & TIMER_DONE))) {
-		// (Timer 6 doesn't support linking)
-//		if ((mikey_0.tim6CtlA & CLOCK_SEL) != LINKING)
+	if (mikey_0.tim6CtlA & ENABLE_COUNT ) {
+		if ((mikey_0.tim6CtlA & CLOCK_SEL) != LINKING)
 		{
 			// Ordinary clocked mode as opposed to linked mode
 			// 16MHz clock downto 1us == cyclecount >> 4
 			divide = (4 + (mikey_0.tim6CtlA & CLOCK_SEL));
 			decval = (gSystemCycleCount - mTIM_6.LAST_COUNT) >> divide;
 
+			// Clear carry in/out to begin with
+			mikey_0.tim6CtlB &= ~(BORROW_OUT | BORROW_IN);
 			if (decval) {
+				// Set carry in as we do a count
+				mikey_0.tim6CtlB |= BORROW_IN;
 				mTIM_6.LAST_COUNT += decval << divide;
 				mTIM_6.CURRENT -= decval;
 				if (mTIM_6.CURRENT & 0x80000000) {
 					// Set carry out
 					mikey_0.tim6CtlB |= BORROW_OUT;
-					mikey_0.tim6CtlB |= TIMER_DONE;
 
 					// Set the timer status flag
 					if (mTimerInterruptMask & 0x40) {
-						TRACE_MIKIE0("Update() - TIMER6 IRQ Triggered");
 						mTimerStatusFlags |= 0x40;
 					}
 
@@ -1871,15 +1834,6 @@ void CMikie::Update(void)
 						mTIM_6.CURRENT = 0;
 					}
 				}
-				else {
-					mikey_0.tim6CtlB &= ~BORROW_OUT;
-				}
-				// Set carry in as we did a count
-				mikey_0.tim6CtlB |= BORROW_IN;
-			}
-			else {
-				// Clear carry in/out as we didn't count
-				mikey_0.tim6CtlB &= ~(BORROW_OUT | BORROW_IN);
 			}
 
 			// Prediction for next timer event cycle number
