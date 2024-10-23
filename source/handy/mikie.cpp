@@ -1353,10 +1353,10 @@ void CMikie::Update(void)
 	//
 
 	//
-	// Optimisation, assume T2 (Frame timer) is never in one-shot
+	// Optimisation, assume T2 (Frame timer) is always in reload mode
 	// always in linked mode i.e clocked by Line Timer
 	//
-	if (mikey_0.tim2CtlA & ENABLE_COUNT) {
+/*	if (mikey_0.tim2CtlA & ENABLE_COUNT) {
 		decval = 0;
 
 //		if ((mikey_0.tim2CtlA & CLOCK_SEL) == LINKING)
@@ -1378,8 +1378,8 @@ void CMikie::Update(void)
 //			mTIM_2.LAST_COUNT += decval << divide;
 			mTIM_2.CURRENT -= decval;
 			if (mTIM_2.CURRENT & 0x80000000) {
-				// Set carry out / timer done
-				mikey_0.tim0CtlB |= (BORROW_OUT | TIMER_DONE);
+				// Set carry out
+				mikey_0.tim0CtlB |= BORROW_OUT;
 
 //				// Reload if neccessary
 //				if (mikey_0.tim2CtlA & ENABLE_RELOAD) {
@@ -1402,6 +1402,9 @@ void CMikie::Update(void)
 //			tmp = gSystemCycleCount + ((mTIM_2.CURRENT + 1) << divide);
 //			if (tmp < gNextTimerEvent) gNextTimerEvent = tmp;
 //		}
+	}*/
+	if (miRunTimer2()) {
+		mikie_work_done += DisplayEndOfFrame();
 	}
 
 	//
@@ -1628,7 +1631,7 @@ void CMikie::Update(void)
 	//
 	// Timer 3 of Group A
 	//
-	if (mikey_0.tim3CtlA & ENABLE_COUNT) {
+/*	if (mikey_0.tim3CtlA & ENABLE_COUNT) {
 		decval = 0;
 
 		if ((mikey_0.tim3CtlA & CLOCK_SEL) == LINKING) {
@@ -1681,12 +1684,19 @@ void CMikie::Update(void)
 				TRACE_MIKIE1("Update() - TIMER 3 Set NextTimerEvent = %012d", gNextTimerEvent);
 			}
 		}
+	}*/
+	if (miRunTimer3()) {
+		// Set the timer status flag
+		if (mTimerInterruptMask & 0x08) {
+			TRACE_MIKIE0("Update() - TIMER3 IRQ Triggered");
+			mTimerStatusFlags |= 0x08;
+		}
 	}
 
 	//
 	// Timer 5 of Group A
 	//
-	if (mikey_0.tim5CtlA & ENABLE_COUNT) {
+/*	if (mikey_0.tim5CtlA & ENABLE_COUNT) {
 		decval = 0;
 
 		if ((mikey_0.tim5CtlA & CLOCK_SEL) == LINKING) {
@@ -1739,12 +1749,19 @@ void CMikie::Update(void)
 				TRACE_MIKIE1("Update() - TIMER 5 Set NextTimerEvent = %012d", gNextTimerEvent);
 			}
 		}
+	}*/
+	if (miRunTimer5()) {
+		// Set the timer status flag
+		if (mTimerInterruptMask & 0x20) {
+			TRACE_MIKIE0("Update() - TIMER5 IRQ Triggered");
+			mTimerStatusFlags |= 0x20;
+		}
 	}
 
 	//
 	// Timer 7 of Group A
 	//
-	if (mikey_0.tim7CtlA & ENABLE_COUNT) {
+/*	if (mikey_0.tim7CtlA & ENABLE_COUNT) {
 		decval = 0;
 
 		if ((mikey_0.tim7CtlA & CLOCK_SEL) == LINKING) {
@@ -1797,12 +1814,19 @@ void CMikie::Update(void)
 				TRACE_MIKIE1("Update() - TIMER 7 Set NextTimerEvent = %012d", gNextTimerEvent);
 			}
 		}
+	}*/
+	if (miRunTimer7()) {
+		// Set the timer status flag
+		if (mTimerInterruptMask & 0x80) {
+			TRACE_MIKIE0("Update() - TIMER7 IRQ Triggered");
+			mTimerStatusFlags |= 0x80;
+		}
 	}
 
 	//
 	// Timer 6 has no group
 	//
-	if (mikey_0.tim6CtlA & ENABLE_COUNT ) {
+/*	if (mikey_0.tim6CtlA & ENABLE_COUNT ) {
 		if ((mikey_0.tim6CtlA & CLOCK_SEL) != LINKING)
 		{
 			// Ordinary clocked mode as opposed to linked mode
@@ -1847,6 +1871,12 @@ void CMikie::Update(void)
 				gNextTimerEvent = tmp;
 				TRACE_MIKIE1("Update() - TIMER 6 Set NextTimerEvent = %012d", gNextTimerEvent);
 			}
+		}
+	}*/
+	if (miRunTimer6()) {
+		// Set the timer status flag
+		if (mTimerInterruptMask & 0x40) {
+			mTimerStatusFlags |= 0x40;
 		}
 	}
 
