@@ -69,7 +69,7 @@ gfxReset:					;@ Called with CPU reset
 	ldr r2,=svVRAM
 	ldr r3,=gSOC
 	ldrb r3,[r3]
-	bl svVideoReset0
+	bl miVideoReset0
 
 	ldr r0,=gGammaValue
 	ldr r1,=gContrastValue
@@ -408,8 +408,14 @@ lnxWriteIO:
 	bl svWrite
 	ldmfd sp!,{r3,r12,lr}
 	bx lr
+
 ;@----------------------------------------------------------------------------
-	lnxMikeyRead:
+miVideoReset0:
+;@----------------------------------------------------------------------------
+	adr mikptr,mikey_0
+	b miVideoReset
+;@----------------------------------------------------------------------------
+lnxMikeyRead:
 	.type lnxMikeyRead STT_FUNC
 ;@----------------------------------------------------------------------------
 	stmfd sp!,{r3,r12,lr}

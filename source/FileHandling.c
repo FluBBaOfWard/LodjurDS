@@ -165,16 +165,16 @@ bool loadGame(const char *gameName) {
 		if (gRomSize) {
 			GpDelete();
 			GpInit(romSpacePtr, gRomSize);
-/*			checkMachine();
-			setEmuSpeed(0);
+//			checkMachine();
+//			setEmuSpeed(0);
 			loadCart();
 			gameInserted = true;
 			if (emuSettings & AUTOLOAD_NVRAM) {
-				loadNVRAM();
+//				loadNVRAM();
 			}
 			if (emuSettings & AUTOLOAD_STATE) {
-				loadState();
-			}*/
+//				loadState();
+			}
 			closeMenu();
 			return false;
 		}

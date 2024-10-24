@@ -1294,7 +1294,7 @@ void CMikie::Update(void)
 	// Optimisation, assume T0 (Line timer) is never in one-shot,
 	// never placed in link mode
 	//
-/*	if (mikey_0.tim0CtlA & ENABLE_COUNT) {
+/*	if ((mikey_0.tim0CtlA & ENABLE_COUNT) && !(mikey_0.tim0CtlB & TIMER_DONE)) {
 		// Timer 0 has no linking
 //		if ((mikey_0.tim0CtlA & CLOCK_SEL) != LINKING)
 		{
@@ -1321,6 +1321,7 @@ void CMikie::Update(void)
 //					}
 //					else {
 //						mTIM_0.CURRENT = 0;
+//						mikey_0.tim0CtlB |= TIMER_DONE;
 //					}
 
 					// Interrupt flag setting code moved into DisplayRenderLine()
@@ -1356,7 +1357,7 @@ void CMikie::Update(void)
 	// Optimisation, assume T2 (Frame timer) is always in reload mode
 	// always in linked mode i.e clocked by Line Timer
 	//
-/*	if (mikey_0.tim2CtlA & ENABLE_COUNT) {
+/*	if ((mikey_0.tim2CtlA & ENABLE_COUNT) && !(mikey_0.tim2CtlB & TIMER_DONE)) {
 		decval = 0;
 
 //		if ((mikey_0.tim2CtlA & CLOCK_SEL) == LINKING)
@@ -1387,6 +1388,7 @@ void CMikie::Update(void)
 //				}
 //				else {
 //					mTIM_2.CURRENT = 0;
+//					mikey_0.tim2CtlB |= TIMER_DONE;
 //				}
 
 				// Interupt flag setting code moved into DisplayEndOfFrame(), also
@@ -1573,7 +1575,7 @@ void CMikie::Update(void)
 	//
 	// Timer 1 of Group B
 	//
-/*	if (mikey_0.tim1CtlA & ENABLE_COUNT) {
+/*	if ((mikey_0.tim1CtlA & ENABLE_COUNT) && !(mikey_0.tim1CtlB & TIMER_DONE)) {
 		if ((mikey_0.tim1CtlA & CLOCK_SEL) != LINKING) {
 			// Ordinary clocked mode as opposed to linked mode
 			// 16MHz clock downto 1us == cyclecount >> 4
@@ -1603,6 +1605,7 @@ void CMikie::Update(void)
 					}
 					else {
 						mTIM_1.CURRENT = 0;
+						mikey_0.tim1CtlB |= TIMER_DONE;
 					}
 				}
 			}
@@ -1631,7 +1634,7 @@ void CMikie::Update(void)
 	//
 	// Timer 3 of Group A
 	//
-/*	if (mikey_0.tim3CtlA & ENABLE_COUNT) {
+/*	if ((mikey_0.tim3CtlA & ENABLE_COUNT) && !(mikey_0.tim3CtlB & TIMER_DONE)) {
 		decval = 0;
 
 		if ((mikey_0.tim3CtlA & CLOCK_SEL) == LINKING) {
@@ -1667,6 +1670,7 @@ void CMikie::Update(void)
 				}
 				else {
 					mTIM_3.CURRENT = 0;
+					mikey_0.tim3CtlB |= TIMER_DONE;
 				}
 			}
 		}
@@ -1696,7 +1700,7 @@ void CMikie::Update(void)
 	//
 	// Timer 5 of Group A
 	//
-/*	if (mikey_0.tim5CtlA & ENABLE_COUNT) {
+/*	if ((mikey_0.tim5CtlA & ENABLE_COUNT) && !(mikey_0.tim5CtlB & TIMER_DONE)) {
 		decval = 0;
 
 		if ((mikey_0.tim5CtlA & CLOCK_SEL) == LINKING) {
@@ -1732,6 +1736,7 @@ void CMikie::Update(void)
 				}
 				else {
 					mTIM_5.CURRENT = 0;
+					mikey_0.tim5CtlB |= TIMER_DONE;
 				}
 			}
 		}
@@ -1761,7 +1766,7 @@ void CMikie::Update(void)
 	//
 	// Timer 7 of Group A
 	//
-/*	if (mikey_0.tim7CtlA & ENABLE_COUNT) {
+/*	if ((mikey_0.tim7CtlA & ENABLE_COUNT) && !(mikey_0.tim7CtlB & TIMER_DONE)) {
 		decval = 0;
 
 		if ((mikey_0.tim7CtlA & CLOCK_SEL) == LINKING) {
@@ -1797,6 +1802,7 @@ void CMikie::Update(void)
 				}
 				else {
 					mTIM_7.CURRENT = 0;
+					mikey_0.tim7CtlB |= TIMER_DONE;
 				}
 			}
 		}
@@ -1826,7 +1832,7 @@ void CMikie::Update(void)
 	//
 	// Timer 6 has no group
 	//
-/*	if (mikey_0.tim6CtlA & ENABLE_COUNT ) {
+/*	if ((mikey_0.tim6CtlA & ENABLE_COUNT) && !(mikey_0.tim6CtlB & TIMER_DONE)) {
 		if ((mikey_0.tim6CtlA & CLOCK_SEL) != LINKING)
 		{
 			// Ordinary clocked mode as opposed to linked mode
@@ -1856,6 +1862,7 @@ void CMikie::Update(void)
 					}
 					else {
 						mTIM_6.CURRENT = 0;
+						mikey_0.tim6CtlB |= TIMER_DONE;
 					}
 				}
 			}
