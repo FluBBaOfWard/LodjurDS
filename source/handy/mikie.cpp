@@ -262,12 +262,6 @@ void CMikie::DisplaySetAttributes(void (*DisplayCallback)(void), void (*RenderCa
 
 ULONG CMikie::DisplayRenderLine(void)
 {
-	// Set the timer interrupt flag
-	if (mikey_0.timerInterruptMask & 0x01) {
-		TRACE_MIKIE0("Update() - TIMER0 IRQ Triggered (Line Timer)");
-		mikey_0.timerStatusFlags |= 0x01;
-	}
-
 	if (!(mikey_0.dispCtl & 1)) return 0;
 //	if (mLynxLine & 0x80000000) return 0;
 
@@ -323,12 +317,6 @@ ULONG CMikie::DisplayEndOfFrame(void)
 	// Stop any further line rendering
 	mLynxLineDMACounter = 0;
 	mLynxLine = mikey_0.tim2Bkup;
-
-	// Set the timer status flag
-	if (mikey_0.timerInterruptMask & 0x04) {
-		TRACE_MIKIE0("Update() - TIMER2 IRQ Triggered (Frame Timer)");
-		mikey_0.timerStatusFlags |= 0x04;
-	}
 
 //	TRACE_MIKIE0("Update() - Frame end");
 	// Trigger the callback to the display sub-system to render the
@@ -582,18 +570,6 @@ void CMikie::Poke(ULONG addr, UBYTE data)
 			TRACE_MIKIE2("Poke(MSTEREO,%02x) at PC=%04x", data, mSystem.mCpu->GetPC());
 			break;
 
-		case (INTRST & 0xff):
-			mikey_0.timerStatusFlags &= ~data;
-			gNextTimerEvent = gSystemCycleCount;
-			TRACE_MIKIE2("Poke(INTRST  ,%02x) at PC=%04x", data, mSystem.mCpu->GetPC());
-			break;
-
-		case (INTSET & 0xff):
-			TRACE_MIKIE2("Poke(INTSET  ,%02x) at PC=%04x", data, mSystem.mCpu->GetPC());
-			mikey_0.timerStatusFlags |= data;
-			gNextTimerEvent = gSystemCycleCount;
-			break;
-
 		case (SYSCTL1 & 0xff):
 			TRACE_MIKIE2("Poke(SYSCTL1 ,%02x) at PC=%04x", data, mSystem.mCpu->GetPC());
 			if (!(data & 0x02)) {
@@ -701,6 +677,8 @@ void CMikie::Poke(ULONG addr, UBYTE data)
 		case (ATTEN_C & 0xff):
 		case (ATTEN_D & 0xff):
 		case (MPAN & 0xff):
+		case (INTRST & 0xff):
+		case (INTSET & 0xff):
 		case (MIKEYSREV & 0xff):
 		case (IODIR & 0xff):
 		case (SDONEACK & 0xff):
@@ -986,36 +964,32 @@ UBYTE CMikie::Peek(ULONG addr)
 			}
 			break;
 
+		case (TIM0BKUP & 0xff):
+		case (TIM0CTLA & 0xff):
+		case (TIM0CTLB & 0xff):
+		case (TIM1BKUP & 0xff):
+		case (TIM1CTLA & 0xff):
+		case (TIM1CTLB & 0xff):
+		case (TIM2BKUP & 0xff):
+		case (TIM2CTLA & 0xff):
+		case (TIM2CTLB & 0xff):
+		case (TIM3BKUP & 0xff):
+		case (TIM3CTLA & 0xff):
+		case (TIM3CTLB & 0xff):
+		case (TIM4BKUP & 0xff):
+		case (TIM4CTLA & 0xff):
+		case (TIM4CTLB & 0xff):
+		case (TIM5BKUP & 0xff):
+		case (TIM5CTLA & 0xff):
+		case (TIM5CTLB & 0xff):
+		case (TIM6BKUP & 0xff):
+		case (TIM6CTLA & 0xff):
+		case (TIM6CTLB & 0xff):
+		case (TIM7BKUP & 0xff):
+		case (TIM7CTLA & 0xff):
+		case (TIM7CTLB & 0xff):
 		case (INTRST & 0xff):
 		case (INTSET & 0xff):
-			TRACE_MIKIE2("Peek(INTSET  ,%02x) at PC=%04x", mikey_0.timerStatusFlags, mSystem.mCpu->GetPC());
-			return (UBYTE)mikey_0.timerStatusFlags;
-
-		case (TIM0BKUP & 0xff):
-		case (TIM1BKUP & 0xff):
-		case (TIM2BKUP & 0xff):
-		case (TIM3BKUP & 0xff):
-		case (TIM4BKUP & 0xff):
-		case (TIM5BKUP & 0xff):
-		case (TIM6BKUP & 0xff):
-		case (TIM7BKUP & 0xff):
-		case (TIM0CTLA & 0xff):
-		case (TIM1CTLA & 0xff):
-		case (TIM2CTLA & 0xff):
-		case (TIM3CTLA & 0xff):
-		case (TIM4CTLA & 0xff):
-		case (TIM5CTLA & 0xff):
-		case (TIM6CTLA & 0xff):
-		case (TIM7CTLA & 0xff):
-		case (TIM0CTLB & 0xff):
-		case (TIM1CTLB & 0xff):
-		case (TIM2CTLB & 0xff):
-		case (TIM3CTLB & 0xff):
-		case (TIM4CTLB & 0xff):
-		case (TIM5CTLB & 0xff):
-		case (TIM6CTLB & 0xff):
-		case (TIM7CTLB & 0xff):
-
 		case (MAGRDY0 & 0xff):
 		case (MAGRDY1 & 0xff):
 		case (AUDIN & 0xff):
@@ -1501,13 +1475,7 @@ void CMikie::Update(void)
 			}
 		}
 	}*/
-	if (miRunTimer1()) {
-		// Set the timer status flag
-		if (mikey_0.timerInterruptMask & 0x02) {
-			TRACE_MIKIE0("Update() - TIMER1 IRQ Triggered");
-			mikey_0.timerStatusFlags |= 0x02;
-		}
-	}
+	miRunTimer1();
 
 	//
 	// Timer 3 of Group A
@@ -1567,13 +1535,7 @@ void CMikie::Update(void)
 			}
 		}
 	}*/
-	if (miRunTimer3()) {
-		// Set the timer status flag
-		if (mikey_0.timerInterruptMask & 0x08) {
-			TRACE_MIKIE0("Update() - TIMER3 IRQ Triggered");
-			mikey_0.timerStatusFlags |= 0x08;
-		}
-	}
+	miRunTimer3();
 
 	//
 	// Timer 5 of Group A
@@ -1633,13 +1595,7 @@ void CMikie::Update(void)
 			}
 		}
 	}*/
-	if (miRunTimer5()) {
-		// Set the timer status flag
-		if (mikey_0.timerInterruptMask & 0x20) {
-			TRACE_MIKIE0("Update() - TIMER5 IRQ Triggered");
-			mikey_0.timerStatusFlags |= 0x20;
-		}
-	}
+	miRunTimer5();
 
 	//
 	// Timer 7 of Group A
@@ -1699,13 +1655,7 @@ void CMikie::Update(void)
 			}
 		}
 	}*/
-	if (miRunTimer7()) {
-		// Set the timer status flag
-		if (mikey_0.timerInterruptMask & 0x80) {
-			TRACE_MIKIE0("Update() - TIMER7 IRQ Triggered");
-			mikey_0.timerStatusFlags |= 0x80;
-		}
-	}
+	miRunTimer7();
 
 	//
 	// Timer 6 has no group
@@ -1758,12 +1708,7 @@ void CMikie::Update(void)
 			}
 		}
 	}*/
-	if (miRunTimer6()) {
-		// Set the timer status flag
-		if (mikey_0.timerInterruptMask & 0x40) {
-			mikey_0.timerStatusFlags |= 0x40;
-		}
-	}
+	miRunTimer6();
 
 	//
 	// If sound is enabled then update the sound subsystem
