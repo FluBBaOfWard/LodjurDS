@@ -104,9 +104,6 @@ void CMikie::Reset(void)
 	mLynxLineDMACounter = 0;
 	mLynxAddr = 0;
 
-	mikey_0.timerStatusFlags = 0x00;		// Initialises to ZERO, i.e No IRQ's
-	mikey_0.timerInterruptMask = 0x00;
-
 	mpRamPointer = mSystem.GetRamPointer();	// Fetch pointer to system RAM
 
 	ResetTimer(mTIM_0);
@@ -1106,10 +1103,10 @@ void CMikie::Update(void)
 	if (gSuzieDoneTime) {
 		if (gSystemCycleCount >= gSuzieDoneTime) {
 			ClearCPUSleep();
-			gSuzieDoneTime=0;
+			gSuzieDoneTime = 0;
 		}
 		else {
-			if (gSuzieDoneTime > gSystemCycleCount) gNextTimerEvent = gSuzieDoneTime;
+			gNextTimerEvent = gSuzieDoneTime;
 		}
 	}
 

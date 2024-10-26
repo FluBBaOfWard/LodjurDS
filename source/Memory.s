@@ -6,9 +6,6 @@
 
 	.global pokeCPU
 	.global peekCPU
-	.global ramPoke
-	.global ramPeek
-	.global romPeek
 	.global empty_R
 	.global empty_W
 	.global empty_IO_R
@@ -61,7 +58,6 @@ rom_W:						;@ Write ROM address (error)
 
 ;@----------------------------------------------------------------------------
 pokeCPU:
-	.type pokeCPU STT_FUNC
 ;@----------------------------------------------------------------------------
 	cmp r0,#0xFC00
 	bpl checkIOW
@@ -80,7 +76,7 @@ checkSusieW:
 	b ramPoke
 checkMikieW:
 	tst r3,#2
-	ldreq pc,=mikiePoke
+	beq lnxMikeyWrite
 	b ramPoke
 checkVectorW:
 	ldr r2,=0xFFF8
@@ -98,11 +94,15 @@ checkVectorW:
 checkRomW:
 	tst r3,#4
 	beq rom_W
-	b ramPoke
+;@----------------------------------------------------------------------------
+ramPoke:
+;@----------------------------------------------------------------------------
+	ldr r2,=lynxRAM
+	strb r1,[r2,r0]
+	bx lr
 
 ;@----------------------------------------------------------------------------
 peekCPU:
-	.type peekCPU STT_FUNC
 ;@----------------------------------------------------------------------------
 	cmp r0,#0xFC00
 	bpl checkIOR
@@ -121,7 +121,7 @@ checkSusieR:
 	b ramPeek
 checkMikieR:
 	tst r3,#2
-	ldreq pc,=mikiePeek
+	beq lnxMikeyRead
 	b ramPeek
 checkVectorR:
 	ldr r2,=0xFFF8
@@ -138,29 +138,19 @@ checkVectorR:
 checkRomR:
 	tst r3,#4
 	beq romPeek
-	b ramPeek
-
-;@----------------------------------------------------------------------------
-ramPoke:
-	.type ramPoke STT_FUNC
-;@----------------------------------------------------------------------------
-	ldr r2,=lynxRAM
-	strb r1,[r2,r0]
-	bx lr
 ;@----------------------------------------------------------------------------
 ramPeek:
-	.type ramPeek STT_FUNC
 ;@----------------------------------------------------------------------------
 	ldr r1,=lynxRAM
 	ldrb r0,[r1,r0]!
 	bx lr
 ;@----------------------------------------------------------------------------
 romPeek:					;@ Rom read ($FE00-$FFFF)
-	.type romPeek STT_FUNC
 ;@----------------------------------------------------------------------------
 	ldr r1,=biosSpace-0xFE00
 	ldrb r0,[r1,r0]!
 	bx lr
+
 ;@----------------------------------------------------------------------------
 ram6502W:					;@ Ram write ($0000-$DFFF)
 ;@----------------------------------------------------------------------------

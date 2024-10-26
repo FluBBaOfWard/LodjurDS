@@ -22,8 +22,8 @@
 	.global gfxRefresh
 	.global gfxEndFrame
 	.global vblIrqHandler
-	.global lnxReadIO
-	.global lnxWriteIO
+	.global lnxSuzyRead
+	.global lnxSuzyWrite
 	.global lnxMikeyRead
 	.global lnxMikeyWrite
 	.global updateLCDRefresh
@@ -388,8 +388,8 @@ svVideoReset0:		;@ r0=NmiFunc, r1=IrqFunc, r2=ram+LUTs, r3=model
 	adr suzptr,suzy_0
 	b svVideoReset
 ;@----------------------------------------------------------------------------
-lnxReadIO:
-	.type lnxReadIO STT_FUNC
+lnxSuzyRead:
+	.type lnxSuzyRead STT_FUNC
 ;@----------------------------------------------------------------------------
 	stmfd sp!,{r3,r12,lr}
 	mov r0,r12
@@ -398,8 +398,8 @@ lnxReadIO:
 	ldmfd sp!,{r3,r12,lr}
 	bx lr
 ;@----------------------------------------------------------------------------
-lnxWriteIO:
-	.type lnxWriteIO STT_FUNC
+lnxSuzyWrite:
+	.type lnxSuzyWrite STT_FUNC
 ;@----------------------------------------------------------------------------
 	stmfd sp!,{r3,r12,lr}
 	mov r1,r0

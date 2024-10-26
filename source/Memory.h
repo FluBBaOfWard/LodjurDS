@@ -9,12 +9,9 @@ extern "C" {
 
 extern u8 memSelector;
 
-void pokeCPU(u32 addr, u8 value);
-u8 peekCPU(u32 addr);
+//void pokeCPU(u32 addr, u8 value);
+//u8 peekCPU(u32 addr);
 void rom_W(u32 addr, u8 value);
-void ramPoke(u32 addr, u8 value);
-u8 ramPeek(u32 addr);
-u8 romPeek(u32 addr);
 
 #ifdef __cplusplus
 } // extern "C"

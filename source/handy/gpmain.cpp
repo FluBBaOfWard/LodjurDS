@@ -10,12 +10,10 @@
 #include "../Gfx.h"
 
 extern "C" {
-UWORD peekCPUW(ULONG addr);
 void susiePoke(ULONG addr, UBYTE data);
 void mikiePoke(ULONG addr, UBYTE data);
 UBYTE susiePeek(ULONG addr);
 UBYTE mikiePeek(ULONG addr);
-ULONG displayRenderLine(void);
 void GpInit(const unsigned char *gamerom, int size);
 void GpDelete(void);
 void GpMain(void *args);
@@ -36,10 +34,6 @@ void handy_nds_display_callback(void)
 	gScreenUpdateRequired = TRUE;
 }
 
-UWORD peekCPUW(ULONG addr) {
-	return ((peekCPU(addr))+(peekCPU(addr+1)<<8));
-}
-
 void susiePoke(ULONG addr, UBYTE data) {
 	newsystem->mSusie->Poke(addr,data);
 }
@@ -51,10 +45,6 @@ UBYTE susiePeek(ULONG addr) {
 }
 UBYTE mikiePeek(ULONG addr) {
 	return newsystem->mMikie->Peek(addr);
-}
-
-ULONG displayRenderLine() {
-	return newsystem->mMikie->DisplayRenderLine();
 }
 
 void GpInit(const unsigned char *gamerom, int size) {
