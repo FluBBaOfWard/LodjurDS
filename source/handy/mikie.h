@@ -78,9 +78,6 @@ class CSystem;
 #define CTRL_B_CIN		0x02
 #define CTRL_B_COUT		0x01
 
-#define LINE_TIMER		0x00
-#define SCREEN_TIMER	0x02
-
 #define LINE_WIDTH		160
 #define	LINE_SIZE		80
 
@@ -92,53 +89,6 @@ class CSystem;
 #define UART_RX_TIME_PERIOD	(11)
 #define UART_RX_NEXT_DELAY	(44)
 
-typedef struct
-{
-	union
-	{
-		struct
-		{
-#ifdef MSB_FIRST
-			UBYTE unused:4;
-			UBYTE Colour:1;
-			UBYTE FourColour:1;
-			UBYTE Flip:1;
-			UBYTE DMAEnable:1;
-#else
-			UBYTE DMAEnable:1;
-			UBYTE Flip:1;
-			UBYTE FourColour:1;
-			UBYTE Colour:1;
-			UBYTE unused:4;
-#endif
-		} Bits;
-		UBYTE Byte;
-	};
-}TDISPCTL;
-
-typedef struct
-{
-	union
-	{
-		struct
-		{
-#ifdef MSB_FIRST
-			UBYTE unused:8;
-			UBYTE unused2:8;
-			UBYTE unused3:4;
-			UBYTE Blue:4;
-			UBYTE Red:4;
-			UBYTE Green:4;
-#else
-			UBYTE Green:4;
-			UBYTE Red:4;
-			UBYTE Blue:4;
-#endif
-		} Colours;
-		ULONG Index;
-	};
-}TPALETTE;
-
 class CMikie : public CLynxBase
 {
 	public:
@@ -149,9 +99,6 @@ class CMikie : public CLynxBase
 
 		UBYTE	Peek(ULONG addr);
 		void	Poke(ULONG addr,UBYTE data);
-		ULONG	ReadCycle(void) {return 5;};
-		ULONG	WriteCycle(void) {return 5;};
-		ULONG	ObjectSize(void) {return MIKIE_SIZE;};
 		void	PresetForHomebrew(void);
 		ULONG	GetLfsrNext(ULONG current);
 
@@ -180,8 +127,6 @@ class CMikie : public CLynxBase
 		// Hardware storage
 
 		ULONG		mAudioInputComparator;
-		ULONG		mTimerStatusFlags;
-		ULONG		mTimerInterruptMask;
 
 		ULONG		mIODAT_REST_SIGNAL;
 

@@ -104,8 +104,8 @@ void CMikie::Reset(void)
 	mLynxLineDMACounter = 0;
 	mLynxAddr = 0;
 
-	mTimerStatusFlags = 0x00;		// Initialises to ZERO, i.e No IRQ's
-	mTimerInterruptMask = 0x00;
+	mikey_0.timerStatusFlags = 0x00;		// Initialises to ZERO, i.e No IRQ's
+	mikey_0.timerInterruptMask = 0x00;
 
 	mpRamPointer = mSystem.GetRamPointer();	// Fetch pointer to system RAM
 
@@ -263,9 +263,9 @@ void CMikie::DisplaySetAttributes(void (*DisplayCallback)(void), void (*RenderCa
 ULONG CMikie::DisplayRenderLine(void)
 {
 	// Set the timer interrupt flag
-	if (mTimerInterruptMask & 0x01) {
+	if (mikey_0.timerInterruptMask & 0x01) {
 		TRACE_MIKIE0("Update() - TIMER0 IRQ Triggered (Line Timer)");
-		mTimerStatusFlags |= 0x01;
+		mikey_0.timerStatusFlags |= 0x01;
 	}
 
 	if (!(mikey_0.dispCtl & 1)) return 0;
@@ -325,9 +325,9 @@ ULONG CMikie::DisplayEndOfFrame(void)
 	mLynxLine = mikey_0.tim2Bkup;
 
 	// Set the timer status flag
-	if (mTimerInterruptMask & 0x04) {
+	if (mikey_0.timerInterruptMask & 0x04) {
 		TRACE_MIKIE0("Update() - TIMER2 IRQ Triggered (Frame Timer)");
-		mTimerStatusFlags |= 0x04;
+		mikey_0.timerStatusFlags |= 0x04;
 	}
 
 //	TRACE_MIKIE0("Update() - Frame end");
@@ -345,8 +345,8 @@ void CMikie::Poke(ULONG addr, UBYTE data)
 	switch(addr & 0xff)
 	{
 		case (TIM0CTLA & 0xff):
-			mTimerInterruptMask &= ~0x01;
-			mTimerInterruptMask |= (data & 0x80) ? 0x01 : 0x00;
+			mikey_0.timerInterruptMask &= ~0x01;
+			mikey_0.timerInterruptMask |= (data & 0x80) ? 0x01 : 0x00;
 			mikey_0.tim0CtlA = data & (CLOCK_SEL | ENABLE_COUNT | ENABLE_RELOAD | 0x80);
 			if (data & 0x40) mikey_0.tim0CtlB &= ~TIMER_DONE;
 			if (data & 0x48) {
@@ -356,8 +356,8 @@ void CMikie::Poke(ULONG addr, UBYTE data)
 			TRACE_MIKIE2("Poke(TIM0CTLA,%02x) at PC=%04x", data, mSystem.mCpu->GetPC());
 			break;
 		case (TIM1CTLA & 0xff):
-			mTimerInterruptMask &= ~0x02;
-			mTimerInterruptMask |= (data & 0x80) ? 0x02 : 0x00;
+			mikey_0.timerInterruptMask &= ~0x02;
+			mikey_0.timerInterruptMask |= (data & 0x80) ? 0x02 : 0x00;
 			mikey_0.tim1CtlA = data & (CLOCK_SEL | ENABLE_COUNT | ENABLE_RELOAD | 0x80);
 			if (data & 0x40) mikey_0.tim1CtlB &= ~TIMER_DONE;
 			if (data & 0x48) {
@@ -367,8 +367,8 @@ void CMikie::Poke(ULONG addr, UBYTE data)
 			TRACE_MIKIE2("Poke(TIM1CTLA,%02x) at PC=%04x", data, mSystem.mCpu->GetPC());
 			break;
 		case (TIM2CTLA & 0xff):
-			mTimerInterruptMask &= ~0x04;
-			mTimerInterruptMask |= (data & 0x80) ? 0x04 : 0x00;
+			mikey_0.timerInterruptMask &= ~0x04;
+			mikey_0.timerInterruptMask |= (data & 0x80) ? 0x04 : 0x00;
 			mikey_0.tim2CtlA = data & (CLOCK_SEL | ENABLE_COUNT | ENABLE_RELOAD | 0x80);
 			if (data & 0x40) mikey_0.tim2CtlB &= ~TIMER_DONE;
 			if (data & 0x48) {
@@ -378,8 +378,8 @@ void CMikie::Poke(ULONG addr, UBYTE data)
 			TRACE_MIKIE2("Poke(TIM2CTLA,%02x) at PC=%04x", data, mSystem.mCpu->GetPC());
 			break;
 		case (TIM3CTLA & 0xff):
-			mTimerInterruptMask &= ~0x08;
-			mTimerInterruptMask |= (data & 0x80) ? 0x08 : 0x00;
+			mikey_0.timerInterruptMask &= ~0x08;
+			mikey_0.timerInterruptMask |= (data & 0x80) ? 0x08 : 0x00;
 			mikey_0.tim3CtlA = data & (CLOCK_SEL | ENABLE_COUNT | ENABLE_RELOAD | 0x80);
 			if (data & 0x40) mikey_0.tim3CtlB &= ~TIMER_DONE;
 			if (data & 0x48) {
@@ -400,8 +400,8 @@ void CMikie::Poke(ULONG addr, UBYTE data)
 			TRACE_MIKIE2("Poke(TIM4CTLA,%02x) at PC=%04x", data, mSystem.mCpu->GetPC());
 			break;
 		case (TIM5CTLA & 0xff):
-			mTimerInterruptMask &= ~0x20;
-			mTimerInterruptMask |= (data & 0x80) ? 0x20 : 0x00;
+			mikey_0.timerInterruptMask &= ~0x20;
+			mikey_0.timerInterruptMask |= (data & 0x80) ? 0x20 : 0x00;
 			mikey_0.tim5CtlA = data & (CLOCK_SEL | ENABLE_COUNT | ENABLE_RELOAD | 0x80);
 			if (data & 0x40) mikey_0.tim5CtlB &= ~TIMER_DONE;
 			if (data & 0x48) {
@@ -411,8 +411,8 @@ void CMikie::Poke(ULONG addr, UBYTE data)
 			TRACE_MIKIE2("Poke(TIM5CTLA,%02x) at PC=%04x", data, mSystem.mCpu->GetPC());
 			break;
 		case (TIM6CTLA & 0xff):
-			mTimerInterruptMask &= ~0x40;
-			mTimerInterruptMask |= (data & 0x80) ? 0x40 : 0x00;
+			mikey_0.timerInterruptMask &= ~0x40;
+			mikey_0.timerInterruptMask |= (data & 0x80) ? 0x40 : 0x00;
 			mikey_0.tim6CtlA = data & (CLOCK_SEL | ENABLE_COUNT | ENABLE_RELOAD | 0x80);
 			if (data & 0x40) mikey_0.tim6CtlB &= ~TIMER_DONE;
 			if (data & 0x48) {
@@ -422,8 +422,8 @@ void CMikie::Poke(ULONG addr, UBYTE data)
 			TRACE_MIKIE2("Poke(TIM6CTLA,%02x) at PC=%04x", data, mSystem.mCpu->GetPC());
 			break;
 		case (TIM7CTLA & 0xff):
-			mTimerInterruptMask &= ~0x80;
-			mTimerInterruptMask |= (data & 0x80) ? 0x80 : 0x00;
+			mikey_0.timerInterruptMask &= ~0x80;
+			mikey_0.timerInterruptMask |= (data & 0x80) ? 0x80 : 0x00;
 			mikey_0.tim7CtlA = data & (CLOCK_SEL | ENABLE_COUNT | ENABLE_RELOAD | 0x80);
 			if (data & 0x40) mikey_0.tim7CtlB &= ~TIMER_DONE;
 			if (data & 0x48) {
@@ -721,14 +721,14 @@ void CMikie::Poke(ULONG addr, UBYTE data)
 			break;
 
 		case (INTRST & 0xff):
-			mTimerStatusFlags &= ~data;
+			mikey_0.timerStatusFlags &= ~data;
 			gNextTimerEvent = gSystemCycleCount;
 			TRACE_MIKIE2("Poke(INTRST  ,%02x) at PC=%04x", data, mSystem.mCpu->GetPC());
 			break;
 
 		case (INTSET & 0xff):
 			TRACE_MIKIE2("Poke(INTSET  ,%02x) at PC=%04x", data, mSystem.mCpu->GetPC());
-			mTimerStatusFlags |= data;
+			mikey_0.timerStatusFlags |= data;
 			gNextTimerEvent = gSystemCycleCount;
 			break;
 
@@ -1110,8 +1110,8 @@ UBYTE CMikie::Peek(ULONG addr)
 
 		case (INTRST & 0xff):
 		case (INTSET & 0xff):
-			TRACE_MIKIE2("Peek(INTSET  ,%02x) at PC=%04x", mTimerStatusFlags, mSystem.mCpu->GetPC());
-			return (UBYTE)mTimerStatusFlags;
+			TRACE_MIKIE2("Peek(INTSET  ,%02x) at PC=%04x", mikey_0.timerStatusFlags, mSystem.mCpu->GetPC());
+			return (UBYTE)mikey_0.timerStatusFlags;
 
 		case (TIM0BKUP & 0xff):
 		case (TIM1BKUP & 0xff):
@@ -1563,13 +1563,13 @@ void CMikie::Update(void)
 	// IRQ is enabled then generate it always
 	if ((mUART_TX_COUNTDOWN & UART_TX_INACTIVE) && mUART_TX_IRQ_ENABLE) {
 		TRACE_MIKIE0("Update() - UART TX IRQ Triggered");
-		mTimerStatusFlags |= 0x10;
+		mikey_0.timerStatusFlags |= 0x10;
 	}
 	// Is data waiting and the interrupt enabled, if so then
 	// what are we waiting for....
 	if (mUART_RX_READY && mUART_RX_IRQ_ENABLE) {
 		TRACE_MIKIE0("Update() - UART RX IRQ Triggered");
-		mTimerStatusFlags |= 0x10;
+		mikey_0.timerStatusFlags |= 0x10;
 	}
 
 	//
@@ -1594,9 +1594,9 @@ void CMikie::Update(void)
 					mikey_0.tim1CtlB |= BORROW_OUT;
 
 					// Set the timer status flag
-					if (mTimerInterruptMask & 0x02) {
+					if (mikey_0.timerInterruptMask & 0x02) {
 						TRACE_MIKIE0("Update() - TIMER1 IRQ Triggered");
-						mTimerStatusFlags |= 0x02;
+						mikey_0.timerStatusFlags |= 0x02;
 					}
 
 					// Reload if neccessary
@@ -1625,9 +1625,9 @@ void CMikie::Update(void)
 	}*/
 	if (miRunTimer1()) {
 		// Set the timer status flag
-		if (mTimerInterruptMask & 0x02) {
+		if (mikey_0.timerInterruptMask & 0x02) {
 			TRACE_MIKIE0("Update() - TIMER1 IRQ Triggered");
-			mTimerStatusFlags |= 0x02;
+			mikey_0.timerStatusFlags |= 0x02;
 		}
 	}
 
@@ -1659,9 +1659,9 @@ void CMikie::Update(void)
 				mikey_0.tim3CtlB |= BORROW_OUT;
 
 				// Set the timer status flag
-				if (mTimerInterruptMask & 0x08) {
+				if (mikey_0.timerInterruptMask & 0x08) {
 					TRACE_MIKIE0("Update() - TIMER3 IRQ Triggered");
-					mTimerStatusFlags |= 0x08;
+					mikey_0.timerStatusFlags |= 0x08;
 				}
 
 				// Reload if neccessary
@@ -1691,9 +1691,9 @@ void CMikie::Update(void)
 	}*/
 	if (miRunTimer3()) {
 		// Set the timer status flag
-		if (mTimerInterruptMask & 0x08) {
+		if (mikey_0.timerInterruptMask & 0x08) {
 			TRACE_MIKIE0("Update() - TIMER3 IRQ Triggered");
-			mTimerStatusFlags |= 0x08;
+			mikey_0.timerStatusFlags |= 0x08;
 		}
 	}
 
@@ -1725,9 +1725,9 @@ void CMikie::Update(void)
 				mikey_0.tim5CtlB |= BORROW_OUT;
 
 				// Set the timer status flag
-				if (mTimerInterruptMask & 0x20) {
+				if (mikey_0.timerInterruptMask & 0x20) {
 					TRACE_MIKIE0("Update() - TIMER5 IRQ Triggered");
-					mTimerStatusFlags |= 0x20;
+					mikey_0.timerStatusFlags |= 0x20;
 				}
 
 				// Reload if neccessary
@@ -1757,9 +1757,9 @@ void CMikie::Update(void)
 	}*/
 	if (miRunTimer5()) {
 		// Set the timer status flag
-		if (mTimerInterruptMask & 0x20) {
+		if (mikey_0.timerInterruptMask & 0x20) {
 			TRACE_MIKIE0("Update() - TIMER5 IRQ Triggered");
-			mTimerStatusFlags |= 0x20;
+			mikey_0.timerStatusFlags |= 0x20;
 		}
 	}
 
@@ -1791,9 +1791,9 @@ void CMikie::Update(void)
 				mikey_0.tim7CtlB |= BORROW_OUT;
 
 				// Set the timer status flag
-				if (mTimerInterruptMask & 0x80) {
+				if (mikey_0.timerInterruptMask & 0x80) {
 					TRACE_MIKIE0("Update() - TIMER7 IRQ Triggered");
-					mTimerStatusFlags |= 0x80;
+					mikey_0.timerStatusFlags |= 0x80;
 				}
 
 				// Reload if neccessary
@@ -1823,9 +1823,9 @@ void CMikie::Update(void)
 	}*/
 	if (miRunTimer7()) {
 		// Set the timer status flag
-		if (mTimerInterruptMask & 0x80) {
+		if (mikey_0.timerInterruptMask & 0x80) {
 			TRACE_MIKIE0("Update() - TIMER7 IRQ Triggered");
-			mTimerStatusFlags |= 0x80;
+			mikey_0.timerStatusFlags |= 0x80;
 		}
 	}
 
@@ -1852,8 +1852,8 @@ void CMikie::Update(void)
 					mikey_0.tim6CtlB |= BORROW_OUT;
 
 					// Set the timer status flag
-					if (mTimerInterruptMask & 0x40) {
-						mTimerStatusFlags |= 0x40;
+					if (mikey_0.timerInterruptMask & 0x40) {
+						mikey_0.timerStatusFlags |= 0x40;
 					}
 
 					// Reload if neccessary
@@ -1882,8 +1882,8 @@ void CMikie::Update(void)
 	}*/
 	if (miRunTimer6()) {
 		// Set the timer status flag
-		if (mTimerInterruptMask & 0x40) {
-			mTimerStatusFlags |= 0x40;
+		if (mikey_0.timerInterruptMask & 0x40) {
+			mikey_0.timerStatusFlags |= 0x40;
 		}
 	}
 
@@ -2257,7 +2257,7 @@ void CMikie::Update(void)
 //	if (gSystemCycleCount == gNextTimerEvent) gError->Warning("CMikie::Update() - gSystemCycleCount==gNextTimerEvent, system lock likely");
 //	TRACE_MIKIE1("Update() - NextTimerEvent = %012d",gNextTimerEvent);
 
-	gSystemIRQ = (mTimerStatusFlags) ? true : false;
+	gSystemIRQ = (mikey_0.timerStatusFlags) ? true : false;
 	mSystem.setIrqPin(gSystemIRQ);
 	if (gSystemIRQ && gSystemCPUSleep) { ClearCPUSleep(); }
 
