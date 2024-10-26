@@ -344,95 +344,6 @@ void CMikie::Poke(ULONG addr, UBYTE data)
 {
 	switch(addr & 0xff)
 	{
-		case (TIM0CTLA & 0xff):
-			mikey_0.timerInterruptMask &= ~0x01;
-			mikey_0.timerInterruptMask |= (data & 0x80) ? 0x01 : 0x00;
-			mikey_0.tim0CtlA = data & (CLOCK_SEL | ENABLE_COUNT | ENABLE_RELOAD | 0x80);
-			if (data & 0x40) mikey_0.tim0CtlB &= ~TIMER_DONE;
-			if (data & 0x48) {
-				mTIM_0.LAST_COUNT = gSystemCycleCount;
-				gNextTimerEvent = gSystemCycleCount;
-			}
-			TRACE_MIKIE2("Poke(TIM0CTLA,%02x) at PC=%04x", data, mSystem.mCpu->GetPC());
-			break;
-		case (TIM1CTLA & 0xff):
-			mikey_0.timerInterruptMask &= ~0x02;
-			mikey_0.timerInterruptMask |= (data & 0x80) ? 0x02 : 0x00;
-			mikey_0.tim1CtlA = data & (CLOCK_SEL | ENABLE_COUNT | ENABLE_RELOAD | 0x80);
-			if (data & 0x40) mikey_0.tim1CtlB &= ~TIMER_DONE;
-			if (data & 0x48) {
-				mTIM_1.LAST_COUNT = gSystemCycleCount;
-				gNextTimerEvent = gSystemCycleCount;
-			}
-			TRACE_MIKIE2("Poke(TIM1CTLA,%02x) at PC=%04x", data, mSystem.mCpu->GetPC());
-			break;
-		case (TIM2CTLA & 0xff):
-			mikey_0.timerInterruptMask &= ~0x04;
-			mikey_0.timerInterruptMask |= (data & 0x80) ? 0x04 : 0x00;
-			mikey_0.tim2CtlA = data & (CLOCK_SEL | ENABLE_COUNT | ENABLE_RELOAD | 0x80);
-			if (data & 0x40) mikey_0.tim2CtlB &= ~TIMER_DONE;
-			if (data & 0x48) {
-				mTIM_2.LAST_COUNT = gSystemCycleCount;
-				gNextTimerEvent = gSystemCycleCount;
-			}
-			TRACE_MIKIE2("Poke(TIM2CTLA,%02x) at PC=%04x", data, mSystem.mCpu->GetPC());
-			break;
-		case (TIM3CTLA & 0xff):
-			mikey_0.timerInterruptMask &= ~0x08;
-			mikey_0.timerInterruptMask |= (data & 0x80) ? 0x08 : 0x00;
-			mikey_0.tim3CtlA = data & (CLOCK_SEL | ENABLE_COUNT | ENABLE_RELOAD | 0x80);
-			if (data & 0x40) mikey_0.tim3CtlB &= ~TIMER_DONE;
-			if (data & 0x48) {
-				mTIM_3.LAST_COUNT = gSystemCycleCount;
-				gNextTimerEvent = gSystemCycleCount;
-			}
-			TRACE_MIKIE2("Poke(TIM3CTLA,%02x) at PC=%04x", data, mSystem.mCpu->GetPC());
-			break;
-		case (TIM4CTLA & 0xff):
-			// Timer 4 can never generate interrupts as its timer output is used
-			// to drive the UART clock generator
-			mikey_0.tim4CtlA = data & (CLOCK_SEL | ENABLE_COUNT | ENABLE_RELOAD | 0x80);
-			if (data & 0x40) mikey_0.tim4CtlB &= ~TIMER_DONE;
-			if (data & 0x48) {
-				mTIM_4.LAST_COUNT = gSystemCycleCount;
-				gNextTimerEvent = gSystemCycleCount;
-			}
-			TRACE_MIKIE2("Poke(TIM4CTLA,%02x) at PC=%04x", data, mSystem.mCpu->GetPC());
-			break;
-		case (TIM5CTLA & 0xff):
-			mikey_0.timerInterruptMask &= ~0x20;
-			mikey_0.timerInterruptMask |= (data & 0x80) ? 0x20 : 0x00;
-			mikey_0.tim5CtlA = data & (CLOCK_SEL | ENABLE_COUNT | ENABLE_RELOAD | 0x80);
-			if (data & 0x40) mikey_0.tim5CtlB &= ~TIMER_DONE;
-			if (data & 0x48) {
-				mTIM_5.LAST_COUNT = gSystemCycleCount;
-				gNextTimerEvent = gSystemCycleCount;
-			}
-			TRACE_MIKIE2("Poke(TIM5CTLA,%02x) at PC=%04x", data, mSystem.mCpu->GetPC());
-			break;
-		case (TIM6CTLA & 0xff):
-			mikey_0.timerInterruptMask &= ~0x40;
-			mikey_0.timerInterruptMask |= (data & 0x80) ? 0x40 : 0x00;
-			mikey_0.tim6CtlA = data & (CLOCK_SEL | ENABLE_COUNT | ENABLE_RELOAD | 0x80);
-			if (data & 0x40) mikey_0.tim6CtlB &= ~TIMER_DONE;
-			if (data & 0x48) {
-				mTIM_6.LAST_COUNT = gSystemCycleCount;
-				gNextTimerEvent = gSystemCycleCount;
-			}
-			TRACE_MIKIE2("Poke(TIM6CTLA,%02x) at PC=%04x", data, mSystem.mCpu->GetPC());
-			break;
-		case (TIM7CTLA & 0xff):
-			mikey_0.timerInterruptMask &= ~0x80;
-			mikey_0.timerInterruptMask |= (data & 0x80) ? 0x80 : 0x00;
-			mikey_0.tim7CtlA = data & (CLOCK_SEL | ENABLE_COUNT | ENABLE_RELOAD | 0x80);
-			if (data & 0x40) mikey_0.tim7CtlB &= ~TIMER_DONE;
-			if (data & 0x48) {
-				mTIM_7.LAST_COUNT = gSystemCycleCount;
-				gNextTimerEvent = gSystemCycleCount;
-			}
-			TRACE_MIKIE2("Poke(TIM7CTLA,%02x) at PC=%04x", data, mSystem.mCpu->GetPC());
-			break;
-
 		case (AUD0VOL & 0xff):
 			// Counter is disabled when volume is zero for optimisation
 			// reasons, we must update the last use position to stop problems
@@ -754,27 +665,35 @@ void CMikie::Poke(ULONG addr, UBYTE data)
 			break;
 
 		case (TIM0BKUP & 0xff):
+		case (TIM0CTLA & 0xff):
 		case (TIM0CNT & 0xff):
 		case (TIM0CTLB & 0xff):
 		case (TIM1BKUP & 0xff):
+		case (TIM1CTLA & 0xff):
 		case (TIM1CNT & 0xff):
 		case (TIM1CTLB & 0xff):
 		case (TIM2BKUP & 0xff):
+		case (TIM2CTLA & 0xff):
 		case (TIM2CNT & 0xff):
 		case (TIM2CTLB & 0xff):
 		case (TIM3BKUP & 0xff):
+		case (TIM3CTLA & 0xff):
 		case (TIM3CNT & 0xff):
 		case (TIM3CTLB & 0xff):
 		case (TIM4BKUP & 0xff):
+		case (TIM4CTLA & 0xff):
 		case (TIM4CNT & 0xff):
 		case (TIM4CTLB & 0xff):
 		case (TIM5BKUP & 0xff):
+		case (TIM5CTLA & 0xff):
 		case (TIM5CNT & 0xff):
 		case (TIM5CTLB & 0xff):
 		case (TIM6BKUP & 0xff):
+		case (TIM6CTLA & 0xff):
 		case (TIM6CNT & 0xff):
 		case (TIM6CTLB & 0xff):
 		case (TIM7BKUP & 0xff):
+		case (TIM7CTLA & 0xff):
 		case (TIM7CNT & 0xff):
 		case (TIM7CTLB & 0xff):
 		case (ATTEN_A & 0xff):

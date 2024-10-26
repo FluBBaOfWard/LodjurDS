@@ -23,9 +23,11 @@ Misc:
 	Game, slow.
 
 Games Not Working:
-	Baseball Heroes.
+	Baseball Heroes. (EEPROM?)
+	Gates of zendocon. Writes 0x40? Expects some sound thing?
 
 Games Not Working Fixed:
+	Gauntlet - Expects Timer 1 to not run when enabled but without reload.
 
 Games With Glitches:
 
