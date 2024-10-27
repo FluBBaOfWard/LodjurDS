@@ -73,10 +73,6 @@ CMikie::CMikie(CSystem& parent)
 {
 	TRACE_MIKIE0("CMikie()");
 
-	mpRamPointer = NULL;
-
-	mpRenderCallback = NULL;
-
 	mUART_CABLE_PRESENT = FALSE;
 	mpUART_TX_CALLBACK = NULL;
 
@@ -92,10 +88,7 @@ void CMikie::Reset(void)
 {
 	TRACE_MIKIE0("Reset()");
 
-	mAudioInputComparator = FALSE;	// Initialises to unknown
-	mLynxAddr = 0;
-
-	mpRamPointer = mSystem.GetRamPointer();	// Fetch pointer to system RAM
+	mikey_0.lynxAddr = 0;
 
 	ResetAudio(mAUDIO_0);
 	ResetAudio(mAUDIO_1);
@@ -229,55 +222,47 @@ void CMikie::ComLynxTxCallback(void (*function)(int data, ULONG objref), ULONG o
 	mUART_TX_CALLBACK_OBJECT = objref;
 }
 
-void CMikie::DisplaySetAttributes(void (*RenderCallback)(UBYTE *ram, ULONG *palette, bool flip))
-{
-	mpRenderCallback = RenderCallback;
-}
-
+/*
 ULONG CMikie::DisplayRenderLine(void)
 {
 	if (!(mikey_0.dispCtl & 1)) return 0;
-//	if (mikey_0.lynxLine & 0x80000000) return 0;
 
 // Logic says it should be 101 but testing on an actual lynx shows the rest
 // period is between lines 102,101,100 with the new line being latched at
 // the beginning of count==99 hence the code below !!
 
 	// Emulate REST signal
-	u32 tim2 = mikey_0.tim2Bkup;
-	if (mikey_0.lynxLine == tim2-2 || mikey_0.lynxLine == tim2-3 || mikey_0.lynxLine == tim2-4)
+	if (mikey_0.lynxLine < (mikey_0.tim2Bkup - LYNX_SCREEN_HEIGHT))
 		mIODAT_REST_SIGNAL = TRUE;
 	else
 		mIODAT_REST_SIGNAL = FALSE;
 
-	if (mikey_0.lynxLine == tim2-3) {
-		mLynxAddr = mikey_0.dispAdr & 0xfffc;
+	if (mikey_0.lynxLine == 3) {
+		mikey_0.lynxAddr = mikey_0.dispAdr & 0xfffc;
 		if (mikey_0.dispCtl & 2) {
-			mLynxAddr += 3;
+			mikey_0.lynxAddr += 3;
 		}
-		// Trigger line rendering to start
-		mikey_0.lynxLineDMACounter = 102;
+		mikey_0.lynxLineDMACounter = LYNX_SCREEN_HEIGHT;
 	}
 
-	// Decrement line counter logic
-	if (mikey_0.lynxLine) mikey_0.lynxLine--;
+	// Increment line counter logic
+	mikey_0.lynxLine++;
 
 	// Do 102 lines, nothing more, less is OK.
 	if (mikey_0.lynxLineDMACounter) {
-//		TRACE_MIKIE1("Update() - Screen DMA, line %03d",line_count);
 		mikey_0.lynxLineDMACounter--;
 
 		// Mikie screen DMA can only see the system RAM....
 		// (Step through bitmap, line at a time)
 		if (mpRenderCallback) {
-			(*mpRenderCallback)(&mpRamPointer[mLynxAddr], mikey_0.palette, mikey_0.dispCtl & 2);
+			(*mpRenderCallback)(&mpRamPointer[mikey_0.lynxAddr], mikey_0.palette, mikey_0.dispCtl & 2);
 		}
 
 		if (mikey_0.dispCtl & 2) {
-			mLynxAddr -= LYNX_SCREEN_WIDTH/2;
+			mikey_0.lynxAddr -= LYNX_SCREEN_WIDTH/2;
 		}
 		else {
-			mLynxAddr += LYNX_SCREEN_WIDTH/2;
+			mikey_0.lynxAddr += LYNX_SCREEN_WIDTH/2;
 		}
 
 		// Cycle hit for a 80 RAM access in rendering a line
@@ -285,7 +270,7 @@ ULONG CMikie::DisplayRenderLine(void)
 	}
 	return 0;
 }
-
+*/
 // Peek/Poke memory handlers
 
 void CMikie::Poke(ULONG addr, UBYTE data)
@@ -600,99 +585,7 @@ void CMikie::Poke(ULONG addr, UBYTE data)
 			TRACE_MIKIE3("Poke(CPUSLEEP,%02x) at PC=%04x, wakeup at cycle =%012d", data, mSystem.mCpu->GetPC(), gSuzieDoneTime);
 			break;
 
-		case (TIM0BKUP & 0xff):
-		case (TIM0CTLA & 0xff):
-		case (TIM0CNT & 0xff):
-		case (TIM0CTLB & 0xff):
-		case (TIM1BKUP & 0xff):
-		case (TIM1CTLA & 0xff):
-		case (TIM1CNT & 0xff):
-		case (TIM1CTLB & 0xff):
-		case (TIM2BKUP & 0xff):
-		case (TIM2CTLA & 0xff):
-		case (TIM2CNT & 0xff):
-		case (TIM2CTLB & 0xff):
-		case (TIM3BKUP & 0xff):
-		case (TIM3CTLA & 0xff):
-		case (TIM3CNT & 0xff):
-		case (TIM3CTLB & 0xff):
-		case (TIM4BKUP & 0xff):
-		case (TIM4CTLA & 0xff):
-		case (TIM4CNT & 0xff):
-		case (TIM4CTLB & 0xff):
-		case (TIM5BKUP & 0xff):
-		case (TIM5CTLA & 0xff):
-		case (TIM5CNT & 0xff):
-		case (TIM5CTLB & 0xff):
-		case (TIM6BKUP & 0xff):
-		case (TIM6CTLA & 0xff):
-		case (TIM6CNT & 0xff):
-		case (TIM6CTLB & 0xff):
-		case (TIM7BKUP & 0xff):
-		case (TIM7CTLA & 0xff):
-		case (TIM7CNT & 0xff):
-		case (TIM7CTLB & 0xff):
-		case (ATTEN_A & 0xff):
-		case (ATTEN_B & 0xff):
-		case (ATTEN_C & 0xff):
-		case (ATTEN_D & 0xff):
-		case (MPAN & 0xff):
-		case (INTRST & 0xff):
-		case (INTSET & 0xff):
-		case (MIKEYSREV & 0xff):
-		case (IODIR & 0xff):
-		case (SDONEACK & 0xff):
-		case (DISPCTL & 0xff):
-		case (PBKUP & 0xff):
-		case (DISPADRL & 0xff):
-		case (DISPADRH & 0xff):
-		case (Mtest0 & 0xff):
-		case (Mtest1 & 0xff):
-		case (Mtest2 & 0xff):
-		case (GREEN0 & 0xff):
-		case (GREEN1 & 0xff):
-		case (GREEN2 & 0xff):
-		case (GREEN3 & 0xff):
-		case (GREEN4 & 0xff):
-		case (GREEN5 & 0xff):
-		case (GREEN6 & 0xff):
-		case (GREEN7 & 0xff):
-		case (GREEN8 & 0xff):
-		case (GREEN9 & 0xff):
-		case (GREENA & 0xff):
-		case (GREENB & 0xff):
-		case (GREENC & 0xff):
-		case (GREEND & 0xff):
-		case (GREENE & 0xff):
-		case (GREENF & 0xff):
-		case (BLUERED0 & 0xff):
-		case (BLUERED1 & 0xff):
-		case (BLUERED2 & 0xff):
-		case (BLUERED3 & 0xff):
-		case (BLUERED4 & 0xff):
-		case (BLUERED5 & 0xff):
-		case (BLUERED6 & 0xff):
-		case (BLUERED7 & 0xff):
-		case (BLUERED8 & 0xff):
-		case (BLUERED9 & 0xff):
-		case (BLUEREDA & 0xff):
-		case (BLUEREDB & 0xff):
-		case (BLUEREDC & 0xff):
-		case (BLUEREDD & 0xff):
-		case (BLUEREDE & 0xff):
-		case (BLUEREDF & 0xff):
-
-// Errors on read only register accesses
-
-		case (MAGRDY0 & 0xff):
-		case (MAGRDY1 & 0xff):
-		case (AUDIN & 0xff):
-		case (MIKEYHREV & 0xff):
-
-// Errors on illegal location accesses
-
 		default:
-			lnxMikeyWrite(addr, data);
 			break;
 	}
 }
@@ -701,7 +594,6 @@ UBYTE CMikie::Peek(ULONG addr)
 {
 	switch(addr & 0xff)
 	{
-
 // Timer control registers
 		case (TIM0CNT & 0xff):
 			Update();
@@ -737,7 +629,6 @@ UBYTE CMikie::Peek(ULONG addr)
 			return (UBYTE)mTIM_7.CURRENT;
 
 // Audio control registers
-
 		case (AUD0VOL & 0xff):
 			TRACE_MIKIE2("Peek(AUD0VOL,%02x) at PC=%04x", (UBYTE)mAUDIO_0.VOLUME, mSystem.mCpu->GetPC());
 			return (UBYTE)mAUDIO_0.VOLUME;
@@ -915,7 +806,7 @@ UBYTE CMikie::Peek(ULONG addr)
 			{
 				ULONG retval = 0;
 				retval |= (mikey_0.ioDir&0x10) ? mikey_0.ioDat & 0x10 : 0x10;									// IODIR  = output bit : input high (eeprom write done)
-				retval |= (mikey_0.ioDir&0x08) ? (((mikey_0.ioDat & 0x08) && mIODAT_REST_SIGNAL) ? 0x00 : 0x08) : 0x00;									// REST   = output bit : input low
+				retval |= (mikey_0.ioDir&0x08) ? (((mikey_0.ioDat & 0x08) && mIODAT_REST_SIGNAL) ? 0x00 : 0x08) : 0x00;	// REST = output bit : input low
 				retval |= (mikey_0.ioDir&0x04) ? mikey_0.ioDat & 0x04 : ((mUART_CABLE_PRESENT) ? 0x04 : 0x00);	// NOEXP  = output bit : input low
 				retval |= (mikey_0.ioDir&0x02) ? mikey_0.ioDat & 0x02 : 0x00;									// CARTAD = output bit : input low
 				retval |= (mikey_0.ioDir&0x01) ? mikey_0.ioDat & 0x01 : 0x01;									// EXTPW  = output bit : input high (Power connected)
@@ -923,101 +814,6 @@ UBYTE CMikie::Peek(ULONG addr)
 				return (UBYTE)retval;
 			}
 			break;
-
-		case (TIM0BKUP & 0xff):
-		case (TIM0CTLA & 0xff):
-		case (TIM0CTLB & 0xff):
-		case (TIM1BKUP & 0xff):
-		case (TIM1CTLA & 0xff):
-		case (TIM1CTLB & 0xff):
-		case (TIM2BKUP & 0xff):
-		case (TIM2CTLA & 0xff):
-		case (TIM2CTLB & 0xff):
-		case (TIM3BKUP & 0xff):
-		case (TIM3CTLA & 0xff):
-		case (TIM3CTLB & 0xff):
-		case (TIM4BKUP & 0xff):
-		case (TIM4CTLA & 0xff):
-		case (TIM4CTLB & 0xff):
-		case (TIM5BKUP & 0xff):
-		case (TIM5CTLA & 0xff):
-		case (TIM5CTLB & 0xff):
-		case (TIM6BKUP & 0xff):
-		case (TIM6CTLA & 0xff):
-		case (TIM6CTLB & 0xff):
-		case (TIM7BKUP & 0xff):
-		case (TIM7CTLA & 0xff):
-		case (TIM7CTLB & 0xff):
-		case (INTRST & 0xff):
-		case (INTSET & 0xff):
-		case (MAGRDY0 & 0xff):
-		case (MAGRDY1 & 0xff):
-		case (AUDIN & 0xff):
-//			if (mAudioInputComparator) return 0x80; else return 0x00;
-		case (ATTEN_A & 0xff):
-		case (ATTEN_B & 0xff):
-		case (ATTEN_C & 0xff):
-		case (ATTEN_D & 0xff):
-		case (MPAN & 0xff):
-
-		case (MIKEYHREV & 0xff):
-
-// Palette registers
-
-		case (GREEN0 & 0xff):
-		case (GREEN1 & 0xff):
-		case (GREEN2 & 0xff):
-		case (GREEN3 & 0xff):
-		case (GREEN4 & 0xff):
-		case (GREEN5 & 0xff):
-		case (GREEN6 & 0xff):
-		case (GREEN7 & 0xff):
-		case (GREEN8 & 0xff):
-		case (GREEN9 & 0xff):
-		case (GREENA & 0xff):
-		case (GREENB & 0xff):
-		case (GREENC & 0xff):
-		case (GREEND & 0xff):
-		case (GREENE & 0xff):
-		case (GREENF & 0xff):
-		case (BLUERED0 & 0xff):
-		case (BLUERED1 & 0xff):
-		case (BLUERED2 & 0xff):
-		case (BLUERED3 & 0xff):
-		case (BLUERED4 & 0xff):
-		case (BLUERED5 & 0xff):
-		case (BLUERED6 & 0xff):
-		case (BLUERED7 & 0xff):
-		case (BLUERED8 & 0xff):
-		case (BLUERED9 & 0xff):
-		case (BLUEREDA & 0xff):
-		case (BLUEREDB & 0xff):
-		case (BLUEREDC & 0xff):
-		case (BLUEREDD & 0xff):
-		case (BLUEREDE & 0xff):
-		case (BLUEREDF & 0xff):
-
-		// For easier debugging
-
-		case (DISPADRL & 0xff):
-		case (DISPADRH & 0xff):
-
-		// Errors on write only register accesses
-
-		case (DISPCTL & 0xff):
-		case (SYSCTL1 & 0xff):
-		case (MIKEYSREV & 0xff):
-		case (IODIR & 0xff):
-		case (SDONEACK & 0xff):
-		case (CPUSLEEP & 0xff):
-		case (PBKUP & 0xff):
-		case (Mtest0 & 0xff):
-		case (Mtest1 & 0xff):
-		case (Mtest2 & 0xff):
-		// Register to let programs know handy is running
-		case (0xfd97 & 0xff):
-
-// Errors on illegal location accesses
 		default:
 			return lnxMikeyRead(addr);
 			break;
@@ -1156,9 +952,6 @@ void CMikie::Update(void)
 				gNextTimerEvent = tmp;
 			}
 		}
-	}*/
-	if (miRunTimer0()) {
-		mikie_work_done += DisplayRenderLine();
 	}
 
 	//
@@ -1169,7 +962,7 @@ void CMikie::Update(void)
 	// Optimisation, assume T2 (Frame timer) is always in reload mode
 	// always in linked mode i.e clocked by Line Timer
 	//
-/*	if ((mikey_0.tim2CtlA & ENABLE_COUNT) && !(mikey_0.tim2CtlB & TIMER_DONE)) {
+	if ((mikey_0.tim2CtlA & ENABLE_COUNT) && !(mikey_0.tim2CtlB & TIMER_DONE)) {
 		decval = 0;
 
 //		if ((mikey_0.tim2CtlA & CLOCK_SEL) == LINKING)
@@ -1216,6 +1009,9 @@ void CMikie::Update(void)
 //			if (tmp < gNextTimerEvent) gNextTimerEvent = tmp;
 //		}
 	}*/
+	if (miRunTimer0()) {
+		mikie_work_done += mikDisplayLine();
+	}
 	miRunTimer2();
 
 	//
@@ -1431,13 +1227,12 @@ void CMikie::Update(void)
 				TRACE_MIKIE1("Update() - TIMER 1 Set NextTimerEvent = %012d", gNextTimerEvent);
 			}
 		}
-	}*/
-	miRunTimer1();
+	}
 
 	//
 	// Timer 3 of Group A
 	//
-/*	if ((mikey_0.tim3CtlA & ENABLE_COUNT) && !(mikey_0.tim3CtlB & TIMER_DONE)) {
+	if ((mikey_0.tim3CtlA & ENABLE_COUNT) && !(mikey_0.tim3CtlB & TIMER_DONE)) {
 		decval = 0;
 
 		if ((mikey_0.tim3CtlA & CLOCK_SEL) == LINKING) {
@@ -1491,13 +1286,12 @@ void CMikie::Update(void)
 				TRACE_MIKIE1("Update() - TIMER 3 Set NextTimerEvent = %012d", gNextTimerEvent);
 			}
 		}
-	}*/
-	miRunTimer3();
+	}
 
 	//
 	// Timer 5 of Group A
 	//
-/*	if ((mikey_0.tim5CtlA & ENABLE_COUNT) && !(mikey_0.tim5CtlB & TIMER_DONE)) {
+	if ((mikey_0.tim5CtlA & ENABLE_COUNT) && !(mikey_0.tim5CtlB & TIMER_DONE)) {
 		decval = 0;
 
 		if ((mikey_0.tim5CtlA & CLOCK_SEL) == LINKING) {
@@ -1551,13 +1345,12 @@ void CMikie::Update(void)
 				TRACE_MIKIE1("Update() - TIMER 5 Set NextTimerEvent = %012d", gNextTimerEvent);
 			}
 		}
-	}*/
-	miRunTimer5();
+	}
 
 	//
 	// Timer 7 of Group A
 	//
-/*	if ((mikey_0.tim7CtlA & ENABLE_COUNT) && !(mikey_0.tim7CtlB & TIMER_DONE)) {
+	if ((mikey_0.tim7CtlA & ENABLE_COUNT) && !(mikey_0.tim7CtlB & TIMER_DONE)) {
 		decval = 0;
 
 		if ((mikey_0.tim7CtlA & CLOCK_SEL) == LINKING) {
@@ -1611,13 +1404,12 @@ void CMikie::Update(void)
 				TRACE_MIKIE1("Update() - TIMER 7 Set NextTimerEvent = %012d", gNextTimerEvent);
 			}
 		}
-	}*/
-	miRunTimer7();
+	}
 
 	//
 	// Timer 6 has no group
 	//
-/*	if ((mikey_0.tim6CtlA & ENABLE_COUNT) && !(mikey_0.tim6CtlB & TIMER_DONE)) {
+	if ((mikey_0.tim6CtlA & ENABLE_COUNT) && !(mikey_0.tim6CtlB & TIMER_DONE)) {
 		if ((mikey_0.tim6CtlA & CLOCK_SEL) != LINKING)
 		{
 			// Ordinary clocked mode as opposed to linked mode
@@ -1665,6 +1457,10 @@ void CMikie::Update(void)
 			}
 		}
 	}*/
+	miRunTimer1();
+	miRunTimer3();
+	miRunTimer5();
+	miRunTimer7();
 	miRunTimer6();
 
 	//

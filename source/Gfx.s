@@ -67,7 +67,7 @@ gfxReset:					;@ Called with CPU reset
 
 	ldr r0,=m6502SetNMIPin
 	ldr r1,=m6502SetIRQPin
-	ldr r2,=svVRAM
+	ldr r2,=lynxRAM
 	ldr r3,=gSOC
 	ldrb r3,[r3]
 	bl miVideoReset0

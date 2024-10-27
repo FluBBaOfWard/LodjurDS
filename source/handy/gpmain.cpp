@@ -24,10 +24,6 @@ bool gScreenUpdateRequired = false;
 
 CSystem *newsystem = NULL;
 
-void handy_nds_render_callback(UBYTE *ram, ULONG *palette, bool flip) {
-	lodjurRenderCallback(ram , palette, flip);
-}
-
 void susiePoke(ULONG addr, UBYTE data) {
 	newsystem->mSusie->Poke(addr,data);
 }
@@ -43,7 +39,6 @@ UBYTE mikiePeek(ULONG addr) {
 
 void GpInit(const unsigned char *gamerom, int size) {
 	newsystem = new CSystem(gamerom, size, HANDY_FILETYPE_LNX, NULL);
-	newsystem->DisplaySetAttributes(handy_nds_render_callback);
 	currentDest = ((unsigned short *)0x06000000);
 }
 

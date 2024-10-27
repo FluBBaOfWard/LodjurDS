@@ -57,6 +57,7 @@
 
 #define gSystemCycleCount mikey_0.systemCycleCount
 #define gNextTimerEvent mikey_0.nextTimerEvent
+#define mIODAT_REST_SIGNAL mikey_0.iodatRestSignal
 
 class CSystem;
 
@@ -107,13 +108,10 @@ class CMikie : public CLynxBase
 		void	ComLynxTxLoopback(int data);
 		void	ComLynxTxCallback(void (*function)(int data,ULONG objref),ULONG objref);
 
-		void	DisplaySetAttributes(void (*mpRenderCallback)(UBYTE *ram, ULONG *palette, bool flip));
-
 		void	BlowOut(void);
-		void	ResetTimer(MTIMER& timer);
 		void	ResetAudio(MAUDIO& audio);
 
-		ULONG	DisplayRenderLine(void);
+//		ULONG	DisplayRenderLine(void);
 
 		inline void SetCPUSleep(void) {gSystemCPUSleep=TRUE;};
 		inline void ClearCPUSleep(void) {gSystemCPUSleep=FALSE;};
@@ -124,10 +122,6 @@ class CMikie : public CLynxBase
 		CSystem		&mSystem;
 
 		// Hardware storage
-
-		ULONG		mAudioInputComparator;
-
-		ULONG		mIODAT_REST_SIGNAL;
 
 		MAUDIO		mAUDIO_0;
 		MAUDIO		mAUDIO_1;
@@ -167,9 +161,6 @@ class CMikie : public CLynxBase
 		//
 		// Screen related
 		//
-
-		UBYTE		*mpRamPointer;
-		ULONG		mLynxAddr;
 
 		void		(*mpRenderCallback)(UBYTE *ram, ULONG *palette, bool flip);
 };
