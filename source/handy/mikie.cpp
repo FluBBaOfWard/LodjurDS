@@ -55,12 +55,6 @@ void CMikie::BlowOut(void)
 	gSystemHalt = TRUE;
 }
 
-void CMikie::ResetTimer(MTIMER& timer)
-{
-	timer.CURRENT = 0;
-	timer.LAST_COUNT = 0;
-}
-
 void CMikie::ResetAudio(MAUDIO& audio)
 {
 	audio.BKUP = 0;
@@ -81,7 +75,6 @@ CMikie::CMikie(CSystem& parent)
 
 	mpRamPointer = NULL;
 
-	mpDisplayCallback = NULL;
 	mpRenderCallback = NULL;
 
 	mUART_CABLE_PRESENT = FALSE;
@@ -100,20 +93,9 @@ void CMikie::Reset(void)
 	TRACE_MIKIE0("Reset()");
 
 	mAudioInputComparator = FALSE;	// Initialises to unknown
-	mLynxLine = 0;
-	mLynxLineDMACounter = 0;
 	mLynxAddr = 0;
 
 	mpRamPointer = mSystem.GetRamPointer();	// Fetch pointer to system RAM
-
-	ResetTimer(mTIM_0);
-	ResetTimer(mTIM_1);
-	ResetTimer(mTIM_2);
-	ResetTimer(mTIM_3);
-	ResetTimer(mTIM_4);
-	ResetTimer(mTIM_5);
-	ResetTimer(mTIM_6);
-	ResetTimer(mTIM_7);
 
 	ResetAudio(mAUDIO_0);
 	ResetAudio(mAUDIO_1);
@@ -247,20 +229,15 @@ void CMikie::ComLynxTxCallback(void (*function)(int data, ULONG objref), ULONG o
 	mUART_TX_CALLBACK_OBJECT = objref;
 }
 
-void CMikie::DisplaySetAttributes(void (*DisplayCallback)(void), void (*RenderCallback)(UBYTE *ram, ULONG *palette, bool flip))
+void CMikie::DisplaySetAttributes(void (*RenderCallback)(UBYTE *ram, ULONG *palette, bool flip))
 {
-	mpDisplayCallback = DisplayCallback;
 	mpRenderCallback = RenderCallback;
-
-	if (mpDisplayCallback) {
-		(*mpDisplayCallback)();
-	}
 }
 
 ULONG CMikie::DisplayRenderLine(void)
 {
 	if (!(mikey_0.dispCtl & 1)) return 0;
-//	if (mLynxLine & 0x80000000) return 0;
+//	if (mikey_0.lynxLine & 0x80000000) return 0;
 
 // Logic says it should be 101 but testing on an actual lynx shows the rest
 // period is between lines 102,101,100 with the new line being latched at
@@ -268,27 +245,27 @@ ULONG CMikie::DisplayRenderLine(void)
 
 	// Emulate REST signal
 	u32 tim2 = mikey_0.tim2Bkup;
-	if (mLynxLine == tim2-2 || mLynxLine == tim2-3 || mLynxLine == tim2-4)
+	if (mikey_0.lynxLine == tim2-2 || mikey_0.lynxLine == tim2-3 || mikey_0.lynxLine == tim2-4)
 		mIODAT_REST_SIGNAL = TRUE;
 	else
 		mIODAT_REST_SIGNAL = FALSE;
 
-	if (mLynxLine == tim2-3) {
+	if (mikey_0.lynxLine == tim2-3) {
 		mLynxAddr = mikey_0.dispAdr & 0xfffc;
 		if (mikey_0.dispCtl & 2) {
 			mLynxAddr += 3;
 		}
 		// Trigger line rendering to start
-		mLynxLineDMACounter = 102;
+		mikey_0.lynxLineDMACounter = 102;
 	}
 
 	// Decrement line counter logic
-	if (mLynxLine) mLynxLine--;
+	if (mikey_0.lynxLine) mikey_0.lynxLine--;
 
 	// Do 102 lines, nothing more, less is OK.
-	if (mLynxLineDMACounter) {
+	if (mikey_0.lynxLineDMACounter) {
 //		TRACE_MIKIE1("Update() - Screen DMA, line %03d",line_count);
-		mLynxLineDMACounter--;
+		mikey_0.lynxLineDMACounter--;
 
 		// Mikie screen DMA can only see the system RAM....
 		// (Step through bitmap, line at a time)
@@ -306,20 +283,6 @@ ULONG CMikie::DisplayRenderLine(void)
 		// Cycle hit for a 80 RAM access in rendering a line
 		return 80 * DMA_RDWR_CYC;
 	}
-	return 0;
-}
-
-ULONG CMikie::DisplayEndOfFrame(void)
-{
-	// Stop any further line rendering
-	mLynxLineDMACounter = 0;
-	mLynxLine = mikey_0.tim2Bkup;
-
-//	TRACE_MIKIE0("Update() - Frame end");
-	// Trigger the callback to the display sub-system to render the
-	// display.
-	if (mpDisplayCallback) (*mpDisplayCallback)();
-
 	return 0;
 }
 
@@ -1240,9 +1203,8 @@ void CMikie::Update(void)
 //					mikey_0.tim2CtlB |= TIMER_DONE;
 //				}
 
-				// Interupt flag setting code moved into DisplayEndOfFrame(), also
-				// park any CPU cycles lost for later inclusion
-				mikie_work_done += DisplayEndOfFrame();
+				// Interupt flag setting code moved into DisplayEndOfFrame()
+				DisplayEndOfFrame();
 			}
 		}
 
@@ -1254,9 +1216,7 @@ void CMikie::Update(void)
 //			if (tmp < gNextTimerEvent) gNextTimerEvent = tmp;
 //		}
 	}*/
-	if (miRunTimer2()) {
-		mikie_work_done += DisplayEndOfFrame();
-	}
+	miRunTimer2();
 
 	//
 	// Timer 4 of Group A

@@ -179,7 +179,7 @@ class CSystem : public CSystemBase
 
 // Mikey system interfacing
 
-		void	DisplaySetAttributes(void (*DisplayCallback)(void),void (*RenderCallback)(UBYTE *ram, ULONG *palette, bool flip)) { mMikie->DisplaySetAttributes(DisplayCallback, RenderCallback); };
+		void	DisplaySetAttributes(void (*RenderCallback)(UBYTE *ram, ULONG *palette, bool flip)) { mMikie->DisplaySetAttributes(RenderCallback); };
 
 		void	ComLynxCable(int status) { mMikie->ComLynxCable(status); };
 		void	ComLynxRxData(int data)  { mMikie->ComLynxRxData(data); };

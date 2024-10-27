@@ -107,14 +107,13 @@ class CMikie : public CLynxBase
 		void	ComLynxTxLoopback(int data);
 		void	ComLynxTxCallback(void (*function)(int data,ULONG objref),ULONG objref);
 
-		void	DisplaySetAttributes(void (*DisplayCallback)(void), void (*mpRenderCallback)(UBYTE *ram, ULONG *palette, bool flip));
+		void	DisplaySetAttributes(void (*mpRenderCallback)(UBYTE *ram, ULONG *palette, bool flip));
 
 		void	BlowOut(void);
 		void	ResetTimer(MTIMER& timer);
 		void	ResetAudio(MAUDIO& audio);
 
 		ULONG	DisplayRenderLine(void);
-		ULONG	DisplayEndOfFrame(void);
 
 		inline void SetCPUSleep(void) {gSystemCPUSleep=TRUE;};
 		inline void ClearCPUSleep(void) {gSystemCPUSleep=FALSE;};
@@ -170,11 +169,8 @@ class CMikie : public CLynxBase
 		//
 
 		UBYTE		*mpRamPointer;
-		ULONG		mLynxLine;
-		ULONG		mLynxLineDMACounter;
 		ULONG		mLynxAddr;
 
-		void		(*mpDisplayCallback)(void);
 		void		(*mpRenderCallback)(UBYTE *ram, ULONG *palette, bool flip);
 };
 

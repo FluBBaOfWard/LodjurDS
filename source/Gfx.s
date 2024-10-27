@@ -18,6 +18,7 @@
 	.global gfxInit
 	.global gfxReset
 	.global paletteInit
+	.global lodjurFrameCallback
 	.global lodjurRenderCallback
 	.global gfxRefresh
 	.global gfxEndFrame
@@ -157,6 +158,18 @@ gammaConvert:	;@ Takes value in r0(0-0xFF), gamma in r1(0-4),returns new value i
 	mla r0,r3,r0,r2
 	movs r0,r0,lsr#13
 
+	bx lr
+
+;@----------------------------------------------------------------------------
+lodjurFrameCallback:		;@ (void)
+	.type lodjurFrameCallback STT_FUNC
+;@----------------------------------------------------------------------------
+	mov r0,#0x06000000
+	ldr r1,=currentDest
+	str r0,[r1]
+	ldr r1,=gScreenUpdateRequired
+	mov r0,#1
+	strb r0,[r1]
 	bx lr
 
 ;@----------------------------------------------------------------------------
