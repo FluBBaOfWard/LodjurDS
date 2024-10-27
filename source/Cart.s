@@ -3,7 +3,7 @@
 //#define EMBEDDED_ROM
 
 #include "ARMSuzy/ARMSuzy.i"
-#include "ARM6502/M6502.i"
+#include "ARMMikey/ARM6502/M6502.i"
 
 	.global cartFlags
 	.global romSpacePtr

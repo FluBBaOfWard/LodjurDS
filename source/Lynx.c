@@ -7,7 +7,7 @@
 #include "Cart.h"
 #include "Gfx.h"
 #include "cpu.h"
-#include "ARM6502/M6502.h"
+#include "ARMMikey/ARM6502/M6502.h"
 
 
 int packState(void *statePtr) {

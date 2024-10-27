@@ -10,7 +10,8 @@
 #include "Gfx.h"
 #include "io.h"
 #include "cpu.h"
-#include "ARM6502/Version.h"
+#include "ARMMikey/ARM6502/Version.h"
+#include "ARMMikey/Version.h"
 #include "ARMSuzy/Version.h"
 
 #define EMUVERSION "V0.0.1 2024-10-27"
@@ -142,7 +143,7 @@ void uiAbout() {
 
 	drawMenuText("LodjurDS     " EMUVERSION, 20, 0);
 	drawMenuText("Suzy         " ARMSUZYVERSION, 21, 0);
-	drawMenuText("Mikey        " EMUVERSION, 22, 0);
+	drawMenuText("Mikey        " ARMMIKEYVERSION, 22, 0);
 	drawMenuText("ARM6502      " ARM6502VERSION, 23, 0);
 }
 

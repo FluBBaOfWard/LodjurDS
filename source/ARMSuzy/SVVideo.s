@@ -14,7 +14,7 @@
 	#include "../Shared/nds_asm.h"
 #endif
 #include "ARMSuzy.i"
-#include "../ARM6502/M6502.i"
+#include "../ARMMikey/ARM6502/M6502.i"
 
 #define CYCLE_PSL (246*2)
 

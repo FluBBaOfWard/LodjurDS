@@ -1,6 +1,6 @@
 #ifdef __arm__
 
-#include "ARM6502/M6502.i"
+#include "ARMMikey/ARM6502/M6502.i"
 #include "ARMSuzy/ARMSuzy.i"
 
 #define CYCLE_PSL (246*2)

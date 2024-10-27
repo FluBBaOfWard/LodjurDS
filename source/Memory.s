@@ -1,6 +1,6 @@
 #ifdef __arm__
 
-#include "ARM6502/M6502mac.h"
+#include "ARMMikey/ARM6502/M6502mac.h"
 
 	.global memSelector
 
