@@ -10,6 +10,7 @@
 #include "../Gfx.h"
 
 extern "C" {
+void runTimer4(void);
 void susiePoke(ULONG addr, UBYTE data);
 void mikiePoke(ULONG addr, UBYTE data);
 UBYTE susiePeek(ULONG addr);
@@ -24,6 +25,9 @@ bool gScreenUpdateRequired = false;
 
 CSystem *newsystem = NULL;
 
+void runTimer4() {
+	newsystem->mMikie->UpdateTimer4();
+}
 void susiePoke(ULONG addr, UBYTE data) {
 	newsystem->mSusie->Poke(addr,data);
 }

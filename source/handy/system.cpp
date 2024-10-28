@@ -97,7 +97,6 @@ void CSystem::Reset(void)
 	gEmulatorAbort = FALSE;
 	gBreakpointHit = FALSE;
 	gSingleStepMode = FALSE;
-	gSystemIRQ = FALSE;
 	gSystemNMI = FALSE;
 	gSystemCPUSleep = FALSE;
 	gSystemHalt = FALSE;

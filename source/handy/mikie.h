@@ -54,6 +54,7 @@
 
 #include "nds.h"
 #include "../Gfx.h"
+#include "../Cpu.h"
 
 #define gSystemCycleCount mikey_0.systemCycleCount
 #define gNextTimerEvent mikey_0.nextTimerEvent
@@ -111,12 +112,13 @@ class CMikie : public CLynxBase
 		void	BlowOut(void);
 		void	ResetAudio(MAUDIO& audio);
 
-//		ULONG	DisplayRenderLine(void);
-
 		inline void SetCPUSleep(void) {gSystemCPUSleep=TRUE;};
 		inline void ClearCPUSleep(void) {gSystemCPUSleep=FALSE;};
+		void setIrqPin(int state) {cpuSetIrqPin(state);};
 
 		void	Update(void);
+		void	UpdateTimer4(void);
+		void	UpdateSound(void);
 
 	private:
 		CSystem		&mSystem;

@@ -52,7 +52,6 @@
 	BOOL	gEmulatorAbort = FALSE;
 	BOOL	gBreakpointHit = FALSE;
 	BOOL	gSingleStepMode = FALSE;
-	BOOL	gSystemIRQ = FALSE;
 	BOOL	gSystemNMI = FALSE;
 	BOOL	gSystemCPUSleep = FALSE;
 	BOOL	gSystemHalt = FALSE;
@@ -76,7 +75,6 @@
 	extern BOOL		gEmulatorAbort;
 	extern BOOL		gBreakpointHit;
 	extern BOOL		gSingleStepMode;
-	extern BOOL		gSystemIRQ;
 	extern BOOL		gSystemNMI;
 	extern BOOL		gSystemCPUSleep;
 	extern BOOL		gSystemHalt;
@@ -105,17 +103,12 @@ class CSystem;
 #include "../memory.h"
 #include "../cpu.h"
 
-extern "C" {
-	extern UBYTE lynxRAM[0x10000];
-}
-
-#define TOP_START	0xfc00
-#define TOP_MASK	0x03ff
-#define TOP_SIZE	0x400
-#define SYSTEM_SIZE	65536
-
-#define RAM_SIZE				65536
+#define RAM_SIZE				0x10000
 #define DEFAULT_RAM_CONTENTS	0xff
+
+extern "C" {
+	extern UBYTE lynxRAM[RAM_SIZE];
+}
 
 class CSystem : public CSystemBase
 {
@@ -173,10 +166,6 @@ class CSystem : public CSystemBase
 		inline void  CartAddressStrobe(BOOL strobe) {mCart->CartAddressStrobe(strobe);};
 		inline void  CartAddressData(BOOL data) {mCart->CartAddressData(data);};
 
-// Low level CPU access
-
-		void setIrqPin(int state) {cpuSetIrqPin(state);};
-
 // Mikey system interfacing
 
 		void	ComLynxCable(int status) { mMikie->ComLynxCable(status); };
@@ -196,7 +185,6 @@ class CSystem : public CSystemBase
 
 	public:
 		ULONG			mCycleCountBreakpoint;
-//		CLynxBase		*mMemoryHandlers[8][SYSTEM_SIZE];
 		CCart			*mCart;
 		CMikie			*mMikie;
 		CSusie			*mSusie;

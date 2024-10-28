@@ -88,8 +88,6 @@ void CMikie::Reset(void)
 {
 	TRACE_MIKIE0("Reset()");
 
-	mikey_0.lynxAddr = 0;
-
 	ResetAudio(mAUDIO_0);
 	ResetAudio(mAUDIO_1);
 	ResetAudio(mAUDIO_2);
@@ -97,10 +95,6 @@ void CMikie::Reset(void)
 
 	mSTEREO = 0xff;	// All channels enabled
 
-	// Initialise IODAT register
-
-	mikey_0.ioDat = 0x00;
-	mikey_0.ioDir = 0x00;
 	mIODAT_REST_SIGNAL = 0x00;
 
 	//
@@ -222,55 +216,6 @@ void CMikie::ComLynxTxCallback(void (*function)(int data, ULONG objref), ULONG o
 	mUART_TX_CALLBACK_OBJECT = objref;
 }
 
-/*
-ULONG CMikie::DisplayRenderLine(void)
-{
-	if (!(mikey_0.dispCtl & 1)) return 0;
-
-// Logic says it should be 101 but testing on an actual lynx shows the rest
-// period is between lines 102,101,100 with the new line being latched at
-// the beginning of count==99 hence the code below !!
-
-	// Emulate REST signal
-	if (mikey_0.lynxLine < (mikey_0.tim2Bkup - LYNX_SCREEN_HEIGHT))
-		mIODAT_REST_SIGNAL = TRUE;
-	else
-		mIODAT_REST_SIGNAL = FALSE;
-
-	if (mikey_0.lynxLine == 3) {
-		mikey_0.lynxAddr = mikey_0.dispAdr & 0xfffc;
-		if (mikey_0.dispCtl & 2) {
-			mikey_0.lynxAddr += 3;
-		}
-		mikey_0.lynxLineDMACounter = LYNX_SCREEN_HEIGHT;
-	}
-
-	// Increment line counter logic
-	mikey_0.lynxLine++;
-
-	// Do 102 lines, nothing more, less is OK.
-	if (mikey_0.lynxLineDMACounter) {
-		mikey_0.lynxLineDMACounter--;
-
-		// Mikie screen DMA can only see the system RAM....
-		// (Step through bitmap, line at a time)
-		if (mpRenderCallback) {
-			(*mpRenderCallback)(&mpRamPointer[mikey_0.lynxAddr], mikey_0.palette, mikey_0.dispCtl & 2);
-		}
-
-		if (mikey_0.dispCtl & 2) {
-			mikey_0.lynxAddr -= LYNX_SCREEN_WIDTH/2;
-		}
-		else {
-			mikey_0.lynxAddr += LYNX_SCREEN_WIDTH/2;
-		}
-
-		// Cycle hit for a 80 RAM access in rendering a line
-		return 80 * DMA_RDWR_CYC;
-	}
-	return 0;
-}
-*/
 // Peek/Poke memory handlers
 
 void CMikie::Poke(ULONG addr, UBYTE data)
@@ -823,11 +768,6 @@ UBYTE CMikie::Peek(ULONG addr)
 
 void CMikie::Update(void)
 {
-	int divide = 0;
-	int decval = 0;
-	ULONG tmp;
-	ULONG mikie_work_done = 0;
-
 	//
 	// To stop problems with cycle count wrap we will check and then correct the
 	// cycle counter.
@@ -889,131 +829,36 @@ void CMikie::Update(void)
 	//
 	// We set the next event to the end of time at first and let the timers
 	// overload it. Any writes to timer controls will force next event to
-	// be immediate and hence a new preidction will be done. The prediction
+	// be immediate and hence a new prediction will be done. The prediction
 	// causes overflow as opposed to zero i.e. current+1
 	// (In reality T0 line counter should always be running.)
 	//
 
-	//
-	// Timer 0 of Group A
-	//
+	ULONG mikie_work_done = mikUpdate();
 
 	//
-	// Optimisation, assume T0 (Line timer) is never in one-shot,
-	// never placed in link mode
+	// If sound is enabled then update the sound subsystem
 	//
-/*	if ((mikey_0.tim0CtlA & ENABLE_COUNT) && !(mikey_0.tim0CtlB & TIMER_DONE)) {
-		// Timer 0 has no linking
-//		if ((mikey_0.tim0CtlA & CLOCK_SEL) != LINKING)
-		{
-			// Clear carry in/out to begin with
-			mikey_0.tim0CtlB &= ~(BORROW_OUT | BORROW_IN);
-			// Ordinary clocked mode as opposed to linked mode
-			// 16MHz clock down to 1us == cyclecount >> 4
-			divide = (4 + (mikey_0.tim0CtlA & CLOCK_SEL));
-			decval = (gSystemCycleCount - mTIM_0.LAST_COUNT) >> divide;
-
-			if (decval) {
-				// Set carry in as we do a count
-				mikey_0.tim0CtlB |= BORROW_IN;
-				mTIM_0.LAST_COUNT += decval << divide;
-				mTIM_0.CURRENT -= decval;
-
-				if (mTIM_0.CURRENT & 0x80000000) {
-					// Set carry out
-					mikey_0.tim0CtlB |= BORROW_OUT;
-
-//					// Reload if neccessary
-//					if (mikey_0.tim0CtlA & ENABLE_RELOAD) {
-						mTIM_0.CURRENT += mikey_0.tim0Bkup+1;
-//					}
-//					else {
-//						mTIM_0.CURRENT = 0;
-//						mikey_0.tim0CtlB |= TIMER_DONE;
-//					}
-
-					// Interrupt flag setting code moved into DisplayRenderLine()
-
-					// Line timer has expired, render a line, we cannot incrememnt
-					// the global counter at this point as it will screw the other timers
-					// so we save under work done and inc at the end.
-					mikie_work_done += DisplayRenderLine();
-				}
-			}
-
-			// Prediction for next timer event cycle number
-
-			// Sometimes timeupdates can be >2x rollover in which case
-			// then CURRENT may still be negative and we can use it to
-			// calc the next timer value, we just want another update ASAP
-			tmp = gSystemCycleCount;
-			tmp += (mTIM_0.CURRENT & 0x80000000) ? 1 : ((mTIM_0.CURRENT + 1) << divide);
-			if (tmp < gNextTimerEvent) {
-				gNextTimerEvent = tmp;
-			}
-		}
+	if (gAudioEnabled) {
+		UpdateSound();
 	}
 
-	//
-	// Timer 2 of Group A
-	//
-
-	//
-	// Optimisation, assume T2 (Frame timer) is always in reload mode
-	// always in linked mode i.e clocked by Line Timer
-	//
-	if ((mikey_0.tim2CtlA & ENABLE_COUNT) && !(mikey_0.tim2CtlB & TIMER_DONE)) {
-		decval = 0;
-
-//		if ((mikey_0.tim2CtlA & CLOCK_SEL) == LINKING)
-		{
-			if (mikey_0.tim0CtlB & BORROW_OUT) decval = 1;
-		}
-//		else {
-//			// Ordinary clocked mode as opposed to linked mode
-//			// 16MHz clock downto 1us == cyclecount >> 4
-//			divide = (4 + (mikey_0.tim2CtlA & CLOCK_SEL));
-//			decval = (gSystemCycleCount - mTIM_2.LAST_COUNT) >> divide;
-//		}
-
-		// Clear carry in/out to begin with
-		mikey_0.tim2CtlB &= ~(BORROW_OUT | BORROW_IN);
-		if (decval) {
-			// Set carry in as we do a count
-			mikey_0.tim2CtlB |= BORROW_IN;
-//			mTIM_2.LAST_COUNT += decval << divide;
-			mTIM_2.CURRENT -= decval;
-			if (mTIM_2.CURRENT & 0x80000000) {
-				// Set carry out
-				mikey_0.tim0CtlB |= BORROW_OUT;
-
-//				// Reload if neccessary
-//				if (mikey_0.tim2CtlA & ENABLE_RELOAD) {
-					mTIM_2.CURRENT += mikey_0.tim2Bkup+1;
-//				}
-//				else {
-//					mTIM_2.CURRENT = 0;
-//					mikey_0.tim2CtlB |= TIMER_DONE;
-//				}
-
-				// Interupt flag setting code moved into DisplayEndOfFrame()
-				DisplayEndOfFrame();
-			}
-		}
-
-		// Prediction for next timer event cycle number
-// We dont need to predict this as its the frame timer and will always
-// be beaten by the line timer on Timer 0
-//		if ((mikey_0.tim2CtlA & CLOCK_SEL) != LINKING) {
-//			tmp = gSystemCycleCount + ((mTIM_2.CURRENT + 1) << divide);
-//			if (tmp < gNextTimerEvent) gNextTimerEvent = tmp;
-//		}
-	}*/
-	if (miRunTimer0()) {
-		mikie_work_done += mikDisplayLine();
+	bool gSystemIRQ = (mikey_0.timerStatusFlags) ? true : false;
+	setIrqPin(gSystemIRQ);
+	if (gSystemIRQ && gSystemCPUSleep) {
+		ClearCPUSleep();
 	}
-	miRunTimer2();
 
+	// Now all the timer updates are done we can increment the system
+	// counter for any work done within the Update() function, gSystemCycleCounter
+	// cannot be updated until this point otherwise it screws up the counters.
+	gSystemCycleCount += mikie_work_done;
+}
+
+void CMikie::UpdateTimer4(void) {
+	int divide = 0;
+	int decval = 0;
+	ULONG tmp;
 	//
 	// Timer 4 of Group A
 	//
@@ -1176,669 +1021,372 @@ void CMikie::Update(void)
 		TRACE_MIKIE0("Update() - UART RX IRQ Triggered");
 		mikey_0.timerStatusFlags |= 0x10;
 	}
+}
+
+void CMikie::UpdateSound(void) {
+	int divide = 0;
+	int decval = 0;
+	ULONG tmp;
+
+//	static SLONG sample = 0;
+	// ULONG mix = 0; // unused
 
 	//
-	// Timer 1 of Group B
+	// Catch audio buffer up to current time
 	//
-/*	if ((mikey_0.tim1CtlA & ENABLE_COUNT) && !(mikey_0.tim1CtlB & TIMER_DONE)) {
-		if ((mikey_0.tim1CtlA & CLOCK_SEL) != LINKING) {
-			// Ordinary clocked mode as opposed to linked mode
-			// 16MHz clock downto 1us == cyclecount >> 4
-			divide = (4 + (mikey_0.tim1CtlA & CLOCK_SEL));
-			decval = (gSystemCycleCount - mTIM_1.LAST_COUNT) >> divide;
 
-			// Clear carry in/out to begin with
-			mikey_0.tim1CtlB &= ~(BORROW_OUT | BORROW_IN);
-			if (decval) {
-				// Set carry in as we do a count
-				mikey_0.tim1CtlB |= BORROW_IN;
-				mTIM_1.LAST_COUNT += decval << divide;
-				mTIM_1.CURRENT -= decval;
-				if (mTIM_1.CURRENT & 0x80000000) {
-					// Set carry out
-					mikey_0.tim1CtlB |= BORROW_OUT;
+	// Mix the sample
 
-					// Set the timer status flag
-					if (mikey_0.timerInterruptMask & 0x02) {
-						TRACE_MIKIE0("Update() - TIMER1 IRQ Triggered");
-						mikey_0.timerStatusFlags |= 0x02;
-					}
+	/*
+	sample = 0;
+	if (mSTEREO & 0x11) { sample += mAUDIO_0.OUTPUT; mix++; }
+	if (mSTEREO & 0x22) { sample += mAUDIO_1.OUTPUT; mix++; }
+	if (mSTEREO & 0x44) { sample += mAUDIO_2.OUTPUT; mix++; }
+	if (mSTEREO & 0x88) { sample += mAUDIO_3.OUTPUT; mix++; }
+	if (mix) {
+		sample += 128 * mix; // Correct for sign
+		sample /= mix;	// Keep the audio volume at max
+	}
+	else {
+		sample = 128;
+	}
 
-					// Reload if neccessary
-					if (mikey_0.tim1CtlA & ENABLE_RELOAD) {
-						mTIM_1.CURRENT += mikey_0.tim1Bkup + 1;
-					}
-					else {
-						mTIM_1.CURRENT = 0;
-						mikey_0.tim1CtlB |= TIMER_DONE;
-					}
-				}
-			}
+//	sample += (mSTEREO & 0x11) ? mAUDIO_0.OUTPUT : 0;
+//	sample += (mSTEREO & 0x22) ? mAUDIO_1.OUTPUT : 0;
+//	sample += (mSTEREO & 0x44) ? mAUDIO_2.OUTPUT : 0;
+//	sample += (mSTEREO & 0x88) ? mAUDIO_3.OUTPUT : 0;
+//	sample = sample >> 2;
+//	sample += 128;
+	*/
 
-			// Prediction for next timer event cycle number
+	for (;gAudioLastUpdateCycle+HANDY_AUDIO_SAMPLE_PERIOD<gSystemCycleCount;gAudioLastUpdateCycle+=HANDY_AUDIO_SAMPLE_PERIOD) {
+		// Output audio sample
+//		gAudioBuffer[gAudioBufferPointer++] = (UBYTE)sample;
+		gAudioBuffer0[gAudioBufferPointer] = (mSTEREO & 0x11) ? mAUDIO_0.OUTPUT : 0;
+		gAudioBuffer1[gAudioBufferPointer] = (mSTEREO & 0x22) ? mAUDIO_1.OUTPUT : 0;
+		gAudioBuffer2[gAudioBufferPointer] = (mSTEREO & 0x33) ? mAUDIO_2.OUTPUT : 0;
+		gAudioBuffer3[gAudioBufferPointer++] = (mSTEREO & 0x44) ? mAUDIO_3.OUTPUT : 0;
 
-			// Sometimes timeupdates can be >2x rollover in which case
-			// then CURRENT may still be negative and we can use it to
-			// calc the next timer value, we just want another update ASAP
-			tmp = (mTIM_1.CURRENT & 0x80000000) ? 1 : ((mTIM_1.CURRENT + 1) << divide);
-			tmp += gSystemCycleCount;
-			if (tmp < gNextTimerEvent) {
-				gNextTimerEvent = tmp;
-				TRACE_MIKIE1("Update() - TIMER 1 Set NextTimerEvent = %012d", gNextTimerEvent);
-			}
-		}
+		// Check buffer overflow condition, stick at the endpoint
+		// teh audio output system will reset the input pointer
+		// when it reads out the data.
+
+		// We should NEVER overflow, this buffer holds 0.25 seconds
+		// of data if this happens the the multimedia system above
+		// has failed so the corruption of the buffer contents wont matter
+
+		gAudioBufferPointer%=HANDY_AUDIO_BUFFER_SIZE;
 	}
 
 	//
-	// Timer 3 of Group A
+	// Audio 0
 	//
-	if ((mikey_0.tim3CtlA & ENABLE_COUNT) && !(mikey_0.tim3CtlB & TIMER_DONE)) {
+//	if ((mAUDIO_0.CTLA & ENABLE_COUNT) && !(mAUDIO_0.CTLB & TIMER_DONE) && mAUDIO_0.VOLUME && mAUDIO_0.BKUP)
+	if ((mAUDIO_0.CTLA & ENABLE_COUNT) && ((mAUDIO_0.CTLA & ENABLE_RELOAD) || !(mAUDIO_0.CTLB & TIMER_DONE)) && mAUDIO_0.VOLUME && mAUDIO_0.BKUP) {
 		decval = 0;
 
-		if ((mikey_0.tim3CtlA & CLOCK_SEL) == LINKING) {
-			if (mikey_0.tim1CtlB & BORROW_OUT) decval = 1;
+		if ((mAUDIO_0.CTLA & CLOCK_SEL) == LINKING) {
+			if (mikey_0.tim7CtlB & BORROW_OUT) decval = 1;
 		}
 		else {
 			// Ordinary clocked mode as opposed to linked mode
 			// 16MHz clock downto 1us == cyclecount >> 4
-			divide = (4 + (mikey_0.tim3CtlA & CLOCK_SEL));
-			decval = (gSystemCycleCount - mTIM_3.LAST_COUNT) >> divide;
+			divide = (4 + (mAUDIO_0.CTLA & CLOCK_SEL));
+			decval = (gSystemCycleCount - mAUDIO_0.LAST_COUNT) >> divide;
 		}
 
-		// Clear carry in/out to begin with
-		mikey_0.tim3CtlB &= ~(BORROW_OUT | BORROW_IN);
 		if (decval) {
-			// Set carry in as we do a count
-			mikey_0.tim3CtlB |= BORROW_IN;
-			mTIM_3.LAST_COUNT += decval << divide;
-			mTIM_3.CURRENT -= decval;
-			if (mTIM_3.CURRENT & 0x80000000) {
+			mAUDIO_0.LAST_COUNT += decval << divide;
+			mAUDIO_0.CURRENT -= decval;
+			if (mAUDIO_0.CURRENT & 0x80000000) {
 				// Set carry out
-				mikey_0.tim3CtlB |= BORROW_OUT;
-
-				// Set the timer status flag
-				if (mikey_0.timerInterruptMask & 0x08) {
-					TRACE_MIKIE0("Update() - TIMER3 IRQ Triggered");
-					mikey_0.timerStatusFlags |= 0x08;
-				}
+				mAUDIO_0.CTLB |= BORROW_OUT;
 
 				// Reload if neccessary
-				if (mikey_0.tim3CtlA & ENABLE_RELOAD) {
-					mTIM_3.CURRENT += mikey_0.tim3Bkup + 1;
+				if (mAUDIO_0.CTLA & ENABLE_RELOAD) {
+					mAUDIO_0.CURRENT += mAUDIO_0.BKUP + 1;
+					if (mAUDIO_0.CURRENT & 0x80000000) mAUDIO_0.CURRENT = 0;
 				}
 				else {
-					mTIM_3.CURRENT = 0;
-					mikey_0.tim3CtlB |= TIMER_DONE;
+					// Set timer done
+					mAUDIO_0.CTLB |= TIMER_DONE;
+					mAUDIO_0.CURRENT = 0;
+				}
+
+				//
+				// Update audio circuitry
+				//
+				mAUDIO_0.WAVESHAPER = GetLfsrNext(mAUDIO_0.WAVESHAPER);
+
+				if (mAUDIO_0.INTEGRATE_ENABLE) {
+					SLONG temp = mAUDIO_0.OUTPUT;
+					if (mAUDIO_0.WAVESHAPER & 0x0001) temp += mAUDIO_0.VOLUME; else temp -= mAUDIO_0.VOLUME;
+					if (temp > 127) temp = 127;
+					if (temp <- 128) temp = -128;
+					mAUDIO_0.OUTPUT = (SBYTE)temp;
+				}
+				else {
+					if (mAUDIO_0.WAVESHAPER & 0x0001) mAUDIO_0.OUTPUT = mAUDIO_0.VOLUME; else mAUDIO_0.OUTPUT = -mAUDIO_0.VOLUME;
 				}
 			}
+			else {
+				mAUDIO_0.CTLB &= ~BORROW_OUT;
+			}
+			// Set carry in as we did a count
+			mAUDIO_0.CTLB |= BORROW_IN;
+		}
+		else {
+			// Clear carry in as we didn't count
+			// Clear carry out
+			mAUDIO_0.CTLB &= ~(BORROW_OUT | BORROW_IN);
 		}
 
 		// Prediction for next timer event cycle number
 
-		if ((mikey_0.tim3CtlA & CLOCK_SEL) != LINKING) {
+		if ((mAUDIO_0.CTLA & CLOCK_SEL) != LINKING) {
 			// Sometimes timeupdates can be >2x rollover in which case
 			// then CURRENT may still be negative and we can use it to
 			// calc the next timer value, we just want another update ASAP
-			tmp = (mTIM_3.CURRENT & 0x80000000) ? 1 : ((mTIM_3.CURRENT + 1) << divide);
+			tmp = (mAUDIO_0.CURRENT&0x80000000) ? 1 : ((mAUDIO_0.CURRENT + 1) << divide);
 			tmp += gSystemCycleCount;
 			if (tmp < gNextTimerEvent) {
 				gNextTimerEvent = tmp;
-				TRACE_MIKIE1("Update() - TIMER 3 Set NextTimerEvent = %012d", gNextTimerEvent);
+				TRACE_MIKIE1("Update() - AUDIO 0 Set NextTimerEvent = %012d", gNextTimerEvent);
 			}
 		}
 	}
 
 	//
-	// Timer 5 of Group A
+	// Audio 1
 	//
-	if ((mikey_0.tim5CtlA & ENABLE_COUNT) && !(mikey_0.tim5CtlB & TIMER_DONE)) {
+//	if ((mAUDIO_1.CTLA & ENABLE_COUNT) && !(mAUDIO_1.CTLB & TIMER_DONE) && mAUDIO_1.VOLUME && mAUDIO_1.BKUP)
+	if ((mAUDIO_1.CTLA & ENABLE_COUNT) && ((mAUDIO_1.CTLA & ENABLE_RELOAD) || !(mAUDIO_1.CTLB & TIMER_DONE)) && mAUDIO_1.VOLUME && mAUDIO_1.BKUP) {
 		decval = 0;
 
-		if ((mikey_0.tim5CtlA & CLOCK_SEL) == LINKING) {
-			if (mikey_0.tim3CtlB & BORROW_OUT) decval = 1;
+		if ((mAUDIO_1.CTLA & CLOCK_SEL) == LINKING) {
+			if (mAUDIO_0.CTLB & BORROW_OUT) decval = 1;
 		}
 		else {
 			// Ordinary clocked mode as opposed to linked mode
 			// 16MHz clock downto 1us == cyclecount >> 4
-			divide = (4 + (mikey_0.tim5CtlA & CLOCK_SEL));
-			decval = (gSystemCycleCount - mTIM_5.LAST_COUNT) >> divide;
+			divide = (4 + (mAUDIO_1.CTLA & CLOCK_SEL));
+			decval = (gSystemCycleCount - mAUDIO_1.LAST_COUNT) >> divide;
 		}
 
-		// Clear carry in/out to begin with
-		mikey_0.tim5CtlB &= ~(BORROW_OUT | BORROW_IN);
 		if (decval) {
-			// Set carry in as we do a count
-			mikey_0.tim5CtlB |= BORROW_IN;
-			mTIM_5.LAST_COUNT += decval<<divide;
-			mTIM_5.CURRENT -= decval;
-			if (mTIM_5.CURRENT & 0x80000000) {
+			mAUDIO_1.LAST_COUNT += decval<<divide;
+			mAUDIO_1.CURRENT -= decval;
+			if (mAUDIO_1.CURRENT & 0x80000000) {
 				// Set carry out
-				mikey_0.tim5CtlB |= BORROW_OUT;
-
-				// Set the timer status flag
-				if (mikey_0.timerInterruptMask & 0x20) {
-					TRACE_MIKIE0("Update() - TIMER5 IRQ Triggered");
-					mikey_0.timerStatusFlags |= 0x20;
-				}
+				mAUDIO_1.CTLB |= BORROW_OUT;
 
 				// Reload if neccessary
-				if (mikey_0.tim5CtlA & ENABLE_RELOAD) {
-					mTIM_5.CURRENT += mikey_0.tim5Bkup + 1;
+				if (mAUDIO_1.CTLA & ENABLE_RELOAD) {
+					mAUDIO_1.CURRENT += mAUDIO_1.BKUP+1;
+					if (mAUDIO_1.CURRENT & 0x80000000) mAUDIO_1.CURRENT = 0;
 				}
 				else {
-					mTIM_5.CURRENT = 0;
-					mikey_0.tim5CtlB |= TIMER_DONE;
+					// Set timer done
+					mAUDIO_1.CTLB |= TIMER_DONE;
+					mAUDIO_1.CURRENT = 0;
+				}
+
+				//
+				// Update audio circuitry
+				//
+				mAUDIO_1.WAVESHAPER = GetLfsrNext(mAUDIO_1.WAVESHAPER);
+
+				if (mAUDIO_1.INTEGRATE_ENABLE) {
+					SLONG temp = mAUDIO_1.OUTPUT;
+					if (mAUDIO_1.WAVESHAPER & 0x0001) temp += mAUDIO_1.VOLUME; else temp -= mAUDIO_1.VOLUME;
+					if (temp > 127) temp = 127;
+					if (temp < -128) temp = -128;
+					mAUDIO_1.OUTPUT = (SBYTE)temp;
+				}
+				else {
+					if (mAUDIO_1.WAVESHAPER & 0x0001) mAUDIO_1.OUTPUT = mAUDIO_1.VOLUME; else mAUDIO_1.OUTPUT = -mAUDIO_1.VOLUME;
 				}
 			}
+			else {
+				mAUDIO_1.CTLB &= ~BORROW_OUT;
+			}
+			// Set carry in as we did a count
+			mAUDIO_1.CTLB |= BORROW_IN;
+		}
+		else {
+			// Clear carry in as we didn't count
+			// Clear carry out
+			mAUDIO_1.CTLB &= ~(BORROW_OUT | BORROW_IN);
 		}
 
 		// Prediction for next timer event cycle number
 
-		if ((mikey_0.tim5CtlA & CLOCK_SEL) != LINKING) {
+		if ((mAUDIO_1.CTLA & CLOCK_SEL) != LINKING) {
 			// Sometimes timeupdates can be >2x rollover in which case
 			// then CURRENT may still be negative and we can use it to
 			// calc the next timer value, we just want another update ASAP
-			tmp = (mTIM_5.CURRENT & 0x80000000) ? 1 : ((mTIM_5.CURRENT + 1) << divide);
+			tmp = (mAUDIO_1.CURRENT & 0x80000000) ? 1 : ((mAUDIO_1.CURRENT + 1) << divide);
 			tmp += gSystemCycleCount;
 			if (tmp < gNextTimerEvent) {
 				gNextTimerEvent = tmp;
-				TRACE_MIKIE1("Update() - TIMER 5 Set NextTimerEvent = %012d", gNextTimerEvent);
+				TRACE_MIKIE1("Update() - AUDIO 1 Set NextTimerEvent = %012d", gNextTimerEvent);
 			}
 		}
 	}
 
 	//
-	// Timer 7 of Group A
+	// Audio 2
 	//
-	if ((mikey_0.tim7CtlA & ENABLE_COUNT) && !(mikey_0.tim7CtlB & TIMER_DONE)) {
+//	if ((mAUDIO_2.CTLA & ENABLE_COUNT) && !(mAUDIO_2.CTLB & TIMER_DONE) && mAUDIO_2.VOLUME && mAUDIO_2.BKUP)
+	if ((mAUDIO_2.CTLA & ENABLE_COUNT) && ((mAUDIO_2.CTLA & ENABLE_RELOAD) || !(mAUDIO_2.CTLB & TIMER_DONE)) && mAUDIO_2.VOLUME && mAUDIO_2.BKUP) {
 		decval = 0;
 
-		if ((mikey_0.tim7CtlA & CLOCK_SEL) == LINKING) {
-			if (mikey_0.tim5CtlB & BORROW_OUT) decval = 1;
+		if ((mAUDIO_2.CTLA & CLOCK_SEL) == LINKING) {
+			if (mAUDIO_1.CTLB & BORROW_OUT) decval = 1;
 		}
 		else {
 			// Ordinary clocked mode as opposed to linked mode
 			// 16MHz clock downto 1us == cyclecount >> 4
-			divide = (4 + (mikey_0.tim7CtlA & CLOCK_SEL));
-			decval = (gSystemCycleCount - mTIM_7.LAST_COUNT) >> divide;
+			divide = (4 + (mAUDIO_2.CTLA & CLOCK_SEL));
+			decval = (gSystemCycleCount - mAUDIO_2.LAST_COUNT) >> divide;
 		}
 
-		// Clear carry in/out to begin with
-		mikey_0.tim7CtlB &= ~(BORROW_OUT | BORROW_IN);
 		if (decval) {
-			// Set carry in as we do a count
-			mikey_0.tim7CtlB |= BORROW_IN;
-			mTIM_7.LAST_COUNT += decval << divide;
-			mTIM_7.CURRENT -= decval;
-			if (mTIM_7.CURRENT & 0x80000000) {
+			mAUDIO_2.LAST_COUNT += decval<<divide;
+			mAUDIO_2.CURRENT -= decval;
+			if (mAUDIO_2.CURRENT & 0x80000000) {
 				// Set carry out
-				mikey_0.tim7CtlB |= BORROW_OUT;
-
-				// Set the timer status flag
-				if (mikey_0.timerInterruptMask & 0x80) {
-					TRACE_MIKIE0("Update() - TIMER7 IRQ Triggered");
-					mikey_0.timerStatusFlags |= 0x80;
-				}
+				mAUDIO_2.CTLB |= BORROW_OUT;
 
 				// Reload if neccessary
-				if (mikey_0.tim7CtlA & ENABLE_RELOAD) {
-					mTIM_7.CURRENT += mikey_0.tim7Bkup + 1;
+				if (mAUDIO_2.CTLA & ENABLE_RELOAD) {
+					mAUDIO_2.CURRENT += mAUDIO_2.BKUP + 1;
+					if (mAUDIO_2.CURRENT & 0x80000000) mAUDIO_2.CURRENT = 0;
 				}
 				else {
-					mTIM_7.CURRENT = 0;
-					mikey_0.tim7CtlB |= TIMER_DONE;
+					// Set timer done
+					mAUDIO_2.CTLB |= TIMER_DONE;
+					mAUDIO_2.CURRENT = 0;
+				}
+
+				//
+				// Update audio circuitry
+				//
+				mAUDIO_2.WAVESHAPER = GetLfsrNext(mAUDIO_2.WAVESHAPER);
+
+				if (mAUDIO_2.INTEGRATE_ENABLE) {
+					SLONG temp = mAUDIO_2.OUTPUT;
+					if (mAUDIO_2.WAVESHAPER&0x0001) temp += mAUDIO_2.VOLUME; else temp -= mAUDIO_2.VOLUME;
+					if (temp > 127) temp = 127;
+					if (temp < -128) temp = -128;
+					mAUDIO_2.OUTPUT = (SBYTE)temp;
+				}
+				else {
+					if (mAUDIO_2.WAVESHAPER & 0x0001) mAUDIO_2.OUTPUT = mAUDIO_2.VOLUME; else mAUDIO_2.OUTPUT = -mAUDIO_2.VOLUME;
 				}
 			}
+			else {
+				mAUDIO_2.CTLB &= ~BORROW_OUT;
+			}
+			// Set carry in as we did a count
+			mAUDIO_2.CTLB |= BORROW_IN;
+		}
+		else {
+			// Clear carry in as we didn't count
+			// Clear carry out
+			mAUDIO_2.CTLB &= ~(BORROW_OUT | BORROW_IN);
 		}
 
 		// Prediction for next timer event cycle number
 
-		if ((mikey_0.tim7CtlA & CLOCK_SEL) != LINKING) {
+		if ((mAUDIO_2.CTLA & CLOCK_SEL) != LINKING) {
 			// Sometimes timeupdates can be >2x rollover in which case
 			// then CURRENT may still be negative and we can use it to
 			// calc the next timer value, we just want another update ASAP
-			tmp = (mTIM_7.CURRENT & 0x80000000) ? 1 : ((mTIM_7.CURRENT + 1) << divide);
+			tmp = (mAUDIO_2.CURRENT & 0x80000000) ? 1 : ((mAUDIO_2.CURRENT + 1) << divide);
 			tmp += gSystemCycleCount;
 			if (tmp < gNextTimerEvent) {
 				gNextTimerEvent = tmp;
-				TRACE_MIKIE1("Update() - TIMER 7 Set NextTimerEvent = %012d", gNextTimerEvent);
+				TRACE_MIKIE1("Update() - AUDIO 2 Set NextTimerEvent = %012d", gNextTimerEvent);
 			}
 		}
 	}
 
 	//
-	// Timer 6 has no group
+	// Audio 3
 	//
-	if ((mikey_0.tim6CtlA & ENABLE_COUNT) && !(mikey_0.tim6CtlB & TIMER_DONE)) {
-		if ((mikey_0.tim6CtlA & CLOCK_SEL) != LINKING)
-		{
-			// Ordinary clocked mode as opposed to linked mode
-			// 16MHz clock downto 1us == cyclecount >> 4
-			divide = (4 + (mikey_0.tim6CtlA & CLOCK_SEL));
-			decval = (gSystemCycleCount - mTIM_6.LAST_COUNT) >> divide;
+//	if ((mAUDIO_3.CTLA & ENABLE_COUNT) && !(mAUDIO_3.CTLB & TIMER_DONE) && mAUDIO_3.VOLUME && mAUDIO_3.BKUP)
+	if ((mAUDIO_3.CTLA & ENABLE_COUNT) && ((mAUDIO_3.CTLA & ENABLE_RELOAD) || !(mAUDIO_3.CTLB & TIMER_DONE)) && mAUDIO_3.VOLUME && mAUDIO_3.BKUP) {
+		decval = 0;
 
-			// Clear carry in/out to begin with
-			mikey_0.tim6CtlB &= ~(BORROW_OUT | BORROW_IN);
-			if (decval) {
-				// Set carry in as we do a count
-				mikey_0.tim6CtlB |= BORROW_IN;
-				mTIM_6.LAST_COUNT += decval << divide;
-				mTIM_6.CURRENT -= decval;
-				if (mTIM_6.CURRENT & 0x80000000) {
-					// Set carry out
-					mikey_0.tim6CtlB |= BORROW_OUT;
-
-					// Set the timer status flag
-					if (mikey_0.timerInterruptMask & 0x40) {
-						mikey_0.timerStatusFlags |= 0x40;
-					}
-
-					// Reload if neccessary
-					if (mikey_0.tim6CtlA & ENABLE_RELOAD) {
-						mTIM_6.CURRENT += mikey_0.tim6Bkup + 1;
-					}
-					else {
-						mTIM_6.CURRENT = 0;
-						mikey_0.tim6CtlB |= TIMER_DONE;
-					}
-				}
-			}
-
-			// Prediction for next timer event cycle number
-
-			// Sometimes timeupdates can be >2x rollover in which case
-			// then CURRENT may still be negative and we can use it to
-			// calc the next timer value, we just want another update ASAP
-			tmp = (mTIM_6.CURRENT & 0x80000000) ? 1 : ((mTIM_6.CURRENT + 1) << divide);
-			tmp += gSystemCycleCount;
-			if (tmp < gNextTimerEvent) {
-				gNextTimerEvent = tmp;
-				TRACE_MIKIE1("Update() - TIMER 6 Set NextTimerEvent = %012d", gNextTimerEvent);
-			}
-		}
-	}*/
-	miRunTimer1();
-	miRunTimer3();
-	miRunTimer5();
-	miRunTimer7();
-	miRunTimer6();
-
-	//
-	// If sound is enabled then update the sound subsystem
-	//
-	if (gAudioEnabled) {
-//		static SLONG sample = 0;
-		// ULONG mix = 0; // unused
-
-		//
-		// Catch audio buffer up to current time
-		//
-
-		// Mix the sample
-
-		/*
-		sample = 0;
-		if (mSTEREO & 0x11) { sample += mAUDIO_0.OUTPUT; mix++; }
-		if (mSTEREO & 0x22) { sample += mAUDIO_1.OUTPUT; mix++; }
-		if (mSTEREO & 0x44) { sample += mAUDIO_2.OUTPUT; mix++; }
-		if (mSTEREO & 0x88) { sample += mAUDIO_3.OUTPUT; mix++; }
-		if (mix) {
-			sample += 128 * mix; // Correct for sign
-			sample /= mix;	// Keep the audio volume at max
+		if ((mAUDIO_3.CTLA & CLOCK_SEL) == LINKING) {
+			if (mAUDIO_2.CTLB & BORROW_OUT) decval = 1;
 		}
 		else {
-			sample = 128;
+			// Ordinary clocked mode as opposed to linked mode
+			// 16MHz clock downto 1us == cyclecount >> 4
+			divide = (4 + (mAUDIO_3.CTLA & CLOCK_SEL));
+			decval = (gSystemCycleCount - mAUDIO_3.LAST_COUNT) >> divide;
 		}
 
-//		sample += (mSTEREO & 0x11) ? mAUDIO_0.OUTPUT : 0;
-//		sample += (mSTEREO & 0x22) ? mAUDIO_1.OUTPUT : 0;
-//		sample += (mSTEREO & 0x44) ? mAUDIO_2.OUTPUT : 0;
-//		sample += (mSTEREO & 0x88) ? mAUDIO_3.OUTPUT : 0;
-//		sample = sample >> 2;
-//		sample += 128;
-		*/
+		if (decval) {
+			mAUDIO_3.LAST_COUNT += decval << divide;
+			mAUDIO_3.CURRENT -= decval;
+			if (mAUDIO_3.CURRENT & 0x80000000) {
+				// Set carry out
+				mAUDIO_3.CTLB |= BORROW_OUT;
 
-		for (;gAudioLastUpdateCycle+HANDY_AUDIO_SAMPLE_PERIOD<gSystemCycleCount;gAudioLastUpdateCycle+=HANDY_AUDIO_SAMPLE_PERIOD) {
-			// Output audio sample
-//			gAudioBuffer[gAudioBufferPointer++] = (UBYTE)sample;
-			gAudioBuffer0[gAudioBufferPointer] = (mSTEREO & 0x11) ? mAUDIO_0.OUTPUT : 0;
-			gAudioBuffer1[gAudioBufferPointer] = (mSTEREO & 0x22) ? mAUDIO_1.OUTPUT : 0;
-			gAudioBuffer2[gAudioBufferPointer] = (mSTEREO & 0x33) ? mAUDIO_2.OUTPUT : 0;
-			gAudioBuffer3[gAudioBufferPointer++] = (mSTEREO & 0x44) ? mAUDIO_3.OUTPUT : 0;
-
-			// Check buffer overflow condition, stick at the endpoint
-			// teh audio output system will reset the input pointer
-			// when it reads out the data.
-
-			// We should NEVER overflow, this buffer holds 0.25 seconds
-			// of data if this happens the the multimedia system above
-			// has failed so the corruption of the buffer contents wont matter
-
-			gAudioBufferPointer%=HANDY_AUDIO_BUFFER_SIZE;
-		}
-
-		//
-		// Audio 0
-		//
-//		if ((mAUDIO_0.CTLA & ENABLE_COUNT) && !(mAUDIO_0.CTLB & TIMER_DONE) && mAUDIO_0.VOLUME && mAUDIO_0.BKUP)
-		if ((mAUDIO_0.CTLA & ENABLE_COUNT) && ((mAUDIO_0.CTLA & ENABLE_RELOAD) || !(mAUDIO_0.CTLB & TIMER_DONE)) && mAUDIO_0.VOLUME && mAUDIO_0.BKUP) {
-			decval = 0;
-
-			if ((mAUDIO_0.CTLA & CLOCK_SEL) == LINKING) {
-				if (mikey_0.tim7CtlB & BORROW_OUT) decval = 1;
-			}
-			else {
-				// Ordinary clocked mode as opposed to linked mode
-				// 16MHz clock downto 1us == cyclecount >> 4
-				divide = (4 + (mAUDIO_0.CTLA & CLOCK_SEL));
-				decval = (gSystemCycleCount - mAUDIO_0.LAST_COUNT) >> divide;
-			}
-
-			if (decval) {
-				mAUDIO_0.LAST_COUNT += decval << divide;
-				mAUDIO_0.CURRENT -= decval;
-				if (mAUDIO_0.CURRENT & 0x80000000) {
-					// Set carry out
-					mAUDIO_0.CTLB |= BORROW_OUT;
-
-					// Reload if neccessary
-					if (mAUDIO_0.CTLA & ENABLE_RELOAD) {
-						mAUDIO_0.CURRENT += mAUDIO_0.BKUP + 1;
-						if (mAUDIO_0.CURRENT & 0x80000000) mAUDIO_0.CURRENT = 0;
-					}
-					else {
-						// Set timer done
-						mAUDIO_0.CTLB |= TIMER_DONE;
-						mAUDIO_0.CURRENT = 0;
-					}
-
-					//
-					// Update audio circuitry
-					//
-					mAUDIO_0.WAVESHAPER = GetLfsrNext(mAUDIO_0.WAVESHAPER);
-
-					if (mAUDIO_0.INTEGRATE_ENABLE) {
-						SLONG temp = mAUDIO_0.OUTPUT;
-						if (mAUDIO_0.WAVESHAPER & 0x0001) temp += mAUDIO_0.VOLUME; else temp -= mAUDIO_0.VOLUME;
-						if (temp > 127) temp = 127;
-						if (temp <- 128) temp = -128;
-						mAUDIO_0.OUTPUT = (SBYTE)temp;
-					}
-					else {
-						if (mAUDIO_0.WAVESHAPER & 0x0001) mAUDIO_0.OUTPUT = mAUDIO_0.VOLUME; else mAUDIO_0.OUTPUT = -mAUDIO_0.VOLUME;
-					}
+				// Reload if neccessary
+				if (mAUDIO_3.CTLA & ENABLE_RELOAD) {
+					mAUDIO_3.CURRENT += mAUDIO_3.BKUP + 1;
+					if (mAUDIO_3.CURRENT & 0x80000000) mAUDIO_3.CURRENT = 0;
 				}
 				else {
-					mAUDIO_0.CTLB &= ~BORROW_OUT;
+					// Set timer done
+					mAUDIO_3.CTLB |= TIMER_DONE;
+					mAUDIO_3.CURRENT = 0;
 				}
-				// Set carry in as we did a count
-				mAUDIO_0.CTLB |= BORROW_IN;
-			}
-			else {
-				// Clear carry in as we didn't count
-				// Clear carry out
-				mAUDIO_0.CTLB &= ~(BORROW_OUT | BORROW_IN);
-			}
 
-			// Prediction for next timer event cycle number
+				//
+				// Update audio circuitry
+				//
+				mAUDIO_3.WAVESHAPER = GetLfsrNext(mAUDIO_3.WAVESHAPER);
 
-			if ((mAUDIO_0.CTLA & CLOCK_SEL) != LINKING) {
-				// Sometimes timeupdates can be >2x rollover in which case
-				// then CURRENT may still be negative and we can use it to
-				// calc the next timer value, we just want another update ASAP
-				tmp = (mAUDIO_0.CURRENT&0x80000000) ? 1 : ((mAUDIO_0.CURRENT + 1) << divide);
-				tmp += gSystemCycleCount;
-				if (tmp < gNextTimerEvent) {
-					gNextTimerEvent = tmp;
-					TRACE_MIKIE1("Update() - AUDIO 0 Set NextTimerEvent = %012d", gNextTimerEvent);
-				}
-			}
-		}
-
-		//
-		// Audio 1
-		//
-//		if ((mAUDIO_1.CTLA & ENABLE_COUNT) && !(mAUDIO_1.CTLB & TIMER_DONE) && mAUDIO_1.VOLUME && mAUDIO_1.BKUP)
-		if ((mAUDIO_1.CTLA & ENABLE_COUNT) && ((mAUDIO_1.CTLA & ENABLE_RELOAD) || !(mAUDIO_1.CTLB & TIMER_DONE)) && mAUDIO_1.VOLUME && mAUDIO_1.BKUP) {
-			decval = 0;
-
-			if ((mAUDIO_1.CTLA & CLOCK_SEL) == LINKING) {
-				if (mAUDIO_0.CTLB & BORROW_OUT) decval = 1;
-			}
-			else {
-				// Ordinary clocked mode as opposed to linked mode
-				// 16MHz clock downto 1us == cyclecount >> 4
-				divide = (4 + (mAUDIO_1.CTLA & CLOCK_SEL));
-				decval = (gSystemCycleCount - mAUDIO_1.LAST_COUNT) >> divide;
-			}
-
-			if (decval) {
-				mAUDIO_1.LAST_COUNT += decval<<divide;
-				mAUDIO_1.CURRENT -= decval;
-				if (mAUDIO_1.CURRENT & 0x80000000) {
-					// Set carry out
-					mAUDIO_1.CTLB |= BORROW_OUT;
-
-					// Reload if neccessary
-					if (mAUDIO_1.CTLA & ENABLE_RELOAD) {
-						mAUDIO_1.CURRENT += mAUDIO_1.BKUP+1;
-						if (mAUDIO_1.CURRENT & 0x80000000) mAUDIO_1.CURRENT = 0;
-					}
-					else {
-						// Set timer done
-						mAUDIO_1.CTLB |= TIMER_DONE;
-						mAUDIO_1.CURRENT = 0;
-					}
-
-					//
-					// Update audio circuitry
-					//
-					mAUDIO_1.WAVESHAPER = GetLfsrNext(mAUDIO_1.WAVESHAPER);
-
-					if (mAUDIO_1.INTEGRATE_ENABLE) {
-						SLONG temp = mAUDIO_1.OUTPUT;
-						if (mAUDIO_1.WAVESHAPER & 0x0001) temp += mAUDIO_1.VOLUME; else temp -= mAUDIO_1.VOLUME;
-						if (temp > 127) temp = 127;
-						if (temp < -128) temp = -128;
-						mAUDIO_1.OUTPUT = (SBYTE)temp;
-					}
-					else {
-						if (mAUDIO_1.WAVESHAPER & 0x0001) mAUDIO_1.OUTPUT = mAUDIO_1.VOLUME; else mAUDIO_1.OUTPUT = -mAUDIO_1.VOLUME;
-					}
+				if (mAUDIO_3.INTEGRATE_ENABLE) {
+					SLONG temp = mAUDIO_3.OUTPUT;
+					if (mAUDIO_3.WAVESHAPER & 0x0001) temp += mAUDIO_3.VOLUME; else temp -= mAUDIO_3.VOLUME;
+					if (temp > 127) temp = 127;
+					if (temp < -128) temp = -128;
+					mAUDIO_3.OUTPUT = (SBYTE)temp;
 				}
 				else {
-					mAUDIO_1.CTLB &= ~BORROW_OUT;
+					if (mAUDIO_3.WAVESHAPER & 0x0001) mAUDIO_3.OUTPUT = mAUDIO_3.VOLUME; else mAUDIO_3.OUTPUT = -mAUDIO_3.VOLUME;
 				}
-				// Set carry in as we did a count
-				mAUDIO_1.CTLB |= BORROW_IN;
 			}
 			else {
-				// Clear carry in as we didn't count
-				// Clear carry out
-				mAUDIO_1.CTLB &= ~(BORROW_OUT | BORROW_IN);
+				mAUDIO_3.CTLB &= ~BORROW_OUT;
 			}
-
-			// Prediction for next timer event cycle number
-
-			if ((mAUDIO_1.CTLA & CLOCK_SEL) != LINKING) {
-				// Sometimes timeupdates can be >2x rollover in which case
-				// then CURRENT may still be negative and we can use it to
-				// calc the next timer value, we just want another update ASAP
-				tmp = (mAUDIO_1.CURRENT & 0x80000000) ? 1 : ((mAUDIO_1.CURRENT + 1) << divide);
-				tmp += gSystemCycleCount;
-				if (tmp < gNextTimerEvent) {
-					gNextTimerEvent = tmp;
-					TRACE_MIKIE1("Update() - AUDIO 1 Set NextTimerEvent = %012d", gNextTimerEvent);
-				}
-			}
+			// Set carry in as we did a count
+			mAUDIO_3.CTLB |= BORROW_IN;
+		}
+		else {
+			// Clear carry in as we didn't count
+			// Clear carry out
+			mAUDIO_3.CTLB &= ~(BORROW_OUT | BORROW_IN);
 		}
 
-		//
-		// Audio 2
-		//
-//		if ((mAUDIO_2.CTLA & ENABLE_COUNT) && !(mAUDIO_2.CTLB & TIMER_DONE) && mAUDIO_2.VOLUME && mAUDIO_2.BKUP)
-		if ((mAUDIO_2.CTLA & ENABLE_COUNT) && ((mAUDIO_2.CTLA & ENABLE_RELOAD) || !(mAUDIO_2.CTLB & TIMER_DONE)) && mAUDIO_2.VOLUME && mAUDIO_2.BKUP) {
-			decval = 0;
+		// Prediction for next timer event cycle number
 
-			if ((mAUDIO_2.CTLA & CLOCK_SEL) == LINKING) {
-				if (mAUDIO_1.CTLB & BORROW_OUT) decval = 1;
-			}
-			else {
-				// Ordinary clocked mode as opposed to linked mode
-				// 16MHz clock downto 1us == cyclecount >> 4
-				divide = (4 + (mAUDIO_2.CTLA & CLOCK_SEL));
-				decval = (gSystemCycleCount - mAUDIO_2.LAST_COUNT) >> divide;
-			}
-
-			if (decval) {
-				mAUDIO_2.LAST_COUNT += decval<<divide;
-				mAUDIO_2.CURRENT -= decval;
-				if (mAUDIO_2.CURRENT & 0x80000000) {
-					// Set carry out
-					mAUDIO_2.CTLB |= BORROW_OUT;
-
-					// Reload if neccessary
-					if (mAUDIO_2.CTLA & ENABLE_RELOAD) {
-						mAUDIO_2.CURRENT += mAUDIO_2.BKUP + 1;
-						if (mAUDIO_2.CURRENT & 0x80000000) mAUDIO_2.CURRENT = 0;
-					}
-					else {
-						// Set timer done
-						mAUDIO_2.CTLB |= TIMER_DONE;
-						mAUDIO_2.CURRENT = 0;
-					}
-
-					//
-					// Update audio circuitry
-					//
-					mAUDIO_2.WAVESHAPER = GetLfsrNext(mAUDIO_2.WAVESHAPER);
-
-					if (mAUDIO_2.INTEGRATE_ENABLE) {
-						SLONG temp = mAUDIO_2.OUTPUT;
-						if (mAUDIO_2.WAVESHAPER&0x0001) temp += mAUDIO_2.VOLUME; else temp -= mAUDIO_2.VOLUME;
-						if (temp > 127) temp = 127;
-						if (temp < -128) temp = -128;
-						mAUDIO_2.OUTPUT = (SBYTE)temp;
-					}
-					else {
-						if (mAUDIO_2.WAVESHAPER & 0x0001) mAUDIO_2.OUTPUT = mAUDIO_2.VOLUME; else mAUDIO_2.OUTPUT = -mAUDIO_2.VOLUME;
-					}
-				}
-				else {
-					mAUDIO_2.CTLB &= ~BORROW_OUT;
-				}
-				// Set carry in as we did a count
-				mAUDIO_2.CTLB |= BORROW_IN;
-			}
-			else {
-				// Clear carry in as we didn't count
-				// Clear carry out
-				mAUDIO_2.CTLB &= ~(BORROW_OUT | BORROW_IN);
-			}
-
-			// Prediction for next timer event cycle number
-
-			if ((mAUDIO_2.CTLA & CLOCK_SEL) != LINKING) {
-				// Sometimes timeupdates can be >2x rollover in which case
-				// then CURRENT may still be negative and we can use it to
-				// calc the next timer value, we just want another update ASAP
-				tmp = (mAUDIO_2.CURRENT & 0x80000000) ? 1 : ((mAUDIO_2.CURRENT + 1) << divide);
-				tmp += gSystemCycleCount;
-				if (tmp < gNextTimerEvent) {
-					gNextTimerEvent = tmp;
-					TRACE_MIKIE1("Update() - AUDIO 2 Set NextTimerEvent = %012d", gNextTimerEvent);
-				}
-			}
-		}
-
-		//
-		// Audio 3
-		//
-//		if ((mAUDIO_3.CTLA & ENABLE_COUNT) && !(mAUDIO_3.CTLB & TIMER_DONE) && mAUDIO_3.VOLUME && mAUDIO_3.BKUP)
-		if ((mAUDIO_3.CTLA & ENABLE_COUNT) && ((mAUDIO_3.CTLA & ENABLE_RELOAD) || !(mAUDIO_3.CTLB & TIMER_DONE)) && mAUDIO_3.VOLUME && mAUDIO_3.BKUP) {
-			decval = 0;
-
-			if ((mAUDIO_3.CTLA & CLOCK_SEL) == LINKING) {
-				if (mAUDIO_2.CTLB & BORROW_OUT) decval = 1;
-			}
-			else {
-				// Ordinary clocked mode as opposed to linked mode
-				// 16MHz clock downto 1us == cyclecount >> 4
-				divide = (4 + (mAUDIO_3.CTLA & CLOCK_SEL));
-				decval = (gSystemCycleCount - mAUDIO_3.LAST_COUNT) >> divide;
-			}
-
-			if (decval) {
-				mAUDIO_3.LAST_COUNT += decval << divide;
-				mAUDIO_3.CURRENT -= decval;
-				if (mAUDIO_3.CURRENT & 0x80000000) {
-					// Set carry out
-					mAUDIO_3.CTLB |= BORROW_OUT;
-
-					// Reload if neccessary
-					if (mAUDIO_3.CTLA & ENABLE_RELOAD) {
-						mAUDIO_3.CURRENT += mAUDIO_3.BKUP + 1;
-						if (mAUDIO_3.CURRENT & 0x80000000) mAUDIO_3.CURRENT = 0;
-					}
-					else {
-						// Set timer done
-						mAUDIO_3.CTLB |= TIMER_DONE;
-						mAUDIO_3.CURRENT = 0;
-					}
-
-					//
-					// Update audio circuitry
-					//
-					mAUDIO_3.WAVESHAPER = GetLfsrNext(mAUDIO_3.WAVESHAPER);
-
-					if (mAUDIO_3.INTEGRATE_ENABLE) {
-						SLONG temp = mAUDIO_3.OUTPUT;
-						if (mAUDIO_3.WAVESHAPER & 0x0001) temp += mAUDIO_3.VOLUME; else temp -= mAUDIO_3.VOLUME;
-						if (temp > 127) temp = 127;
-						if (temp < -128) temp = -128;
-						mAUDIO_3.OUTPUT = (SBYTE)temp;
-					}
-					else {
-						if (mAUDIO_3.WAVESHAPER & 0x0001) mAUDIO_3.OUTPUT = mAUDIO_3.VOLUME; else mAUDIO_3.OUTPUT = -mAUDIO_3.VOLUME;
-					}
-				}
-				else {
-					mAUDIO_3.CTLB &= ~BORROW_OUT;
-				}
-				// Set carry in as we did a count
-				mAUDIO_3.CTLB |= BORROW_IN;
-			}
-			else {
-				// Clear carry in as we didn't count
-				// Clear carry out
-				mAUDIO_3.CTLB &= ~(BORROW_OUT | BORROW_IN);
-			}
-
-			// Prediction for next timer event cycle number
-
-			if ((mAUDIO_3.CTLA & CLOCK_SEL) != LINKING) {
-				// Sometimes timeupdates can be >2x rollover in which case
-				// then CURRENT may still be negative and we can use it to
-				// calc the next timer value, we just want another update ASAP
-				tmp = (mAUDIO_3.CURRENT & 0x80000000) ? 1 : ((mAUDIO_3.CURRENT + 1) << divide);
-				tmp += gSystemCycleCount;
-				if (tmp < gNextTimerEvent) {
-					gNextTimerEvent = tmp;
-					TRACE_MIKIE1("Update() - AUDIO 3 Set NextTimerEvent = %012d", gNextTimerEvent);
-				}
+		if ((mAUDIO_3.CTLA & CLOCK_SEL) != LINKING) {
+			// Sometimes timeupdates can be >2x rollover in which case
+			// then CURRENT may still be negative and we can use it to
+			// calc the next timer value, we just want another update ASAP
+			tmp = (mAUDIO_3.CURRENT & 0x80000000) ? 1 : ((mAUDIO_3.CURRENT + 1) << divide);
+			tmp += gSystemCycleCount;
+			if (tmp < gNextTimerEvent) {
+				gNextTimerEvent = tmp;
+				TRACE_MIKIE1("Update() - AUDIO 3 Set NextTimerEvent = %012d", gNextTimerEvent);
 			}
 		}
 	}
-
-//	if (gSystemCycleCount == gNextTimerEvent) gError->Warning("CMikie::Update() - gSystemCycleCount==gNextTimerEvent, system lock likely");
-//	TRACE_MIKIE1("Update() - NextTimerEvent = %012d",gNextTimerEvent);
-
-	gSystemIRQ = (mikey_0.timerStatusFlags) ? true : false;
-	mSystem.setIrqPin(gSystemIRQ);
-	if (gSystemIRQ && gSystemCPUSleep) { ClearCPUSleep(); }
-
-	// Now all the timer updates are done we can increment the system
-	// counter for any work done within the Update() function, gSystemCycleCounter
-	// cannot be updated until this point otherwise it screws up the counters.
-	gSystemCycleCount += mikie_work_done;
 }
