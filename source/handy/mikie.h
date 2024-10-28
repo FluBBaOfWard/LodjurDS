@@ -112,8 +112,6 @@ class CMikie : public CLynxBase
 		void	BlowOut(void);
 		void	ResetAudio(MAUDIO& audio);
 
-		inline void SetCPUSleep(void) {gSystemCPUSleep=TRUE;};
-		inline void ClearCPUSleep(void) {gSystemCPUSleep=FALSE;};
 		void setIrqPin(int state) {cpuSetIrqPin(state);};
 
 		void	Update(void);

@@ -44,16 +44,15 @@
 //
 // Define the global variable list
 //
-
+#define gSuzieDoneTime mikey_0.suzieDoneTime
+#define gSystemCPUSleep mikey_0.systemCPUSleep
 #ifdef SYSTEM_CPP
-	ULONG	gSuzieDoneTime = 0;
 	ULONG	gCPUBootAddress = 0;
 	ULONG	gSingleStepModeSprites = FALSE;
 	BOOL	gEmulatorAbort = FALSE;
 	BOOL	gBreakpointHit = FALSE;
 	BOOL	gSingleStepMode = FALSE;
 	BOOL	gSystemNMI = FALSE;
-	BOOL	gSystemCPUSleep = FALSE;
 	BOOL	gSystemHalt = FALSE;
 
 	volatile ULONG gTimerCount = 0;
@@ -69,14 +68,12 @@
 	BOOL	gWindowInFocus = TRUE;
 #else
 
-	extern ULONG	gSuzieDoneTime;
 	extern ULONG	gCPUBootAddress;
 	extern ULONG	gSingleStepModeSprites;
 	extern BOOL		gEmulatorAbort;
 	extern BOOL		gBreakpointHit;
 	extern BOOL		gSingleStepMode;
 	extern BOOL		gSystemNMI;
-	extern BOOL		gSystemCPUSleep;
 	extern BOOL		gSystemHalt;
 
 	extern volatile ULONG gTimerCount;

@@ -526,7 +526,7 @@ void CMikie::Poke(ULONG addr, UBYTE data)
 
 		case (CPUSLEEP & 0xff):
 			gSuzieDoneTime = gSystemCycleCount+mSystem.PaintSprites();
-			SetCPUSleep();
+			gSystemCPUSleep=TRUE;
 			TRACE_MIKIE3("Poke(CPUSLEEP,%02x) at PC=%04x, wakeup at cycle =%012d", data, mSystem.mCpu->GetPC(), gSuzieDoneTime);
 			break;
 
@@ -794,21 +794,6 @@ void CMikie::Update(void)
 		}
 	}
 
-	gNextTimerEvent = 0xffffffff;
-
-	//
-	// Check if the CPU needs to be woken up from sleep mode
-	//
-	if (gSuzieDoneTime) {
-		if (gSystemCycleCount >= gSuzieDoneTime) {
-			ClearCPUSleep();
-			gSuzieDoneTime = 0;
-		}
-		else {
-			gNextTimerEvent = gSuzieDoneTime;
-		}
-	}
-
 	//	Timer updates, rolled out flat in group order
 	//
 	//	Group A:
@@ -834,25 +819,7 @@ void CMikie::Update(void)
 	// (In reality T0 line counter should always be running.)
 	//
 
-	ULONG mikie_work_done = mikUpdate();
-
-	//
-	// If sound is enabled then update the sound subsystem
-	//
-	if (gAudioEnabled) {
-		UpdateSound();
-	}
-
-	bool gSystemIRQ = (mikey_0.timerStatusFlags) ? true : false;
-	setIrqPin(gSystemIRQ);
-	if (gSystemIRQ && gSystemCPUSleep) {
-		ClearCPUSleep();
-	}
-
-	// Now all the timer updates are done we can increment the system
-	// counter for any work done within the Update() function, gSystemCycleCounter
-	// cannot be updated until this point otherwise it screws up the counters.
-	gSystemCycleCount += mikie_work_done;
+	mikUpdate();
 }
 
 void CMikie::UpdateTimer4(void) {

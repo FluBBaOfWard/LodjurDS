@@ -98,7 +98,6 @@ void CSystem::Reset(void)
 	gBreakpointHit = FALSE;
 	gSingleStepMode = FALSE;
 	gSystemNMI = FALSE;
-	gSystemCPUSleep = FALSE;
 	gSystemHalt = FALSE;
 
 	gTimerCount = 0;

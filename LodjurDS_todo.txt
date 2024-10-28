@@ -27,6 +27,7 @@ Games Not Working:
 	Gates of zendocon. Writes 0x40? Expects some sound thing?
 
 Games Not Working Fixed:
+	Double Dragon requires Timer4.
 	Gauntlet - Expects Timer 1 to not run when enabled but without reload.
 
 Games With Glitches:
