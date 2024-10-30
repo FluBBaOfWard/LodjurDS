@@ -91,16 +91,12 @@ CSystem::~CSystem()
 
 void CSystem::Reset(void)
 {
-	gSystemCycleCount = 0;
-	gNextTimerEvent = 0;
 	gCPUBootAddress = 0;
 	gEmulatorAbort = FALSE;
 	gBreakpointHit = FALSE;
 	gSingleStepMode = FALSE;
 	gSystemNMI = FALSE;
 	gSystemHalt = FALSE;
-
-	gTimerCount = 0;
 
 	gAudioBufferPointer = 0;
 //	memset(gAudioBuffer0, 128, HANDY_AUDIO_BUFFER_SIZE);

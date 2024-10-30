@@ -22,7 +22,7 @@ void setupMenuPalette(void);
 
 void GpInit(const unsigned char *gamerom, int size);
 void GpDelete(void);
-void GpMain(void *args);
+void GpMain(void);
 
 #ifdef __cplusplus
 } // extern "C"

@@ -44,9 +44,7 @@
 //
 // Define the global variable list
 //
-#define gSuzieDoneTime mikey_0.suzieDoneTime
 #define gAudioLastUpdateCycle mikey_0.audioLastUpdateCycle
-#define gSystemCPUSleep mikey_0.systemCPUSleep
 #ifdef SYSTEM_CPP
 	ULONG	gCPUBootAddress = 0;
 	ULONG	gSingleStepModeSprites = FALSE;
@@ -55,8 +53,6 @@
 	BOOL	gSingleStepMode = FALSE;
 	BOOL	gSystemNMI = FALSE;
 	BOOL	gSystemHalt = FALSE;
-
-	volatile ULONG gTimerCount = 0;
 
 	ULONG	gAudioEnabled = FALSE;
 	UBYTE	*gAudioBuffer0; // UBYTE	gAudioBuffer0[HANDY_AUDIO_BUFFER_SIZE];
@@ -75,8 +71,6 @@
 	extern BOOL		gSingleStepMode;
 	extern BOOL		gSystemNMI;
 	extern BOOL		gSystemHalt;
-
-	extern volatile ULONG gTimerCount;
 
 	extern ULONG	gAudioEnabled;
 	extern UBYTE	*gAudioBuffer0; // extern UBYTE	gAudioBuffer0[HANDY_AUDIO_BUFFER_SIZE];
@@ -114,27 +108,6 @@ class CSystem : public CSystemBase
 
 	public:
 		void	Reset(void);
-
-		inline void Update(void)
-		{
-			// 
-			// Only update if there is a predicted timer event
-			//
-			if (gSystemCycleCount >= gNextTimerEvent) {
-				mMikie->Update();
-			}
-			//
-			// Step the processor through 1 instruction
-			//
-			if (!gSystemCPUSleep) {
-				int cyc = stepInstruction();
-				gSystemCycleCount += (1+(cyc*CPU_RDWR_CYC));
-			}
-			// If the CPU is asleep then skip to the next timer event
-			else {
-				gSystemCycleCount = gNextTimerEvent;
-			}
-		}
 
 		//
 		// We MUST have separate CPU & RAM peek & poke handlers as all CPU accesses must

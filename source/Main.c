@@ -90,7 +90,7 @@ int main(int argc, char **argv) {
 		checkTimeOut();
 		guiRunLoop();
 		if (!pauseEmulation) {
-			GpMain(NULL);
+			GpMain();
 			fpsValue += 1;
 //			run();
 		}

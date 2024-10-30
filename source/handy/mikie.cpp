@@ -526,12 +526,6 @@ void CMikie::Poke(ULONG addr, UBYTE data)
 			ComLynxTxLoopback(mUART_TX_DATA);
 			break;
 
-		case (CPUSLEEP & 0xff):
-			gSuzieDoneTime = gSystemCycleCount+mSystem.PaintSprites();
-			gSystemCPUSleep=TRUE;
-			TRACE_MIKIE3("Poke(CPUSLEEP,%02x) at PC=%04x, wakeup at cycle =%012d", data, mSystem.mCpu->GetPC(), gSuzieDoneTime);
-			break;
-
 		default:
 			break;
 	}
@@ -542,39 +536,39 @@ UBYTE CMikie::Peek(ULONG addr)
 	switch(addr & 0xff)
 	{
 // Timer control registers
-		case (TIM0CNT & 0xff):
-			Update();
+/*		case (TIM0CNT & 0xff):
+			mikUpdate();
 			TRACE_MIKIE2("Peek(TIM0CNT  ,%02x) at PC=%04x", mTIM_0.CURRENT, mSystem.mCpu->GetPC());
 			return (UBYTE)mTIM_0.CURRENT;
 		case (TIM1CNT & 0xff):
-			Update();
+			mikUpdate();
 			TRACE_MIKIE2("Peek(TIM1CNT  ,%02x) at PC=%04x", mTIM_1.CURRENT, mSystem.mCpu->GetPC());
 			return (UBYTE)mTIM_1.CURRENT;
 		case (TIM2CNT & 0xff):
-			Update();
+			mikUpdate();
 			TRACE_MIKIE2("Peek(TIM2CNT  ,%02x) at PC=%04x", mTIM_2_CURRENT, mSystem.mCpu->GetPC());
 			return (UBYTE)mTIM_2.CURRENT;
 		case (TIM3CNT & 0xff):
-			Update();
+			mikUpdate();
 			TRACE_MIKIE2("Peek(TIM3CNT  ,%02x) at PC=%04x", mTIM_3_CURRENT, mSystem.mCpu->GetPC());
 			return (UBYTE)mTIM_3.CURRENT;
 		case (TIM4CNT & 0xff):
-			Update();
+			mikUpdate();
 			TRACE_MIKIE2("Peek(TIM4CNT  ,%02x) at PC=%04x", mTIM_4_CURRENT, mSystem.mCpu->GetPC());
 			return (UBYTE)mTIM_4.CURRENT;
 		case (TIM5CNT & 0xff):
-			Update();
+			mikUpdate();
 			TRACE_MIKIE2("Peek(TIM5CNT  ,%02x) at PC=%04x", mTIM_5_CURRENT, mSystem.mCpu->GetPC());
 			return (UBYTE)mTIM_5.CURRENT;
 		case (TIM6CNT & 0xff):
-			Update();
+			mikUpdate();
 			TRACE_MIKIE2("Peek(TIM6CNT  ,%02x) at PC=%04x", mTIM_6_CURRENT, mSystem.mCpu->GetPC());
 			return (UBYTE)mTIM_6.CURRENT;
 		case (TIM7CNT & 0xff):
-			Update();
+			mikUpdate();
 			TRACE_MIKIE2("Peek(TIM7CNT  ,%02x) at PC=%04x", mTIM_7_CURRENT, mSystem.mCpu->GetPC());
 			return (UBYTE)mTIM_7.CURRENT;
-
+*/
 // Audio control registers
 		case (AUD0VOL & 0xff):
 			TRACE_MIKIE2("Peek(AUD0VOL,%02x) at PC=%04x", (UBYTE)mAUDIO_0.VOLUME, mSystem.mCpu->GetPC());
@@ -767,7 +761,7 @@ UBYTE CMikie::Peek(ULONG addr)
 	}
 	return lnxMikeyRead(addr);
 }
-
+/*
 void CMikie::Update(void)
 {
 	//
@@ -775,7 +769,7 @@ void CMikie::Update(void)
 	// cycle counter.
 	//
 
-/*	if (gSystemCycleCount > 0xf0000000) {
+	if (gSystemCycleCount > 0xf0000000) {
 		gSystemCycleCount -= 0x80000000;
 		gAudioLastUpdateCycle -= 0x80000000;
 		mTIM_0.LAST_COUNT -= 0x80000000;
@@ -794,7 +788,7 @@ void CMikie::Update(void)
 		if (gSuzieDoneTime) {
 			gSuzieDoneTime -= 0x80000000;
 		}
-	}*/
+	}
 
 	//	Timer updates, rolled out flat in group order
 	//
@@ -822,7 +816,7 @@ void CMikie::Update(void)
 	//
 
 	mikUpdate();
-}
+}*/
 
 void CMikie::UpdateTimer4(void) {
 	int divide = 0;
