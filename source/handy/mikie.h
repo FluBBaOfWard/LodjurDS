@@ -109,12 +109,8 @@ class CMikie : public CLynxBase
 		void	ComLynxTxLoopback(int data);
 		void	ComLynxTxCallback(void (*function)(int data,ULONG objref),ULONG objref);
 
-		void	BlowOut(void);
 		void	ResetAudio(MAUDIO& audio);
 
-		void setIrqPin(int state) {cpuSetIrqPin(state);};
-
-		void	Update(void);
 		void	UpdateTimer4(void);
 		void	UpdateSound(void);
 

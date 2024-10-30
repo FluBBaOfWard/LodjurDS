@@ -62,9 +62,7 @@ void GpMain() {
 	while (newsystem != NULL) {
 
 		newsystem->SetButtonData( joy0_R() );
-		for (int i=0;i<1024;i++) {
-			mikSysUpdate();
-		}
+		mikSysUpdate();
 
 		hazard += 1;
 		if (gScreenUpdateRequired || hazard > 30) {

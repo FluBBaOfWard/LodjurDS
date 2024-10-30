@@ -46,13 +46,6 @@
 #define mAUDIO_3 mikey_0.audio3
 #define mSTEREO mikey_0.stereo
 
-
-void CMikie::BlowOut(void)
-{
-	TRACE_MIKIE1("CMikie::Poke() - Read/Write to counter clocks at PC=$%04x.\n",mSystem.mCpu->GetPC());
-	gSystemHalt = TRUE;
-}
-
 void CMikie::ResetAudio(MAUDIO& audio)
 {
 	audio.BKUP = 0;

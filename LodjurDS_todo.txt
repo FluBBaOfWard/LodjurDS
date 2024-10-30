@@ -13,8 +13,10 @@ Mem:
 CPU:
 	See ARM6502 Todo.
 
+Suzy:
+
 Mikey:
-	Move gSystemCycleCount, 
+	See Mikey todo.
 
 Sound:
 	See Mikey todo.

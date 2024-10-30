@@ -13,7 +13,6 @@
 	.global run
 	.global stepFrame
 	.global stepInstruction
-	.global cpuSetIrqPin
 	.global cpuInit
 	.global cpuReset
 
@@ -82,9 +81,9 @@ waitMaskIn:			.byte 0
 waitCountOut:		.byte 0
 waitMaskOut:		.byte 0
 
+// Executes one instruction and returns the number of cycles consumed
 ;@----------------------------------------------------------------------------
 stepInstruction:					;@ Return after 1 instruction
-	.type stepInstruction STT_FUNC
 ;@----------------------------------------------------------------------------
 	stmfd sp!,{r4-r11,lr}
 	ldr m6502ptr,=m6502_0
@@ -123,15 +122,6 @@ lxStepLoop:
 	ldmfd sp!,{r4-r11,lr}
 	bx lr
 
-;@----------------------------------------------------------------------------
-cpuSetIrqPin:
-	.type cpuSetIrqPin STT_FUNC
-;@----------------------------------------------------------------------------
-	stmfd sp!,{m6502ptr,lr}
-	ldr m6502ptr,=m6502_0
-	bl m6502SetIRQPin
-	ldmfd sp!,{m6502ptr,lr}
-	bx lr
 ;@----------------------------------------------------------------------------
 cpuInit:					;@ Called by machineInit
 ;@----------------------------------------------------------------------------
