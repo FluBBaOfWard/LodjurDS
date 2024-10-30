@@ -47,6 +47,10 @@
 #define mTIM_5 mikey_0.timer5
 #define mTIM_6 mikey_0.timer6
 #define mTIM_7 mikey_0.timer7
+#define mAUDIO_0 mikey_0.audio0
+#define mAUDIO_1 mikey_0.audio1
+#define mAUDIO_2 mikey_0.audio2
+#define mAUDIO_3 mikey_0.audio3
 
 
 void CMikie::BlowOut(void)
@@ -94,8 +98,6 @@ void CMikie::Reset(void)
 	ResetAudio(mAUDIO_3);
 
 	mSTEREO = 0xff;	// All channels enabled
-
-	mIODAT_REST_SIGNAL = 0x00;
 
 	//
 	// Initialise the UART variables
@@ -773,7 +775,7 @@ void CMikie::Update(void)
 	// cycle counter.
 	//
 
-	if (gSystemCycleCount > 0xf0000000) {
+/*	if (gSystemCycleCount > 0xf0000000) {
 		gSystemCycleCount -= 0x80000000;
 		gAudioLastUpdateCycle -= 0x80000000;
 		mTIM_0.LAST_COUNT -= 0x80000000;
@@ -792,7 +794,7 @@ void CMikie::Update(void)
 		if (gSuzieDoneTime) {
 			gSuzieDoneTime -= 0x80000000;
 		}
-	}
+	}*/
 
 	//	Timer updates, rolled out flat in group order
 	//
@@ -1026,7 +1028,7 @@ void CMikie::UpdateSound(void) {
 //	sample += 128;
 	*/
 
-	for (;gAudioLastUpdateCycle+HANDY_AUDIO_SAMPLE_PERIOD<gSystemCycleCount;gAudioLastUpdateCycle+=HANDY_AUDIO_SAMPLE_PERIOD) {
+	for (;gAudioLastUpdateCycle+HANDY_AUDIO_SAMPLE_PERIOD < gSystemCycleCount;gAudioLastUpdateCycle += HANDY_AUDIO_SAMPLE_PERIOD) {
 		// Output audio sample
 //		gAudioBuffer[gAudioBufferPointer++] = (UBYTE)sample;
 		gAudioBuffer0[gAudioBufferPointer] = (mSTEREO & 0x11) ? mAUDIO_0.OUTPUT : 0;

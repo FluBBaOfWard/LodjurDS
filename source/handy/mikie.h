@@ -123,11 +123,6 @@ class CMikie : public CLynxBase
 
 		// Hardware storage
 
-		MAUDIO		mAUDIO_0;
-		MAUDIO		mAUDIO_1;
-		MAUDIO		mAUDIO_2;
-		MAUDIO		mAUDIO_3;
-
 		ULONG		mSTEREO;
 
 		//

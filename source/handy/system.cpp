@@ -103,7 +103,6 @@ void CSystem::Reset(void)
 	gTimerCount = 0;
 
 	gAudioBufferPointer = 0;
-	gAudioLastUpdateCycle = 0;
 //	memset(gAudioBuffer0, 128, HANDY_AUDIO_BUFFER_SIZE);
 //	memset(gAudioBuffer1, 128, HANDY_AUDIO_BUFFER_SIZE);
 //	memset(gAudioBuffer2, 128, HANDY_AUDIO_BUFFER_SIZE);

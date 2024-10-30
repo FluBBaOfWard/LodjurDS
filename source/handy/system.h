@@ -45,6 +45,7 @@
 // Define the global variable list
 //
 #define gSuzieDoneTime mikey_0.suzieDoneTime
+#define gAudioLastUpdateCycle mikey_0.audioLastUpdateCycle
 #define gSystemCPUSleep mikey_0.systemCPUSleep
 #ifdef SYSTEM_CPP
 	ULONG	gCPUBootAddress = 0;
@@ -63,7 +64,6 @@
 	UBYTE	*gAudioBuffer2; // UBYTE	gAudioBuffer2[HANDY_AUDIO_BUFFER_SIZE];
 	UBYTE	*gAudioBuffer3; // UBYTE	gAudioBuffer3[HANDY_AUDIO_BUFFER_SIZE];
 	ULONG	gAudioBufferPointer = 0;
-	ULONG	gAudioLastUpdateCycle = 0;
 
 	BOOL	gWindowInFocus = TRUE;
 #else
@@ -84,7 +84,6 @@
 	extern UBYTE	*gAudioBuffer2; // extern UBYTE	gAudioBuffer2[HANDY_AUDIO_BUFFER_SIZE];
 	extern UBYTE	*gAudioBuffer3; // extern UBYTE	gAudioBuffer3[HANDY_AUDIO_BUFFER_SIZE];
 	extern ULONG	gAudioBufferPointer;
-	extern ULONG	gAudioLastUpdateCycle;
 
 	extern BOOL		gWindowInFocus;
 #endif
