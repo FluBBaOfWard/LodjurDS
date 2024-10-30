@@ -59,7 +59,8 @@ void GpMain(void *args) {
 	while (newsystem != NULL) {
 
 		for (int i=0;i<1024;i++) {
-			newsystem->Update();
+			mikSysUpdate();
+//			newsystem->Update();
 		}
 		newsystem->SetButtonData( joy0_R() );
 
