@@ -121,10 +121,6 @@ class CMikie : public CLynxBase
 	private:
 		CSystem		&mSystem;
 
-		// Hardware storage
-
-		ULONG		mSTEREO;
-
 		//
 		// Serial related variables
 		//

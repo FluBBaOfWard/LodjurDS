@@ -6,14 +6,12 @@ extern "C" {
 #endif
 
 #include "ARMSuzy/ARMSuzy.h"
-#include "ARMMikey/ARMMikey.h"
 
 extern u8 gFlicker;
 extern u8 gTwitch;
 extern u8 gGfxMask;
 
 extern SUZY suzy_0;
-extern MIKEY mikey_0;
 extern u16 MAPPED_RGB[0x1000];
 extern u16 EMUPALBUFF[0x200];
 extern u32 GFX_DISPCNT;
@@ -28,8 +26,6 @@ void updateLCDRefresh(void);
 void gfxRefresh(void);
 u8 lnxSuzyRead(u16 adr);
 void lnxSuzyWrite(u16 adr, u8 value);
-u8 lnxMikeyRead(u16 adr);
-void lnxMikeyWrite(u16 adr, u8 value);
 
 #ifdef __cplusplus
 } // extern "C"

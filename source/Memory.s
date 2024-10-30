@@ -76,7 +76,7 @@ checkSusieW:
 	b ramPoke
 checkMikieW:
 	tst r3,#2
-	beq lnxMikeyWrite
+	beq mikeyWrite
 	b ramPoke
 checkVectorW:
 	ldr r2,=0xFFF8
@@ -121,7 +121,7 @@ checkSusieR:
 	b ramPeek
 checkMikieR:
 	tst r3,#2
-	beq lnxMikeyRead
+	beq mikeyRead
 	b ramPeek
 checkVectorR:
 	ldr r2,=0xFFF8

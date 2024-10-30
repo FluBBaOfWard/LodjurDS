@@ -9,8 +9,6 @@ extern "C" {
 
 extern u8 memSelector;
 
-//void pokeCPU(u32 addr, u8 value);
-//u8 peekCPU(u32 addr);
 void rom_W(u32 addr, u8 value);
 
 #ifdef __cplusplus

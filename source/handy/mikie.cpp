@@ -39,18 +39,12 @@
 #include "lynxdef.h"
 #include "nds.h"
 
-#define mTIM_0 mikey_0.timer0
-#define mTIM_1 mikey_0.timer1
-#define mTIM_2 mikey_0.timer2
-#define mTIM_3 mikey_0.timer3
 #define mTIM_4 mikey_0.timer4
-#define mTIM_5 mikey_0.timer5
-#define mTIM_6 mikey_0.timer6
-#define mTIM_7 mikey_0.timer7
 #define mAUDIO_0 mikey_0.audio0
 #define mAUDIO_1 mikey_0.audio1
 #define mAUDIO_2 mikey_0.audio2
 #define mAUDIO_3 mikey_0.audio3
+#define mSTEREO mikey_0.stereo
 
 
 void CMikie::BlowOut(void)
@@ -456,12 +450,6 @@ void CMikie::Poke(ULONG addr, UBYTE data)
 			TRACE_MIKIE2("Poke(AUD3MISC,%02x) at PC=%04x", data, mSystem.mCpu->GetPC());
 			break;
 
-		case (MSTEREO & 0xff):
-			data ^= 0xff;
-			mSTEREO = data;
-			TRACE_MIKIE2("Poke(MSTEREO,%02x) at PC=%04x", data, mSystem.mCpu->GetPC());
-			break;
-
 		case (SYSCTL1 & 0xff):
 			TRACE_MIKIE2("Poke(SYSCTL1 ,%02x) at PC=%04x", data, mSystem.mCpu->GetPC());
 			if (!(data & 0x02)) {
@@ -535,40 +523,6 @@ UBYTE CMikie::Peek(ULONG addr)
 {
 	switch(addr & 0xff)
 	{
-// Timer control registers
-/*		case (TIM0CNT & 0xff):
-			mikUpdate();
-			TRACE_MIKIE2("Peek(TIM0CNT  ,%02x) at PC=%04x", mTIM_0.CURRENT, mSystem.mCpu->GetPC());
-			return (UBYTE)mTIM_0.CURRENT;
-		case (TIM1CNT & 0xff):
-			mikUpdate();
-			TRACE_MIKIE2("Peek(TIM1CNT  ,%02x) at PC=%04x", mTIM_1.CURRENT, mSystem.mCpu->GetPC());
-			return (UBYTE)mTIM_1.CURRENT;
-		case (TIM2CNT & 0xff):
-			mikUpdate();
-			TRACE_MIKIE2("Peek(TIM2CNT  ,%02x) at PC=%04x", mTIM_2_CURRENT, mSystem.mCpu->GetPC());
-			return (UBYTE)mTIM_2.CURRENT;
-		case (TIM3CNT & 0xff):
-			mikUpdate();
-			TRACE_MIKIE2("Peek(TIM3CNT  ,%02x) at PC=%04x", mTIM_3_CURRENT, mSystem.mCpu->GetPC());
-			return (UBYTE)mTIM_3.CURRENT;
-		case (TIM4CNT & 0xff):
-			mikUpdate();
-			TRACE_MIKIE2("Peek(TIM4CNT  ,%02x) at PC=%04x", mTIM_4_CURRENT, mSystem.mCpu->GetPC());
-			return (UBYTE)mTIM_4.CURRENT;
-		case (TIM5CNT & 0xff):
-			mikUpdate();
-			TRACE_MIKIE2("Peek(TIM5CNT  ,%02x) at PC=%04x", mTIM_5_CURRENT, mSystem.mCpu->GetPC());
-			return (UBYTE)mTIM_5.CURRENT;
-		case (TIM6CNT & 0xff):
-			mikUpdate();
-			TRACE_MIKIE2("Peek(TIM6CNT  ,%02x) at PC=%04x", mTIM_6_CURRENT, mSystem.mCpu->GetPC());
-			return (UBYTE)mTIM_6.CURRENT;
-		case (TIM7CNT & 0xff):
-			mikUpdate();
-			TRACE_MIKIE2("Peek(TIM7CNT  ,%02x) at PC=%04x", mTIM_7_CURRENT, mSystem.mCpu->GetPC());
-			return (UBYTE)mTIM_7.CURRENT;
-*/
 // Audio control registers
 		case (AUD0VOL & 0xff):
 			TRACE_MIKIE2("Peek(AUD0VOL,%02x) at PC=%04x", (UBYTE)mAUDIO_0.VOLUME, mSystem.mCpu->GetPC());
@@ -718,10 +672,6 @@ UBYTE CMikie::Peek(ULONG addr)
 			}
 			break;
 
-		case (MSTEREO & 0xff):
-			TRACE_MIKIE2("Peek(MSTEREO,%02x) at PC=%04x", (UBYTE)mSTEREO ^ 0xff, mSystem.mCpu->GetPC());
-			return (UBYTE) mSTEREO ^ 0xff;
-
 // Miscellaneous registers
 
 		case (SERCTL & 0xff):
@@ -756,67 +706,11 @@ UBYTE CMikie::Peek(ULONG addr)
 			}
 			break;
 		default:
-			return lnxMikeyRead(addr);
+			return 0xFF;
 			break;
 	}
-	return lnxMikeyRead(addr);
+	return 0xFF;
 }
-/*
-void CMikie::Update(void)
-{
-	//
-	// To stop problems with cycle count wrap we will check and then correct the
-	// cycle counter.
-	//
-
-	if (gSystemCycleCount > 0xf0000000) {
-		gSystemCycleCount -= 0x80000000;
-		gAudioLastUpdateCycle -= 0x80000000;
-		mTIM_0.LAST_COUNT -= 0x80000000;
-		mTIM_1.LAST_COUNT -= 0x80000000;
-		mTIM_2.LAST_COUNT -= 0x80000000;
-		mTIM_3.LAST_COUNT -= 0x80000000;
-		mTIM_4.LAST_COUNT -= 0x80000000;
-		mTIM_5.LAST_COUNT -= 0x80000000;
-		mTIM_6.LAST_COUNT -= 0x80000000;
-		mTIM_7.LAST_COUNT -= 0x80000000;
-		mAUDIO_0.LAST_COUNT -= 0x80000000;
-		mAUDIO_1.LAST_COUNT -= 0x80000000;
-		mAUDIO_2.LAST_COUNT -= 0x80000000;
-		mAUDIO_3.LAST_COUNT -= 0x80000000;
-		// Only correct if sleep is active
-		if (gSuzieDoneTime) {
-			gSuzieDoneTime -= 0x80000000;
-		}
-	}
-
-	//	Timer updates, rolled out flat in group order
-	//
-	//	Group A:
-	//	Timer 0 -> Timer 2 -> Timer 4.
-	//
-	//	Group B:
-	//	Timer 1 -> Timer 3 -> Timer 5 -> Timer 7 -> Audio 0 -> Audio 1-> Audio 2 -> Audio 3 -> Timer 1.
-	//
-
-	//
-	// Within each timer code block we will predict the cycle count number of
-	// the next timer event
-	//
-	// We don't need to count linked timers as the timer they are linked
-	// from will always generate earlier events.
-	//
-	// As Timer 4 (UART) will generate many events we will ignore it
-	//
-	// We set the next event to the end of time at first and let the timers
-	// overload it. Any writes to timer controls will force next event to
-	// be immediate and hence a new prediction will be done. The prediction
-	// causes overflow as opposed to zero i.e. current+1
-	// (In reality T0 line counter should always be running.)
-	//
-
-	mikUpdate();
-}*/
 
 void CMikie::UpdateTimer4(void) {
 	int divide = 0;

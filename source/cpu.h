@@ -5,9 +5,10 @@
 extern "C" {
 #endif
 
-#include "ARMMikey/ARM6502/M6502.h"
+#include "ARMMikey/ARMMikey.h"
 
 extern M6502Core m6502_0;
+extern MIKEY mikey_0;
 extern u8 waitMaskIn;
 extern u8 waitMaskOut;
 

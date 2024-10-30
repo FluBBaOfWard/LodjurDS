@@ -3,7 +3,7 @@
 //#define EMBEDDED_ROM
 
 #include "ARMSuzy/ARMSuzy.i"
-#include "ARMMikey/ARM6502/M6502.i"
+#include "ARMMikey/ARMMikey.i"
 
 	.global cartFlags
 	.global romSpacePtr
@@ -82,7 +82,7 @@ loadCart: 					;@ Called from C
 	.type   loadCart STT_FUNC
 ;@----------------------------------------------------------------------------
 	stmfd sp!,{r4-r11,lr}
-	ldr m6502ptr,=m6502_0
+	ldr mikptr,=mikey_0
 
 	ldr r0,romSize
 	movs r1,r0,lsr#14			;@ 16kB blocks.

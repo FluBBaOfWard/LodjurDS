@@ -18,21 +18,16 @@
 	.global gfxInit
 	.global gfxReset
 	.global paletteInit
-	.global lodjurFrameCallback
-	.global lodjurRenderCallback
 	.global gfxRefresh
 	.global gfxEndFrame
 	.global vblIrqHandler
 	.global lnxSuzyRead
 	.global lnxSuzyWrite
-	.global lnxMikeyRead
-	.global lnxMikeyWrite
 	.global updateLCDRefresh
 	.global setScreenRefresh
 
 
 	.global suzy_0
-	.global mikey_0
 
 
 	.syntax unified
@@ -65,12 +60,12 @@ gfxReset:					;@ Called with CPU reset
 
 	bl gfxWinInit
 
-	ldr r0,=m6502SetNMIPin
-	ldr r1,=m6502SetIRQPin
+	ldr r0,=lodjurRenderCallback
+	ldr r1,=lodjurFrameCallback
 	ldr r2,=lynxRAM
 	ldr r3,=gSOC
 	ldrb r3,[r3]
-	bl miVideoReset0
+	bl miVideoReset
 
 	ldr r0,=gGammaValue
 	ldr r1,=gContrastValue
@@ -162,7 +157,6 @@ gammaConvert:	;@ Takes value in r0(0-0xFF), gamma in r1(0-4),returns new value i
 
 ;@----------------------------------------------------------------------------
 lodjurFrameCallback:		;@ (void)
-	.type lodjurFrameCallback STT_FUNC
 ;@----------------------------------------------------------------------------
 	mov r0,#0x06000000
 	ldr r1,=currentDest
@@ -174,7 +168,6 @@ lodjurFrameCallback:		;@ (void)
 
 ;@----------------------------------------------------------------------------
 lodjurRenderCallback:		;@ (UBYTE *ram, ULONG *palette, bool flip)
-	.type lodjurRenderCallback STT_FUNC
 ;@----------------------------------------------------------------------------
 	stmfd sp!,{r4-r7,lr}
 	ldr r4,=MAPPED_RGB
@@ -204,7 +197,7 @@ rendLoopFlip:
 	str r3,[r1],#4
 	subs r4,r4,#1
 	bne rendLoopFlip
-	add r1,r1,#(256-160)*2
+	add r1,r1,#(SCREEN_WIDTH-GAME_WIDTH)*2
 	str r1,[r7]
 	ldmfd sp!,{r4-r7,lr}
 	bx lr
@@ -218,7 +211,7 @@ rendLoop:
 	str r3,[r1],#4
 	subs r4,r4,#1
 	bne rendLoop
-	add r1,r1,#(256-160)*2
+	add r1,r1,#(SCREEN_WIDTH-GAME_WIDTH)*2
 	str r1,[r7]
 	ldmfd sp!,{r4-r7,lr}
 	bx lr
@@ -423,37 +416,8 @@ lnxSuzyWrite:
 	bx lr
 
 ;@----------------------------------------------------------------------------
-miVideoReset0:
-;@----------------------------------------------------------------------------
-	adr mikptr,mikey_0
-	b miVideoReset
-;@----------------------------------------------------------------------------
-lnxMikeyRead:
-	.type lnxMikeyRead STT_FUNC
-;@----------------------------------------------------------------------------
-	stmfd sp!,{r3,r12,lr}
-//	mov r0,r12
-	adr mikptr,mikey_0
-	bl mikeyRead
-	ldmfd sp!,{r3,r12,lr}
-	bx lr
-;@----------------------------------------------------------------------------
-lnxMikeyWrite:
-	.type lnxMikeyWrite STT_FUNC
-;@----------------------------------------------------------------------------
-	stmfd sp!,{r3,r12,lr}
-//	mov r1,r0
-//	mov r0,r12
-	adr mikptr,mikey_0
-	bl mikeyWrite
-	ldmfd sp!,{r3,r12,lr}
-	bx lr
-
-;@----------------------------------------------------------------------------
 suzy_0:
 	.space suzySize
-mikey_0:
-	.space mikeySize
 ;@----------------------------------------------------------------------------
 
 gfxState:

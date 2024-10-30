@@ -1,6 +1,6 @@
 #ifdef __arm__
 
-#include "ARMMikey/ARM6502/M6502.i"
+#include "ARMMikey/ARMMikey.i"
 #include "ARMSuzy/ARMSuzy.i"
 
 #define CYCLE_PSL (246*2)
@@ -8,6 +8,7 @@
 	.global waitMaskIn
 	.global waitMaskOut
 	.global m6502_0
+	.global mikey_0
 
 	.global run
 	.global stepFrame
@@ -165,7 +166,8 @@ cpuReset:					;@ Called by loadCart/resetGame
 	.align 2
 ;@----------------------------------------------------------------------------
 m6502_0:
-	.space m6502Size
+mikey_0:
+	.space mikeySize
 ;@----------------------------------------------------------------------------
 	.end
 #endif // #ifdef __arm__
