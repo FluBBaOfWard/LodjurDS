@@ -53,7 +53,6 @@
 #endif
 
 #include "nds.h"
-#include "../Gfx.h"
 #include "../Cpu.h"
 
 #define gSystemCycleCount mikey_0.systemCycleCount
@@ -61,27 +60,6 @@
 #define mIODAT_REST_SIGNAL mikey_0.iodatRestSignal
 
 class CSystem;
-
-#define MIKIE_START	0xfd00
-#define MIKIE_SIZE	0x100
-
-//
-// Define counter types and defines
-//
-
-#define CTRL_A_IRQEN	0x80
-#define CTRL_A_RTD		0x40
-#define CTRL_A_RELOAD	0x10
-#define CTRL_A_COUNT	0x08
-#define CTRL_A_DIVIDE	0x07
-
-#define CTRL_B_TDONE	0x08
-#define CTRL_B_LASTCK	0x04
-#define CTRL_B_CIN		0x02
-#define CTRL_B_COUT		0x01
-
-#define LINE_WIDTH		160
-#define	LINE_SIZE		80
 
 #define UART_TX_INACTIVE	0x80000000
 #define UART_RX_INACTIVE	0x80000000
@@ -140,16 +118,11 @@ class CMikie : public CLynxBase
 
 		int			mUART_Rx_input_queue[UART_MAX_RX_QUEUE];
 		unsigned int mUART_Rx_input_ptr;
-		unsigned int mUART_Rx_output_ptr =0;
+		unsigned int mUART_Rx_output_ptr = 0;
 		int			mUART_Rx_waiting;
 		int			mUART_Rx_framing_error;
 		int			mUART_Rx_overun_error;
 
-		//
-		// Screen related
-		//
-
-		void		(*mpRenderCallback)(UBYTE *ram, ULONG *palette, bool flip);
 };
 
 

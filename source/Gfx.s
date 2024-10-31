@@ -58,6 +58,9 @@ gfxReset:					;@ Called with CPU reset
 	mov r1,#5					;@ 5*4
 	bl memclr_					;@ Clear GFX regs
 
+	mov r0,#0x06000000
+	str r0,currentDest
+
 	bl gfxWinInit
 
 	ldr r0,=lodjurRenderCallback
@@ -159,8 +162,7 @@ gammaConvert:	;@ Takes value in r0(0-0xFF), gamma in r1(0-4),returns new value i
 lodjurFrameCallback:		;@ (void)
 ;@----------------------------------------------------------------------------
 	mov r0,#0x06000000
-	ldr r1,=currentDest
-	str r0,[r1]
+	str r0,currentDest
 	ldr r1,=gScreenUpdateRequired
 	mov r0,#1
 	strb r0,[r1]
@@ -169,7 +171,7 @@ lodjurFrameCallback:		;@ (void)
 ;@----------------------------------------------------------------------------
 lodjurRenderCallback:		;@ (UBYTE *ram, ULONG *palette, bool flip)
 ;@----------------------------------------------------------------------------
-	stmfd sp!,{r4-r7,lr}
+	stmfd sp!,{r4-r6,lr}
 	ldr r4,=MAPPED_RGB
 	ldr r5,=PAL_CACHE
 	mov r6,#16
@@ -181,8 +183,7 @@ palCacheLoop:
 	str r3,[r5,r6,lsl#2]
 	bne palCacheLoop
 
-	ldr r7,=currentDest
-	ldr r1,[r7]
+	ldr r1,currentDest
 
 	mov r4,#GAME_WIDTH/2
 	cmp r2,#0
@@ -198,9 +199,8 @@ rendLoopFlip:
 	subs r4,r4,#1
 	bne rendLoopFlip
 	add r1,r1,#(SCREEN_WIDTH-GAME_WIDTH)*2
-	str r1,[r7]
-	ldmfd sp!,{r4-r7,lr}
-	bx lr
+	str r1,currentDest
+	ldmfd sp!,{r4-r6,pc}
 rendLoop:
 	ldrb r2,[r0],#1
 	and r3,r2,#0x0F
@@ -212,9 +212,8 @@ rendLoop:
 	subs r4,r4,#1
 	bne rendLoop
 	add r1,r1,#(SCREEN_WIDTH-GAME_WIDTH)*2
-	str r1,[r7]
-	ldmfd sp!,{r4-r7,lr}
-	bx lr
+	str r1,currentDest
+	ldmfd sp!,{r4-r6,pc}
 
 ;@----------------------------------------------------------------------------
 updateLCDRefresh:
@@ -421,6 +420,7 @@ suzy_0:
 ;@----------------------------------------------------------------------------
 
 gfxState:
+currentDest:
 	.long 0
 	.long 0
 	.long 0,0

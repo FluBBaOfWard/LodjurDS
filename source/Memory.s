@@ -1,8 +1,7 @@
 #ifdef __arm__
 
 #include "ARMMikey/ARM6502/M6502mac.h"
-
-	.global memSelector
+#include "ARMMikey/ARMMikey.i"
 
 	.global pokeCPU
 	.global peekCPU
@@ -65,7 +64,7 @@ pokeCPU:
 	strb r1,[r2,r0]
 	bx lr
 checkIOW:
-	ldrb r3,memSelector
+	ldrb r3,[mikptr,#memSelector]
 	and r2,r0,#0x300
 	ldr pc,[pc,r2,lsr#6]
 	nop
@@ -86,7 +85,7 @@ checkVectorW:
 	add r2,r2,#1
 	cmp r0,r2			;@ 0xFFF9
 	andeq r1,r1,#0xF
-	strbeq r1,memSelector
+	strbeq r1,[mikptr,#memSelector]
 	bxeq lr
 	tst r3,#8
 	beq rom_W
@@ -110,7 +109,7 @@ peekCPU:
 	ldrb r0,[r1,r0]!
 	bx lr
 checkIOR:
-	ldrb r3,memSelector
+	ldrb r3,[mikptr,#memSelector]
 	and r2,r0,#0x300
 	ldr pc,[pc,r2,lsr#6]
 	nop
@@ -130,7 +129,7 @@ checkVectorR:
 	beq ramPeek
 	add r2,r2,#1
 	cmp r0,r2			;@ 0xFFF9
-	ldrbeq r0,memSelector
+	ldrbeq r0,[mikptr,#memSelector]
 	bxeq lr
 	tst r3,#8
 	beq romPeek
@@ -179,8 +178,5 @@ mem6502R7:					;@ Mem read ($E000-$FFFF)
 	ldmfd sp!,{r3,addy,pc}
 
 ;@----------------------------------------------------------------------------
-memSelector:
-	.byte 0
-	.align 2
 	.end
 #endif // #ifdef __arm__

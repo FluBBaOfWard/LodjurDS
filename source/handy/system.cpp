@@ -31,26 +31,20 @@
 
 #include <stdlib.h>
 #include "system.h"
-#include "../memory.h"
-#include "../cpu.h"
 
-extern UBYTE *romSpacePtr;
-
-CSystem::CSystem(const UBYTE *gamefile, int size, ULONG filetype, const char *romfile)
+CSystem::CSystem(UBYTE *gamefile, int size, ULONG filetype, const char *romfile)
 	:mCart(NULL),
 	mMikie(NULL),
 	mSusie(NULL)
 {
 	mFileType = filetype;
 
-	mCycleCountBreakpoint = 0xffffffff;
-
 	// Create the system objects that we'll use
 
 	// Attempt to load the cartridge
 
 	if (mFileType == HANDY_FILETYPE_LNX) {
-		mCart = new CCart(romSpacePtr, size);
+		mCart = new CCart(gamefile, size);
 		if (mCart->CartHeaderLess()) {
 			char drive[3];
 			char dir[256];
@@ -88,13 +82,9 @@ CSystem::~CSystem()
 	if (mSusie != NULL) delete mSusie;
 }
 
-
 void CSystem::Reset(void)
 {
 	gCPUBootAddress = 0;
-	gEmulatorAbort = FALSE;
-	gBreakpointHit = FALSE;
-	gSingleStepMode = FALSE;
 	gSystemNMI = FALSE;
 	gSystemHalt = FALSE;
 
@@ -104,15 +94,11 @@ void CSystem::Reset(void)
 //	memset(gAudioBuffer2, 128, HANDY_AUDIO_BUFFER_SIZE);
 //	memset(gAudioBuffer3, 128, HANDY_AUDIO_BUFFER_SIZE);
 
-	memset(lynxRAM, DEFAULT_RAM_CONTENTS, RAM_SIZE);
-
 #ifdef _LYNXDBG
 	gSystemHalt = TRUE;
 #endif
 
-	memSelector = 0;
 	mCart->Reset();
 	mMikie->Reset();
 	mSusie->Reset();
-	cpuReset();
 }

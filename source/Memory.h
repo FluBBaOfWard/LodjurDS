@@ -7,8 +7,6 @@ extern "C" {
 
 #include <nds.h>
 
-extern u8 memSelector;
-
 void rom_W(u32 addr, u8 value);
 
 #ifdef __cplusplus

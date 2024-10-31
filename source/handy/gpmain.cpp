@@ -8,6 +8,7 @@
 #include "../Shared/FileHelper.h"
 #include "../io.h"
 #include "../Gfx.h"
+#include "../ARMMikey/ARMMikey.h"
 
 extern "C" {
 u32 paintSprites(void);
@@ -16,12 +17,11 @@ void susiePoke(u32 addr, u8 data);
 void mikiePoke(u32 addr, u8 data);
 u8 susiePeek(u32 addr);
 u8 mikiePeek(u32 addr);
-void GpInit(const unsigned char *gamerom, int size);
+void GpInit(unsigned char *gamerom, int size);
 void GpDelete(void);
 void GpMain(void);
 }
 
-u16 *currentDest;
 bool gScreenUpdateRequired = false;
 
 CSystem *newsystem = NULL;
@@ -45,9 +45,8 @@ UBYTE mikiePeek(ULONG addr) {
 	return newsystem->mMikie->Peek(addr);
 }
 
-void GpInit(const unsigned char *gamerom, int size) {
+void GpInit(unsigned char *gamerom, int size) {
 	newsystem = new CSystem(gamerom, size, HANDY_FILETYPE_LNX, NULL);
-	currentDest = ((unsigned short *)0x06000000);
 }
 
 void GpDelete() {
@@ -58,14 +57,12 @@ void GpDelete() {
 }
 
 void GpMain() {
-	int hazard = 0;
 	while (newsystem != NULL) {
 
 		newsystem->SetButtonData( joy0_R() );
 		mikSysUpdate();
 
-		hazard += 1;
-		if (gScreenUpdateRequired || hazard > 30) {
+		if (gScreenUpdateRequired) {
 			gScreenUpdateRequired = FALSE;
 			return;
 		}

@@ -48,9 +48,6 @@
 #ifdef SYSTEM_CPP
 	ULONG	gCPUBootAddress = 0;
 	ULONG	gSingleStepModeSprites = FALSE;
-	BOOL	gEmulatorAbort = FALSE;
-	BOOL	gBreakpointHit = FALSE;
-	BOOL	gSingleStepMode = FALSE;
 	BOOL	gSystemNMI = FALSE;
 	BOOL	gSystemHalt = FALSE;
 
@@ -66,9 +63,6 @@
 
 	extern ULONG	gCPUBootAddress;
 	extern ULONG	gSingleStepModeSprites;
-	extern BOOL		gEmulatorAbort;
-	extern BOOL		gBreakpointHit;
-	extern BOOL		gSingleStepMode;
 	extern BOOL		gSystemNMI;
 	extern BOOL		gSystemHalt;
 
@@ -90,8 +84,6 @@ class CSystem;
 #include "lynxcart.h"
 #include "susie.h"
 #include "mikie.h"
-#include "../memory.h"
-#include "../cpu.h"
 
 #define RAM_SIZE				0x10000
 #define DEFAULT_RAM_CONTENTS	0xff
@@ -103,7 +95,7 @@ extern "C" {
 class CSystem : public CSystemBase
 {
 	public:
-		CSystem(const UBYTE *gamefile, int size, ULONG filetype, const char *romfile);
+		CSystem(UBYTE *gamefile, int size, ULONG filetype, const char *romfile);
 		~CSystem();
 
 	public:
@@ -149,11 +141,9 @@ class CSystem : public CSystemBase
 
 		void	SetButtonData(ULONG data) {mSusie->SetButtonData(data);};
 		ULONG	GetButtonData(void) {return mSusie->GetButtonData();};
-		void	SetCycleBreakpoint(ULONG breakpoint) {mCycleCountBreakpoint = breakpoint;};
 		UBYTE	*GetRamPointer(void) {return lynxRAM;};
 
 	public:
-		ULONG			mCycleCountBreakpoint;
 		CCart			*mCart;
 		CMikie			*mMikie;
 		CSusie			*mSusie;

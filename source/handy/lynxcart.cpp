@@ -95,79 +95,79 @@ CCart::CCart(UBYTE *gameData, ULONG gameSize)
 	switch(header.page_size_bank0)
 	{
 		case 0x000:
-//			banktype0=UNUSED;
-			mMaskBank0=0;
-			mShiftCount0=0;
-			mCountMask0=0;
+//			banktype0    = UNUSED;
+			mMaskBank0   = 0;
+			mShiftCount0 = 0;
+			mCountMask0  = 0;
 			break;
 		case 0x100:
-//			banktype0=C64K;
-			mMaskBank0=0x00ffff;
-			mShiftCount0=8;
-			mCountMask0=0x0ff;
+//			banktype0    = C64K;
+			mMaskBank0   = 0x00ffff;
+			mShiftCount0 = 8;
+			mCountMask0  = 0x0ff;
 			break;
 		case 0x200:
-//			banktype0=C128K;
-			mMaskBank0=0x01ffff;
-			mShiftCount0=9;
-			mCountMask0=0x1ff;
+//			banktype0    = C128K;
+			mMaskBank0   = 0x01ffff;
+			mShiftCount0 = 9;
+			mCountMask0  = 0x1ff;
 			break;
 		case 0x400:
-//			banktype0=C256K;
-			mMaskBank0=0x03ffff;
-			mShiftCount0=10;
-			mCountMask0=0x3ff;
+//			banktype0    = C256K;
+			mMaskBank0   = 0x03ffff;
+			mShiftCount0 = 10;
+			mCountMask0  = 0x3ff;
 			break;
 		case 0x800:
-//			banktype0=C512K;
-			mMaskBank0=0x07ffff;
-			mShiftCount0=11;
-			mCountMask0=0x7ff;
+//			banktype0    = C512K;
+			mMaskBank0   = 0x07ffff;
+			mShiftCount0 = 11;
+			mCountMask0  = 0x7ff;
 			break;
 		default:
-			mMaskBank0 = 0;
+			mMaskBank0   = 0;
 			mShiftCount0 = 0;
-			mCountMask0 = 0;
+			mCountMask0  = 0;
 			break;
 	}
 
 	switch(header.page_size_bank1)
 	{
 		case 0x000:
-			banktype1=UNUSED;
-			mMaskBank1=0;
-			mShiftCount1=0;
-			mCountMask1=0;
+			banktype1    = UNUSED;
+			mMaskBank1   = 0;
+			mShiftCount1 = 0;
+			mCountMask1  = 0;
 			break;
 		case 0x100:
-			banktype1=C64K;
-			mMaskBank1=0x00ffff;
-			mShiftCount1=8;
-			mCountMask1=0x0ff;
+			banktype1    = C64K;
+			mMaskBank1   = 0x00ffff;
+			mShiftCount1 = 8;
+			mCountMask1  = 0x0ff;
 			break;
 		case 0x200:
-			banktype1=C128K;
-			mMaskBank1=0x01ffff;
-			mShiftCount1=9;
-			mCountMask1=0x1ff;
+			banktype1    = C128K;
+			mMaskBank1   = 0x01ffff;
+			mShiftCount1 = 9;
+			mCountMask1  = 0x1ff;
 			break;
 		case 0x400:
-			banktype1=C256K;
-			mMaskBank1=0x03ffff;
-			mShiftCount1=10;
-			mCountMask1=0x3ff;
+			banktype1    = C256K;
+			mMaskBank1   = 0x03ffff;
+			mShiftCount1 = 10;
+			mCountMask1  = 0x3ff;
 			break;
 		case 0x800:
-			banktype1=C512K;
-			mMaskBank1=0x07ffff;
-			mShiftCount1=11;
-			mCountMask1=0x7ff;
+			banktype1    = C512K;
+			mMaskBank1   = 0x07ffff;
+			mShiftCount1 = 11;
+			mCountMask1  = 0x7ff;
 			break;
 		default:
-			banktype1 = UNUSED;
-			mMaskBank1 = 0;
+			banktype1    = UNUSED;
+			mMaskBank1   = 0;
 			mShiftCount1 = 0;
-			mCountMask1 = 0;
+			mCountMask1  = 0;
 			break;
 	}
 
