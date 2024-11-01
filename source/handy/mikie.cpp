@@ -50,9 +50,7 @@ void CMikie::ResetAudio(MAUDIO& audio)
 {
 	audio.BKUP = 0;
 	audio.CURRENT = 0;
-	audio.CTLB = 0;
 	audio.LAST_COUNT = 0;
-	audio.INTEGRATE_ENABLE = 0;
 	audio.WAVESHAPER = 0;
 }
 
@@ -231,8 +229,7 @@ void CMikie::Poke(ULONG addr, UBYTE data)
 			break;
 		case (AUD0CTL & 0xff):
 			mikey_0.aud0Ctl = data;
-			mAUDIO_0.INTEGRATE_ENABLE = data & 0x20;
-			if (data & 0x40) mAUDIO_0.CTLB &= ~TIMER_DONE;
+			if (data & 0x40) mikey_0.aud0Misc &= ~TIMER_DONE;
 			mAUDIO_0.WAVESHAPER &= 0x1fefff;
 			mAUDIO_0.WAVESHAPER |= (data & 0x80) ? 0x001000 : 0x000000;
 			if (data & 0x48) {
@@ -244,7 +241,7 @@ void CMikie::Poke(ULONG addr, UBYTE data)
 		case (AUD0MISC & 0xff):
 			mAUDIO_0.WAVESHAPER &= 0x1ff0ff;
 			mAUDIO_0.WAVESHAPER |= (data & 0xf0) << 4;
-			mAUDIO_0.CTLB = data & (BORROW_OUT | BORROW_IN | LAST_CLOCK);
+			mikey_0.aud0Misc = data & (BORROW_OUT | BORROW_IN | LAST_CLOCK);
 			TRACE_MIKIE2("Poke(AUD0MISC,%02x) at PC=%04x", data, mSystem.mCpu->GetPC());
 			break;
 
@@ -271,8 +268,7 @@ void CMikie::Poke(ULONG addr, UBYTE data)
 			break;
 		case (AUD1CTL & 0xff):
 			mikey_0.aud1Ctl = data;
-			mAUDIO_1.INTEGRATE_ENABLE = data & 0x20;
-			if (data & 0x40) mAUDIO_1.CTLB &= ~TIMER_DONE;
+			if (data & 0x40) mikey_0.aud1Misc &= ~TIMER_DONE;
 			mAUDIO_1.WAVESHAPER &= 0x1fefff;
 			mAUDIO_1.WAVESHAPER |= (data & 0x80) ? 0x001000 : 0x000000;
 			if (data & 0x48) {
@@ -284,7 +280,7 @@ void CMikie::Poke(ULONG addr, UBYTE data)
 		case (AUD1MISC & 0xff):
 			mAUDIO_1.WAVESHAPER &= 0x1ff0ff;
 			mAUDIO_1.WAVESHAPER |= (data & 0xf0) << 4;
-			mAUDIO_1.CTLB = data & (BORROW_OUT | BORROW_IN | LAST_CLOCK);
+			mikey_0.aud1Misc = data & (BORROW_OUT | BORROW_IN | LAST_CLOCK);
 			TRACE_MIKIE2("Poke(AUD1MISC,%02x) at PC=%04x", data, mSystem.mCpu->GetPC());
 			break;
 
@@ -311,8 +307,7 @@ void CMikie::Poke(ULONG addr, UBYTE data)
 			break;
 		case (AUD2CTL & 0xff):
 			mikey_0.aud2Ctl = data;
-			mAUDIO_2.INTEGRATE_ENABLE = data & 0x20;
-			if (data & 0x40) mAUDIO_2.CTLB &= ~TIMER_DONE;
+			if (data & 0x40) mikey_0.aud2Misc &= ~TIMER_DONE;
 			mAUDIO_2.WAVESHAPER &= 0x1fefff;
 			mAUDIO_2.WAVESHAPER |= (data & 0x80) ? 0x001000 : 0x000000;
 			if (data & 0x48) {
@@ -324,7 +319,7 @@ void CMikie::Poke(ULONG addr, UBYTE data)
 		case (AUD2MISC & 0xff):
 			mAUDIO_2.WAVESHAPER &= 0x1ff0ff;
 			mAUDIO_2.WAVESHAPER |= (data&0xf0) << 4;
-			mAUDIO_2.CTLB = data & (BORROW_OUT | BORROW_IN | LAST_CLOCK);
+			mikey_0.aud2Misc = data & (BORROW_OUT | BORROW_IN | LAST_CLOCK);
 			TRACE_MIKIE2("Poke(AUD2MISC,%02x) at PC=%04x", data, mSystem.mCpu->GetPC());
 			break;
 
@@ -350,9 +345,8 @@ void CMikie::Poke(ULONG addr, UBYTE data)
 			TRACE_MIKIE2("Poke(AUD3TBACK,%02x) at PC=%04x", data, mSystem.mCpu->GetPC());
 			break;
 		case (AUD3CTL & 0xff):
-			mikey_0.aud0Ctl = data;
-			mAUDIO_3.INTEGRATE_ENABLE = data & 0x20;
-			if (data & 0x40) mAUDIO_3.CTLB &= ~TIMER_DONE;
+			mikey_0.aud3Ctl = data;
+			if (data & 0x40) mikey_0.aud3Misc &= ~TIMER_DONE;
 			mAUDIO_3.WAVESHAPER &= 0x1fefff;
 			mAUDIO_3.WAVESHAPER |= (data & 0x80) ? 0x001000 : 0x000000;
 			if (data & 0x48) {
@@ -364,7 +358,7 @@ void CMikie::Poke(ULONG addr, UBYTE data)
 		case (AUD3MISC & 0xff):
 			mAUDIO_3.WAVESHAPER &= 0x1ff0ff;
 			mAUDIO_3.WAVESHAPER |= (data & 0xf0) << 4;
-			mAUDIO_3.CTLB = data & (BORROW_OUT | BORROW_IN | LAST_CLOCK);
+			mikey_0.aud3Misc = data & (BORROW_OUT | BORROW_IN | LAST_CLOCK);
 			TRACE_MIKIE2("Poke(AUD3MISC,%02x) at PC=%04x", data, mSystem.mCpu->GetPC());
 			break;
 
@@ -444,41 +438,29 @@ UBYTE CMikie::Peek(ULONG addr)
 // Audio control registers
 		case (AUD0CTL & 0xff):
 			{
-				UBYTE retval = 0;
+				UBYTE retval = (mikey_0.aud0Ctl & (CLOCK_SEL | ENABLE_COUNT | ENABLE_RELOAD | INTEGRATE));
 				retval |= (mAUDIO_0.WAVESHAPER & 0x001000) ? 0x80 : 0x00;
-				retval |= (mAUDIO_0.INTEGRATE_ENABLE) ? 0x20 : 0x00;
-				retval |= (mikey_0.aud0Ctl & (CLOCK_SEL | ENABLE_COUNT | ENABLE_RELOAD));
-				TRACE_MIKIE2("Peek(AUD0CTL,%02x) at PC=%04x", retval, mSystem.mCpu->GetPC());
 				return retval;
 			}
 			break;
 		case (AUD1CTL & 0xff):
 			{
-				UBYTE retval = 0;
+				UBYTE retval = (mikey_0.aud1Ctl & (CLOCK_SEL | ENABLE_COUNT | ENABLE_RELOAD | INTEGRATE));
 				retval |= (mAUDIO_1.WAVESHAPER & 0x001000) ? 0x80 : 0x00;
-				retval |= (mAUDIO_1.INTEGRATE_ENABLE) ? 0x20 : 0x00;
-				retval |= (mikey_0.aud1Ctl & (CLOCK_SEL | ENABLE_COUNT | ENABLE_RELOAD));
-				TRACE_MIKIE2("Peek(AUD1CTL,%02x) at PC=%04x", retval, mSystem.mCpu->GetPC());
 				return retval;
 			}
 			break;
 		case (AUD2CTL & 0xff):
 			{
-				UBYTE retval = 0;
+				UBYTE retval = (mikey_0.aud2Ctl & (CLOCK_SEL | ENABLE_COUNT | ENABLE_RELOAD | INTEGRATE));
 				retval |= (mAUDIO_2.WAVESHAPER & 0x001000) ? 0x80 : 0x00;
-				retval |= (mAUDIO_2.INTEGRATE_ENABLE) ? 0x20 : 0x00;
-				retval |= (mikey_0.aud2Ctl & (CLOCK_SEL | ENABLE_COUNT | ENABLE_RELOAD));
-				TRACE_MIKIE2("Peek(AUD2CTL,%02x) at PC=%04x", retval, mSystem.mCpu->GetPC());
 				return retval;
 			}
 			break;
 		case (AUD3CTL & 0xff):
 			{
-				UBYTE retval = 0;
+				UBYTE retval = (mikey_0.aud3Ctl & (CLOCK_SEL | ENABLE_COUNT | ENABLE_RELOAD | INTEGRATE));
 				retval |= (mAUDIO_3.WAVESHAPER & 0x001000) ? 0x80 : 0x00;
-				retval |= (mAUDIO_3.INTEGRATE_ENABLE) ? 0x20 : 0x00;
-				retval |= (mikey_0.aud3Ctl & (CLOCK_SEL | ENABLE_COUNT | ENABLE_RELOAD));
-				TRACE_MIKIE2("Peek(AUD3CTL,%02x) at PC=%04x", retval, mSystem.mCpu->GetPC());
 				return retval;
 			}
 			break;
@@ -748,8 +730,8 @@ void CMikie::UpdateSound(void) {
 	//
 	// Audio 0
 	//
-//	if ((mikey_0.aud0Ctl & ENABLE_COUNT) && !(mAUDIO_0.CTLB & TIMER_DONE) && mAUDIO_0.VOLUME && mAUDIO_0.BKUP)
-	if ((mikey_0.aud0Ctl & ENABLE_COUNT) && ((mikey_0.aud0Ctl & ENABLE_RELOAD) || !(mAUDIO_0.CTLB & TIMER_DONE)) && mikey_0.aud0Vol && mAUDIO_0.BKUP) {
+//	if ((mikey_0.aud0Ctl & ENABLE_COUNT) && !(mikey_0.aud0Misc & TIMER_DONE) && mAUDIO_0.VOLUME && mAUDIO_0.BKUP)
+	if ((mikey_0.aud0Ctl & ENABLE_COUNT) && ((mikey_0.aud0Ctl & ENABLE_RELOAD) || !(mikey_0.aud0Misc & TIMER_DONE)) && mikey_0.aud0Vol && mAUDIO_0.BKUP) {
 		decval = 0;
 
 		if ((mikey_0.aud0Ctl & CLOCK_SEL) == LINKING) {
@@ -767,7 +749,7 @@ void CMikie::UpdateSound(void) {
 			mAUDIO_0.CURRENT -= decval;
 			if (mAUDIO_0.CURRENT & 0x80000000) {
 				// Set carry out
-				mAUDIO_0.CTLB |= BORROW_OUT;
+				mikey_0.aud0Misc |= BORROW_OUT;
 
 				// Reload if neccessary
 				if (mikey_0.aud0Ctl & ENABLE_RELOAD) {
@@ -776,7 +758,7 @@ void CMikie::UpdateSound(void) {
 				}
 				else {
 					// Set timer done
-					mAUDIO_0.CTLB |= TIMER_DONE;
+					mikey_0.aud0Misc |= TIMER_DONE;
 					mAUDIO_0.CURRENT = 0;
 				}
 
@@ -785,7 +767,7 @@ void CMikie::UpdateSound(void) {
 				//
 				mAUDIO_0.WAVESHAPER = GetLfsrNext(mAUDIO_0.WAVESHAPER);
 
-				if (mAUDIO_0.INTEGRATE_ENABLE) {
+				if (mikey_0.aud0Ctl & INTEGRATE) {
 					SLONG temp = mikey_0.aud0OutVal;
 					if (mAUDIO_0.WAVESHAPER & 0x0001) temp += mikey_0.aud0Vol; else temp -= mikey_0.aud0Vol;
 					if (temp > 127) temp = 127;
@@ -797,15 +779,15 @@ void CMikie::UpdateSound(void) {
 				}
 			}
 			else {
-				mAUDIO_0.CTLB &= ~BORROW_OUT;
+				mikey_0.aud0Misc &= ~BORROW_OUT;
 			}
 			// Set carry in as we did a count
-			mAUDIO_0.CTLB |= BORROW_IN;
+			mikey_0.aud0Misc |= BORROW_IN;
 		}
 		else {
 			// Clear carry in as we didn't count
 			// Clear carry out
-			mAUDIO_0.CTLB &= ~(BORROW_OUT | BORROW_IN);
+			mikey_0.aud0Misc &= ~(BORROW_OUT | BORROW_IN);
 		}
 
 		// Prediction for next timer event cycle number
@@ -826,12 +808,12 @@ void CMikie::UpdateSound(void) {
 	//
 	// Audio 1
 	//
-//	if ((mikey_0.aud1Ctl & ENABLE_COUNT) && !(mAUDIO_1.CTLB & TIMER_DONE) && mikey_0.aud1Vol && mAUDIO_1.BKUP)
-	if ((mikey_0.aud1Ctl & ENABLE_COUNT) && ((mikey_0.aud1Ctl & ENABLE_RELOAD) || !(mAUDIO_1.CTLB & TIMER_DONE)) && mikey_0.aud1Vol && mAUDIO_1.BKUP) {
+//	if ((mikey_0.aud1Ctl & ENABLE_COUNT) && !(mikey_0.aud1Misc & TIMER_DONE) && mikey_0.aud1Vol && mAUDIO_1.BKUP)
+	if ((mikey_0.aud1Ctl & ENABLE_COUNT) && ((mikey_0.aud1Ctl & ENABLE_RELOAD) || !(mikey_0.aud1Misc & TIMER_DONE)) && mikey_0.aud1Vol && mAUDIO_1.BKUP) {
 		decval = 0;
 
 		if ((mikey_0.aud1Ctl & CLOCK_SEL) == LINKING) {
-			if (mAUDIO_0.CTLB & BORROW_OUT) decval = 1;
+			if (mikey_0.aud0Misc & BORROW_OUT) decval = 1;
 		}
 		else {
 			// Ordinary clocked mode as opposed to linked mode
@@ -845,7 +827,7 @@ void CMikie::UpdateSound(void) {
 			mAUDIO_1.CURRENT -= decval;
 			if (mAUDIO_1.CURRENT & 0x80000000) {
 				// Set carry out
-				mAUDIO_1.CTLB |= BORROW_OUT;
+				mikey_0.aud1Misc |= BORROW_OUT;
 
 				// Reload if neccessary
 				if (mikey_0.aud1Ctl & ENABLE_RELOAD) {
@@ -854,7 +836,7 @@ void CMikie::UpdateSound(void) {
 				}
 				else {
 					// Set timer done
-					mAUDIO_1.CTLB |= TIMER_DONE;
+					mikey_0.aud1Misc |= TIMER_DONE;
 					mAUDIO_1.CURRENT = 0;
 				}
 
@@ -863,7 +845,7 @@ void CMikie::UpdateSound(void) {
 				//
 				mAUDIO_1.WAVESHAPER = GetLfsrNext(mAUDIO_1.WAVESHAPER);
 
-				if (mAUDIO_1.INTEGRATE_ENABLE) {
+				if (mikey_0.aud1Ctl & INTEGRATE) {
 					SLONG temp = mikey_0.aud1OutVal;
 					if (mAUDIO_1.WAVESHAPER & 0x0001) temp += mikey_0.aud1Vol; else temp -= mikey_0.aud1Vol;
 					if (temp > 127) temp = 127;
@@ -875,15 +857,15 @@ void CMikie::UpdateSound(void) {
 				}
 			}
 			else {
-				mAUDIO_1.CTLB &= ~BORROW_OUT;
+				mikey_0.aud1Misc &= ~BORROW_OUT;
 			}
 			// Set carry in as we did a count
-			mAUDIO_1.CTLB |= BORROW_IN;
+			mikey_0.aud1Misc |= BORROW_IN;
 		}
 		else {
 			// Clear carry in as we didn't count
 			// Clear carry out
-			mAUDIO_1.CTLB &= ~(BORROW_OUT | BORROW_IN);
+			mikey_0.aud1Misc &= ~(BORROW_OUT | BORROW_IN);
 		}
 
 		// Prediction for next timer event cycle number
@@ -904,12 +886,12 @@ void CMikie::UpdateSound(void) {
 	//
 	// Audio 2
 	//
-//	if ((mikey_0.aud2Ctl & ENABLE_COUNT) && !(mAUDIO_2.CTLB & TIMER_DONE) && mikey_0.aud2Vol && mAUDIO_2.BKUP)
-	if ((mikey_0.aud2Ctl & ENABLE_COUNT) && ((mikey_0.aud2Ctl & ENABLE_RELOAD) || !(mAUDIO_2.CTLB & TIMER_DONE)) && mikey_0.aud2Vol && mAUDIO_2.BKUP) {
+//	if ((mikey_0.aud2Ctl & ENABLE_COUNT) && !(mikey_0.aud2Misc & TIMER_DONE) && mikey_0.aud2Vol && mAUDIO_2.BKUP)
+	if ((mikey_0.aud2Ctl & ENABLE_COUNT) && ((mikey_0.aud2Ctl & ENABLE_RELOAD) || !(mikey_0.aud2Misc & TIMER_DONE)) && mikey_0.aud2Vol && mAUDIO_2.BKUP) {
 		decval = 0;
 
 		if ((mikey_0.aud2Ctl & CLOCK_SEL) == LINKING) {
-			if (mAUDIO_1.CTLB & BORROW_OUT) decval = 1;
+			if (mikey_0.aud1Misc & BORROW_OUT) decval = 1;
 		}
 		else {
 			// Ordinary clocked mode as opposed to linked mode
@@ -923,7 +905,7 @@ void CMikie::UpdateSound(void) {
 			mAUDIO_2.CURRENT -= decval;
 			if (mAUDIO_2.CURRENT & 0x80000000) {
 				// Set carry out
-				mAUDIO_2.CTLB |= BORROW_OUT;
+				mikey_0.aud2Misc |= BORROW_OUT;
 
 				// Reload if neccessary
 				if (mikey_0.aud2Ctl & ENABLE_RELOAD) {
@@ -932,7 +914,7 @@ void CMikie::UpdateSound(void) {
 				}
 				else {
 					// Set timer done
-					mAUDIO_2.CTLB |= TIMER_DONE;
+					mikey_0.aud2Misc |= TIMER_DONE;
 					mAUDIO_2.CURRENT = 0;
 				}
 
@@ -941,7 +923,7 @@ void CMikie::UpdateSound(void) {
 				//
 				mAUDIO_2.WAVESHAPER = GetLfsrNext(mAUDIO_2.WAVESHAPER);
 
-				if (mAUDIO_2.INTEGRATE_ENABLE) {
+				if (mikey_0.aud2Ctl & INTEGRATE) {
 					SLONG temp = mikey_0.aud2OutVal;
 					if (mAUDIO_2.WAVESHAPER&0x0001) temp += mikey_0.aud2Vol; else temp -= mikey_0.aud2Vol;
 					if (temp > 127) temp = 127;
@@ -953,15 +935,15 @@ void CMikie::UpdateSound(void) {
 				}
 			}
 			else {
-				mAUDIO_2.CTLB &= ~BORROW_OUT;
+				mikey_0.aud2Misc &= ~BORROW_OUT;
 			}
 			// Set carry in as we did a count
-			mAUDIO_2.CTLB |= BORROW_IN;
+			mikey_0.aud2Misc |= BORROW_IN;
 		}
 		else {
 			// Clear carry in as we didn't count
 			// Clear carry out
-			mAUDIO_2.CTLB &= ~(BORROW_OUT | BORROW_IN);
+			mikey_0.aud2Misc &= ~(BORROW_OUT | BORROW_IN);
 		}
 
 		// Prediction for next timer event cycle number
@@ -982,12 +964,12 @@ void CMikie::UpdateSound(void) {
 	//
 	// Audio 3
 	//
-//	if ((mikey_0.aud3Ctl & ENABLE_COUNT) && !(mAUDIO_3.CTLB & TIMER_DONE) && mikey_0.aud3Vol && mAUDIO_3.BKUP)
-	if ((mikey_0.aud3Ctl & ENABLE_COUNT) && ((mikey_0.aud3Ctl & ENABLE_RELOAD) || !(mAUDIO_3.CTLB & TIMER_DONE)) && mikey_0.aud3Vol && mAUDIO_3.BKUP) {
+//	if ((mikey_0.aud3Ctl & ENABLE_COUNT) && !(mikey_0.aud3Misc & TIMER_DONE) && mikey_0.aud3Vol && mAUDIO_3.BKUP)
+	if ((mikey_0.aud3Ctl & ENABLE_COUNT) && ((mikey_0.aud3Ctl & ENABLE_RELOAD) || !(mikey_0.aud3Misc & TIMER_DONE)) && mikey_0.aud3Vol && mAUDIO_3.BKUP) {
 		decval = 0;
 
 		if ((mikey_0.aud3Ctl & CLOCK_SEL) == LINKING) {
-			if (mAUDIO_2.CTLB & BORROW_OUT) decval = 1;
+			if (mikey_0.aud2Misc & BORROW_OUT) decval = 1;
 		}
 		else {
 			// Ordinary clocked mode as opposed to linked mode
@@ -1001,7 +983,7 @@ void CMikie::UpdateSound(void) {
 			mAUDIO_3.CURRENT -= decval;
 			if (mAUDIO_3.CURRENT & 0x80000000) {
 				// Set carry out
-				mAUDIO_3.CTLB |= BORROW_OUT;
+				mikey_0.aud3Misc |= BORROW_OUT;
 
 				// Reload if neccessary
 				if (mikey_0.aud3Ctl & ENABLE_RELOAD) {
@@ -1010,7 +992,7 @@ void CMikie::UpdateSound(void) {
 				}
 				else {
 					// Set timer done
-					mAUDIO_3.CTLB |= TIMER_DONE;
+					mikey_0.aud3Misc |= TIMER_DONE;
 					mAUDIO_3.CURRENT = 0;
 				}
 
@@ -1019,7 +1001,7 @@ void CMikie::UpdateSound(void) {
 				//
 				mAUDIO_3.WAVESHAPER = GetLfsrNext(mAUDIO_3.WAVESHAPER);
 
-				if (mAUDIO_3.INTEGRATE_ENABLE) {
+				if (mikey_0.aud3Ctl & INTEGRATE) {
 					SLONG temp = mikey_0.aud3OutVal;
 					if (mAUDIO_3.WAVESHAPER & 0x0001) temp += mikey_0.aud3Vol; else temp -= mikey_0.aud3Vol;
 					if (temp > 127) temp = 127;
@@ -1031,15 +1013,15 @@ void CMikie::UpdateSound(void) {
 				}
 			}
 			else {
-				mAUDIO_3.CTLB &= ~BORROW_OUT;
+				mikey_0.aud3Misc &= ~BORROW_OUT;
 			}
 			// Set carry in as we did a count
-			mAUDIO_3.CTLB |= BORROW_IN;
+			mikey_0.aud3Misc |= BORROW_IN;
 		}
 		else {
 			// Clear carry in as we didn't count
 			// Clear carry out
-			mAUDIO_3.CTLB &= ~(BORROW_OUT | BORROW_IN);
+			mikey_0.aud3Misc &= ~(BORROW_OUT | BORROW_IN);
 		}
 
 		// Prediction for next timer event cycle number
