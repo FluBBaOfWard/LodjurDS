@@ -49,12 +49,9 @@
 void CMikie::ResetAudio(MAUDIO& audio)
 {
 	audio.BKUP = 0;
-	audio.CTLA = 0;
 	audio.CURRENT = 0;
 	audio.CTLB = 0;
 	audio.LAST_COUNT = 0;
-	audio.VOLUME = 0;
-	audio.OUTPUT = 0;
 	audio.INTEGRATE_ENABLE = 0;
 	audio.WAVESHAPER = 0;
 }
@@ -214,11 +211,11 @@ void CMikie::Poke(ULONG addr, UBYTE data)
 		case (AUD0VOL & 0xff):
 			// Counter is disabled when volume is zero for optimisation
 			// reasons, we must update the last use position to stop problems
-			if (!mAUDIO_0.VOLUME && data) {
+			if (!mikey_0.aud0Vol && data) {
 				mAUDIO_0.LAST_COUNT = gSystemCycleCount;
 				gNextTimerEvent = gSystemCycleCount;
 			}
-			mAUDIO_0.VOLUME = (SBYTE)data;
+			mikey_0.aud0Vol = (SBYTE)data;
 			TRACE_MIKIE2("Poke(AUD0VOL,%02x) at PC=%04x", data, mSystem.mCpu->GetPC());
 			break;
 		case (AUD0TBACK & 0xff):
@@ -233,7 +230,7 @@ void CMikie::Poke(ULONG addr, UBYTE data)
 			TRACE_MIKIE2("Poke(AUD0TBACK,%02x) at PC=%04x", data, mSystem.mCpu->GetPC());
 			break;
 		case (AUD0CTL & 0xff):
-			mAUDIO_0.CTLA = data;
+			mikey_0.aud0Ctl = data;
 			mAUDIO_0.INTEGRATE_ENABLE = data & 0x20;
 			if (data & 0x40) mAUDIO_0.CTLB &= ~TIMER_DONE;
 			mAUDIO_0.WAVESHAPER &= 0x1fefff;
@@ -254,11 +251,11 @@ void CMikie::Poke(ULONG addr, UBYTE data)
 		case (AUD1VOL & 0xff):
 			// Counter is disabled when volume is zero for optimisation
 			// reasons, we must update the last use position to stop problems
-			if (!mAUDIO_1.VOLUME && data) {
+			if (!mikey_0.aud1Vol && data) {
 				mAUDIO_1.LAST_COUNT = gSystemCycleCount;
 				gNextTimerEvent = gSystemCycleCount;
 			}
-			mAUDIO_1.VOLUME = (SBYTE)data;
+			mikey_0.aud1Vol = (SBYTE)data;
 			TRACE_MIKIE2("Poke(AUD1VOL,%02x) at PC=%04x", data, mSystem.mCpu->GetPC());
 			break;
 		case (AUD1TBACK & 0xff):
@@ -273,7 +270,7 @@ void CMikie::Poke(ULONG addr, UBYTE data)
 			TRACE_MIKIE2("Poke(AUD1TBACK,%02x) at PC=%04x", data, mSystem.mCpu->GetPC());
 			break;
 		case (AUD1CTL & 0xff):
-			mAUDIO_1.CTLA = data;
+			mikey_0.aud1Ctl = data;
 			mAUDIO_1.INTEGRATE_ENABLE = data & 0x20;
 			if (data & 0x40) mAUDIO_1.CTLB &= ~TIMER_DONE;
 			mAUDIO_1.WAVESHAPER &= 0x1fefff;
@@ -294,11 +291,11 @@ void CMikie::Poke(ULONG addr, UBYTE data)
 		case (AUD2VOL&0xff): 
 			// Counter is disabled when volume is zero for optimisation
 			// reasons, we must update the last use position to stop problems
-			if (!mAUDIO_2.VOLUME && data) {
+			if (!mikey_0.aud2Vol && data) {
 				mAUDIO_2.LAST_COUNT = gSystemCycleCount;
 				gNextTimerEvent = gSystemCycleCount;
 			}
-			mAUDIO_2.VOLUME = (SBYTE)data;
+			mikey_0.aud2Vol = (SBYTE)data;
 			TRACE_MIKIE2("Poke(AUD2VOL,%02x) at PC=%04x", data, mSystem.mCpu->GetPC());
 			break;
 		case (AUD2TBACK & 0xff):
@@ -313,7 +310,7 @@ void CMikie::Poke(ULONG addr, UBYTE data)
 			TRACE_MIKIE2("Poke(AUD2TBACK,%02x) at PC=%04x", data, mSystem.mCpu->GetPC());
 			break;
 		case (AUD2CTL & 0xff):
-			mAUDIO_2.CTLA = data;
+			mikey_0.aud2Ctl = data;
 			mAUDIO_2.INTEGRATE_ENABLE = data & 0x20;
 			if (data & 0x40) mAUDIO_2.CTLB &= ~TIMER_DONE;
 			mAUDIO_2.WAVESHAPER &= 0x1fefff;
@@ -334,11 +331,11 @@ void CMikie::Poke(ULONG addr, UBYTE data)
 		case (AUD3VOL & 0xff):
 			// Counter is disabled when volume is zero for optimisation
 			// reasons, we must update the last use position to stop problems
-			if (!mAUDIO_3.VOLUME && data) {
+			if (!mikey_0.aud3Vol && data) {
 				mAUDIO_3.LAST_COUNT = gSystemCycleCount;
 				gNextTimerEvent = gSystemCycleCount;
 			}
-			mAUDIO_3.VOLUME = (SBYTE)data;
+			mikey_0.aud3Vol = (SBYTE)data;
 			TRACE_MIKIE2("Poke(AUD3VOL,%02x) at PC=%04x", data, mSystem.mCpu->GetPC());
 			break;
 		case (AUD3TBACK & 0xff):
@@ -353,7 +350,7 @@ void CMikie::Poke(ULONG addr, UBYTE data)
 			TRACE_MIKIE2("Poke(AUD3TBACK,%02x) at PC=%04x", data, mSystem.mCpu->GetPC());
 			break;
 		case (AUD3CTL & 0xff):
-			mAUDIO_3.CTLA = data;
+			mikey_0.aud0Ctl = data;
 			mAUDIO_3.INTEGRATE_ENABLE = data & 0x20;
 			if (data & 0x40) mAUDIO_3.CTLB &= ~TIMER_DONE;
 			mAUDIO_3.WAVESHAPER &= 0x1fefff;
@@ -445,156 +442,48 @@ UBYTE CMikie::Peek(ULONG addr)
 	switch(addr & 0xff)
 	{
 // Audio control registers
-//		case (AUD0VOL & 0xff):
-//			TRACE_MIKIE2("Peek(AUD0VOL,%02x) at PC=%04x", (UBYTE)mAUDIO_0.VOLUME, mSystem.mCpu->GetPC());
-//			return (UBYTE)mAUDIO_0.VOLUME;
-//		case (AUD0SHFTFB & 0xff):
-//			TRACE_MIKIE2("Peek(AUD0SHFTFB,%02x) at PC=%04x", (UBYTE)(mAUDIO_0.WAVESHAPER >> 13) & 0xff, mSystem.mCpu->GetPC());
-//			return (UBYTE)((mAUDIO_0.WAVESHAPER >> 13) & 0xff);
-//		case (AUD0OUTVAL & 0xff):
-//			TRACE_MIKIE2("Peek(AUD0OUTVAL,%02x) at PC=%04x", (UBYTE)mAUDIO_0.OUTPUT, mSystem.mCpu->GetPC());
-//			return (UBYTE)mAUDIO_0.OUTPUT;
-//		case (AUD0L8SHFT & 0xff):
-//			TRACE_MIKIE2("Peek(AUD0L8SHFT,%02x) at PC=%04x", (UBYTE)(mAUDIO_0.WAVESHAPER & 0xff), mSystem.mCpu->GetPC());
-//			return (UBYTE)(mAUDIO_0.WAVESHAPER&0xff);
-//		case (AUD0TBACK & 0xff):
-//			TRACE_MIKIE2("Peek(AUD0TBACK,%02x) at PC=%04x", (UBYTE)mAUDIO_0.BKUP, mSystem.mCpu->GetPC());
-//			return (UBYTE)mAUDIO_0.BKUP;
 		case (AUD0CTL & 0xff):
 			{
 				UBYTE retval = 0;
 				retval |= (mAUDIO_0.WAVESHAPER & 0x001000) ? 0x80 : 0x00;
 				retval |= (mAUDIO_0.INTEGRATE_ENABLE) ? 0x20 : 0x00;
-				retval |= (mAUDIO_0.CTLA & (CLOCK_SEL | ENABLE_COUNT | ENABLE_RELOAD));
+				retval |= (mikey_0.aud0Ctl & (CLOCK_SEL | ENABLE_COUNT | ENABLE_RELOAD));
 				TRACE_MIKIE2("Peek(AUD0CTL,%02x) at PC=%04x", retval, mSystem.mCpu->GetPC());
 				return retval;
 			}
 			break;
-//		case (AUD0COUNT & 0xff):
-//			TRACE_MIKIE2("Peek(AUD0COUNT,%02x) at PC=%04x", (UBYTE)mAUDIO_0.CURRENT, mSystem.mCpu->GetPC());
-//			return (UBYTE)mAUDIO_0.CURRENT;
-//		case (AUD0MISC & 0xff):
-//			{
-//				UBYTE retval = (mAUDIO_0.CTLB & (BORROW_OUT | BORROW_IN | LAST_CLOCK | TIMER_DONE));
-//				retval |= (mAUDIO_0.WAVESHAPER >> 4) & 0xf0;
-//				TRACE_MIKIE2("Peek(AUD0MISC,%02x) at PC=%04x", retval, mSystem.mCpu->GetPC());
-//				return retval;
-//			}
-//			break;
-
-//		case (AUD1VOL & 0xff):
-//			TRACE_MIKIE2("Peek(AUD1VOL,%02x) at PC=%04x", (UBYTE)mAUDIO_1.VOLUME, mSystem.mCpu->GetPC());
-//			return (UBYTE)mAUDIO_1.VOLUME;
-//		case (AUD1SHFTFB & 0xff):
-//			TRACE_MIKIE2("Peek(AUD1SHFTFB,%02x) at PC=%04x", (UBYTE)(mAUDIO_1.WAVESHAPER >> 13) & 0xff, mSystem.mCpu->GetPC());
-//			return (UBYTE)((mAUDIO_1.WAVESHAPER >> 13) & 0xff);
-//		case (AUD1OUTVAL & 0xff):
-//			TRACE_MIKIE2("Peek(AUD1OUTVAL,%02x) at PC=%04x", (UBYTE)mAUDIO_1.OUTPUT, mSystem.mCpu->GetPC());
-//			return (UBYTE)mAUDIO_1.OUTPUT;
-//		case (AUD1L8SHFT & 0xff):
-//			TRACE_MIKIE2("Peek(AUD1L8SHFT,%02x) at PC=%04x", (UBYTE)(mAUDIO_1.WAVESHAPER & 0xff), mSystem.mCpu->GetPC());
-//			return (UBYTE)(mAUDIO_1.WAVESHAPER & 0xff);
-//		case (AUD1TBACK & 0xff):
-//			TRACE_MIKIE2("Peek(AUD1TBACK,%02x) at PC=%04x", (UBYTE)mAUDIO_1.BKUP, mSystem.mCpu->GetPC());
-//			return (UBYTE)mAUDIO_1.BKUP;
 		case (AUD1CTL & 0xff):
 			{
 				UBYTE retval = 0;
 				retval |= (mAUDIO_1.WAVESHAPER & 0x001000) ? 0x80 : 0x00;
 				retval |= (mAUDIO_1.INTEGRATE_ENABLE) ? 0x20 : 0x00;
-				retval |= (mAUDIO_1.CTLA & (CLOCK_SEL | ENABLE_COUNT | ENABLE_RELOAD));
+				retval |= (mikey_0.aud1Ctl & (CLOCK_SEL | ENABLE_COUNT | ENABLE_RELOAD));
 				TRACE_MIKIE2("Peek(AUD1CTL,%02x) at PC=%04x", retval, mSystem.mCpu->GetPC());
 				return retval;
 			}
 			break;
-//		case (AUD1COUNT & 0xff):
-//			TRACE_MIKIE2("Peek(AUD1COUNT,%02x) at PC=%04x", (UBYTE)mAUDIO_1.CURRENT, mSystem.mCpu->GetPC());
-//			return (UBYTE)mAUDIO_1.CURRENT;
-//		case (AUD1MISC & 0xff):
-//			{
-//				UBYTE retval = (mAUDIO_1.CTLB & (BORROW_OUT | BORROW_IN | LAST_CLOCK | TIMER_DONE));
-//				retval |= (mAUDIO_1.WAVESHAPER >> 4) & 0xf0;
-//				TRACE_MIKIE2("Peek(AUD1MISC,%02x) at PC=%04x", retval, mSystem.mCpu->GetPC());
-//				return retval;
-//			}
-//			break;
-
-//		case (AUD2VOL & 0xff):
-//			TRACE_MIKIE2("Peek(AUD2VOL,%02x) at PC=%04x", (UBYTE)mAUDIO_2.VOLUME, mSystem.mCpu->GetPC());
-//			return (UBYTE)mAUDIO_2.VOLUME;
-//		case (AUD2SHFTFB & 0xff):
-//			TRACE_MIKIE2("Peek(AUD2SHFTFB,%02x) at PC=%04x", (UBYTE)(mAUDIO_2.WAVESHAPER >> 13) & 0xff, mSystem.mCpu->GetPC());
-//			return (UBYTE)((mAUDIO_2.WAVESHAPER >> 13) & 0xff);
-//		case (AUD2OUTVAL & 0xff):
-//			TRACE_MIKIE2("Peek(AUD2OUTVAL,%02x) at PC=%04x", (UBYTE)mAUDIO_2.OUTPUT, mSystem.mCpu->GetPC());
-//			return (UBYTE)mAUDIO_2.OUTPUT;
-//		case (AUD2L8SHFT&0xff):
-//			TRACE_MIKIE2("Peek(AUD2L8SHFT,%02x) at PC=%04x", (UBYTE)(mAUDIO_2.WAVESHAPER & 0xff), mSystem.mCpu->GetPC());
-//			return (UBYTE)(mAUDIO_2.WAVESHAPER & 0xff);
-//		case (AUD2TBACK & 0xff):
-//			TRACE_MIKIE2("Peek(AUD2TBACK,%02x) at PC=%04x", (UBYTE)mAUDIO_2.BKUP, mSystem.mCpu->GetPC());
-//			return (UBYTE)mAUDIO_2.BKUP;
 		case (AUD2CTL & 0xff):
 			{
 				UBYTE retval = 0;
 				retval |= (mAUDIO_2.WAVESHAPER & 0x001000) ? 0x80 : 0x00;
 				retval |= (mAUDIO_2.INTEGRATE_ENABLE) ? 0x20 : 0x00;
-				retval |= (mAUDIO_2.CTLA & (CLOCK_SEL | ENABLE_COUNT | ENABLE_RELOAD));
+				retval |= (mikey_0.aud2Ctl & (CLOCK_SEL | ENABLE_COUNT | ENABLE_RELOAD));
 				TRACE_MIKIE2("Peek(AUD2CTL,%02x) at PC=%04x", retval, mSystem.mCpu->GetPC());
 				return retval;
 			}
 			break;
-//		case (AUD2COUNT & 0xff):
-//			TRACE_MIKIE2("Peek(AUD2COUNT,%02x) at PC=%04x", (UBYTE)mAUDIO_2.CURRENT, mSystem.mCpu->GetPC());
-//			return (UBYTE)mAUDIO_2.CURRENT;
-//		case (AUD2MISC & 0xff):
-//			{
-//				UBYTE retval = (mAUDIO_2.CTLB & (BORROW_OUT | BORROW_IN | LAST_CLOCK | TIMER_DONE));
-//				retval |= (mAUDIO_2.WAVESHAPER >> 4) & 0xf0;
-//				TRACE_MIKIE2("Peek(AUD2MISC,%02x) at PC=%04x", retval, mSystem.mCpu->GetPC());
-//				return retval;
-//			}
-//			break;
-
-//		case (AUD3VOL & 0xff):
-//			TRACE_MIKIE2("Peek(AUD3VOL,%02x) at PC=%04x", (UBYTE)mAUDIO_3.VOLUME, mSystem.mCpu->GetPC());
-//			return (UBYTE)mAUDIO_3.VOLUME;
-//		case (AUD3SHFTFB & 0xff):
-//			TRACE_MIKIE2("Peek(AUD3SHFTFB,%02x) at PC=%04x", (UBYTE)(mAUDIO_3.WAVESHAPER >> 13) & 0xff, mSystem.mCpu->GetPC());
-//			return (UBYTE)((mAUDIO_3.WAVESHAPER >> 13) & 0xff);
-//		case (AUD3OUTVAL & 0xff):
-//			TRACE_MIKIE2("Peek(AUD3OUTVAL,%02x) at PC=%04x", (UBYTE)mAUDIO_3.OUTPUT, mSystem.mCpu->GetPC());
-//			return (UBYTE)mAUDIO_3.OUTPUT;
-//		case (AUD3L8SHFT & 0xff):
-//			TRACE_MIKIE2("Peek(AUD3L8SHFT,%02x) at PC=%04x", (UBYTE)(mAUDIO_3.WAVESHAPER & 0xff), mSystem.mCpu->GetPC());
-//			return (UBYTE)(mAUDIO_3.WAVESHAPER & 0xff);
-//		case (AUD3TBACK & 0xff):
-//			TRACE_MIKIE2("Peek(AUD3TBACK,%02x) at PC=%04x", (UBYTE)mAUDIO_3.BKUP, mSystem.mCpu->GetPC());
-//			return (UBYTE)mAUDIO_3.BKUP;
 		case (AUD3CTL & 0xff):
 			{
 				UBYTE retval = 0;
 				retval |= (mAUDIO_3.WAVESHAPER & 0x001000) ? 0x80 : 0x00;
 				retval |= (mAUDIO_3.INTEGRATE_ENABLE) ? 0x20 : 0x00;
-				retval |= (mAUDIO_3.CTLA & (CLOCK_SEL | ENABLE_COUNT | ENABLE_RELOAD));
+				retval |= (mikey_0.aud3Ctl & (CLOCK_SEL | ENABLE_COUNT | ENABLE_RELOAD));
 				TRACE_MIKIE2("Peek(AUD3CTL,%02x) at PC=%04x", retval, mSystem.mCpu->GetPC());
 				return retval;
 			}
 			break;
-//		case (AUD3COUNT & 0xff):
-//			TRACE_MIKIE2("Peek(AUD3COUNT,%02x) at PC=%04x", (UBYTE)mAUDIO_3.CURRENT, mSystem.mCpu->GetPC());
-//			return (UBYTE)mAUDIO_3.CURRENT;
-//		case (AUD3MISC & 0xff):
-//			{
-//				UBYTE retval = (mAUDIO_3.CTLB & (BORROW_OUT | BORROW_IN | LAST_CLOCK | TIMER_DONE));
-//				retval |= (mAUDIO_3.WAVESHAPER >> 4) & 0xf0;
-//				TRACE_MIKIE2("Peek(AUD3MISC,%02x) at PC=%04x", retval, mSystem.mCpu->GetPC());
-//				return retval;
-//			}
-//			break;
 
 // Miscellaneous registers
-
 		case (SERCTL & 0xff):
 			{
 				ULONG retval = 0;
@@ -817,10 +706,10 @@ void CMikie::UpdateSound(void) {
 
 	/*
 	sample = 0;
-	if (mSTEREO & 0x11) { sample += mAUDIO_0.OUTPUT; mix++; }
-	if (mSTEREO & 0x22) { sample += mAUDIO_1.OUTPUT; mix++; }
-	if (mSTEREO & 0x44) { sample += mAUDIO_2.OUTPUT; mix++; }
-	if (mSTEREO & 0x88) { sample += mAUDIO_3.OUTPUT; mix++; }
+	if (mSTEREO & 0x11) { sample += mikey_0.aud0OutVal; mix++; }
+	if (mSTEREO & 0x22) { sample += mikey_0.aud1OutVal; mix++; }
+	if (mSTEREO & 0x44) { sample += mikey_0.aud2OutVal; mix++; }
+	if (mSTEREO & 0x88) { sample += mikey_0.aud3OutVal; mix++; }
 	if (mix) {
 		sample += 128 * mix; // Correct for sign
 		sample /= mix;	// Keep the audio volume at max
@@ -829,10 +718,10 @@ void CMikie::UpdateSound(void) {
 		sample = 128;
 	}
 
-//	sample += (mSTEREO & 0x11) ? mAUDIO_0.OUTPUT : 0;
-//	sample += (mSTEREO & 0x22) ? mAUDIO_1.OUTPUT : 0;
-//	sample += (mSTEREO & 0x44) ? mAUDIO_2.OUTPUT : 0;
-//	sample += (mSTEREO & 0x88) ? mAUDIO_3.OUTPUT : 0;
+//	sample += (mSTEREO & 0x11) ? mikey_0.aud0OutVal : 0;
+//	sample += (mSTEREO & 0x22) ? mikey_0.aud1OutVal : 0;
+//	sample += (mSTEREO & 0x44) ? mikey_0.aud2OutVal : 0;
+//	sample += (mSTEREO & 0x88) ? mikey_0.aud3OutVal : 0;
 //	sample = sample >> 2;
 //	sample += 128;
 	*/
@@ -840,10 +729,10 @@ void CMikie::UpdateSound(void) {
 	for (;gAudioLastUpdateCycle+HANDY_AUDIO_SAMPLE_PERIOD < gSystemCycleCount;gAudioLastUpdateCycle += HANDY_AUDIO_SAMPLE_PERIOD) {
 		// Output audio sample
 //		gAudioBuffer[gAudioBufferPointer++] = (UBYTE)sample;
-		gAudioBuffer0[gAudioBufferPointer] = (mSTEREO & 0x11) ? mAUDIO_0.OUTPUT : 0;
-		gAudioBuffer1[gAudioBufferPointer] = (mSTEREO & 0x22) ? mAUDIO_1.OUTPUT : 0;
-		gAudioBuffer2[gAudioBufferPointer] = (mSTEREO & 0x33) ? mAUDIO_2.OUTPUT : 0;
-		gAudioBuffer3[gAudioBufferPointer++] = (mSTEREO & 0x44) ? mAUDIO_3.OUTPUT : 0;
+		gAudioBuffer0[gAudioBufferPointer] = (mSTEREO & 0x11) ? mikey_0.aud0OutVal : 0;
+		gAudioBuffer1[gAudioBufferPointer] = (mSTEREO & 0x22) ? mikey_0.aud1OutVal : 0;
+		gAudioBuffer2[gAudioBufferPointer] = (mSTEREO & 0x33) ? mikey_0.aud2OutVal : 0;
+		gAudioBuffer3[gAudioBufferPointer++] = (mSTEREO & 0x44) ? mikey_0.aud3OutVal : 0;
 
 		// Check buffer overflow condition, stick at the endpoint
 		// teh audio output system will reset the input pointer
@@ -859,17 +748,17 @@ void CMikie::UpdateSound(void) {
 	//
 	// Audio 0
 	//
-//	if ((mAUDIO_0.CTLA & ENABLE_COUNT) && !(mAUDIO_0.CTLB & TIMER_DONE) && mAUDIO_0.VOLUME && mAUDIO_0.BKUP)
-	if ((mAUDIO_0.CTLA & ENABLE_COUNT) && ((mAUDIO_0.CTLA & ENABLE_RELOAD) || !(mAUDIO_0.CTLB & TIMER_DONE)) && mAUDIO_0.VOLUME && mAUDIO_0.BKUP) {
+//	if ((mikey_0.aud0Ctl & ENABLE_COUNT) && !(mAUDIO_0.CTLB & TIMER_DONE) && mAUDIO_0.VOLUME && mAUDIO_0.BKUP)
+	if ((mikey_0.aud0Ctl & ENABLE_COUNT) && ((mikey_0.aud0Ctl & ENABLE_RELOAD) || !(mAUDIO_0.CTLB & TIMER_DONE)) && mikey_0.aud0Vol && mAUDIO_0.BKUP) {
 		decval = 0;
 
-		if ((mAUDIO_0.CTLA & CLOCK_SEL) == LINKING) {
+		if ((mikey_0.aud0Ctl & CLOCK_SEL) == LINKING) {
 			if (mikey_0.tim7CtlB & BORROW_OUT) decval = 1;
 		}
 		else {
 			// Ordinary clocked mode as opposed to linked mode
 			// 16MHz clock downto 1us == cyclecount >> 4
-			divide = (4 + (mAUDIO_0.CTLA & CLOCK_SEL));
+			divide = (4 + (mikey_0.aud0Ctl & CLOCK_SEL));
 			decval = (gSystemCycleCount - mAUDIO_0.LAST_COUNT) >> divide;
 		}
 
@@ -881,7 +770,7 @@ void CMikie::UpdateSound(void) {
 				mAUDIO_0.CTLB |= BORROW_OUT;
 
 				// Reload if neccessary
-				if (mAUDIO_0.CTLA & ENABLE_RELOAD) {
+				if (mikey_0.aud0Ctl & ENABLE_RELOAD) {
 					mAUDIO_0.CURRENT += mAUDIO_0.BKUP + 1;
 					if (mAUDIO_0.CURRENT & 0x80000000) mAUDIO_0.CURRENT = 0;
 				}
@@ -897,14 +786,14 @@ void CMikie::UpdateSound(void) {
 				mAUDIO_0.WAVESHAPER = GetLfsrNext(mAUDIO_0.WAVESHAPER);
 
 				if (mAUDIO_0.INTEGRATE_ENABLE) {
-					SLONG temp = mAUDIO_0.OUTPUT;
-					if (mAUDIO_0.WAVESHAPER & 0x0001) temp += mAUDIO_0.VOLUME; else temp -= mAUDIO_0.VOLUME;
+					SLONG temp = mikey_0.aud0OutVal;
+					if (mAUDIO_0.WAVESHAPER & 0x0001) temp += mikey_0.aud0Vol; else temp -= mikey_0.aud0Vol;
 					if (temp > 127) temp = 127;
-					if (temp <- 128) temp = -128;
-					mAUDIO_0.OUTPUT = (SBYTE)temp;
+					if (temp < -128) temp = -128;
+					mikey_0.aud0OutVal = (SBYTE)temp;
 				}
 				else {
-					if (mAUDIO_0.WAVESHAPER & 0x0001) mAUDIO_0.OUTPUT = mAUDIO_0.VOLUME; else mAUDIO_0.OUTPUT = -mAUDIO_0.VOLUME;
+					if (mAUDIO_0.WAVESHAPER & 0x0001) mikey_0.aud0OutVal = mikey_0.aud0Vol; else mikey_0.aud0OutVal = -mikey_0.aud0Vol;
 				}
 			}
 			else {
@@ -921,7 +810,7 @@ void CMikie::UpdateSound(void) {
 
 		// Prediction for next timer event cycle number
 
-		if ((mAUDIO_0.CTLA & CLOCK_SEL) != LINKING) {
+		if ((mikey_0.aud0Ctl & CLOCK_SEL) != LINKING) {
 			// Sometimes timeupdates can be >2x rollover in which case
 			// then CURRENT may still be negative and we can use it to
 			// calc the next timer value, we just want another update ASAP
@@ -937,17 +826,17 @@ void CMikie::UpdateSound(void) {
 	//
 	// Audio 1
 	//
-//	if ((mAUDIO_1.CTLA & ENABLE_COUNT) && !(mAUDIO_1.CTLB & TIMER_DONE) && mAUDIO_1.VOLUME && mAUDIO_1.BKUP)
-	if ((mAUDIO_1.CTLA & ENABLE_COUNT) && ((mAUDIO_1.CTLA & ENABLE_RELOAD) || !(mAUDIO_1.CTLB & TIMER_DONE)) && mAUDIO_1.VOLUME && mAUDIO_1.BKUP) {
+//	if ((mikey_0.aud1Ctl & ENABLE_COUNT) && !(mAUDIO_1.CTLB & TIMER_DONE) && mikey_0.aud1Vol && mAUDIO_1.BKUP)
+	if ((mikey_0.aud1Ctl & ENABLE_COUNT) && ((mikey_0.aud1Ctl & ENABLE_RELOAD) || !(mAUDIO_1.CTLB & TIMER_DONE)) && mikey_0.aud1Vol && mAUDIO_1.BKUP) {
 		decval = 0;
 
-		if ((mAUDIO_1.CTLA & CLOCK_SEL) == LINKING) {
+		if ((mikey_0.aud1Ctl & CLOCK_SEL) == LINKING) {
 			if (mAUDIO_0.CTLB & BORROW_OUT) decval = 1;
 		}
 		else {
 			// Ordinary clocked mode as opposed to linked mode
 			// 16MHz clock downto 1us == cyclecount >> 4
-			divide = (4 + (mAUDIO_1.CTLA & CLOCK_SEL));
+			divide = (4 + (mikey_0.aud1Ctl & CLOCK_SEL));
 			decval = (gSystemCycleCount - mAUDIO_1.LAST_COUNT) >> divide;
 		}
 
@@ -959,7 +848,7 @@ void CMikie::UpdateSound(void) {
 				mAUDIO_1.CTLB |= BORROW_OUT;
 
 				// Reload if neccessary
-				if (mAUDIO_1.CTLA & ENABLE_RELOAD) {
+				if (mikey_0.aud1Ctl & ENABLE_RELOAD) {
 					mAUDIO_1.CURRENT += mAUDIO_1.BKUP+1;
 					if (mAUDIO_1.CURRENT & 0x80000000) mAUDIO_1.CURRENT = 0;
 				}
@@ -975,14 +864,14 @@ void CMikie::UpdateSound(void) {
 				mAUDIO_1.WAVESHAPER = GetLfsrNext(mAUDIO_1.WAVESHAPER);
 
 				if (mAUDIO_1.INTEGRATE_ENABLE) {
-					SLONG temp = mAUDIO_1.OUTPUT;
-					if (mAUDIO_1.WAVESHAPER & 0x0001) temp += mAUDIO_1.VOLUME; else temp -= mAUDIO_1.VOLUME;
+					SLONG temp = mikey_0.aud1OutVal;
+					if (mAUDIO_1.WAVESHAPER & 0x0001) temp += mikey_0.aud1Vol; else temp -= mikey_0.aud1Vol;
 					if (temp > 127) temp = 127;
 					if (temp < -128) temp = -128;
-					mAUDIO_1.OUTPUT = (SBYTE)temp;
+					mikey_0.aud1OutVal = (SBYTE)temp;
 				}
 				else {
-					if (mAUDIO_1.WAVESHAPER & 0x0001) mAUDIO_1.OUTPUT = mAUDIO_1.VOLUME; else mAUDIO_1.OUTPUT = -mAUDIO_1.VOLUME;
+					if (mAUDIO_1.WAVESHAPER & 0x0001) mikey_0.aud1OutVal = mikey_0.aud1Vol; else mikey_0.aud1OutVal = -mikey_0.aud1Vol;
 				}
 			}
 			else {
@@ -999,7 +888,7 @@ void CMikie::UpdateSound(void) {
 
 		// Prediction for next timer event cycle number
 
-		if ((mAUDIO_1.CTLA & CLOCK_SEL) != LINKING) {
+		if ((mikey_0.aud1Ctl & CLOCK_SEL) != LINKING) {
 			// Sometimes timeupdates can be >2x rollover in which case
 			// then CURRENT may still be negative and we can use it to
 			// calc the next timer value, we just want another update ASAP
@@ -1015,17 +904,17 @@ void CMikie::UpdateSound(void) {
 	//
 	// Audio 2
 	//
-//	if ((mAUDIO_2.CTLA & ENABLE_COUNT) && !(mAUDIO_2.CTLB & TIMER_DONE) && mAUDIO_2.VOLUME && mAUDIO_2.BKUP)
-	if ((mAUDIO_2.CTLA & ENABLE_COUNT) && ((mAUDIO_2.CTLA & ENABLE_RELOAD) || !(mAUDIO_2.CTLB & TIMER_DONE)) && mAUDIO_2.VOLUME && mAUDIO_2.BKUP) {
+//	if ((mikey_0.aud2Ctl & ENABLE_COUNT) && !(mAUDIO_2.CTLB & TIMER_DONE) && mikey_0.aud2Vol && mAUDIO_2.BKUP)
+	if ((mikey_0.aud2Ctl & ENABLE_COUNT) && ((mikey_0.aud2Ctl & ENABLE_RELOAD) || !(mAUDIO_2.CTLB & TIMER_DONE)) && mikey_0.aud2Vol && mAUDIO_2.BKUP) {
 		decval = 0;
 
-		if ((mAUDIO_2.CTLA & CLOCK_SEL) == LINKING) {
+		if ((mikey_0.aud2Ctl & CLOCK_SEL) == LINKING) {
 			if (mAUDIO_1.CTLB & BORROW_OUT) decval = 1;
 		}
 		else {
 			// Ordinary clocked mode as opposed to linked mode
 			// 16MHz clock downto 1us == cyclecount >> 4
-			divide = (4 + (mAUDIO_2.CTLA & CLOCK_SEL));
+			divide = (4 + (mikey_0.aud2Ctl & CLOCK_SEL));
 			decval = (gSystemCycleCount - mAUDIO_2.LAST_COUNT) >> divide;
 		}
 
@@ -1037,7 +926,7 @@ void CMikie::UpdateSound(void) {
 				mAUDIO_2.CTLB |= BORROW_OUT;
 
 				// Reload if neccessary
-				if (mAUDIO_2.CTLA & ENABLE_RELOAD) {
+				if (mikey_0.aud2Ctl & ENABLE_RELOAD) {
 					mAUDIO_2.CURRENT += mAUDIO_2.BKUP + 1;
 					if (mAUDIO_2.CURRENT & 0x80000000) mAUDIO_2.CURRENT = 0;
 				}
@@ -1053,14 +942,14 @@ void CMikie::UpdateSound(void) {
 				mAUDIO_2.WAVESHAPER = GetLfsrNext(mAUDIO_2.WAVESHAPER);
 
 				if (mAUDIO_2.INTEGRATE_ENABLE) {
-					SLONG temp = mAUDIO_2.OUTPUT;
-					if (mAUDIO_2.WAVESHAPER&0x0001) temp += mAUDIO_2.VOLUME; else temp -= mAUDIO_2.VOLUME;
+					SLONG temp = mikey_0.aud2OutVal;
+					if (mAUDIO_2.WAVESHAPER&0x0001) temp += mikey_0.aud2Vol; else temp -= mikey_0.aud2Vol;
 					if (temp > 127) temp = 127;
 					if (temp < -128) temp = -128;
-					mAUDIO_2.OUTPUT = (SBYTE)temp;
+					mikey_0.aud2OutVal = (SBYTE)temp;
 				}
 				else {
-					if (mAUDIO_2.WAVESHAPER & 0x0001) mAUDIO_2.OUTPUT = mAUDIO_2.VOLUME; else mAUDIO_2.OUTPUT = -mAUDIO_2.VOLUME;
+					if (mAUDIO_2.WAVESHAPER & 0x0001) mikey_0.aud2OutVal = mikey_0.aud2Vol; else mikey_0.aud2OutVal = -mikey_0.aud2Vol;
 				}
 			}
 			else {
@@ -1077,7 +966,7 @@ void CMikie::UpdateSound(void) {
 
 		// Prediction for next timer event cycle number
 
-		if ((mAUDIO_2.CTLA & CLOCK_SEL) != LINKING) {
+		if ((mikey_0.aud2Ctl & CLOCK_SEL) != LINKING) {
 			// Sometimes timeupdates can be >2x rollover in which case
 			// then CURRENT may still be negative and we can use it to
 			// calc the next timer value, we just want another update ASAP
@@ -1093,17 +982,17 @@ void CMikie::UpdateSound(void) {
 	//
 	// Audio 3
 	//
-//	if ((mAUDIO_3.CTLA & ENABLE_COUNT) && !(mAUDIO_3.CTLB & TIMER_DONE) && mAUDIO_3.VOLUME && mAUDIO_3.BKUP)
-	if ((mAUDIO_3.CTLA & ENABLE_COUNT) && ((mAUDIO_3.CTLA & ENABLE_RELOAD) || !(mAUDIO_3.CTLB & TIMER_DONE)) && mAUDIO_3.VOLUME && mAUDIO_3.BKUP) {
+//	if ((mikey_0.aud3Ctl & ENABLE_COUNT) && !(mAUDIO_3.CTLB & TIMER_DONE) && mikey_0.aud3Vol && mAUDIO_3.BKUP)
+	if ((mikey_0.aud3Ctl & ENABLE_COUNT) && ((mikey_0.aud3Ctl & ENABLE_RELOAD) || !(mAUDIO_3.CTLB & TIMER_DONE)) && mikey_0.aud3Vol && mAUDIO_3.BKUP) {
 		decval = 0;
 
-		if ((mAUDIO_3.CTLA & CLOCK_SEL) == LINKING) {
+		if ((mikey_0.aud3Ctl & CLOCK_SEL) == LINKING) {
 			if (mAUDIO_2.CTLB & BORROW_OUT) decval = 1;
 		}
 		else {
 			// Ordinary clocked mode as opposed to linked mode
 			// 16MHz clock downto 1us == cyclecount >> 4
-			divide = (4 + (mAUDIO_3.CTLA & CLOCK_SEL));
+			divide = (4 + (mikey_0.aud3Ctl & CLOCK_SEL));
 			decval = (gSystemCycleCount - mAUDIO_3.LAST_COUNT) >> divide;
 		}
 
@@ -1115,7 +1004,7 @@ void CMikie::UpdateSound(void) {
 				mAUDIO_3.CTLB |= BORROW_OUT;
 
 				// Reload if neccessary
-				if (mAUDIO_3.CTLA & ENABLE_RELOAD) {
+				if (mikey_0.aud3Ctl & ENABLE_RELOAD) {
 					mAUDIO_3.CURRENT += mAUDIO_3.BKUP + 1;
 					if (mAUDIO_3.CURRENT & 0x80000000) mAUDIO_3.CURRENT = 0;
 				}
@@ -1131,14 +1020,14 @@ void CMikie::UpdateSound(void) {
 				mAUDIO_3.WAVESHAPER = GetLfsrNext(mAUDIO_3.WAVESHAPER);
 
 				if (mAUDIO_3.INTEGRATE_ENABLE) {
-					SLONG temp = mAUDIO_3.OUTPUT;
-					if (mAUDIO_3.WAVESHAPER & 0x0001) temp += mAUDIO_3.VOLUME; else temp -= mAUDIO_3.VOLUME;
+					SLONG temp = mikey_0.aud3OutVal;
+					if (mAUDIO_3.WAVESHAPER & 0x0001) temp += mikey_0.aud3Vol; else temp -= mikey_0.aud3Vol;
 					if (temp > 127) temp = 127;
 					if (temp < -128) temp = -128;
-					mAUDIO_3.OUTPUT = (SBYTE)temp;
+					mikey_0.aud3OutVal = (SBYTE)temp;
 				}
 				else {
-					if (mAUDIO_3.WAVESHAPER & 0x0001) mAUDIO_3.OUTPUT = mAUDIO_3.VOLUME; else mAUDIO_3.OUTPUT = -mAUDIO_3.VOLUME;
+					if (mAUDIO_3.WAVESHAPER & 0x0001) mikey_0.aud3OutVal = mikey_0.aud3Vol; else mikey_0.aud3OutVal = -mikey_0.aud3Vol;
 				}
 			}
 			else {
@@ -1155,7 +1044,7 @@ void CMikie::UpdateSound(void) {
 
 		// Prediction for next timer event cycle number
 
-		if ((mAUDIO_3.CTLA & CLOCK_SEL) != LINKING) {
+		if ((mikey_0.aud3Ctl & CLOCK_SEL) != LINKING) {
 			// Sometimes timeupdates can be >2x rollover in which case
 			// then CURRENT may still be negative and we can use it to
 			// calc the next timer value, we just want another update ASAP
