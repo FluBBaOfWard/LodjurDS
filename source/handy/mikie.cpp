@@ -221,20 +221,6 @@ void CMikie::Poke(ULONG addr, UBYTE data)
 			mAUDIO_0.VOLUME = (SBYTE)data;
 			TRACE_MIKIE2("Poke(AUD0VOL,%02x) at PC=%04x", data, mSystem.mCpu->GetPC());
 			break;
-//		case (AUD0SHFTFB & 0xff):
-//			mAUDIO_0.WAVESHAPER &= 0x001fff;
-//			mAUDIO_0.WAVESHAPER |= (ULONG)data << 13;
-//			TRACE_MIKIE2("Poke(AUD0SHFTB,%02x) at PC=%04x", data, mSystem.mCpu->GetPC());
-//			break;
-//		case (AUD0OUTVAL & 0xff):
-//			mAUDIO_0.OUTPUT = data;
-//			TRACE_MIKIE2("Poke(AUD0OUTVAL,%02x) at PC=%04x", data, mSystem.mCpu->GetPC());
-//			break;
-//		case (AUD0L8SHFT & 0xff):
-//			mAUDIO_0.WAVESHAPER &= 0x1fff00;
-//			mAUDIO_0.WAVESHAPER |= data;
-//			TRACE_MIKIE2("Poke(AUD0L8SHFT,%02x) at PC=%04x", data, mSystem.mCpu->GetPC());
-//			break;
 		case (AUD0TBACK & 0xff):
 			// Counter is disabled when backup is zero for optimisation
 			// due to the fact that the output frequency will be above audio
@@ -258,10 +244,6 @@ void CMikie::Poke(ULONG addr, UBYTE data)
 			}
 			TRACE_MIKIE2("Poke(AUD0CTL,%02x) at PC=%04x", data, mSystem.mCpu->GetPC());
 			break;
-//		case (AUD0COUNT & 0xff):
-//			mAUDIO_0.CURRENT = data;
-//			TRACE_MIKIE2("Poke(AUD0COUNT,%02x) at PC=%04x", data, mSystem.mCpu->GetPC());
-//			break;
 		case (AUD0MISC & 0xff):
 			mAUDIO_0.WAVESHAPER &= 0x1ff0ff;
 			mAUDIO_0.WAVESHAPER |= (data & 0xf0) << 4;
@@ -279,20 +261,6 @@ void CMikie::Poke(ULONG addr, UBYTE data)
 			mAUDIO_1.VOLUME = (SBYTE)data;
 			TRACE_MIKIE2("Poke(AUD1VOL,%02x) at PC=%04x", data, mSystem.mCpu->GetPC());
 			break;
-//		case (AUD1SHFTFB & 0xff):
-//			mAUDIO_1.WAVESHAPER &= 0x001fff;
-//			mAUDIO_1.WAVESHAPER |= (ULONG)data << 13;
-//			TRACE_MIKIE2("Poke(AUD1SHFTFB,%02x) at PC=%04x", data, mSystem.mCpu->GetPC());
-//			break;
-//		case (AUD1OUTVAL & 0xff):
-//			mAUDIO_1.OUTPUT = data;
-//			TRACE_MIKIE2("Poke(AUD1OUTVAL,%02x) at PC=%04x", data, mSystem.mCpu->GetPC());
-//			break;
-//		case (AUD1L8SHFT & 0xff):
-//			mAUDIO_1.WAVESHAPER &= 0x1fff00;
-//			mAUDIO_1.WAVESHAPER |= data;
-//			TRACE_MIKIE2("Poke(AUD1L8SHFT,%02x) at PC=%04x", data, mSystem.mCpu->GetPC());
-//			break;
 		case (AUD1TBACK & 0xff):
 			// Counter is disabled when backup is zero for optimisation
 			// due to the fact that the output frequency will be above audio
@@ -316,10 +284,6 @@ void CMikie::Poke(ULONG addr, UBYTE data)
 			}
 			TRACE_MIKIE2("Poke(AUD1CTL,%02x) at PC=%04x", data, mSystem.mCpu->GetPC());
 			break;
-//		case (AUD1COUNT & 0xff):
-//			mAUDIO_1.CURRENT = data;
-//			TRACE_MIKIE2("Poke(AUD1COUNT,%02x) at PC=%04x", data, mSystem.mCpu->GetPC());
-//			break;
 		case (AUD1MISC & 0xff):
 			mAUDIO_1.WAVESHAPER &= 0x1ff0ff;
 			mAUDIO_1.WAVESHAPER |= (data & 0xf0) << 4;
@@ -337,20 +301,6 @@ void CMikie::Poke(ULONG addr, UBYTE data)
 			mAUDIO_2.VOLUME = (SBYTE)data;
 			TRACE_MIKIE2("Poke(AUD2VOL,%02x) at PC=%04x", data, mSystem.mCpu->GetPC());
 			break;
-//		case (AUD2SHFTFB & 0xff):
-//			mAUDIO_2.WAVESHAPER &= 0x001fff;
-//			mAUDIO_2.WAVESHAPER |= (ULONG)data << 13;
-//			TRACE_MIKIE2("Poke(AUD2VSHFTFB,%02x) at PC=%04x", data, mSystem.mCpu->GetPC());
-//			break;
-//		case (AUD2OUTVAL & 0xff):
-//			mAUDIO_2.OUTPUT = data;
-//			TRACE_MIKIE2("Poke(AUD2OUTVAL,%02x) at PC=%04x", data, mSystem.mCpu->GetPC());
-//			break;
-//		case (AUD2L8SHFT & 0xff):
-//			mAUDIO_2.WAVESHAPER &= 0x1fff00;
-//			mAUDIO_2.WAVESHAPER |= data;
-//			TRACE_MIKIE2("Poke(AUD2L8SHFT,%02x) at PC=%04x", data, mSystem.mCpu->GetPC());
-//			break;
 		case (AUD2TBACK & 0xff):
 			// Counter is disabled when backup is zero for optimisation
 			// due to the fact that the output frequency will be above audio
@@ -374,10 +324,6 @@ void CMikie::Poke(ULONG addr, UBYTE data)
 			}
 			TRACE_MIKIE2("Poke(AUD2CTL,%02x) at PC=%04x", data, mSystem.mCpu->GetPC());
 			break;
-//		case (AUD2COUNT & 0xff):
-//			mAUDIO_2.CURRENT = data;
-//			TRACE_MIKIE2("Poke(AUD2COUNT,%02x) at PC=%04x", data, mSystem.mCpu->GetPC());
-//			break;
 		case (AUD2MISC & 0xff):
 			mAUDIO_2.WAVESHAPER &= 0x1ff0ff;
 			mAUDIO_2.WAVESHAPER |= (data&0xf0) << 4;
@@ -395,20 +341,6 @@ void CMikie::Poke(ULONG addr, UBYTE data)
 			mAUDIO_3.VOLUME = (SBYTE)data;
 			TRACE_MIKIE2("Poke(AUD3VOL,%02x) at PC=%04x", data, mSystem.mCpu->GetPC());
 			break;
-//		case (AUD3SHFTFB & 0xff):
-//			mAUDIO_3.WAVESHAPER &= 0x001fff;
-//			mAUDIO_3.WAVESHAPER |= (ULONG)data << 13;
-//			TRACE_MIKIE2("Poke(AUD3SHFTFB,%02x) at PC=%04x", data, mSystem.mCpu->GetPC());
-//			break;
-//		case (AUD3OUTVAL & 0xff):
-//			mAUDIO_3.OUTPUT = data;
-//			TRACE_MIKIE2("Poke(AUD3OUTVAL,%02x) at PC=%04x", data, mSystem.mCpu->GetPC());
-//			break;
-//		case (AUD3L8SHFT & 0xff):
-//			mAUDIO_3.WAVESHAPER &= 0x1fff00;
-//			mAUDIO_3.WAVESHAPER |= data;
-//			TRACE_MIKIE2("Poke(AUD3L8SHFT,%02x) at PC=%04x", data, mSystem.mCpu->GetPC());
-//			break;
 		case (AUD3TBACK & 0xff):
 			// Counter is disabled when backup is zero for optimisation
 			// due to the fact that the output frequency will be above audio
@@ -432,10 +364,6 @@ void CMikie::Poke(ULONG addr, UBYTE data)
 			}
 			TRACE_MIKIE2("Poke(AUD3CTL,%02x) at PC=%04x", data, mSystem.mCpu->GetPC());
 			break;
-//		case (AUD3COUNT & 0xff):
-//			mAUDIO_3.CURRENT = data;
-//			TRACE_MIKIE2("Poke(AUD3COUNT,%02x) at PC=%04x", data, mSystem.mCpu->GetPC());
-//			break;
 		case (AUD3MISC & 0xff):
 			mAUDIO_3.WAVESHAPER &= 0x1ff0ff;
 			mAUDIO_3.WAVESHAPER |= (data & 0xf0) << 4;
@@ -517,21 +445,21 @@ UBYTE CMikie::Peek(ULONG addr)
 	switch(addr & 0xff)
 	{
 // Audio control registers
-		case (AUD0VOL & 0xff):
-			TRACE_MIKIE2("Peek(AUD0VOL,%02x) at PC=%04x", (UBYTE)mAUDIO_0.VOLUME, mSystem.mCpu->GetPC());
-			return (UBYTE)mAUDIO_0.VOLUME;
-		case (AUD0SHFTFB & 0xff):
-			TRACE_MIKIE2("Peek(AUD0SHFTFB,%02x) at PC=%04x", (UBYTE)(mAUDIO_0.WAVESHAPER >> 13) & 0xff, mSystem.mCpu->GetPC());
-			return (UBYTE)((mAUDIO_0.WAVESHAPER >> 13) & 0xff);
-		case (AUD0OUTVAL & 0xff):
-			TRACE_MIKIE2("Peek(AUD0OUTVAL,%02x) at PC=%04x", (UBYTE)mAUDIO_0.OUTPUT, mSystem.mCpu->GetPC());
-			return (UBYTE)mAUDIO_0.OUTPUT;
-		case (AUD0L8SHFT & 0xff):
-			TRACE_MIKIE2("Peek(AUD0L8SHFT,%02x) at PC=%04x", (UBYTE)(mAUDIO_0.WAVESHAPER & 0xff), mSystem.mCpu->GetPC());
-			return (UBYTE)(mAUDIO_0.WAVESHAPER&0xff);
-		case (AUD0TBACK & 0xff):
-			TRACE_MIKIE2("Peek(AUD0TBACK,%02x) at PC=%04x", (UBYTE)mAUDIO_0.BKUP, mSystem.mCpu->GetPC());
-			return (UBYTE)mAUDIO_0.BKUP;
+//		case (AUD0VOL & 0xff):
+//			TRACE_MIKIE2("Peek(AUD0VOL,%02x) at PC=%04x", (UBYTE)mAUDIO_0.VOLUME, mSystem.mCpu->GetPC());
+//			return (UBYTE)mAUDIO_0.VOLUME;
+//		case (AUD0SHFTFB & 0xff):
+//			TRACE_MIKIE2("Peek(AUD0SHFTFB,%02x) at PC=%04x", (UBYTE)(mAUDIO_0.WAVESHAPER >> 13) & 0xff, mSystem.mCpu->GetPC());
+//			return (UBYTE)((mAUDIO_0.WAVESHAPER >> 13) & 0xff);
+//		case (AUD0OUTVAL & 0xff):
+//			TRACE_MIKIE2("Peek(AUD0OUTVAL,%02x) at PC=%04x", (UBYTE)mAUDIO_0.OUTPUT, mSystem.mCpu->GetPC());
+//			return (UBYTE)mAUDIO_0.OUTPUT;
+//		case (AUD0L8SHFT & 0xff):
+//			TRACE_MIKIE2("Peek(AUD0L8SHFT,%02x) at PC=%04x", (UBYTE)(mAUDIO_0.WAVESHAPER & 0xff), mSystem.mCpu->GetPC());
+//			return (UBYTE)(mAUDIO_0.WAVESHAPER&0xff);
+//		case (AUD0TBACK & 0xff):
+//			TRACE_MIKIE2("Peek(AUD0TBACK,%02x) at PC=%04x", (UBYTE)mAUDIO_0.BKUP, mSystem.mCpu->GetPC());
+//			return (UBYTE)mAUDIO_0.BKUP;
 		case (AUD0CTL & 0xff):
 			{
 				UBYTE retval = 0;
@@ -542,33 +470,33 @@ UBYTE CMikie::Peek(ULONG addr)
 				return retval;
 			}
 			break;
-		case (AUD0COUNT & 0xff):
-			TRACE_MIKIE2("Peek(AUD0COUNT,%02x) at PC=%04x", (UBYTE)mAUDIO_0.CURRENT, mSystem.mCpu->GetPC());
-			return (UBYTE)mAUDIO_0.CURRENT;
-		case (AUD0MISC & 0xff):
-			{
-				UBYTE retval = (mAUDIO_0.CTLB & (BORROW_OUT | BORROW_IN | LAST_CLOCK | TIMER_DONE));
-				retval |= (mAUDIO_0.WAVESHAPER >> 4) & 0xf0;
-				TRACE_MIKIE2("Peek(AUD0MISC,%02x) at PC=%04x", retval, mSystem.mCpu->GetPC());
-				return retval;
-			}
-			break;
+//		case (AUD0COUNT & 0xff):
+//			TRACE_MIKIE2("Peek(AUD0COUNT,%02x) at PC=%04x", (UBYTE)mAUDIO_0.CURRENT, mSystem.mCpu->GetPC());
+//			return (UBYTE)mAUDIO_0.CURRENT;
+//		case (AUD0MISC & 0xff):
+//			{
+//				UBYTE retval = (mAUDIO_0.CTLB & (BORROW_OUT | BORROW_IN | LAST_CLOCK | TIMER_DONE));
+//				retval |= (mAUDIO_0.WAVESHAPER >> 4) & 0xf0;
+//				TRACE_MIKIE2("Peek(AUD0MISC,%02x) at PC=%04x", retval, mSystem.mCpu->GetPC());
+//				return retval;
+//			}
+//			break;
 
-		case (AUD1VOL & 0xff):
-			TRACE_MIKIE2("Peek(AUD1VOL,%02x) at PC=%04x", (UBYTE)mAUDIO_1.VOLUME, mSystem.mCpu->GetPC());
-			return (UBYTE)mAUDIO_1.VOLUME;
-		case (AUD1SHFTFB & 0xff):
-			TRACE_MIKIE2("Peek(AUD1SHFTFB,%02x) at PC=%04x", (UBYTE)(mAUDIO_1.WAVESHAPER >> 13) & 0xff, mSystem.mCpu->GetPC());
-			return (UBYTE)((mAUDIO_1.WAVESHAPER >> 13) & 0xff);
-		case (AUD1OUTVAL & 0xff):
-			TRACE_MIKIE2("Peek(AUD1OUTVAL,%02x) at PC=%04x", (UBYTE)mAUDIO_1.OUTPUT, mSystem.mCpu->GetPC());
-			return (UBYTE)mAUDIO_1.OUTPUT;
-		case (AUD1L8SHFT & 0xff):
-			TRACE_MIKIE2("Peek(AUD1L8SHFT,%02x) at PC=%04x", (UBYTE)(mAUDIO_1.WAVESHAPER & 0xff), mSystem.mCpu->GetPC());
-			return (UBYTE)(mAUDIO_1.WAVESHAPER & 0xff);
-		case (AUD1TBACK & 0xff):
-			TRACE_MIKIE2("Peek(AUD1TBACK,%02x) at PC=%04x", (UBYTE)mAUDIO_1.BKUP, mSystem.mCpu->GetPC());
-			return (UBYTE)mAUDIO_1.BKUP;
+//		case (AUD1VOL & 0xff):
+//			TRACE_MIKIE2("Peek(AUD1VOL,%02x) at PC=%04x", (UBYTE)mAUDIO_1.VOLUME, mSystem.mCpu->GetPC());
+//			return (UBYTE)mAUDIO_1.VOLUME;
+//		case (AUD1SHFTFB & 0xff):
+//			TRACE_MIKIE2("Peek(AUD1SHFTFB,%02x) at PC=%04x", (UBYTE)(mAUDIO_1.WAVESHAPER >> 13) & 0xff, mSystem.mCpu->GetPC());
+//			return (UBYTE)((mAUDIO_1.WAVESHAPER >> 13) & 0xff);
+//		case (AUD1OUTVAL & 0xff):
+//			TRACE_MIKIE2("Peek(AUD1OUTVAL,%02x) at PC=%04x", (UBYTE)mAUDIO_1.OUTPUT, mSystem.mCpu->GetPC());
+//			return (UBYTE)mAUDIO_1.OUTPUT;
+//		case (AUD1L8SHFT & 0xff):
+//			TRACE_MIKIE2("Peek(AUD1L8SHFT,%02x) at PC=%04x", (UBYTE)(mAUDIO_1.WAVESHAPER & 0xff), mSystem.mCpu->GetPC());
+//			return (UBYTE)(mAUDIO_1.WAVESHAPER & 0xff);
+//		case (AUD1TBACK & 0xff):
+//			TRACE_MIKIE2("Peek(AUD1TBACK,%02x) at PC=%04x", (UBYTE)mAUDIO_1.BKUP, mSystem.mCpu->GetPC());
+//			return (UBYTE)mAUDIO_1.BKUP;
 		case (AUD1CTL & 0xff):
 			{
 				UBYTE retval = 0;
@@ -579,33 +507,33 @@ UBYTE CMikie::Peek(ULONG addr)
 				return retval;
 			}
 			break;
-		case (AUD1COUNT & 0xff):
-			TRACE_MIKIE2("Peek(AUD1COUNT,%02x) at PC=%04x", (UBYTE)mAUDIO_1.CURRENT, mSystem.mCpu->GetPC());
-			return (UBYTE)mAUDIO_1.CURRENT;
-		case (AUD1MISC & 0xff):
-			{
-				UBYTE retval = (mAUDIO_1.CTLB & (BORROW_OUT | BORROW_IN | LAST_CLOCK | TIMER_DONE));
-				retval |= (mAUDIO_1.WAVESHAPER >> 4) & 0xf0;
-				TRACE_MIKIE2("Peek(AUD1MISC,%02x) at PC=%04x", retval, mSystem.mCpu->GetPC());
-				return retval;
-			}
-			break;
+//		case (AUD1COUNT & 0xff):
+//			TRACE_MIKIE2("Peek(AUD1COUNT,%02x) at PC=%04x", (UBYTE)mAUDIO_1.CURRENT, mSystem.mCpu->GetPC());
+//			return (UBYTE)mAUDIO_1.CURRENT;
+//		case (AUD1MISC & 0xff):
+//			{
+//				UBYTE retval = (mAUDIO_1.CTLB & (BORROW_OUT | BORROW_IN | LAST_CLOCK | TIMER_DONE));
+//				retval |= (mAUDIO_1.WAVESHAPER >> 4) & 0xf0;
+//				TRACE_MIKIE2("Peek(AUD1MISC,%02x) at PC=%04x", retval, mSystem.mCpu->GetPC());
+//				return retval;
+//			}
+//			break;
 
-		case (AUD2VOL & 0xff):
-			TRACE_MIKIE2("Peek(AUD2VOL,%02x) at PC=%04x", (UBYTE)mAUDIO_2.VOLUME, mSystem.mCpu->GetPC());
-			return (UBYTE)mAUDIO_2.VOLUME;
-		case (AUD2SHFTFB & 0xff):
-			TRACE_MIKIE2("Peek(AUD2SHFTFB,%02x) at PC=%04x", (UBYTE)(mAUDIO_2.WAVESHAPER >> 13) & 0xff, mSystem.mCpu->GetPC());
-			return (UBYTE)((mAUDIO_2.WAVESHAPER >> 13) & 0xff);
-		case (AUD2OUTVAL & 0xff):
-			TRACE_MIKIE2("Peek(AUD2OUTVAL,%02x) at PC=%04x", (UBYTE)mAUDIO_2.OUTPUT, mSystem.mCpu->GetPC());
-			return (UBYTE)mAUDIO_2.OUTPUT;
-		case (AUD2L8SHFT&0xff):
-			TRACE_MIKIE2("Peek(AUD2L8SHFT,%02x) at PC=%04x", (UBYTE)(mAUDIO_2.WAVESHAPER & 0xff), mSystem.mCpu->GetPC());
-			return (UBYTE)(mAUDIO_2.WAVESHAPER & 0xff);
-		case (AUD2TBACK & 0xff):
-			TRACE_MIKIE2("Peek(AUD2TBACK,%02x) at PC=%04x", (UBYTE)mAUDIO_2.BKUP, mSystem.mCpu->GetPC());
-			return (UBYTE)mAUDIO_2.BKUP;
+//		case (AUD2VOL & 0xff):
+//			TRACE_MIKIE2("Peek(AUD2VOL,%02x) at PC=%04x", (UBYTE)mAUDIO_2.VOLUME, mSystem.mCpu->GetPC());
+//			return (UBYTE)mAUDIO_2.VOLUME;
+//		case (AUD2SHFTFB & 0xff):
+//			TRACE_MIKIE2("Peek(AUD2SHFTFB,%02x) at PC=%04x", (UBYTE)(mAUDIO_2.WAVESHAPER >> 13) & 0xff, mSystem.mCpu->GetPC());
+//			return (UBYTE)((mAUDIO_2.WAVESHAPER >> 13) & 0xff);
+//		case (AUD2OUTVAL & 0xff):
+//			TRACE_MIKIE2("Peek(AUD2OUTVAL,%02x) at PC=%04x", (UBYTE)mAUDIO_2.OUTPUT, mSystem.mCpu->GetPC());
+//			return (UBYTE)mAUDIO_2.OUTPUT;
+//		case (AUD2L8SHFT&0xff):
+//			TRACE_MIKIE2("Peek(AUD2L8SHFT,%02x) at PC=%04x", (UBYTE)(mAUDIO_2.WAVESHAPER & 0xff), mSystem.mCpu->GetPC());
+//			return (UBYTE)(mAUDIO_2.WAVESHAPER & 0xff);
+//		case (AUD2TBACK & 0xff):
+//			TRACE_MIKIE2("Peek(AUD2TBACK,%02x) at PC=%04x", (UBYTE)mAUDIO_2.BKUP, mSystem.mCpu->GetPC());
+//			return (UBYTE)mAUDIO_2.BKUP;
 		case (AUD2CTL & 0xff):
 			{
 				UBYTE retval = 0;
@@ -616,33 +544,33 @@ UBYTE CMikie::Peek(ULONG addr)
 				return retval;
 			}
 			break;
-		case (AUD2COUNT & 0xff):
-			TRACE_MIKIE2("Peek(AUD2COUNT,%02x) at PC=%04x", (UBYTE)mAUDIO_2.CURRENT, mSystem.mCpu->GetPC());
-			return (UBYTE)mAUDIO_2.CURRENT;
-		case (AUD2MISC & 0xff):
-			{
-				UBYTE retval = (mAUDIO_2.CTLB & (BORROW_OUT | BORROW_IN | LAST_CLOCK | TIMER_DONE));
-				retval |= (mAUDIO_2.WAVESHAPER >> 4) & 0xf0;
-				TRACE_MIKIE2("Peek(AUD2MISC,%02x) at PC=%04x", retval, mSystem.mCpu->GetPC());
-				return retval;
-			}
-			break;
+//		case (AUD2COUNT & 0xff):
+//			TRACE_MIKIE2("Peek(AUD2COUNT,%02x) at PC=%04x", (UBYTE)mAUDIO_2.CURRENT, mSystem.mCpu->GetPC());
+//			return (UBYTE)mAUDIO_2.CURRENT;
+//		case (AUD2MISC & 0xff):
+//			{
+//				UBYTE retval = (mAUDIO_2.CTLB & (BORROW_OUT | BORROW_IN | LAST_CLOCK | TIMER_DONE));
+//				retval |= (mAUDIO_2.WAVESHAPER >> 4) & 0xf0;
+//				TRACE_MIKIE2("Peek(AUD2MISC,%02x) at PC=%04x", retval, mSystem.mCpu->GetPC());
+//				return retval;
+//			}
+//			break;
 
-		case (AUD3VOL & 0xff):
-			TRACE_MIKIE2("Peek(AUD3VOL,%02x) at PC=%04x", (UBYTE)mAUDIO_3.VOLUME, mSystem.mCpu->GetPC());
-			return (UBYTE)mAUDIO_3.VOLUME;
-		case (AUD3SHFTFB & 0xff):
-			TRACE_MIKIE2("Peek(AUD3SHFTFB,%02x) at PC=%04x", (UBYTE)(mAUDIO_3.WAVESHAPER >> 13) & 0xff, mSystem.mCpu->GetPC());
-			return (UBYTE)((mAUDIO_3.WAVESHAPER >> 13) & 0xff);
-		case (AUD3OUTVAL & 0xff):
-			TRACE_MIKIE2("Peek(AUD3OUTVAL,%02x) at PC=%04x", (UBYTE)mAUDIO_3.OUTPUT, mSystem.mCpu->GetPC());
-			return (UBYTE)mAUDIO_3.OUTPUT;
-		case (AUD3L8SHFT & 0xff):
-			TRACE_MIKIE2("Peek(AUD3L8SHFT,%02x) at PC=%04x", (UBYTE)(mAUDIO_3.WAVESHAPER & 0xff), mSystem.mCpu->GetPC());
-			return (UBYTE)(mAUDIO_3.WAVESHAPER & 0xff);
-		case (AUD3TBACK & 0xff):
-			TRACE_MIKIE2("Peek(AUD3TBACK,%02x) at PC=%04x", (UBYTE)mAUDIO_3.BKUP, mSystem.mCpu->GetPC());
-			return (UBYTE)mAUDIO_3.BKUP;
+//		case (AUD3VOL & 0xff):
+//			TRACE_MIKIE2("Peek(AUD3VOL,%02x) at PC=%04x", (UBYTE)mAUDIO_3.VOLUME, mSystem.mCpu->GetPC());
+//			return (UBYTE)mAUDIO_3.VOLUME;
+//		case (AUD3SHFTFB & 0xff):
+//			TRACE_MIKIE2("Peek(AUD3SHFTFB,%02x) at PC=%04x", (UBYTE)(mAUDIO_3.WAVESHAPER >> 13) & 0xff, mSystem.mCpu->GetPC());
+//			return (UBYTE)((mAUDIO_3.WAVESHAPER >> 13) & 0xff);
+//		case (AUD3OUTVAL & 0xff):
+//			TRACE_MIKIE2("Peek(AUD3OUTVAL,%02x) at PC=%04x", (UBYTE)mAUDIO_3.OUTPUT, mSystem.mCpu->GetPC());
+//			return (UBYTE)mAUDIO_3.OUTPUT;
+//		case (AUD3L8SHFT & 0xff):
+//			TRACE_MIKIE2("Peek(AUD3L8SHFT,%02x) at PC=%04x", (UBYTE)(mAUDIO_3.WAVESHAPER & 0xff), mSystem.mCpu->GetPC());
+//			return (UBYTE)(mAUDIO_3.WAVESHAPER & 0xff);
+//		case (AUD3TBACK & 0xff):
+//			TRACE_MIKIE2("Peek(AUD3TBACK,%02x) at PC=%04x", (UBYTE)mAUDIO_3.BKUP, mSystem.mCpu->GetPC());
+//			return (UBYTE)mAUDIO_3.BKUP;
 		case (AUD3CTL & 0xff):
 			{
 				UBYTE retval = 0;
@@ -653,17 +581,17 @@ UBYTE CMikie::Peek(ULONG addr)
 				return retval;
 			}
 			break;
-		case (AUD3COUNT & 0xff):
-			TRACE_MIKIE2("Peek(AUD3COUNT,%02x) at PC=%04x", (UBYTE)mAUDIO_3.CURRENT, mSystem.mCpu->GetPC());
-			return (UBYTE)mAUDIO_3.CURRENT;
-		case (AUD3MISC & 0xff):
-			{
-				UBYTE retval = (mAUDIO_3.CTLB & (BORROW_OUT | BORROW_IN | LAST_CLOCK | TIMER_DONE));
-				retval |= (mAUDIO_3.WAVESHAPER >> 4) & 0xf0;
-				TRACE_MIKIE2("Peek(AUD3MISC,%02x) at PC=%04x", retval, mSystem.mCpu->GetPC());
-				return retval;
-			}
-			break;
+//		case (AUD3COUNT & 0xff):
+//			TRACE_MIKIE2("Peek(AUD3COUNT,%02x) at PC=%04x", (UBYTE)mAUDIO_3.CURRENT, mSystem.mCpu->GetPC());
+//			return (UBYTE)mAUDIO_3.CURRENT;
+//		case (AUD3MISC & 0xff):
+//			{
+//				UBYTE retval = (mAUDIO_3.CTLB & (BORROW_OUT | BORROW_IN | LAST_CLOCK | TIMER_DONE));
+//				retval |= (mAUDIO_3.WAVESHAPER >> 4) & 0xf0;
+//				TRACE_MIKIE2("Peek(AUD3MISC,%02x) at PC=%04x", retval, mSystem.mCpu->GetPC());
+//				return retval;
+//			}
+//			break;
 
 // Miscellaneous registers
 
