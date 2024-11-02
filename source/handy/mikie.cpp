@@ -227,12 +227,6 @@ void CMikie::Poke(ULONG addr, UBYTE data)
 			mAUDIO_0.BKUP = data;
 			TRACE_MIKIE2("Poke(AUD0TBACK,%02x) at PC=%04x", data, mSystem.mCpu->GetPC());
 			break;
-//		case (AUD0MISC & 0xff):
-//			mAUDIO_0.WAVESHAPER &= 0x1ff0ff;
-//			mAUDIO_0.WAVESHAPER |= (data & 0xf0) << 4;
-//			mikey_0.aud0Misc = data & (BORROW_OUT | BORROW_IN | LAST_CLOCK);
-//			TRACE_MIKIE2("Poke(AUD0MISC,%02x) at PC=%04x", data, mSystem.mCpu->GetPC());
-//			break;
 
 		case (AUD1VOL & 0xff):
 			// Counter is disabled when volume is zero for optimisation
@@ -255,12 +249,6 @@ void CMikie::Poke(ULONG addr, UBYTE data)
 			mAUDIO_1.BKUP = data;
 			TRACE_MIKIE2("Poke(AUD1TBACK,%02x) at PC=%04x", data, mSystem.mCpu->GetPC());
 			break;
-//		case (AUD1MISC & 0xff):
-//			mAUDIO_1.WAVESHAPER &= 0x1ff0ff;
-//			mAUDIO_1.WAVESHAPER |= (data & 0xf0) << 4;
-//			mikey_0.aud1Misc = data & (BORROW_OUT | BORROW_IN | LAST_CLOCK);
-//			TRACE_MIKIE2("Poke(AUD1MISC,%02x) at PC=%04x", data, mSystem.mCpu->GetPC());
-//			break;
 
 		case (AUD2VOL&0xff): 
 			// Counter is disabled when volume is zero for optimisation
@@ -283,12 +271,6 @@ void CMikie::Poke(ULONG addr, UBYTE data)
 			mAUDIO_2.BKUP = data;
 			TRACE_MIKIE2("Poke(AUD2TBACK,%02x) at PC=%04x", data, mSystem.mCpu->GetPC());
 			break;
-//		case (AUD2MISC & 0xff):
-//			mAUDIO_2.WAVESHAPER &= 0x1ff0ff;
-//			mAUDIO_2.WAVESHAPER |= (data&0xf0) << 4;
-//			mikey_0.aud2Misc = data & (BORROW_OUT | BORROW_IN | LAST_CLOCK);
-//			TRACE_MIKIE2("Poke(AUD2MISC,%02x) at PC=%04x", data, mSystem.mCpu->GetPC());
-//			break;
 
 		case (AUD3VOL & 0xff):
 			// Counter is disabled when volume is zero for optimisation
@@ -311,12 +293,6 @@ void CMikie::Poke(ULONG addr, UBYTE data)
 			mAUDIO_3.BKUP = data;
 			TRACE_MIKIE2("Poke(AUD3TBACK,%02x) at PC=%04x", data, mSystem.mCpu->GetPC());
 			break;
-//		case (AUD3MISC & 0xff):
-//			mAUDIO_3.WAVESHAPER &= 0x1ff0ff;
-//			mAUDIO_3.WAVESHAPER |= (data & 0xf0) << 4;
-//			mikey_0.aud3Misc = data & (BORROW_OUT | BORROW_IN | LAST_CLOCK);
-//			TRACE_MIKIE2("Poke(AUD3MISC,%02x) at PC=%04x", data, mSystem.mCpu->GetPC());
-//			break;
 
 		case (SYSCTL1 & 0xff):
 			TRACE_MIKIE2("Poke(SYSCTL1 ,%02x) at PC=%04x", data, mSystem.mCpu->GetPC());
