@@ -38,6 +38,7 @@
 #include "mikie.h"
 #include "lynxdef.h"
 #include "nds.h"
+#include "../Cpu.h"
 
 #define mTIM_4 mikey_0.timer4
 #define mAUDIO_0 mikey_0.audio0
@@ -45,14 +46,6 @@
 #define mAUDIO_2 mikey_0.audio2
 #define mAUDIO_3 mikey_0.audio3
 #define mSTEREO mikey_0.stereo
-
-void CMikie::ResetAudio(MAUDIO& audio)
-{
-	audio.BKUP = 0;
-	audio.CURRENT = 0;
-	audio.LAST_COUNT = 0;
-	audio.WAVESHAPER = 0;
-}
 
 CMikie::CMikie(CSystem& parent)
 	:mSystem(parent)
@@ -73,13 +66,6 @@ CMikie::~CMikie()
 void CMikie::Reset(void)
 {
 	TRACE_MIKIE0("Reset()");
-
-	ResetAudio(mAUDIO_0);
-	ResetAudio(mAUDIO_1);
-	ResetAudio(mAUDIO_2);
-	ResetAudio(mAUDIO_3);
-
-	mSTEREO = 0xff;	// All channels enabled
 
 	//
 	// Initialise the UART variables
@@ -387,18 +373,6 @@ UBYTE CMikie::Peek(ULONG addr)
 			TRACE_MIKIE2("Peek(SERDAT  ,%02x) at PC=%04x", (UBYTE)mUART_RX_DATA, mSystem.mCpu->GetPC());
 			return (UBYTE)(mUART_RX_DATA & 0xff);
 
-//		case (IODAT & 0xff):
-//			{
-//				ULONG retval = 0;
-//				retval |= (mikey_0.ioDir & 0x10) ? mikey_0.ioDat & 0x10 : 0x10;									// IODIR  = output bit : input high (eeprom write done)
-//				retval |= (mikey_0.ioDir & 0x08) ? (((mikey_0.ioDat & 0x08) && mIODAT_REST_SIGNAL) ? 0x00 : 0x08) : 0x00;	// REST = output bit : input low
-//				retval |= (mikey_0.ioDir & 0x04) ? mikey_0.ioDat & 0x04 : ((mikey_0.serCablePresent) ? 0x04 : 0x00);	// NOEXP  = output bit : input low
-//				retval |= (mikey_0.ioDir & 0x02) ? mikey_0.ioDat & 0x02 : 0x00;									// CARTAD = output bit : input low
-//				retval |= (mikey_0.ioDir & 0x01) ? mikey_0.ioDat & 0x01 : 0x01;									// EXTPW  = output bit : input high (Power connected)
-//				TRACE_MIKIE2("Peek(IODAT   ,%02x) at PC=%04x", retval, mSystem.mCpu->GetPC());
-//				return (UBYTE)retval;
-//			}
-//			break;
 		default:
 			return 0xFF;
 			break;

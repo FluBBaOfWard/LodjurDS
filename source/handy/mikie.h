@@ -53,11 +53,9 @@
 #endif
 
 #include "nds.h"
-#include "../Cpu.h"
 
 #define gSystemCycleCount mikey_0.systemCycleCount
 #define gNextTimerEvent mikey_0.nextTimerEvent
-#define mIODAT_REST_SIGNAL mikey_0.ioDatRestSignal
 
 class CSystem;
 
@@ -86,8 +84,6 @@ class CMikie : public CLynxBase
 		void	ComLynxRxData(int data);
 		void	ComLynxTxLoopback(int data);
 		void	ComLynxTxCallback(void (*function)(int data,ULONG objref),ULONG objref);
-
-		void	ResetAudio(MAUDIO& audio);
 
 		void	UpdateTimer4(void);
 		void	UpdateSound(void);

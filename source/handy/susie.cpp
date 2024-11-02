@@ -52,6 +52,7 @@
 #include "system.h"
 #include "susie.h"
 #include "lynxdef.h"
+#include "../Cpu.h"
 
 //
 // As the Susie sprite engine only ever sees system RAM
