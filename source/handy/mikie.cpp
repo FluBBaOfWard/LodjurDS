@@ -59,7 +59,7 @@ CMikie::CMikie(CSystem& parent)
 {
 	TRACE_MIKIE0("CMikie()");
 
-	mUART_CABLE_PRESENT = FALSE;
+	mikey_0.serCablePresent = FALSE;
 	mpUART_TX_CALLBACK = NULL;
 
 	Reset();
@@ -151,7 +151,7 @@ void CMikie::PresetForHomebrew(void)
 
 void CMikie::ComLynxCable(int status)
 {
-	mUART_CABLE_PRESENT = status;
+	mikey_0.serCablePresent = status;
 }
 
 void CMikie::ComLynxRxData(int data)
@@ -387,18 +387,18 @@ UBYTE CMikie::Peek(ULONG addr)
 			TRACE_MIKIE2("Peek(SERDAT  ,%02x) at PC=%04x", (UBYTE)mUART_RX_DATA, mSystem.mCpu->GetPC());
 			return (UBYTE)(mUART_RX_DATA & 0xff);
 
-		case (IODAT & 0xff):
-			{
-				ULONG retval = 0;
-				retval |= (mikey_0.ioDir&0x10) ? mikey_0.ioDat & 0x10 : 0x10;									// IODIR  = output bit : input high (eeprom write done)
-				retval |= (mikey_0.ioDir&0x08) ? (((mikey_0.ioDat & 0x08) && mIODAT_REST_SIGNAL) ? 0x00 : 0x08) : 0x00;	// REST = output bit : input low
-				retval |= (mikey_0.ioDir&0x04) ? mikey_0.ioDat & 0x04 : ((mUART_CABLE_PRESENT) ? 0x04 : 0x00);	// NOEXP  = output bit : input low
-				retval |= (mikey_0.ioDir&0x02) ? mikey_0.ioDat & 0x02 : 0x00;									// CARTAD = output bit : input low
-				retval |= (mikey_0.ioDir&0x01) ? mikey_0.ioDat & 0x01 : 0x01;									// EXTPW  = output bit : input high (Power connected)
-				TRACE_MIKIE2("Peek(IODAT   ,%02x) at PC=%04x", retval, mSystem.mCpu->GetPC());
-				return (UBYTE)retval;
-			}
-			break;
+//		case (IODAT & 0xff):
+//			{
+//				ULONG retval = 0;
+//				retval |= (mikey_0.ioDir & 0x10) ? mikey_0.ioDat & 0x10 : 0x10;									// IODIR  = output bit : input high (eeprom write done)
+//				retval |= (mikey_0.ioDir & 0x08) ? (((mikey_0.ioDat & 0x08) && mIODAT_REST_SIGNAL) ? 0x00 : 0x08) : 0x00;	// REST = output bit : input low
+//				retval |= (mikey_0.ioDir & 0x04) ? mikey_0.ioDat & 0x04 : ((mikey_0.serCablePresent) ? 0x04 : 0x00);	// NOEXP  = output bit : input low
+//				retval |= (mikey_0.ioDir & 0x02) ? mikey_0.ioDat & 0x02 : 0x00;									// CARTAD = output bit : input low
+//				retval |= (mikey_0.ioDir & 0x01) ? mikey_0.ioDat & 0x01 : 0x01;									// EXTPW  = output bit : input high (Power connected)
+//				TRACE_MIKIE2("Peek(IODAT   ,%02x) at PC=%04x", retval, mSystem.mCpu->GetPC());
+//				return (UBYTE)retval;
+//			}
+//			break;
 		default:
 			return 0xFF;
 			break;

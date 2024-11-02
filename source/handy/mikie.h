@@ -57,7 +57,7 @@
 
 #define gSystemCycleCount mikey_0.systemCycleCount
 #define gNextTimerEvent mikey_0.nextTimerEvent
-#define mIODAT_REST_SIGNAL mikey_0.iodatRestSignal
+#define mIODAT_REST_SIGNAL mikey_0.ioDatRestSignal
 
 class CSystem;
 
@@ -112,7 +112,6 @@ class CMikie : public CLynxBase
 		ULONG		mUART_PARITY_ENABLE;
 		ULONG		mUART_PARITY_EVEN;
 
-		int			mUART_CABLE_PRESENT;
 		void		(*mpUART_TX_CALLBACK)(int data,ULONG objref);
 		ULONG		mUART_TX_CALLBACK_OBJECT;
 
