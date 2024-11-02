@@ -227,23 +227,12 @@ void CMikie::Poke(ULONG addr, UBYTE data)
 			mAUDIO_0.BKUP = data;
 			TRACE_MIKIE2("Poke(AUD0TBACK,%02x) at PC=%04x", data, mSystem.mCpu->GetPC());
 			break;
-//		case (AUD0CTL & 0xff):
-//			mikey_0.aud0Ctl = data;
-//			if (data & 0x40) mikey_0.aud0Misc &= ~TIMER_DONE;
-//			mAUDIO_0.WAVESHAPER &= 0x1fefff;
-//			mAUDIO_0.WAVESHAPER |= (data & 0x80) ? 0x001000 : 0x000000;
-//			if (data & 0x48) {
-//				mAUDIO_0.LAST_COUNT = gSystemCycleCount;
-//				gNextTimerEvent = gSystemCycleCount;
-//			}
-//			TRACE_MIKIE2("Poke(AUD0CTL,%02x) at PC=%04x", data, mSystem.mCpu->GetPC());
+//		case (AUD0MISC & 0xff):
+//			mAUDIO_0.WAVESHAPER &= 0x1ff0ff;
+//			mAUDIO_0.WAVESHAPER |= (data & 0xf0) << 4;
+//			mikey_0.aud0Misc = data & (BORROW_OUT | BORROW_IN | LAST_CLOCK);
+//			TRACE_MIKIE2("Poke(AUD0MISC,%02x) at PC=%04x", data, mSystem.mCpu->GetPC());
 //			break;
-		case (AUD0MISC & 0xff):
-			mAUDIO_0.WAVESHAPER &= 0x1ff0ff;
-			mAUDIO_0.WAVESHAPER |= (data & 0xf0) << 4;
-			mikey_0.aud0Misc = data & (BORROW_OUT | BORROW_IN | LAST_CLOCK);
-			TRACE_MIKIE2("Poke(AUD0MISC,%02x) at PC=%04x", data, mSystem.mCpu->GetPC());
-			break;
 
 		case (AUD1VOL & 0xff):
 			// Counter is disabled when volume is zero for optimisation
@@ -266,23 +255,12 @@ void CMikie::Poke(ULONG addr, UBYTE data)
 			mAUDIO_1.BKUP = data;
 			TRACE_MIKIE2("Poke(AUD1TBACK,%02x) at PC=%04x", data, mSystem.mCpu->GetPC());
 			break;
-//		case (AUD1CTL & 0xff):
-//			mikey_0.aud1Ctl = data;
-//			if (data & 0x40) mikey_0.aud1Misc &= ~TIMER_DONE;
-//			mAUDIO_1.WAVESHAPER &= 0x1fefff;
-//			mAUDIO_1.WAVESHAPER |= (data & 0x80) ? 0x001000 : 0x000000;
-//			if (data & 0x48) {
-//				mAUDIO_1.LAST_COUNT = gSystemCycleCount;
-//				gNextTimerEvent = gSystemCycleCount;
-//			}
-//			TRACE_MIKIE2("Poke(AUD1CTL,%02x) at PC=%04x", data, mSystem.mCpu->GetPC());
+//		case (AUD1MISC & 0xff):
+//			mAUDIO_1.WAVESHAPER &= 0x1ff0ff;
+//			mAUDIO_1.WAVESHAPER |= (data & 0xf0) << 4;
+//			mikey_0.aud1Misc = data & (BORROW_OUT | BORROW_IN | LAST_CLOCK);
+//			TRACE_MIKIE2("Poke(AUD1MISC,%02x) at PC=%04x", data, mSystem.mCpu->GetPC());
 //			break;
-		case (AUD1MISC & 0xff):
-			mAUDIO_1.WAVESHAPER &= 0x1ff0ff;
-			mAUDIO_1.WAVESHAPER |= (data & 0xf0) << 4;
-			mikey_0.aud1Misc = data & (BORROW_OUT | BORROW_IN | LAST_CLOCK);
-			TRACE_MIKIE2("Poke(AUD1MISC,%02x) at PC=%04x", data, mSystem.mCpu->GetPC());
-			break;
 
 		case (AUD2VOL&0xff): 
 			// Counter is disabled when volume is zero for optimisation
@@ -305,23 +283,12 @@ void CMikie::Poke(ULONG addr, UBYTE data)
 			mAUDIO_2.BKUP = data;
 			TRACE_MIKIE2("Poke(AUD2TBACK,%02x) at PC=%04x", data, mSystem.mCpu->GetPC());
 			break;
-//		case (AUD2CTL & 0xff):
-//			mikey_0.aud2Ctl = data;
-//			if (data & 0x40) mikey_0.aud2Misc &= ~TIMER_DONE;
-//			mAUDIO_2.WAVESHAPER &= 0x1fefff;
-//			mAUDIO_2.WAVESHAPER |= (data & 0x80) ? 0x001000 : 0x000000;
-//			if (data & 0x48) {
-//				mAUDIO_2.LAST_COUNT = gSystemCycleCount;
-//				gNextTimerEvent = gSystemCycleCount;
-//			}
-//			TRACE_MIKIE2("Poke(AUD2CTL,%02x) at PC=%04x", data, mSystem.mCpu->GetPC());
+//		case (AUD2MISC & 0xff):
+//			mAUDIO_2.WAVESHAPER &= 0x1ff0ff;
+//			mAUDIO_2.WAVESHAPER |= (data&0xf0) << 4;
+//			mikey_0.aud2Misc = data & (BORROW_OUT | BORROW_IN | LAST_CLOCK);
+//			TRACE_MIKIE2("Poke(AUD2MISC,%02x) at PC=%04x", data, mSystem.mCpu->GetPC());
 //			break;
-		case (AUD2MISC & 0xff):
-			mAUDIO_2.WAVESHAPER &= 0x1ff0ff;
-			mAUDIO_2.WAVESHAPER |= (data&0xf0) << 4;
-			mikey_0.aud2Misc = data & (BORROW_OUT | BORROW_IN | LAST_CLOCK);
-			TRACE_MIKIE2("Poke(AUD2MISC,%02x) at PC=%04x", data, mSystem.mCpu->GetPC());
-			break;
 
 		case (AUD3VOL & 0xff):
 			// Counter is disabled when volume is zero for optimisation
@@ -344,23 +311,12 @@ void CMikie::Poke(ULONG addr, UBYTE data)
 			mAUDIO_3.BKUP = data;
 			TRACE_MIKIE2("Poke(AUD3TBACK,%02x) at PC=%04x", data, mSystem.mCpu->GetPC());
 			break;
-//		case (AUD3CTL & 0xff):
-//			mikey_0.aud3Ctl = data;
-//			if (data & 0x40) mikey_0.aud3Misc &= ~TIMER_DONE;
-//			mAUDIO_3.WAVESHAPER &= 0x1fefff;
-//			mAUDIO_3.WAVESHAPER |= (data & 0x80) ? 0x001000 : 0x000000;
-//			if (data & 0x48) {
-//				mAUDIO_3.LAST_COUNT = gSystemCycleCount;
-//				gNextTimerEvent = gSystemCycleCount;
-//			}
-//			TRACE_MIKIE2("Poke(AUD3CTL,%02x) at PC=%04x", data, mSystem.mCpu->GetPC());
+//		case (AUD3MISC & 0xff):
+//			mAUDIO_3.WAVESHAPER &= 0x1ff0ff;
+//			mAUDIO_3.WAVESHAPER |= (data & 0xf0) << 4;
+//			mikey_0.aud3Misc = data & (BORROW_OUT | BORROW_IN | LAST_CLOCK);
+//			TRACE_MIKIE2("Poke(AUD3MISC,%02x) at PC=%04x", data, mSystem.mCpu->GetPC());
 //			break;
-		case (AUD3MISC & 0xff):
-			mAUDIO_3.WAVESHAPER &= 0x1ff0ff;
-			mAUDIO_3.WAVESHAPER |= (data & 0xf0) << 4;
-			mikey_0.aud3Misc = data & (BORROW_OUT | BORROW_IN | LAST_CLOCK);
-			TRACE_MIKIE2("Poke(AUD3MISC,%02x) at PC=%04x", data, mSystem.mCpu->GetPC());
-			break;
 
 		case (SYSCTL1 & 0xff):
 			TRACE_MIKIE2("Poke(SYSCTL1 ,%02x) at PC=%04x", data, mSystem.mCpu->GetPC());
@@ -435,36 +391,6 @@ UBYTE CMikie::Peek(ULONG addr)
 {
 	switch(addr & 0xff)
 	{
-// Audio control registers
-//		case (AUD0CTL & 0xff):
-//			{
-//				UBYTE retval = (mikey_0.aud0Ctl & (CLOCK_SEL | ENABLE_COUNT | ENABLE_RELOAD | INTEGRATE));
-//				retval |= (mAUDIO_0.WAVESHAPER & 0x001000) ? 0x80 : 0x00;
-//				return retval;
-//			}
-//			break;
-//		case (AUD1CTL & 0xff):
-//			{
-//				UBYTE retval = (mikey_0.aud1Ctl & (CLOCK_SEL | ENABLE_COUNT | ENABLE_RELOAD | INTEGRATE));
-//				retval |= (mAUDIO_1.WAVESHAPER & 0x001000) ? 0x80 : 0x00;
-//				return retval;
-//			}
-//			break;
-//		case (AUD2CTL & 0xff):
-//			{
-//				UBYTE retval = (mikey_0.aud2Ctl & (CLOCK_SEL | ENABLE_COUNT | ENABLE_RELOAD | INTEGRATE));
-//				retval |= (mAUDIO_2.WAVESHAPER & 0x001000) ? 0x80 : 0x00;
-//				return retval;
-//			}
-//			break;
-//		case (AUD3CTL & 0xff):
-//			{
-//				UBYTE retval = (mikey_0.aud3Ctl & (CLOCK_SEL | ENABLE_COUNT | ENABLE_RELOAD | INTEGRATE));
-//				retval |= (mAUDIO_3.WAVESHAPER & 0x001000) ? 0x80 : 0x00;
-//				return retval;
-//			}
-//			break;
-
 // Miscellaneous registers
 		case (SERCTL & 0xff):
 			{
