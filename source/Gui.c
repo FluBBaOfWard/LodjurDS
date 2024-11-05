@@ -14,7 +14,7 @@
 #include "ARMMikey/Version.h"
 #include "ARMSuzy/Version.h"
 
-#define EMUVERSION "V0.0.2 2024-11-03"
+#define EMUVERSION "V0.0.2 2024-11-05"
 
 static void gammaChange(void);
 static void paletteChange(void);
@@ -139,7 +139,7 @@ void uiAbout() {
 	drawMenuText("A:          Lynx A button", 5, 0);
 	drawMenuText("Y:          Lynx Option I", 6, 0);
 	drawMenuText("X:          Lynx Option II", 7, 0);
-	drawMenuText("Start:      Lynx Start button", 8, 0);
+	drawMenuText("Start:      Lynx Pause button", 8, 0);
 
 	drawMenuText("LodjurDS     " EMUVERSION, 20, 0);
 	drawMenuText("Suzy         " ARMSUZYVERSION, 21, 0);

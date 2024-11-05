@@ -380,7 +380,7 @@ UBYTE CMikie::Peek(ULONG addr)
 	return 0xFF;
 }
 
-void CMikie::UpdateTimer4(void) {
+void CMikie::UpdateTimer4(u32 sysCycCount) {
 	int divide = 0;
 	int decval = 0;
 	ULONG tmp;
@@ -403,7 +403,7 @@ void CMikie::UpdateTimer4(void) {
 			// 16MHz clock downto 1us == cyclecount >> 4
 			// Additional /8 (+3) for 8 clocks per bit transmit
 			divide = 4 + 3 + (mikey_0.tim4CtlA & CLOCK_SEL);
-			decval = (gSystemCycleCount - mTIM_4.LAST_COUNT) >> divide;
+			decval = (sysCycCount - mTIM_4.LAST_COUNT) >> divide;
 		}
 
 		if (decval) {
@@ -496,7 +496,7 @@ void CMikie::UpdateTimer4(void) {
 					// an underun, check and fix
 					if (mTIM_4.CURRENT & 0x80000000) {
 						mTIM_4.CURRENT = mikey_0.tim4Bkup;
-						mTIM_4.LAST_COUNT = gSystemCycleCount;
+						mTIM_4.LAST_COUNT = sysCycCount;
 					}
 //				}
 //				else {
@@ -522,7 +522,7 @@ void CMikie::UpdateTimer4(void) {
 			// then CURRENT may still be negative and we can use it to
 			// calc the next timer value, we just want another update ASAP
 			tmp = (mTIM_4.CURRENT & 0x80000000) ? 1 : ((mTIM_4.CURRENT + 1) << divide);
-			tmp += gSystemCycleCount;
+			tmp += sysCycCount;
 			if (tmp < gNextTimerEvent) {
 				gNextTimerEvent = tmp;
 				TRACE_MIKIE1("Update() - TIMER 4 Set NextTimerEvent = %012d", gNextTimerEvent);

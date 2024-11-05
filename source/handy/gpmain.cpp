@@ -12,7 +12,7 @@
 
 extern "C" {
 u32 paintSprites(void);
-void runTimer4(void);
+void runTimer4(u32 sysCount);
 void susiePoke(u32 addr, u8 data);
 void mikiePoke(u32 addr, u8 data);
 u8 susiePeek(u32 addr);
@@ -29,8 +29,8 @@ CSystem *newsystem = NULL;
 u32 paintSprites() {
 	return newsystem->mSusie->PaintSprites();
 }
-void runTimer4() {
-	newsystem->mMikie->UpdateTimer4();
+void runTimer4(u32 sysCount) {
+	newsystem->mMikie->UpdateTimer4(sysCount);
 }
 void susiePoke(ULONG addr, UBYTE data) {
 	newsystem->mSusie->Poke(addr,data);

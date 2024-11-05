@@ -85,7 +85,7 @@ class CMikie : public CLynxBase
 		void	ComLynxTxLoopback(int data);
 		void	ComLynxTxCallback(void (*function)(int data,ULONG objref),ULONG objref);
 
-		void	UpdateTimer4(void);
+		void	UpdateTimer4(u32 sysCycCount);
 		void	UpdateSound(void);
 
 	private:

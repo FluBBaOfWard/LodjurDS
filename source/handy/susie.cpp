@@ -377,9 +377,9 @@ ULONG CSusie::PaintSprites(void)
 
 			cycles_used += 6 * SPR_RDWR_CYC;
 
-			// bool enable_sizing=FALSE; // unused
-			bool enable_stretch=FALSE;
-			bool enable_tilt=FALSE;
+			// bool enable_sizing = FALSE; // unused
+			bool enable_stretch = FALSE;
+			bool enable_tilt = FALSE;
 
 			// Optional section defined by reload type in Control 1
 
@@ -604,7 +604,7 @@ ULONG CSusie::PaintSprites(void)
 				int pixel_width;
 				int pixel;
 				int hoff,voff;
-				int hloop,vloop;
+				int hloop;
 				bool onscreen;
 
 				if (render) {
@@ -624,7 +624,7 @@ ULONG CSusie::PaintSprites(void)
 //					if (vsign == -1 && loop > 0) voff += vsign;
 					if (loop == 0) vquadoff = vsign;
 					if (vsign != vquadoff) voff += vsign;
-					
+
 					for (;;) {
 						// Vertical scaling is done here
 						mVSIZACUM.Word += mSPRVSIZ.Word;
@@ -646,7 +646,7 @@ ULONG CSusie::PaintSprites(void)
 						}
 
 						// Draw one horizontal line of the sprite
-						for (vloop=0;vloop<pixel_height;vloop++) {
+						for (int vloop=0;vloop<pixel_height;vloop++) {
 							// Early bailout if the sprite has moved off screen, terminate quad
 							if (vsign == 1 && voff >= LYNX_SCREEN_HEIGHT) break;
 							if (vsign == -1 && voff < 0) break;
@@ -807,7 +807,7 @@ ULONG CSusie::PaintSprites(void)
 
 	// Fudge factor to fix many flickering issues, also the keypress
 	// problem with Hard Drivin and the strange pause in Dirty Larry.
-//	cycles_used>>=2;
+//	cycles_used >>= 2;
 
 	return cycles_used;
 }
@@ -1108,7 +1108,7 @@ inline ULONG CSusie::LineInit(ULONG voff)
 	mLinePacketBitsLeft = (offset - 1) * 8;
 
 	// Literals are a special case and get their count set on a line basis
-	
+
 	if (mSPRCTL1_Literal) {
 		mLineType = line_abs_literal;
 		mLineRepeatCount = ((offset - 1) * 8) / mSPRCTL0_PixelBits;
@@ -1620,7 +1620,7 @@ void CSusie::Poke(ULONG addr, UBYTE data)
 			mSystem.Poke_CARTB1(data);
 			TRACE_SUSIE2("Poke(RCART1,%02x) at PC=$%04x", data, mSystem.mCpu->GetPC());
 			break;
-			
+
 // These are not so important, so lets ignore them for the moment
 
 		case (LEDS & 0xff):
