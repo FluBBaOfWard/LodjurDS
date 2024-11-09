@@ -35,7 +35,7 @@
 
 #ifdef EMBEDDED_ROM
 ROM_Space:
-//	.incbin "roms/APB - All Points Bulletin (1990).lnx"
+//	.incbin "roms/A.P.B. - All Points Bulletin (1990).lnx"
 //	.incbin "roms/Batman Returns (1992).lnx"
 //	.incbin "roms/desert strike - return to the gulf (1993) (telegames).lnx"
 //	.incbin "roms/Double Dragon (1993) (Telegames).lnx"

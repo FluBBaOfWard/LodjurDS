@@ -51,15 +51,6 @@ runStart:
 	ldr m6502ptr,=m6502_0
 	add r1,m6502ptr,#m6502Regs
 	ldmia r1,{m6502nz-m6502pc,m6502zpage}	;@ Restore M6502 state
-;@----------------------------------------------------------------------------
-svFrameLoop:
-;@----------------------------------------------------------------------------
-	mov r0,#CYCLE_PSL
-	bl m6502RunXCycles
-	ldr suzptr,=suzy_0
-	bl svDoScanline
-	cmp r0,#0
-	bne svFrameLoop
 
 ;@----------------------------------------------------------------------------
 	add r0,m6502ptr,#m6502Regs
@@ -106,15 +97,6 @@ stepFrame:					;@ Return after 1 frame
 	ldr m6502ptr,=m6502_0
 	add r1,m6502ptr,#m6502Regs
 	ldmia r1,{m6502nz-m6502pc,m6502zpage}	;@ Restore M6502 state
-;@----------------------------------------------------------------------------
-lxStepLoop:
-;@----------------------------------------------------------------------------
-	mov r0,#CYCLE_PSL
-	bl m6502RunXCycles
-	ldr suzptr,=suzy_0
-	bl svDoScanline
-	cmp r0,#0
-	bne lxStepLoop
 ;@----------------------------------------------------------------------------
 	add r0,m6502ptr,#m6502Regs
 	stmia r0,{m6502nz-m6502pc}	;@ Save M6502 state

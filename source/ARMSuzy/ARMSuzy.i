@@ -1,11 +1,11 @@
 //
-//  SVVideo.i
-//  Watara Supervision video emulation for GBA/NDS.
+//  ARMSuzy.i
+//  Atari Lynx Suzy emulation for ARM32.
 //
-//  Created by Fredrik Ahlström on 2004-11-30.
-//  Copyright © 2004-2024 Fredrik Ahlström. All rights reserved.
+//  Created by Fredrik Ahlström on 2024-09-22.
+//  Copyright © 2024 Fredrik Ahlström. All rights reserved.
 //
-;@ ASM header for the Watara Supervision video emulator
+;@ ASM header for the Atari Lynx Suzy emulator
 
 #define HW_AUTO       (0)
 #define HW_LYNX       (1)
@@ -21,7 +21,7 @@
 #define GAME_HEIGHT (102)
 
 	suzptr		.req r12
-						;@ SVVideo.s
+						;@ ARMSuzy.s
 	.struct 0
 scanline:			.long 0		;@ These 3 must be first in state.
 nextLineChange:		.long 0
@@ -29,90 +29,130 @@ lineState:			.long 0
 
 windowData:			.long 0
 suzyState:					;@
-svvRegs:
-svvLCDHSize:		.byte 0		;@ 0x00 LCD Horizontal Size
-svvLCDVSize:		.byte 0		;@ 0x01 LCD Vertical Size
-svvHScroll:			.byte 0		;@ 0x02 Horizontal Scroll
-svvVScroll:			.byte 0		;@ 0x03 Vertical Scroll
-svvMirr00:			.byte 0		;@ 0x04 Mirror of reg 0x00
-svvMirr01:			.byte 0		;@ 0x05 Mirror of reg 0x01
-svvMirr02:			.byte 0		;@ 0x06 Mirror of reg 0x02
-svvMirr03:			.byte 0		;@ 0x07 Mirror of reg 0x03
+suzRegs:
+suzTmpAdr:						;@ 0x00 Temporary Address
+suzTmpAdrL:			.byte 0		;@ Low
+suzTmpAdrH:			.byte 0		;@ High
+suzTiltAcum:					;@ 0x02 Tilt Accumulator
+suzTiltAcumL:		.byte 0		;@ Low
+suzTiltAcumH:		.byte 0		;@ High
+suzHOff:						;@ 0x04 Horizontal Offset
+suzHOffL:			.byte 0		;@ Low
+suzHOffH:			.byte 0		;@ High
+suzVOff:						;@ 0x06 Vertical Offset
+suzVOffL:			.byte 0		;@ Low
+suzVOffH:			.byte 0		;@ High
+suzVidBas:						;@ 0x08 Video Base
+suzVidBasL:			.byte 0		;@ Low
+suzVidBasH:			.byte 0		;@ High
+suzCollBas:						;@ 0x0A Collision Base
+suzCollBasL:		.byte 0		;@ Low
+suzCollBasH:		.byte 0		;@ High
+suzVidAdr:						;@ 0x0C Video Address
+suzVidAdrL:			.byte 0		;@ Low
+suzVidAdrH:			.byte 0		;@ High
+suzCollAdr:						;@ 0x0C Collision Address
+suzCollAdrL:		.byte 0		;@ Low
+suzCollAdrH:		.byte 0		;@ High
+suzSCBNext:						;@ 0x10 Sprite Control Block Next
+suzSCBNextL:		.byte 0		;@ Low
+suzSCBNextH:		.byte 0		;@ High
+suzSprDLine:					;@ 0x12 Start of Sprite Data Line Address
+suzSprDLineL:		.byte 0		;@ Low
+suzSprDLineH:		.byte 0		;@ High
+suzHPosStrt:					;@ 0x14 Starting Hpos
+suzHPosStrtL:		.byte 0		;@ Low
+suzHPosStrtH:		.byte 0		;@ High
+suzVPosStrt:					;@ 0x16 Starting Vpos
+suzVPosStrtL:		.byte 0		;@ Low
+suzVPosStrtH:		.byte 0		;@ High
+suzSprHSiz:						;@ 0x18 Srite Horizontal Size
+suzSprHSizL:		.byte 0		;@ Low
+suzSprHSizH:		.byte 0		;@ High
+suzSprVSiz:						;@ 0x1A Srite Vertical Size
+suzSprVSizL:		.byte 0		;@ Low
+suzSprVSizH:		.byte 0		;@ High
+suzStretch:						;@ 0x1C Horizontal Size Adder
+suzStretchL:		.byte 0		;@ Low
+suzStretchH:		.byte 0		;@ High
+suzTilt:						;@ 0x1E Horizontal Position Adder
+suzTiltL:			.byte 0		;@ Low
+suzTiltH:			.byte 0		;@ High
+suzSprDOff:						;@ 0x20 Offset to Next Sprite Data Line
+suzSprDOffL:		.byte 0		;@ Low
+suzSprDOffH:		.byte 0		;@ High
+suzSprVPos:						;@ 0x22 Current Vertical Position
+suzSprVPosL:		.byte 0		;@ Low
+suzSprVPosH:		.byte 0		;@ High
+suzCollOff:						;@ 0x24 Offset to Collision Depository
+suzCollOffL:		.byte 0		;@ Low
+suzCollOffH:		.byte 0		;@ High
+suzVSizAcum:					;@ 0x26 Vertical Size Accumulator
+suzVSizAcumL:		.byte 0		;@ Low
+suzVSizAcumH:		.byte 0		;@ High
+suzHSizOff:						;@ 0x28 Horizontal Size Offset
+suzHSizOffL:		.byte 0		;@ Low
+suzHSizOffH:		.byte 0		;@ High
+suzVSizOff:						;@ 0x2A Vertical Size Offset
+suzVSizOffL:		.byte 0		;@ Low
+suzVSizOffH:		.byte 0		;@ High
+suzSCBAdr:						;@ 0x2C Address of Current SCB
+suzSCBAdrL:			.byte 0		;@ Low
+suzSCBAdrH:			.byte 0		;@ High
+suzProcAdr:						;@ 0x2E Current Spr Data Proc Address
+suzProcAdrL:		.byte 0		;@ Low
+suzProcAdrH:		.byte 0		;@ High
+suzReserved:		.space 0x22	;@ 0x30-0x51 Reserved
+suzMathD:			.byte 0		;@ 0x52 Math D
+suzMathC:			.byte 0		;@ 0x53 Math C
+suzMathB:			.byte 0		;@ 0x54 Math B
+suzMathA:			.byte 0		;@ 0x55 Math A
+suzMathP:			.byte 0		;@ 0x56 Math P
+suzMathN:			.byte 0		;@ 0x57 Math N
+suzReserved1:		.space 0x08	;@ 0x58-0x5F Reserved
+suzMathH:			.byte 0		;@ 0x60 Math H
+suzMathF:			.byte 0		;@ 0x61 Math G
+suzMathG:			.byte 0		;@ 0x62 Math F
+suzMathE:			.byte 0		;@ 0x63 Math E
+suzReserved2:		.space 0x08	;@ 0x64-0x6B Reserved
+suzMathM:			.byte 0		;@ 0x6C Math M
+suzMathL:			.byte 0		;@ 0x6D Math L
+suzMathK:			.byte 0		;@ 0x6E Math K
+suzMathJ:			.byte 0		;@ 0x6F Math J
+suzReserved3:		.space 0x10	;@ 0x70-0x7F Reserved
+suzSprCtl0:			.byte 0		;@ 0x80 Sprite Control 0
+suzSprCtl1:			.byte 0		;@ 0x81 Sprite Control 1
+suzSprColl:			.byte 0		;@ 0x82 Sprite Collision Number
+suzSprInit:			.byte 0		;@ 0x83 Sprite Initialization
+suzReserved4:		.space 0x04	;@ 0x84-0x87 Reserved
+suzSuzyHRev:		.byte 0		;@ 0x88 Suzy Hardware Revision
+suzSuzySRev:		.byte 0		;@ 0x89 Suzy Software Revision
+suzReserved5:		.space 0x06	;@ 0x8A-0x8F Reserved
+suzSuzyBusEn:		.byte 0		;@ 0x90 Suzy Bus Enable
+suzSprGo:			.byte 0		;@ 0x91 Sprite Process Start Bit
+suzSprSys:			.byte 0		;@ 0x92 System Control
+suzReserved6:		.space 0x1D	;@ 0x93-0xAF Reserved
+suzJoystick:		.byte 0		;@ 0xB0 Read Joystick and Switches
+suzSwitches:		.byte 0		;@ 0xB1 Read Other Switches
+suzRCart0:			.byte 0		;@ 0xB2 Read or write 8 bits of data
+suzRCart1:			.byte 0		;@ 0xB3 Read or write 8 bits of data
+suzReserved7:		.space 0x0C	;@ 0xB4-0xBF Reserved
+suzLeds:			.byte 0		;@ 0xC0 Read Joystick and Switches
+suzReserved8:		.space 0x01	;@ 0xC1 Reserved
+suzPPortStat:		.byte 0		;@ 0xC2 Parallel Port Status
+suzPPortData:		.byte 0		;@ 0xC3 Parallel Port Data
+suzHowie:			.byte 0		;@ 0xC4 Read or write as appropriate
 
-wsvDMACBus:
-wsvDMACBusLow:		.byte 0		;@ 0x08 DMA CBus Low
-wsvDMACBusHigh:		.byte 0		;@ 0x09 DMA CBus High
-wsvDMAVBus:
-wsvDMAVBusLow:		.byte 0		;@ 0x0A DMA VBus Low
-wsvDMAVBusHigh:		.byte 0		;@ 0x0B DMA VBus High
-wsvDMALen:			.byte 0		;@ 0x0C DMA Length
-wsvDMACtrl:			.byte 0		;@ 0x0D DMA Control
-
-wsvPadding0:		.space 2	;@ 0x0E-0x0F ??
-
-wsvCh1Freq:						;@ Channel 1 (Right only)
-wsvCh1FreqLow:		.byte 0		;@ 0x10 Channel 1 Frequency Low
-wsvCh1FreqHigh:		.byte 0		;@ 0x11 Channel 1 Frequency High
-wsvCh1Ctrl:			.byte 0		;@ 0x12 Channel 1 Volume/Duty cycle
-wsvCh1Len:			.byte 0		;@ 0x13 Channel 1 Length
-wsvCh2Freq:						;@ Channel 2 (Left only)
-wsvCh2FreqLow:		.byte 0		;@ 0x14 Channel 2 Frequency Low
-wsvCh2FreqHigh:		.byte 0		;@ 0x15 Channel 2 Frequency High
-wsvCh2Ctrl:			.byte 0		;@ 0x16 Channel 2 Volume/Duty cycle
-wsvCh2Len:			.byte 0		;@ 0x17 Channel 2 Length
-
-wsvCh3Adr:
-wsvCh3AdrLow:		.byte 0		;@ 0x18 Channel 3 Address Low
-wsvCh3AdrHigh:		.byte 0		;@ 0x19 Channel 3 Address High
-wsvCh3Len:			.byte 0		;@ 0x1A Channel 3 Length
-wsvCh3Ctrl:			.byte 0		;@ 0x1B Channel 3 Control
-wsvCh3Trigg:		.byte 0		;@ 0x1C Channel 3 Trigger
-wsvPadding1:		.space 3	;@ 0x1D - 0x1F ???
-
-wsvController:		.byte 0		;@ 0x20 Controller
-wsvLinkPortDDR:		.byte 0		;@ 0x21 Link Port DDR
-wsvLinkPortData:	.byte 0		;@ 0x22 Link Port Data
-wsvIRQTimer:		.byte 0		;@ 0x23 IRQ Timer
-wsvTimerIRQReset:	.byte 0		;@ 0x24 Timer IRQ Reset
-wsvSndDMAIRQReset:	.byte 0		;@ 0x25 Sound DMA IRQ Reset
-wsvSystemControl:	.byte 0		;@ 0x26 System Control
-wsvIRQStatus:		.byte 0		;@ 0x27 IRQ Status
-wsvCh4FreqVol:		.byte 0		;@ 0x28 Channel 4 Frequency and volume
-wsvCh4Len:			.byte 0		;@ 0x29 Channel 4 Length
-wsvCh4Ctrl:			.byte 0		;@ 0x2A Channel 4 Control
-wsvPadding2:		.byte 0		;@ 0x2B ???
-wsvMirr028:			.byte 0		;@ 0x2C Mirror of Reg 0x28
-wsvMirr029:			.byte 0		;@ 0x2D Mirror of Reg 0x29
-wsvMirr02A:			.byte 0		;@ 0x2E Mirror of Reg 0x2A
-wsvPadding3:		.byte 0		;@ 0x2F ???
-
+suzLCDVSize:		.byte 0		;@ 0x2F ???
+					.space 2
 
 ;@----------------------------------------------------------------------------
-wsvNMITimer:		.long 0
-wsvTimerValue:		.long 0
-sndDmaCounter:		.long 0		;@ Sound DMA Counter
-sndDmaLength:		.long 0		;@ Sound DMA length
 
-ch1Counter:			.long 0		;@ Ch1 Counter
-ch2Counter:			.long 0		;@ Ch2 Counter
-ch3Counter:			.long 0		;@ Ch3 Counter
-ch4Counter:			.long 0		;@ Ch4 Counter
-ch4LFSR:			.long 0		;@ Ch4 Noise LFSR
-ch3Address:			.long 0		;@ Ch3 sample address (physical)
-ch4Feedback:		.long 0		;@ Ch4 Noise Feedback
-
-wsvNMIStatus:		.byte 0		;@ NMI Status
-wsvLinkPortVal:		.byte 0		;@ Link Port Value
-wsvSOC:				.byte 0		;@ HOWARD or HOWARD2
 wsvLatchedDispCtrl:	.byte 0		;@ Latched Display Control
-wsvLowBattery:		.byte 0
 wsvPadding4:		.space 3
 
 scrollLine: 		.long 0		;@ Last line scroll was updated.
 suzyStateEnd:
-
-nmiFunction:		.long 0		;@ NMI function
-irqFunction:		.long 0		;@ IRQ function
 
 dirtyTiles:			.space 4
 gfxRAM:				.long 0		;@ 0x2000

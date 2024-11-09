@@ -44,7 +44,7 @@ gfxInit:					;@ Called from machineInit
 ;@----------------------------------------------------------------------------
 	stmfd sp!,{lr}
 
-	bl svVideoInit
+	bl suzyInit
 	bl gfxWinInit
 
 	ldmfd sp!,{pc}
@@ -220,7 +220,7 @@ updateLCDRefresh:
 	.type updateLCDRefresh STT_FUNC
 ;@----------------------------------------------------------------------------
 	adr suzptr,suzy_0
-	ldrb r1,[suzptr,#svvLCDVSize]
+	ldrb r1,[suzptr,#suzLCDVSize]
 	b svRefW
 ;@----------------------------------------------------------------------------
 setScreenRefresh:			;@ r0 in = WS scan line count.
@@ -273,7 +273,7 @@ vblIrqHandler:
 	add r3,r6,#REG_BG0HOFS		;@ DMA0 always goes here
 	stmia r3,{r4}				;@ Set 1st value manually, HBL is AFTER 1st line
 	ldr r4,=0x96600001			;@ noIRQ hblank 32bit repeat incsrc inc_reloaddst, 1 word
-	stmia r1,{r2-r4}			;@ DMA0 go
+//	stmia r1,{r2-r4}			;@ DMA0 go
 
 	add r1,r6,#REG_DMA3SAD
 
@@ -349,9 +349,8 @@ gfxEndFrame:				;@ Called just before screen end (~line 101)	(r0-r3 safe to use)
 ;@----------------------------------------------------------------------------
 	stmfd sp!,{r3,lr}
 
-	ldr r0,tmpScroll			;@ Destination
-	bl copyScrollValues
-;@--------------------------
+//	ldr r0,tmpScroll			;@ Destination
+//	bl copyScrollValues
 
 	ldr r0,tmpScroll
 	ldr r1,dmaScroll
@@ -388,10 +387,10 @@ gGfxMask:		.byte 0
 frameDone:		.byte 0
 				.byte 0,0
 ;@----------------------------------------------------------------------------
-svVideoReset0:		;@ r0=NmiFunc, r1=IrqFunc, r2=ram+LUTs, r3=model
+suzyReset0:		;@ r0=ram+LUTs
 ;@----------------------------------------------------------------------------
 	adr suzptr,suzy_0
-	b svVideoReset
+	b suzyReset
 ;@----------------------------------------------------------------------------
 lnxSuzyRead:
 	.type lnxSuzyRead STT_FUNC
@@ -399,7 +398,7 @@ lnxSuzyRead:
 	stmfd sp!,{r3,r12,lr}
 	mov r0,r12
 	adr suzptr,suzy_0
-	bl svRead
+	bl suzRead
 	ldmfd sp!,{r3,r12,lr}
 	bx lr
 ;@----------------------------------------------------------------------------
@@ -410,7 +409,7 @@ lnxSuzyWrite:
 	mov r1,r0
 	mov r0,r12
 	adr suzptr,suzy_0
-	bl svWrite
+	bl suzWrite
 	ldmfd sp!,{r3,r12,lr}
 	bx lr
 

@@ -1112,8 +1112,6 @@ inline ULONG CSusie::LineInit(ULONG voff)
 	if (mSPRCTL1_Literal) {
 		mLineType = line_abs_literal;
 		mLineRepeatCount = ((offset - 1) * 8) / mSPRCTL0_PixelBits;
-		// Why is this necessary, is this compensating for the 1,1 offset bug
-//		mLineRepeatCount--;
 	}
 //	TRACE_SUSIE1("LineInit() mLineRepeatCount=$%04x",mLineRepeatCount);
 
@@ -1129,7 +1127,7 @@ inline ULONG CSusie::LineInit(ULONG voff)
 //	TRACE_SUSIE1("LineInit() mLineBaseAddress=$%04x", mLineBaseAddress);
 //	TRACE_SUSIE1("LineInit() mLineCollisionAddress=$%04x", mLineCollisionAddress);
 
-	// Return the offset to the next line
+	// Return the offset to the next line of sprite data.
 
 	return offset;
 }

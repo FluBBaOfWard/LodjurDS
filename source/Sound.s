@@ -1,6 +1,6 @@
 #ifdef __arm__
 
-#include "ARMSuzy/ARMSuzy.i"
+#include "ARMMikey/ARMMikey.i"
 
 	.global soundInit
 	.global soundReset
@@ -28,10 +28,10 @@ soundInit:
 ;@----------------------------------------------------------------------------
 soundReset:
 ;@----------------------------------------------------------------------------
-	stmfd sp!,{lr}
-	ldr suzptr,=suzy_0
-	bl svAudioReset			;@ sound
-	ldmfd sp!,{lr}
+	stmfd sp!,{mikptr,lr}
+	ldr mikptr,=mikey_0
+	bl miAudioReset			;@ sound
+	ldmfd sp!,{mikptr,lr}
 	bx lr
 
 ;@----------------------------------------------------------------------------
@@ -49,10 +49,10 @@ VblSound2:					;@ r0=length, r1=pointer
 	cmp r2,#0
 	bne silenceMix
 
-	stmfd sp!,{r0,lr}
-	ldr suzptr,=suzy_0
-	bl svAudioMixer
-	ldmfd sp!,{r0,lr}
+	stmfd sp!,{r0,mikptr,lr}
+	ldr mikptr,=mikey_0
+	bl miAudioMixer
+	ldmfd sp!,{r0,mikptr,lr}
 	bx lr
 
 silenceMix:

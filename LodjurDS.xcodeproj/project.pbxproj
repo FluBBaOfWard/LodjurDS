@@ -22,8 +22,7 @@
 		9C41C6BA2C9F6DA50026DE6C /* ARMSuzy.i */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c.preprocessed; path = ARMSuzy.i; sourceTree = "<group>"; };
 		9C41C6BB2C9F6DA50026DE6C /* Suzy_todo.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = Suzy_todo.txt; sourceTree = "<group>"; };
 		9C41C6BC2C9F6DA50026DE6C /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
-		9C41C6BD2C9F6DA50026DE6C /* SVAudio.s */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.asm; path = SVAudio.s; sourceTree = "<group>"; };
-		9C41C6BE2C9F6DA50026DE6C /* SVVideo.s */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.asm; path = SVVideo.s; sourceTree = "<group>"; };
+		9C41C6BE2C9F6DA50026DE6C /* ARMSuzy.s */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.asm; path = ARMSuzy.s; sourceTree = "<group>"; };
 		9C41C6BF2C9F6DA50026DE6C /* Version.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Version.h; sourceTree = "<group>"; };
 		9C41C6C42CA32F7A0026DE6C /* lynxcart.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = lynxcart.h; sourceTree = "<group>"; };
 		9C41C6C52CA32F7A0026DE6C /* lynxcart.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = lynxcart.cpp; sourceTree = "<group>"; };
@@ -174,8 +173,7 @@
 				9C41C6BF2C9F6DA50026DE6C /* Version.h */,
 				9C41C6B92C9F6DA50026DE6C /* ARMSuzy.h */,
 				9C41C6BA2C9F6DA50026DE6C /* ARMSuzy.i */,
-				9C41C6BD2C9F6DA50026DE6C /* SVAudio.s */,
-				9C41C6BE2C9F6DA50026DE6C /* SVVideo.s */,
+				9C41C6BE2C9F6DA50026DE6C /* ARMSuzy.s */,
 			);
 			path = ARMSuzy;
 			sourceTree = "<group>";

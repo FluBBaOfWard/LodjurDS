@@ -2,5 +2,4 @@ ARMSuzy To do
 -------------------------------
 
 	Add check for dirty tiles in tilemap renderer.
-	Handle LCD on/off.
 

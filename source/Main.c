@@ -82,8 +82,6 @@ int main(int argc, char **argv) {
 	else {
 		infoOutput("fatInitDefault() failure.");
 	}
-//	GpDelete();
-//	GpInit(romSpacePtr, gRomSize);
 
 	while (1) {
 		waitVBlank();
