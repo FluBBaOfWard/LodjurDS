@@ -25,7 +25,6 @@
 	.global suzyGetStateSize
 	.global suzRead
 	.global suzWrite
-	.global svRefW
 	.global svGetInterruptVector
 
 	.syntax unified
@@ -76,10 +75,9 @@ suzyReset:		;@ r0=ram+LUTs, r12=suzptr
 	ldr r1,=suzySize/4
 	bl memclr_					;@ Clear Suzy state
 
-//	ldr r2,=lineStateTable
-//	ldr r1,[r2],#4
-//	mov r0,#-1
-//	stmia suzptr,{r0-r2}		;@ Reset scanline, nextChange & lineState
+	mov r0,#0x7F
+	strh r0,[suzptr,#suzHSizOff]
+	strh r0,[suzptr,#suzVSizOff]
 
 	ldmfd sp!,{r0,lr}
 
@@ -88,10 +86,7 @@ suzyReset:		;@ r0=ram+LUTs, r12=suzptr
 	str r0,[suzptr,#scrollBuff]
 
 	bx lr
-	b suRegistersReset
 
-dummyIrqFunc:
-	bx lr
 ;@----------------------------------------------------------------------------
 _debugIOUnmappedR:
 ;@----------------------------------------------------------------------------
@@ -115,26 +110,6 @@ memCopy:
 thumbCallR3:
 ;@----------------------------------------------------------------------------
 	bx r3
-;@----------------------------------------------------------------------------
-suRegistersReset:			;@ in r3=SOC
-;@----------------------------------------------------------------------------
-	adr r1,IO_Default
-	mov r2,#0x30
-	add r0,suzptr,#suzRegs
-	stmfd sp!,{suzptr,lr}
-	bl memCopy
-	ldmfd sp!,{suzptr,lr}
-	ldrb r1,[suzptr,#suzLCDVSize]
-	b svRefW
-
-;@----------------------------------------------------------------------------
-IO_Default:
-	.byte 0xA0, 0xA0, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
-	.byte 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
-	.byte 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
-	.byte 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
-	.byte 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
-	.byte 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
 
 ;@----------------------------------------------------------------------------
 suzySaveState:				;@ In r0=destination, r1=suzptr. Out r0=state size.
@@ -327,8 +302,8 @@ io_read_tbl:
 	.long suUnmappedR			;@ 0xFC8D
 	.long suUnmappedR			;@ 0xFC8E
 	.long suUnmappedR			;@ 0xFC8F
-	.long suRegR				;@ 0xFC90 SUZYBUSEN
-	.long suRegR				;@ 0xFC91 SPRGO
+	.long suWriteOnlyR			;@ 0xFC90 SUZYBUSEN
+	.long suWriteOnlyR			;@ 0xFC91 SPRGO
 	.long suRegR				;@ 0xFC92 SPRSYS
 	.long suUnmappedR			;@ 0xFC93
 	.long suUnmappedR			;@ 0xFC94
@@ -419,53 +394,53 @@ suzWrite:					;@ I/O write
 	ldrmi pc,[pc,r2,lsl#2]
 	b suUnmappedW
 io_write_tbl:
-	.long suRegW				;@ 0xFC00 TMPADRL
+	.long suRegLW				;@ 0xFC00 TMPADRL
 	.long suRegW				;@ 0xFC01 TMPADRH
-	.long suRegW				;@ 0xFC02 TILTACUML
+	.long suRegLW				;@ 0xFC02 TILTACUML
 	.long suRegW				;@ 0xFC03 TILTACUMH
-	.long suRegW				;@ 0xFC04 HOFFL
+	.long suRegLW				;@ 0xFC04 HOFFL
 	.long suRegW				;@ 0xFC05 HOFFH
-	.long suRegW				;@ 0xFC06 VOFFL
+	.long suRegLW				;@ 0xFC06 VOFFL
 	.long suRegW				;@ 0xFC07 VOFFH
-	.long suRegW				;@ 0xFC08 VIDBASL
+	.long suRegLW				;@ 0xFC08 VIDBASL
 	.long suRegW				;@ 0xFC09 VIDBASH
-	.long suRegW				;@ 0xFC0A COLLBASL
+	.long suRegLW				;@ 0xFC0A COLLBASL
 	.long suRegW				;@ 0xFC0B COLLBASH
-	.long suRegW				;@ 0xFC0C VIDADRL
+	.long suRegLW				;@ 0xFC0C VIDADRL
 	.long suRegW				;@ 0xFC0D VIDADRH
-	.long suRegW				;@ 0xFC0E COLLADRL
+	.long suRegLW				;@ 0xFC0E COLLADRL
 	.long suRegW				;@ 0xFC0F COLLADRH
-	.long suRegW				;@ 0xFC10 SCBNEXTL
+	.long suRegLW				;@ 0xFC10 SCBNEXTL
 	.long suRegW				;@ 0xFC11 SCBNEXTH
-	.long suRegW				;@ 0xFC12 SPRDLINEL
+	.long suRegLW				;@ 0xFC12 SPRDLINEL
 	.long suRegW				;@ 0xFC13 SPRDLINEH
-	.long suRegW				;@ 0xFC14 HPOSSTRTL
+	.long suRegLW				;@ 0xFC14 HPOSSTRTL
 	.long suRegW				;@ 0xFC15 HPOSSTRTH
-	.long suRegW				;@ 0xFC16 VPOSSTRTL
+	.long suRegLW				;@ 0xFC16 VPOSSTRTL
 	.long suRegW				;@ 0xFC17 VPOSSTRTH
-	.long suRegW				;@ 0xFC18 SPRHSIZL
+	.long suRegLW				;@ 0xFC18 SPRHSIZL
 	.long suRegW				;@ 0xFC19 SPRHSIZH
-	.long suRegW				;@ 0xFC1A SPRVSIZL
+	.long suRegLW				;@ 0xFC1A SPRVSIZL
 	.long suRegW				;@ 0xFC1B SPRVSIZH
-	.long suRegW				;@ 0xFC1C STRETCHL
+	.long suRegLW				;@ 0xFC1C STRETCHL
 	.long suRegW				;@ 0xFC1D STRETCHH
-	.long suRegW				;@ 0xFC1E TILTL
+	.long suRegLW				;@ 0xFC1E TILTL
 	.long suRegW				;@ 0xFC1F TILTH
-	.long suRegW				;@ 0xFC20 SPRDOFFL
+	.long suRegLW				;@ 0xFC20 SPRDOFFL
 	.long suRegW				;@ 0xFC21 SPRDOFFH
-	.long suRegW				;@ 0xFC22 SPRVPOSL
+	.long suRegLW				;@ 0xFC22 SPRVPOSL
 	.long suRegW				;@ 0xFC23 SPRVPOSH
-	.long suRegW				;@ 0xFC24 COLLOFFL
+	.long suRegLW				;@ 0xFC24 COLLOFFL
 	.long suRegW				;@ 0xFC25 COLLOFFH
-	.long suRegW				;@ 0xFC26 VSIZACUML
+	.long suRegLW				;@ 0xFC26 VSIZACUML
 	.long suRegW				;@ 0xFC27 VSIZACUMH
-	.long suRegW				;@ 0xFC28 HSIZOFFL
+	.long suRegLW				;@ 0xFC28 HSIZOFFL
 	.long suRegW				;@ 0xFC29 HSIZOFFH
-	.long suRegW				;@ 0xFC2A VSIZOFFL
+	.long suRegLW				;@ 0xFC2A VSIZOFFL
 	.long suRegW				;@ 0xFC2B VSIZOFFH
-	.long suRegW				;@ 0xFC2C SCBADRL
+	.long suRegLW				;@ 0xFC2C SCBADRL
 	.long suRegW				;@ 0xFC2D SCBADRH
-	.long suRegW				;@ 0xFC2E PROCADRL
+	.long suRegLW				;@ 0xFC2E PROCADRL
 	.long suRegW				;@ 0xFC2F PROCADRH
 	.long suUnmappedW			;@ 0xFC30
 	.long suUnmappedW			;@ 0xFC31
@@ -503,9 +478,9 @@ io_write_tbl:
 	.long suUnmappedW			;@ 0xFC51
 	.long suRegW				;@ 0xFC52 MATHD
 	.long suRegW				;@ 0xFC53 MATHC
-	.long suRegW				;@ 0xFC54 MATHB
+	.long suRegLW				;@ 0xFC54 MATHB
 	.long suRegW				;@ 0xFC55 MATHA
-	.long suRegW				;@ 0xFC56 MATHP
+	.long suRegLW				;@ 0xFC56 MATHP
 	.long suRegW				;@ 0xFC57 MATHN
 	.long suUnmappedW			;@ 0xFC58
 	.long suUnmappedW			;@ 0xFC59
@@ -515,9 +490,9 @@ io_write_tbl:
 	.long suUnmappedW			;@ 0xFC5D
 	.long suUnmappedW			;@ 0xFC5E
 	.long suUnmappedW			;@ 0xFC5F
-	.long suRegW				;@ 0xFC60 MATHH
+	.long suRegLW				;@ 0xFC60 MATHH
 	.long suRegW				;@ 0xFC61 MATHG
-	.long suRegW				;@ 0xFC62 MATHF
+	.long suRegLW				;@ 0xFC62 MATHF
 	.long suRegW				;@ 0xFC63 MATHE
 	.long suUnmappedW			;@ 0xFC64
 	.long suUnmappedW			;@ 0xFC65
@@ -527,9 +502,9 @@ io_write_tbl:
 	.long suUnmappedW			;@ 0xFC69
 	.long suUnmappedW			;@ 0xFC6A
 	.long suUnmappedW			;@ 0xFC6B
-	.long suRegW				;@ 0xFC6C MATHM
+	.long suRegLW				;@ 0xFC6C MATHM
 	.long suRegW				;@ 0xFC6D MATHL
-	.long suRegW				;@ 0xFC6E MATHK
+	.long suRegLW				;@ 0xFC6E MATHK
 	.long suRegW				;@ 0xFC6F MATHJ
 	.long suUnmappedW			;@ 0xFC70
 	.long suUnmappedW			;@ 0xFC71
@@ -595,8 +570,8 @@ io_write_tbl:
 	.long suUnmappedW			;@ 0xFCAD
 	.long suUnmappedW			;@ 0xFCAE
 	.long suUnmappedW			;@ 0xFCAF
-	.long suRegW				;@ 0xFCB0 JOYSTICK
-	.long suRegW				;@ 0xFCB1 SWITCHES
+	.long suReadOnlyW			;@ 0xFCB0 JOYSTICK
+	.long suReadOnlyW			;@ 0xFCB1 SWITCHES
 	.long suRegW				;@ 0xFCB2 RCART0
 	.long suRegW				;@ 0xFCB3 RCART1
 	.long suUnmappedW			;@ 0xFCB4
@@ -611,11 +586,11 @@ io_write_tbl:
 	.long suUnmappedW			;@ 0xFCBD
 	.long suUnmappedW			;@ 0xFCBE
 	.long suUnmappedW			;@ 0xFCBF
-	.long suRegW				;@ 0xFCC0 LEDS
+	.long suImportantW			;@ 0xFCC0 LEDS
 	.long suUnmappedW			;@ 0xFCC1
-	.long suRegW				;@ 0xFCC2 PPORTSTAT
-	.long suRegW				;@ 0xFCC3 PPORTDATA
-	.long suRegW				;@ 0xFCC4 HOWIE
+	.long suImportantW			;@ 0xFCC2 PPORTSTAT
+	.long suImportantW			;@ 0xFCC3 PPORTDATA
+	.long suImportantW			;@ 0xFCC4 HOWIE
 
 ;@----------------------------------------------------------------------------
 suUnknownW:
@@ -640,50 +615,14 @@ suRegW:
 	add r2,suzptr,#suzRegs
 	strb r1,[r2,r0]
 	bx lr
-
 ;@----------------------------------------------------------------------------
-svRefW:						;@ 0x2001, Last scan line.
-;@----------------------------------------------------------------------------
-	strb r1,[suzptr,#suzLCDVSize]
-	cmp r1,#0x9E
-	movmi r1,#0x9E
-	cmp r1,#0xC8
-	movpl r1,#0xC8
-	add r1,r1,#1
-	str r1,lineStateLastLine
-	mov r0,r1
-	b setScreenRefresh
-
-
-;@----------------------------------------------------------------------------
-newFrame:					;@ Called before line 0
-;@----------------------------------------------------------------------------
-	bx lr
-;@----------------------------------------------------------------------------
-endFrame:
-;@----------------------------------------------------------------------------
-	stmfd sp!,{lr}
-	bl gfxEndFrame
-
-	ldmfd sp!,{pc}
-
-;@----------------------------------------------------------------------------
-frameEndHook:
-	mov r0,#0
-	str r0,[suzptr,#scrollLine]
-
-	adr r2,lineStateTable
-	ldr r1,[r2],#4
-	mov r0,#-1
-	stmia suzptr,{r0-r2}		;@ Reset scanline, nextChange & lineState
+suRegLW:
+	and r0,r0,#0xFF
+	and r1,r1,#0xFF
+	add r2,suzptr,#suzRegs
+	strh r1,[r2,r0]
 	bx lr
 
-;@----------------------------------------------------------------------------
-lineStateTable:
-	.long 0, newFrame			;@ zeroLine
-	.long 159, endFrame			;@ After last visible scanline
-lineStateLastLine:
-	.long 160, frameEndHook		;@ totalScanlines
 ;@----------------------------------------------------------------------------
 #ifdef GBA
 	.section .iwram, "ax", %progbits	;@ For the GBA

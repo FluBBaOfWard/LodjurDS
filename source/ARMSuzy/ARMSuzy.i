@@ -23,11 +23,6 @@
 	suzptr		.req r12
 						;@ ARMSuzy.s
 	.struct 0
-scanline:			.long 0		;@ These 3 must be first in state.
-nextLineChange:		.long 0
-lineState:			.long 0
-
-windowData:			.long 0
 suzyState:					;@
 suzRegs:
 suzTmpAdr:						;@ 0x00 Temporary Address

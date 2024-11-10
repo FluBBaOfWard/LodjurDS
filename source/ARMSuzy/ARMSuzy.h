@@ -26,38 +26,47 @@ extern "C" {
 /** Game screen height in pixels */
 #define GAME_HEIGHT (102)
 
-typedef struct {
-	u32 scanline;
-	u32 nextLineChange;
-	u32 lineState;
+typedef struct
+{
+	union
+	{
+		struct
+		{
+			u8	Low;
+			u8	High;
+		}Byte;
+		u16	Word;
+	};
+} U16_ST;
 
-	u32 windowData;
+
+typedef struct {
 //suzState:
 //suzRegs:
-	u16 tmpAdr;			// 0x00 Temporary Address
-	u16 tiltAcum;		// 0x02 Tilt Accumulator
-	u16 hOff;			// 0x04 Horizontal Offset
-	u16 vOff;			// 0x06 Vertical Offset
-	u16 vidBas;			// 0x08 Video Base
-	u16 collBas;		// 0x0A Collision Base
-	u16 vidAdr;			// 0x0C Video Address
-	u16 collAdr;		// 0x0C Collision Address
-	u16 SCBNext;		// 0x10 Sprite Control Block Next
-	u16 sprDLine;		// 0x12 Start of Sprite Data Line Address
-	u16 hPosStrt;		// 0x14 Starting Hpos
-	u16 vPosStrt;		// 0x16 Starting Vpos
-	u16 sprHSiz;		// 0x18 Srite Horizontal Size
-	u16 sprVSiz;		// 0x1A Srite Vertical Size
-	u16 stretch;		// 0x1C Horizontal Size Adder
-	u16 tilt;			// 0x1E Horizontal Position Adder
-	u16 sprDOff;		// 0x20 Offset to Next Sprite Data Line
-	u16 sprVPos;		// 0x22 Current Vertical Position
-	u16 collOff;		// 0x24 Offset to Collision Depository
-	u16 vSizAcum;		// 0x26 Vertical Size Accumulator
-	u16 hSizOff;		// 0x28 Horizontal Size Offset
-	u16 vSizOff;		// 0x2A Vertical Size Offset
-	u16 SCBAdr;			// 0x2C Address of Current SCB
-	u16 procAdr;		// 0x2E Current Spr Data Proc Address
+	U16_ST tmpAdr;		// 0x00 Temporary Address
+	U16_ST tiltAcum;	// 0x02 Accumulator for tilt value
+	U16_ST hOff;		// 0x04 Offset to Horizontal edge of screen
+	U16_ST vOff;		// 0x06 Offset to Vertical edge of screen
+	U16_ST vidBas;		// 0x08 Base Address of Video Build Buffer
+	U16_ST collBas;		// 0x0A Base Address of Collision Build Buffer
+	U16_ST vidAdr;		// 0x0C Current Video Build Address
+	U16_ST collAdr;		// 0x0C Current Collision Build Address
+	U16_ST SCBNext;		// 0x10 Sprite Control Block Next
+	U16_ST sprDLine;	// 0x12 Start of Sprite Data Line Address
+	U16_ST hPosStrt;	// 0x14 Starting Hpos
+	U16_ST vPosStrt;	// 0x16 Starting Vpos
+	U16_ST sprHSiz;		// 0x18 Srite Horizontal Size
+	U16_ST sprVSiz;		// 0x1A Srite Vertical Size
+	U16_ST stretch;		// 0x1C Horizontal Size Adder
+	U16_ST tilt;		// 0x1E Horizontal Position Adder
+	U16_ST sprDOff;		// 0x20 Offset to Next Sprite Data Line
+	U16_ST sprVPos;		// 0x22 Current Vertical Position
+	U16_ST collOff;		// 0x24 Offset to Collision Depository
+	U16_ST vSizAcum;	// 0x26 Vertical Size Accumulator
+	U16_ST hSizOff;		// 0x28 Horizontal Size Offset
+	U16_ST vSizOff;		// 0x2A Vertical Size Offset
+	U16_ST SCBAdr;		// 0x2C Address of Current SCB
+	U16_ST procAdr;		// 0x2E Current Spr Data Proc Address
 	u8 reserved[0x22];	// 0x30-0x51 Reserved
 	u8 mathD;			// 0x52 Math D
 	u8 mathC;			// 0x53 Math C

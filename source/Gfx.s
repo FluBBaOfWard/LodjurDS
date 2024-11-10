@@ -70,13 +70,14 @@ gfxReset:					;@ Called with CPU reset
 	ldrb r3,[r3]
 	bl miVideoReset
 
+	ldr r0,=lynxRAM
+	bl suzyReset0
+
 	ldr r0,=gGammaValue
 	ldr r1,=gContrastValue
 	ldrb r0,[r0]
 	ldrb r1,[r1]
 	bl paletteInit				;@ Do palette mapping
-
-	ldr suzptr,=suzy_0
 
 	ldmfd sp!,{pc}
 
@@ -221,7 +222,7 @@ updateLCDRefresh:
 ;@----------------------------------------------------------------------------
 	adr suzptr,suzy_0
 	ldrb r1,[suzptr,#suzLCDVSize]
-	b svRefW
+	b miRefW
 ;@----------------------------------------------------------------------------
 setScreenRefresh:			;@ r0 in = WS scan line count.
 	.type setScreenRefresh STT_FUNC
@@ -294,7 +295,7 @@ vblIrqHandler:
 	bic r0,r0,r2,lsl#8
 //	strh r0,[r6,#REG_DISPCNT]
 
-	ldr r0,[suzptr,#windowData]
+	mov r0,#0
 	strh r0,[r6,#REG_WIN0H]
 	mov r0,r0,lsr#16
 	strh r0,[r6,#REG_WIN0V]
@@ -395,22 +396,19 @@ suzyReset0:		;@ r0=ram+LUTs
 lnxSuzyRead:
 	.type lnxSuzyRead STT_FUNC
 ;@----------------------------------------------------------------------------
-	stmfd sp!,{r3,r12,lr}
-	mov r0,r12
+	stmfd sp!,{r12,lr}
 	adr suzptr,suzy_0
 	bl suzRead
-	ldmfd sp!,{r3,r12,lr}
+	ldmfd sp!,{r12,lr}
 	bx lr
 ;@----------------------------------------------------------------------------
 lnxSuzyWrite:
 	.type lnxSuzyWrite STT_FUNC
 ;@----------------------------------------------------------------------------
-	stmfd sp!,{r3,r12,lr}
-	mov r1,r0
-	mov r0,r12
+	stmfd sp!,{r12,lr}
 	adr suzptr,suzy_0
 	bl suzWrite
-	ldmfd sp!,{r3,r12,lr}
+	ldmfd sp!,{r12,lr}
 	bx lr
 
 ;@----------------------------------------------------------------------------
