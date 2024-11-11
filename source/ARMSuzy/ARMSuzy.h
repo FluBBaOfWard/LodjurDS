@@ -101,24 +101,25 @@ typedef struct {
 	u8 switches;		// 0xB1 Read Other Switches
 	u8 rCart0;			// 0xB2 Read or write 8 bits of data
 	u8 rCart1;			// 0xB3 Read or write 8 bits of data
-	u8 reserved7;		// 0xB4-0xBF Reserved
+	u8 reserved7[0x0C];		// 0xB4-0xBF Reserved
 	u8 leds;			// 0xC0 Read Joystick and Switches
 	u8 reserved8[0x01];	// 0xC1 Reserved
 	u8 pPortStat;		// 0xC2 Parallel Port Status
 	u8 pPortData;		// 0xC3 Parallel Port Data
 	u8 howie;			// 0xC4 Read or write as appropriate
 
-	u8 suzLCDVSize;		// 0x2F ???
+	u8 suzLCDVSize;		// ???
 	u8 suzPadding[2];
 
 //------------------------------
 	u8 wsvLatchedDispCtrl;		// Latched Display Control
 	u8 suzPadding4[3];
 
+	u32 lineBaseAddress;
 	u32 scrollLine;
 
 	u8 dirtyTiles[4];
-	void *gfxRAM;
+	void *suzyRAM;
 	u32 *scrollBuff;
 
 } SUZY;
@@ -146,6 +147,8 @@ int suzyLoadState(SUZY *chip, const void *source);
  * @return The size of the state.
  */
 int suzyGetStateSize(void);
+
+void suzWritePixel(u32 hoff, u32 pixel);
 
 #ifdef __cplusplus
 } // extern "C"

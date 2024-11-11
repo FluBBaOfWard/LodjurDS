@@ -25,7 +25,7 @@
 	.global suzyGetStateSize
 	.global suzRead
 	.global suzWrite
-	.global svGetInterruptVector
+	.global suzWritePixel
 
 	.syntax unified
 	.arm
@@ -67,7 +67,7 @@ bgrLoop:
 
 	bx lr
 ;@----------------------------------------------------------------------------
-suzyReset:		;@ r0=ram+LUTs, r12=suzptr
+suzyReset:		;@ r0=ram, r12=suzptr
 ;@----------------------------------------------------------------------------
 	stmfd sp!,{r0,lr}
 
@@ -81,7 +81,7 @@ suzyReset:		;@ r0=ram+LUTs, r12=suzptr
 
 	ldmfd sp!,{r0,lr}
 
-	str r0,[suzptr,#gfxRAM]
+	str r0,[suzptr,#suzyRAM]
 	ldr r0,=SCROLL_BUFF
 	str r0,[suzptr,#scrollBuff]
 
@@ -538,7 +538,7 @@ io_write_tbl:
 	.long suUnmappedW			;@ 0xFC8D
 	.long suUnmappedW			;@ 0xFC8E
 	.long suUnmappedW			;@ 0xFC8F
-	.long suRegW				;@ 0xFC90 SUZYBUSEN
+	.long suBusEnW				;@ 0xFC90 SUZYBUSEN
 	.long suRegW				;@ 0xFC91 SPRGO
 	.long suRegW				;@ 0xFC92 SPRSYS
 	.long suUnmappedW			;@ 0xFC93
@@ -621,6 +621,31 @@ suRegLW:
 	and r1,r1,#0xFF
 	add r2,suzptr,#suzRegs
 	strh r1,[r2,r0]
+	bx lr
+
+;@----------------------------------------------------------------------------
+suBusEnW:
+;@----------------------------------------------------------------------------
+	and r1,r1,#0x01
+	strb r1,[suzptr,#suzSuzyBusEn]
+	bx lr
+
+;@----------------------------------------------------------------------------
+suzWritePixel:				;@ In r0=hoff, r1=pixel.
+	.type	suzWritePixel STT_FUNC
+;@----------------------------------------------------------------------------
+	ldr suzptr,=suzy_0
+	ldr r2,[suzptr,#suzLineBaseAddress]
+	tst r0,#1
+	add r2,r2,r0,lsr#1
+	ldr r0,[suzptr,#suzyRAM]
+	ldrb r3,[r0,r2]
+	andeq r3,r3,#0x0F
+	orreq r3,r3,r1,lsl#4
+	andne r3,r3,#0xF0
+	orrne r3,r3,r1
+	strb r3,[r0,r2]
+
 	bx lr
 
 ;@----------------------------------------------------------------------------

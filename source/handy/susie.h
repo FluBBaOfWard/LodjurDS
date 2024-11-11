@@ -337,8 +337,6 @@ class CSusie : public CLynxBase
 		~CSusie();
 
 		void	Reset(void);
-//		bool	ContextSave(FILE *fp);
-//		bool	ContextLoad(LSS_FILE *fp);
 
 		UBYTE	Peek(ULONG addr);
 		void	Poke(ULONG addr,UBYTE data);
@@ -359,7 +357,7 @@ class CSusie : public CLynxBase
 		ULONG	LineGetBits(ULONG bits);
 
 		void	ProcessPixel(ULONG hoff,ULONG pixel);
-		void	WritePixel(ULONG hoff,ULONG pixel);
+//		void	WritePixel(ULONG hoff,ULONG pixel);
 		ULONG	ReadPixel(ULONG hoff);
 		void	WriteCollision(ULONG hoff,ULONG pixel);
 		ULONG	ReadCollision(ULONG hoff);
@@ -368,14 +366,8 @@ class CSusie : public CLynxBase
 		CSystem&	mSystem;
 
 		UUWORD		mTMPADR;		// ENG
-//		UUWORD		mTILTACUM;		// ENG
-		UUWORD		mHOFF;			// CPU
-		UUWORD		mVOFF;			// CPU
-//		UUWORD		mVIDBAS;		// CPU
-//		UUWORD		mCOLLBAS;		// CPU
-//		UUWORD		mVIDADR;		// ENG
-//		UUWORD		mCOLLADR;		// ENG
-//		UUWORD		mSCBNEXT;		// SCB
+//		UUWORD		mHOFF;			// CPU
+//		UUWORD		mVOFF;			// CPU
 		UUWORD		mSPRDLINE;		// SCB
 		UUWORD		mHPOSSTRT;		// SCB
 		UUWORD		mVPOSSTRT;		// SCB
@@ -384,14 +376,9 @@ class CSusie : public CLynxBase
 		UUWORD		mSTRETCH;		// ENG
 		UUWORD		mTILT;			// ENG
 		UUWORD		mSPRDOFF;		// ENG
-//		UUWORD		mSPRVPOS;		// ENG
-//		UUWORD		mCOLLOFF;		// CPU
 		UUWORD		mVSIZACUM;		// ENG
 		UUWORD		mHSIZACUM;		//    K.s creation
-//		UUWORD		mHSIZOFF;		// CPU
-//		UUWORD		mVSIZOFF;		// CPU
 		UUWORD		mSCBADR;		// ENG
-//		UUWORD		mPROCADR;		// ENG
 
 		TMATHABCD	mMATHABCD;		// ENG
 		TMATHEFGH	mMATHEFGH;		// ENG
@@ -429,7 +416,7 @@ class CSusie : public CLynxBase
 		int			mSPRSYS_Mathbit;
 		int			mSPRSYS_MathInProgress;
 
-		ULONG		mSUZYBUSEN;		// CPU
+//		ULONG		mSUZYBUSEN;		// CPU
 
 		TSPRINIT	mSPRINIT;		// CPU
 
@@ -451,7 +438,7 @@ class CSusie : public CLynxBase
 
 		UBYTE		*mRamPointer;
 
-		ULONG		mLineBaseAddress;
+//		ULONG		mLineBaseAddress;
 		ULONG		mLineCollisionAddress;
 
 		int hquadoff, vquadoff;

@@ -138,7 +138,7 @@ suzPPortStat:		.byte 0		;@ 0xC2 Parallel Port Status
 suzPPortData:		.byte 0		;@ 0xC3 Parallel Port Data
 suzHowie:			.byte 0		;@ 0xC4 Read or write as appropriate
 
-suzLCDVSize:		.byte 0		;@ 0x2F ???
+suzLCDVSize:		.byte 0		;@ ???
 					.space 2
 
 ;@----------------------------------------------------------------------------
@@ -146,11 +146,12 @@ suzLCDVSize:		.byte 0		;@ 0x2F ???
 wsvLatchedDispCtrl:	.byte 0		;@ Latched Display Control
 wsvPadding4:		.space 3
 
+suzLineBaseAddress:	.long 0		;@ Current dest line adr.
 scrollLine: 		.long 0		;@ Last line scroll was updated.
 suzyStateEnd:
 
 dirtyTiles:			.space 4
-gfxRAM:				.long 0		;@ 0x2000
+suzyRAM:			.long 0		;@ 0x10000
 scrollBuff:			.long 0
 
 suzySize:
