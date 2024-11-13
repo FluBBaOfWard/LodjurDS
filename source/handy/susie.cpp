@@ -453,7 +453,7 @@ ULONG CSusie::PaintSprites(void)
 			if (!mSPRCTL1_ReloadPalette) {
 
 				TRACE_SUSIE0("PaintSprites() Palette reloaded");
-				for(int loop=0;loop<8;loop++) {
+				for (int loop=0;loop<8;loop++) {
 					UBYTE data = RAM_PEEK(mTMPADR.Word++);
 					mPenIndex[loop*2] = (data>>4) & 0x0f;
 					mPenIndex[(loop*2)+1] = data & 0x0f;
@@ -681,7 +681,7 @@ ULONG CSusie::PaintSprites(void)
 									for(hloop=0;hloop<pixel_width;hloop++) {
 										// Draw if onscreen but break loop on transition to offscreen
 										if (hoff >= 0 && hoff < LYNX_SCREEN_WIDTH) {
-											ProcessPixel(hoff,pixel);
+											suzProcessPixel(hoff, pixel, mSPRCTL0_Type);
 											onscreen = TRUE;
 											everonscreen = TRUE;
 										}
@@ -810,163 +810,6 @@ ULONG CSusie::PaintSprites(void)
 	return cycles_used;
 }
 
-//
-// Collision code modified by KW 22/11/98
-// Collision buffer cler added if there is no
-// apparent collision, I have a gut feeling this
-// is the wrong solution to the inv07.com bug but
-// it seems to work OK.
-//
-// Shadow-------------------------------|
-// Boundary-Shadow--------------------| |
-// Normal---------------------------| | |
-// Boundary-----------------------| | | |
-// Background-Shadow------------| | | | |
-// Background-No Collision----| | | | | |
-// Non-Collideable----------| | | | | | |
-// Exclusive-or-Shadow----| | | | | | | |
-//                        | | | | | | | |
-//                        1 1 1 1 0 1 0 1   F is opaque
-//                        0 0 0 0 1 1 0 0   E is collideable
-//                        0 0 1 1 0 0 0 0   0 is opaque and collideable
-//                        1 0 0 0 1 1 1 1   allow collision detect
-//                        1 0 0 1 1 1 1 1   allow coll. buffer access
-//                        1 0 0 0 0 0 0 0   exclusive-or the data
-//
-
-inline void CSusie::ProcessPixel(ULONG hoff, ULONG pixel)
-{
-	suzProcessPixel(hoff, pixel, mSPRCTL0_Type);
-
-/*	switch(mSPRCTL0_Type)
-	{
-		// BACKGROUND SHADOW
-		// 1   F is opaque
-		// 0   E is collideable
-		// 1   0 is opaque and collideable
-		// 0   allow collision detect
-		// 1   allow coll. buffer access
-		// 0   exclusive-or the data
-		case sprite_background_shadow:
-			suzWritePixel(hoff, pixel);
-			if (pixel != 0x0e) {
-				suzWriteCollision(hoff, mSPRCOLL);
-			}
-			break;
-
-		// BACKGROUND NOCOLLIDE
-		// 1   F is opaque
-		// 0   E is collideable
-		// 1   0 is opaque and collideable
-		// 0   allow collision detect
-		// 0   allow coll. buffer access
-		// 0   exclusive-or the data
-		case sprite_background_noncollide:
-			suzWritePixel(hoff, pixel);
-			break;
-
-		// NOCOLLIDE
-		// 1   F is opaque
-		// 0   E is collideable
-		// 0   0 is opaque and collideable
-		// 0   allow collision detect
-		// 0   allow coll. buffer access
-		// 0   exclusive-or the data
-		case sprite_noncollide:
-			if (pixel != 0x00) {
-				suzWritePixel(hoff, pixel);
-			}
-			break;
-
-		// BOUNDARY
-		// 0   F is opaque
-		// 1   E is collideable
-		// 0   0 is opaque and collideable
-		// 1   allow collision detect
-		// 1   allow coll. buffer access
-		// 0   exclusive-or the data
-		case sprite_boundary:
-			if (pixel != 0x00) {
-				if (pixel != 0x0f) {
-					suzWritePixel(hoff, pixel);
-				}
-				suzTestCollision(hoff, mSPRCOLL);
-			}
-			break;
-
-		// NORMAL
-		// 1   F is opaque
-		// 1   E is collideable
-		// 0   0 is opaque and collideable
-		// 1   allow collision detect
-		// 1   allow coll. buffer access
-		// 0   exclusive-or the data
-		case sprite_normal:
-			if (pixel != 0x00) {
-				suzWritePixel(hoff, pixel);
-				suzTestCollision(hoff, mSPRCOLL);
-			}
-			break;
-
-		// BOUNDARY_SHADOW
-		// 0   F is opaque
-		// 0   E is collideable
-		// 0   0 is opaque and collideable
-		// 1   allow collision detect
-		// 1   allow coll. buffer access
-		// 0   exclusive-or the data
-		case sprite_boundary_shadow:
-			if (pixel != 0x00 && pixel != 0x0e && pixel != 0x0f) {
-				suzWritePixel(hoff, pixel);
-			}
-			if (pixel != 0x00 && pixel != 0x0e) {
-				suzTestCollision(hoff, mSPRCOLL);
-			}
-			break;
-
-		// SHADOW
-		// 1   F is opaque
-		// 0   E is collideable
-		// 0   0 is opaque and collideable
-		// 1   allow collision detect
-		// 1   allow coll. buffer access
-		// 0   exclusive-or the data
-		case sprite_shadow:
-			if (pixel != 0x00) {
-				suzWritePixel(hoff, pixel);
-				if (pixel != 0x0e) {
-					suzTestCollision(hoff, mSPRCOLL);
-				}
-			}
-			break;
-
-		// XOR SHADOW
-		// 1   F is opaque
-		// 0   E is collideable
-		// 0   0 is opaque and collideable
-		// 1   allow collision detect
-		// 1   allow coll. buffer access
-		// 1   exclusive-or the data
-		case sprite_xor_shadow:
-			if (pixel != 0x00) {
-				suzXorPixel(hoff, pixel);
-				if (pixel != 0x0e) {
-					suzTestCollision(hoff, mSPRCOLL);
-				}
-			}
-			break;
-		default:
-			break;
-	}*/
-}
-/*
-inline void CSusie::TestCollision(ULONG hoff, ULONG pixel)
-{
-	if (pixel <= 0xF) {
-		suzTestCollision(hoff, pixel);
-	}
-}
-*/
 inline ULONG CSusie::LineInit(ULONG voff)
 {
 	mLineShiftReg = 0;
@@ -994,7 +837,7 @@ inline ULONG CSusie::LineInit(ULONG voff)
 
 	if (mSPRCTL1_Literal) {
 		mLineType = line_abs_literal;
-		mLineRepeatCount = ((offset - 1) * 8) / mSPRCTL0_PixelBits;
+		mLineRepeatCount = mLinePacketBitsLeft / mSPRCTL0_PixelBits;
 	}
 
 	// Set the line base address for use in the calls to pixel painting
@@ -1014,62 +857,44 @@ inline ULONG CSusie::LineInit(ULONG voff)
 inline ULONG CSusie::LineGetPixel()
 {
 	if (!mLineRepeatCount) {
-		// Normal sprites fetch their counts on a packet basis
-		if (mLineType != line_abs_literal) {
-			ULONG literal = LineGetBits(1);
-			if (literal) mLineType = line_literal; else mLineType = line_packed;
+		if (mLineType == line_abs_literal) {
+			// This means end of line for us
+			return LINE_END;		// SPEEDUP
 		}
 
-		// Pixel store is empty what should we do
-		switch (mLineType) {
-			case line_abs_literal:
-				// This means end of line for us
-				mLinePixel = LINE_END;
-				return mLinePixel;		// SPEEDUP
-				break;
-			case line_literal:
-				mLineRepeatCount = LineGetBits(4);
-				mLineRepeatCount++;
-				break;
-			case line_packed:
-				//
-				// From reading in between the lines only a packed line with
-				// a zero size i.e 0b0000 as a header is allowable as a packet end
-				//
-				mLineRepeatCount = LineGetBits(4);
-				if (!mLineRepeatCount) {
-					mLinePixel = LINE_END;
-				}
-				else {
-					mLinePixel = mPenIndex[LineGetBits(mSPRCTL0_PixelBits)];
-				}
-				mLineRepeatCount++;
-				break;
-			default:
-				return 0;
+		// Normal sprites fetch their counts on a packet basis
+		ULONG literal = LineGetBits(1);
+		mLineRepeatCount = LineGetBits(4);
+		if (literal) {
+			mLineType = line_literal;
+			return mPenIndex[LineGetBits(mSPRCTL0_PixelBits)];
+		}
+		else {
+			mLineType = line_packed;
+			//
+			// From reading in between the lines only a packed line with
+			// a zero size i.e 0b0000 as a header is allowable as a packet end
+			//
+			if (!mLineRepeatCount) {
+				return LINE_END;		// SPEEDUP
+			}
+			mLinePixel = mPenIndex[LineGetBits(mSPRCTL0_PixelBits)];
+			return mLinePixel;		// SPEEDUP
 		}
 	}
 
-	if (mLinePixel != LINE_END) {
-		mLineRepeatCount--;
+	mLineRepeatCount--;
 
-		switch(mLineType) {
-			case line_abs_literal:
-				mLinePixel = LineGetBits(mSPRCTL0_PixelBits);
-				// Check the special case of a zero in the last pixel
-				if (!mLineRepeatCount && !mLinePixel)
-					mLinePixel = LINE_END;
-				else
-					mLinePixel = mPenIndex[mLinePixel];
-				break;
-			case line_literal:
-				mLinePixel = mPenIndex[LineGetBits(mSPRCTL0_PixelBits)];
-				break;
-			case line_packed:
-				break;
-			default:
-				return 0;
-		}
+	switch(mLineType) {
+		case line_abs_literal:
+			mLinePixel = LineGetBits(mSPRCTL0_PixelBits);
+			// Check the special case of a zero in the last pixel
+			if (!mLineRepeatCount && !mLinePixel) {
+				return LINE_END;
+			}
+			return mPenIndex[mLinePixel];
+		case line_literal:
+			return mPenIndex[LineGetBits(mSPRCTL0_PixelBits)];
 	}
 
 	return mLinePixel;

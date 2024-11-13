@@ -356,9 +356,6 @@ class CSusie : public CLynxBase
 		ULONG	LineGetPixel(void);
 		ULONG	LineGetBits(ULONG bits);
 
-		void	ProcessPixel(ULONG hoff,ULONG pixel);
-//		void	TestCollision(ULONG hoff,ULONG pixel);
-
 	private:
 		CSystem&	mSystem;
 
@@ -425,8 +422,6 @@ class CSusie : public CLynxBase
 		ULONG		mLineRepeatCount;
 		ULONG		mLinePixel;
 		ULONG		mLinePacketBitsLeft;
-
-//		int			mCollision;
 
 		UBYTE		*mRamPointer;
 

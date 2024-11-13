@@ -16,8 +16,6 @@
 #include "ARMSuzy.i"
 #include "../ARMMikey/ARM6502/M6502.i"
 
-#define CYCLE_PSL (246*2)
-
 	.global suzyInit
 	.global suzyReset
 	.global suzySaveState
@@ -26,10 +24,6 @@
 	.global suzRead
 	.global suzWrite
 	.global suzProcessPixel
-	.global suzWritePixel
-	.global suzXorPixel
-	.global suzWriteCollision
-	.global suzTestCollision
 
 	.syntax unified
 	.arm
@@ -770,7 +764,6 @@ sprNoColl:
 sprBgrNoColl:
 ;@----------------------------------------------------------------------------
 suzWritePixel:				;@ In r0=hoff, r1=pixel.
-	.type	suzWritePixel STT_FUNC
 ;@----------------------------------------------------------------------------
 	ldr r2,[suzptr,#suzLineBaseAddress]
 	tst r0,#1
@@ -789,7 +782,6 @@ suzWritePixel:				;@ In r0=hoff, r1=pixel.
 	bx lr
 ;@----------------------------------------------------------------------------
 suzXorPixel:				;@ In r0=hoff, r1=pixel.
-	.type	suzXorPixel STT_FUNC
 ;@----------------------------------------------------------------------------
 	ldr r2,[suzptr,#suzLineBaseAddress]
 	tst r0,#1
@@ -806,7 +798,6 @@ suzXorPixel:				;@ In r0=hoff, r1=pixel.
 	bx lr
 ;@----------------------------------------------------------------------------
 suzWriteCollision:			;@ In r0=hoff, r1=colVal.
-	.type	suzWriteCollision STT_FUNC
 ;@----------------------------------------------------------------------------
 	cmp r1,#0x10
 	bxpl lr
@@ -828,7 +819,6 @@ suzWriteCollision:			;@ In r0=hoff, r1=colVal.
 	bx lr
 ;@----------------------------------------------------------------------------
 suzTestCollision:			;@ In r0=hoff, r1=colVal. Out r0=collision
-	.type	suzTestCollision STT_FUNC
 ;@----------------------------------------------------------------------------
 	cmp r1,#0x10
 	bxpl lr
