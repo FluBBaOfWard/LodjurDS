@@ -73,6 +73,7 @@
 #define mCOLLOFF suzy_0.collOff
 #define mHSIZOFF suzy_0.hSizOff
 #define mVSIZOFF suzy_0.vSizOff
+#define mSPRCOLL suzy_0.sprColl
 #define mSUZYBUSEN suzy_0.suzyBusEn
 
 #define mLineBaseAddress suzy_0.lineBaseAddress
@@ -143,7 +144,7 @@ void CSusie::Reset(void)
 	mSPRCTL1_Sizing = 0;
 	mSPRCTL1_Literal = 0;
 
-	mSPRCOLL = 0;
+//	mSPRCOLL = 0;
 
 	mSPRSYS_StopOnCurrent = 0;
 	mSPRSYS_LeftHand = 0;
@@ -339,7 +340,7 @@ ULONG CSusie::PaintSprites(void)
 
 		data = RAM_PEEK(mTMPADR.Word);			// Collision num
 		TRACE_SUSIE1("PaintSprites() SPRCOLL $%02x", data);
-		mSPRCOLL = data & 0x002f;
+		mSPRCOLL = (data & 0x002f) | mSPRSYS_NoCollide;
 		mTMPADR.Word += 1;
 
 		mSCBNEXT.Word = RAM_PEEKW(mTMPADR.Word);	// Next SCB
@@ -354,7 +355,7 @@ ULONG CSusie::PaintSprites(void)
 			// Initialise the collision depositary
 
 // Although Tom Schenck says this is correct, it doesnt appear to be
-//			if (mSPRCOLL <= 0xF && !mSPRSYS_NoCollide)
+//			if (mSPRCOLL <= 0xF)
 //			{
 //				mCollision = RAM_PEEK((mSCBADR.Word+mCOLLOFF.Word) & 0xffff) & 0x0f;
 //			}
@@ -739,7 +740,7 @@ ULONG CSusie::PaintSprites(void)
 
 			// Write the collision depositary if required
 
-			if (mSPRCOLL <= 0xF && !mSPRSYS_NoCollide) {
+			if (mSPRCOLL <= 0xF) {
 				switch(mSPRCTL0_Type)
 				{
 					case sprite_xor_shadow:
@@ -835,7 +836,9 @@ ULONG CSusie::PaintSprites(void)
 
 inline void CSusie::ProcessPixel(ULONG hoff, ULONG pixel)
 {
-	switch(mSPRCTL0_Type)
+	suzProcessPixel(hoff, pixel, mSPRCTL0_Type);
+
+/*	switch(mSPRCTL0_Type)
 	{
 		// BACKGROUND SHADOW
 		// 1   F is opaque
@@ -845,8 +848,8 @@ inline void CSusie::ProcessPixel(ULONG hoff, ULONG pixel)
 		// 1   allow coll. buffer access
 		// 0   exclusive-or the data
 		case sprite_background_shadow:
-			suzWritePixel(hoff,pixel);
-			if (mSPRCOLL <= 0xF && !mSPRSYS_NoCollide && pixel != 0x0e) {
+			suzWritePixel(hoff, pixel);
+			if (pixel != 0x0e) {
 				suzWriteCollision(hoff, mSPRCOLL);
 			}
 			break;
@@ -870,7 +873,9 @@ inline void CSusie::ProcessPixel(ULONG hoff, ULONG pixel)
 		// 0   allow coll. buffer access
 		// 0   exclusive-or the data
 		case sprite_noncollide:
-			if (pixel != 0x00) suzWritePixel(hoff, pixel);
+			if (pixel != 0x00) {
+				suzWritePixel(hoff, pixel);
+			}
 			break;
 
 		// BOUNDARY
@@ -881,11 +886,11 @@ inline void CSusie::ProcessPixel(ULONG hoff, ULONG pixel)
 		// 1   allow coll. buffer access
 		// 0   exclusive-or the data
 		case sprite_boundary:
-			if (pixel != 0x00 && pixel != 0x0f) {
-				suzWritePixel(hoff, pixel);
-			}
 			if (pixel != 0x00) {
-				TestCollision(hoff, mSPRCOLL);
+				if (pixel != 0x0f) {
+					suzWritePixel(hoff, pixel);
+				}
+				suzTestCollision(hoff, mSPRCOLL);
 			}
 			break;
 
@@ -898,8 +903,8 @@ inline void CSusie::ProcessPixel(ULONG hoff, ULONG pixel)
 		// 0   exclusive-or the data
 		case sprite_normal:
 			if (pixel != 0x00) {
-				suzWritePixel(hoff,pixel);
-				TestCollision(hoff, mSPRCOLL);
+				suzWritePixel(hoff, pixel);
+				suzTestCollision(hoff, mSPRCOLL);
 			}
 			break;
 
@@ -915,7 +920,7 @@ inline void CSusie::ProcessPixel(ULONG hoff, ULONG pixel)
 				suzWritePixel(hoff, pixel);
 			}
 			if (pixel != 0x00 && pixel != 0x0e) {
-				TestCollision(hoff, mSPRCOLL);
+				suzTestCollision(hoff, mSPRCOLL);
 			}
 			break;
 
@@ -929,9 +934,9 @@ inline void CSusie::ProcessPixel(ULONG hoff, ULONG pixel)
 		case sprite_shadow:
 			if (pixel != 0x00) {
 				suzWritePixel(hoff, pixel);
-			}
-			if (pixel != 0x00 && pixel != 0x0e) {
-				TestCollision(hoff, mSPRCOLL);
+				if (pixel != 0x0e) {
+					suzTestCollision(hoff, mSPRCOLL);
+				}
 			}
 			break;
 
@@ -945,23 +950,23 @@ inline void CSusie::ProcessPixel(ULONG hoff, ULONG pixel)
 		case sprite_xor_shadow:
 			if (pixel != 0x00) {
 				suzXorPixel(hoff, pixel);
-			}
-			if (pixel != 0x00 && pixel != 0x0e) {
-				TestCollision(hoff, mSPRCOLL);
+				if (pixel != 0x0e) {
+					suzTestCollision(hoff, mSPRCOLL);
+				}
 			}
 			break;
 		default:
 			break;
-	}
+	}*/
 }
-
+/*
 inline void CSusie::TestCollision(ULONG hoff, ULONG pixel)
 {
-	if (pixel <= 0xF && !mSPRSYS_NoCollide) {
+	if (pixel <= 0xF) {
 		suzTestCollision(hoff, pixel);
 	}
 }
-
+*/
 inline ULONG CSusie::LineInit(ULONG voff)
 {
 	mLineShiftReg = 0;
@@ -1353,10 +1358,10 @@ void CSusie::Poke(ULONG addr, UBYTE data)
 			mSPRCTL1_Literal = data & 0x0080;
 			TRACE_SUSIE2("Poke(SPRCTL1,%02x) at PC=$%04x", data, mSystem.mCpu->GetPC());
 			break;
-		case (SPRCOLL & 0xff):
-			mSPRCOLL = data & 0x002f;
-			TRACE_SUSIE2("Poke(SPRCOLL,%02x) at PC=$%04x", data, mSystem.mCpu->GetPC());
-			break;
+//		case (SPRCOLL & 0xff):
+//			mSPRCOLL = data & 0x002f;
+//			TRACE_SUSIE2("Poke(SPRCOLL,%02x) at PC=$%04x", data, mSystem.mCpu->GetPC());
+//			break;
 		case (SPRINIT & 0xff):
 			mSPRINIT.Byte = data;
 			TRACE_SUSIE2("Poke(SPRINIT,%02x) at PC=$%04x", data, mSystem.mCpu->GetPC());

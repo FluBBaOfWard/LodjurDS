@@ -357,7 +357,7 @@ class CSusie : public CLynxBase
 		ULONG	LineGetBits(ULONG bits);
 
 		void	ProcessPixel(ULONG hoff,ULONG pixel);
-		void	TestCollision(ULONG hoff,ULONG pixel);
+//		void	TestCollision(ULONG hoff,ULONG pixel);
 
 	private:
 		CSystem&	mSystem;

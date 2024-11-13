@@ -150,6 +150,7 @@ int suzyLoadState(SUZY *chip, const void *source);
  */
 int suzyGetStateSize(void);
 
+void suzProcessPixel(u32 hoff, u32 pixel, u32 sprType);
 void suzWritePixel(u32 hoff, u32 pixel);
 void suzXorPixel(u32 hoff, u32 pixel);
 void suzWriteCollision(u32 hoff, u32 pixel);
