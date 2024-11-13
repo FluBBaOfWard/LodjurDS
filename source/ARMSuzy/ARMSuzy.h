@@ -107,13 +107,13 @@ typedef struct {
 	u8 pPortStat;		// 0xC2 Parallel Port Status
 	u8 pPortData;		// 0xC3 Parallel Port Data
 	u8 howie;			// 0xC4 Read or write as appropriate
-
-	u8 suzLCDVSize;		// ???
-	u8 suzPadding[2];
+	u8 suzPadding[3];
 
 //------------------------------
+	u8 collision;		// Collision value for current sprite.
+	u8 suzLCDVSize;		// ???
 	u8 wsvLatchedDispCtrl;		// Latched Display Control
-	u8 suzPadding4[3];
+	u8 suzPadding2[1];
 
 	u32 lineBaseAddress;
 	u32 lineCollisionAddress;

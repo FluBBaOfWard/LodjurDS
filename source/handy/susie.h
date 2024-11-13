@@ -357,10 +357,7 @@ class CSusie : public CLynxBase
 		ULONG	LineGetBits(ULONG bits);
 
 		void	ProcessPixel(ULONG hoff,ULONG pixel);
-//		ULONG	ReadPixel(ULONG hoff);
-		void	WriteCollision(ULONG hoff,ULONG pixel);
 		void	TestCollision(ULONG hoff,ULONG pixel);
-		ULONG	ReadCollision(ULONG hoff);
 
 	private:
 		CSystem&	mSystem;
@@ -399,8 +396,7 @@ class CSusie : public CLynxBase
 		int			mSPRCTL1_Sizing;
 		int			mSPRCTL1_Literal;
 
-		int			mSPRCOLL_Number;		//CPU
-		int			mSPRCOLL_Collide;
+		int			mSPRCOLL;				//CPU
 
 		int			mSPRSYS_StopOnCurrent;	//CPU
 		int			mSPRSYS_LeftHand;
@@ -430,11 +426,9 @@ class CSusie : public CLynxBase
 		ULONG		mLinePixel;
 		ULONG		mLinePacketBitsLeft;
 
-		int			mCollision;
+//		int			mCollision;
 
 		UBYTE		*mRamPointer;
-
-//		ULONG		mLineCollisionAddress;
 
 		int hquadoff, vquadoff;
 

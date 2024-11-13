@@ -686,6 +686,7 @@ suzWriteCollision:			;@ In r0=hoff, r1=pixel.
 	andne r3,r3,#0xF0
 	orrne r3,r3,r1
 	strb r3,[r0,r2]
+
 	ldr r0,[suzptr,#suzyCyclesUsed]
 	add r0,r0,#2*3				;@ 2*SPR_RDWR_CYC
 	str r0,[suzptr,#suzyCyclesUsed]
@@ -708,6 +709,10 @@ suzTestCollision:			;@ In r0=hoff, r1=pixel. Out r0=collision
 	andne r3,r3,#0xF0
 	orrne r3,r3,r1
 	strb r3,[r2]
+
+	ldrb r2,[suzptr,#suzCollision]
+	cmp r2,r0
+	strbmi r0,[suzptr,#suzCollision]
 
 	ldr r1,[suzptr,#suzyCyclesUsed]
 	add r1,r1,#3*3				;@ 3*SPR_RDWR_CYC

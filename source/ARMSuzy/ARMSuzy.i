@@ -137,14 +137,14 @@ suzReserved8:		.space 0x01	;@ 0xC1 Reserved
 suzPPortStat:		.byte 0		;@ 0xC2 Parallel Port Status
 suzPPortData:		.byte 0		;@ 0xC3 Parallel Port Data
 suzHowie:			.byte 0		;@ 0xC4 Read or write as appropriate
-
-suzLCDVSize:		.byte 0		;@ ???
-					.space 2
+suzPadding:			.space 3
 
 ;@----------------------------------------------------------------------------
 
+suzCollision:		.byte 0		;@ Collision value for current sprite.
+suzLCDVSize:		.byte 0		;@ ???
 wsvLatchedDispCtrl:	.byte 0		;@ Latched Display Control
-wsvPadding4:		.space 3
+suzPadding2:		.space 1
 
 suzLineBaseAddress:	.long 0		;@ Current dest line adr.
 suzLineCollisionAddress:	.long 0		;@ Current collision dest line adr.
