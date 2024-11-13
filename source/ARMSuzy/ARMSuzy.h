@@ -116,6 +116,8 @@ typedef struct {
 	u8 suzPadding4[3];
 
 	u32 lineBaseAddress;
+	u32 lineCollisionAddress;
+	u32 cyclesUsed;				// Cycles used to paint sprites.
 	u32 scrollLine;
 
 	u8 dirtyTiles[4];
@@ -149,6 +151,9 @@ int suzyLoadState(SUZY *chip, const void *source);
 int suzyGetStateSize(void);
 
 void suzWritePixel(u32 hoff, u32 pixel);
+void suzXorPixel(u32 hoff, u32 pixel);
+void suzWriteCollision(u32 hoff, u32 pixel);
+u8 suzTestCollision(u32 hoff, u32 pixel);
 
 #ifdef __cplusplus
 } // extern "C"

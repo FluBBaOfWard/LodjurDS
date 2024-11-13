@@ -147,6 +147,8 @@ wsvLatchedDispCtrl:	.byte 0		;@ Latched Display Control
 wsvPadding4:		.space 3
 
 suzLineBaseAddress:	.long 0		;@ Current dest line adr.
+suzLineCollisionAddress:	.long 0		;@ Current collision dest line adr.
+suzyCyclesUsed:		.long 0		;@ Cycles used to paint sprites.
 scrollLine: 		.long 0		;@ Last line scroll was updated.
 suzyStateEnd:
 

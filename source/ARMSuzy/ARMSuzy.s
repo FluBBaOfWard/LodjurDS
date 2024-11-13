@@ -26,6 +26,9 @@
 	.global suzRead
 	.global suzWrite
 	.global suzWritePixel
+	.global suzXorPixel
+	.global suzWriteCollision
+	.global suzTestCollision
 
 	.syntax unified
 	.arm
@@ -645,6 +648,70 @@ suzWritePixel:				;@ In r0=hoff, r1=pixel.
 	andne r3,r3,#0xF0
 	orrne r3,r3,r1
 	strb r3,[r0,r2]
+	ldr r0,[suzptr,#suzyCyclesUsed]
+	add r0,r0,#2*3				;@ 2*SPR_RDWR_CYC
+	str r0,[suzptr,#suzyCyclesUsed]
+
+	bx lr
+;@----------------------------------------------------------------------------
+suzXorPixel:				;@ In r0=hoff, r1=pixel.
+	.type	suzXorPixel STT_FUNC
+;@----------------------------------------------------------------------------
+	ldr suzptr,=suzy_0
+	ldr r2,[suzptr,#suzLineBaseAddress]
+	tst r0,#1
+	add r2,r2,r0,lsr#1
+	ldr r0,[suzptr,#suzyRAM]
+	ldrb r3,[r0,r2]
+	eoreq r3,r3,r1,lsl#4
+	eorne r3,r3,r1
+	strb r3,[r0,r2]
+	ldr r0,[suzptr,#suzyCyclesUsed]
+	add r0,r0,#3*3				;@ 3*SPR_RDWR_CYC
+	str r0,[suzptr,#suzyCyclesUsed]
+
+	bx lr
+;@----------------------------------------------------------------------------
+suzWriteCollision:			;@ In r0=hoff, r1=pixel.
+	.type	suzWriteCollision STT_FUNC
+;@----------------------------------------------------------------------------
+	ldr suzptr,=suzy_0
+	ldr r2,[suzptr,#suzLineCollisionAddress]
+	tst r0,#1
+	add r2,r2,r0,lsr#1
+	ldr r0,[suzptr,#suzyRAM]
+	ldrb r3,[r0,r2]
+	andeq r3,r3,#0x0F
+	orreq r3,r3,r1,lsl#4
+	andne r3,r3,#0xF0
+	orrne r3,r3,r1
+	strb r3,[r0,r2]
+	ldr r0,[suzptr,#suzyCyclesUsed]
+	add r0,r0,#2*3				;@ 2*SPR_RDWR_CYC
+	str r0,[suzptr,#suzyCyclesUsed]
+
+	bx lr
+;@----------------------------------------------------------------------------
+suzTestCollision:			;@ In r0=hoff, r1=pixel. Out r0=collision
+	.type	suzTestCollision STT_FUNC
+;@----------------------------------------------------------------------------
+	ldr suzptr,=suzy_0
+	ldr r2,[suzptr,#suzLineCollisionAddress]
+	tst r0,#1
+	add r2,r2,r0,lsr#1
+	ldr r0,[suzptr,#suzyRAM]
+	ldrb r3,[r2,r0]!
+	moveq r0,r3,lsr#4
+	andeq r3,r3,#0x0F
+	orreq r3,r3,r1,lsl#4
+	andne r0,r3,#0x0F
+	andne r3,r3,#0xF0
+	orrne r3,r3,r1
+	strb r3,[r2]
+
+	ldr r1,[suzptr,#suzyCyclesUsed]
+	add r1,r1,#3*3				;@ 3*SPR_RDWR_CYC
+	str r1,[suzptr,#suzyCyclesUsed]
 
 	bx lr
 

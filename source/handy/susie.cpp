@@ -76,8 +76,10 @@
 #define mSUZYBUSEN suzy_0.suzyBusEn
 
 #define mLineBaseAddress suzy_0.lineBaseAddress
+#define mLineCollisionAddress suzy_0.lineCollisionAddress
+#define cycles_used suzy_0.cyclesUsed
 
-ULONG cycles_used=0;
+//ULONG cycles_used=0;
 
 CSusie::CSusie(CSystem& parent)
 	:mSystem(parent)
@@ -103,8 +105,6 @@ void CSusie::Reset(void)
 	// Reset ALL variables
 
 	mTMPADR.Word = 0;
-//	mHOFF.Word = 0;
-//	mVOFF.Word = 0;
 	mSPRDLINE.Word = 0;
 	mHPOSSTRT.Word = 0;
 	mVPOSSTRT.Word = 0;
@@ -157,8 +157,6 @@ void CSusie::Reset(void)
 	mSPRSYS_Mathbit = 0;
 	mSPRSYS_MathInProgress = 0;
 
-//	mSUZYBUSEN = FALSE;
-
 	mSPRINIT.Byte = 0;
 
 	mSPRGO = FALSE;
@@ -173,8 +171,7 @@ void CSusie::Reset(void)
 	mLinePixel = 0;
 	mLinePacketBitsLeft = 0;
 	mCollision = 0;
-//	mLineBaseAddress = 0;
-	mLineCollisionAddress = 0;
+//	mLineCollisionAddress = 0;
 
 	hquadoff = vquadoff = 0;
 
@@ -396,7 +393,7 @@ ULONG CSusie::PaintSprites(void)
 					mSPRHSIZ.Word = RAM_PEEKW(mTMPADR.Word);	// Sprite Horizontal size
 					mTMPADR.Word += 2;
 
-					mSPRVSIZ.Word = RAM_PEEKW(mTMPADR.Word);	// Sprite Verticalal size
+					mSPRVSIZ.Word = RAM_PEEKW(mTMPADR.Word);	// Sprite Vertical size
 					mTMPADR.Word += 2;
 
 					cycles_used += 4 * SPR_RDWR_CYC;
@@ -411,7 +408,7 @@ ULONG CSusie::PaintSprites(void)
 					mSPRHSIZ.Word = RAM_PEEKW(mTMPADR.Word);	// Sprite Horizontal size
 					mTMPADR.Word += 2;
 
-					mSPRVSIZ.Word = RAM_PEEKW(mTMPADR.Word);	// Sprite Verticalal size
+					mSPRVSIZ.Word = RAM_PEEKW(mTMPADR.Word);	// Sprite Vertical size
 					mTMPADR.Word += 2;
 
 					mSTRETCH.Word = RAM_PEEKW(mTMPADR.Word);	// Sprite stretch
@@ -431,7 +428,7 @@ ULONG CSusie::PaintSprites(void)
 					mSPRHSIZ.Word = RAM_PEEKW(mTMPADR.Word);	// Sprite Horizontal size
 					mTMPADR.Word += 2;
 
-					mSPRVSIZ.Word = RAM_PEEKW(mTMPADR.Word);	// Sprite Verticalal size
+					mSPRVSIZ.Word = RAM_PEEKW(mTMPADR.Word);	// Sprite Vertical size
 					mTMPADR.Word += 2;
 
 					mSTRETCH.Word = RAM_PEEKW(mTMPADR.Word);	// Sprite stretch
@@ -662,7 +659,7 @@ ULONG CSusie::PaintSprites(void)
 								hoff = (int)((SWORD)mHPOSSTRT.Word) - screen_h_start;
 
 								// Zero/Force the horizontal scaling accumulator
-								if (hsign == 1) mHSIZACUM.Word = mHSIZOFF.Word; else mHSIZACUM.Word = 0;
+								mHSIZACUM.Word = (hsign == 1) ? mHSIZOFF.Word : 0;
 
 								// Take the sign of the first quad (0) as the basic
 								// sign, all other quads drawing in the other direction
@@ -853,7 +850,7 @@ inline void CSusie::ProcessPixel(ULONG hoff, ULONG pixel)
 		case sprite_background_shadow:
 			suzWritePixel(hoff,pixel);
 			if (!mSPRCOLL_Collide && !mSPRSYS_NoCollide && pixel != 0x0e) {
-				WriteCollision(hoff, mSPRCOLL_Number);
+				suzWriteCollision(hoff, mSPRCOLL_Number);
 			}
 			break;
 
@@ -891,7 +888,8 @@ inline void CSusie::ProcessPixel(ULONG hoff, ULONG pixel)
 				suzWritePixel(hoff, pixel);
 			}
 			if (pixel != 0x00) {
-				if (!mSPRCOLL_Collide && !mSPRSYS_NoCollide) {
+				TestCollision(hoff, mSPRCOLL_Number);
+/*				if (!mSPRCOLL_Collide && !mSPRSYS_NoCollide) {
 					int collision = ReadCollision(hoff);
 					if (collision > mCollision) {
 						mCollision = collision;
@@ -899,7 +897,7 @@ inline void CSusie::ProcessPixel(ULONG hoff, ULONG pixel)
 // 01/05/00 V0.7	if (mSPRCOLL_Number > collision) {
 						WriteCollision(hoff,mSPRCOLL_Number);
 //					}
-				}
+				}*/
 			}
 			break;
 
@@ -913,7 +911,8 @@ inline void CSusie::ProcessPixel(ULONG hoff, ULONG pixel)
 		case sprite_normal:
 			if (pixel != 0x00) {
 				suzWritePixel(hoff,pixel);
-				if (!mSPRCOLL_Collide && !mSPRSYS_NoCollide) {
+				TestCollision(hoff, mSPRCOLL_Number);
+/*				if (!mSPRCOLL_Collide && !mSPRSYS_NoCollide) {
 					int collision = ReadCollision(hoff);
 					if (collision > mCollision) {
 						mCollision = collision;
@@ -921,7 +920,7 @@ inline void CSusie::ProcessPixel(ULONG hoff, ULONG pixel)
 // 01/05/00 V0.7	if (mSPRCOLL_Number > collision) {
 						WriteCollision(hoff, mSPRCOLL_Number);
 //					}
-				}
+				}*/
 			}
 			break;
 
@@ -937,7 +936,8 @@ inline void CSusie::ProcessPixel(ULONG hoff, ULONG pixel)
 				suzWritePixel(hoff, pixel);
 			}
 			if (pixel != 0x00 && pixel != 0x0e) {
-				if (!mSPRCOLL_Collide && !mSPRSYS_NoCollide) {
+				TestCollision(hoff, mSPRCOLL_Number);
+/*				if (!mSPRCOLL_Collide && !mSPRSYS_NoCollide) {
 					int collision = ReadCollision(hoff);
 					if (collision > mCollision) {
 						mCollision = collision;
@@ -945,7 +945,7 @@ inline void CSusie::ProcessPixel(ULONG hoff, ULONG pixel)
 // 01/05/00 V0.7	if (mSPRCOLL_Number > collision) {
 						WriteCollision(hoff, mSPRCOLL_Number);
 //					}
-				}
+				}*/
 			}
 			break;
 
@@ -961,7 +961,8 @@ inline void CSusie::ProcessPixel(ULONG hoff, ULONG pixel)
 				suzWritePixel(hoff, pixel);
 			}
 			if (pixel != 0x00 && pixel != 0x0e) {
-				if (!mSPRCOLL_Collide && !mSPRSYS_NoCollide) {
+				TestCollision(hoff, mSPRCOLL_Number);
+/*				if (!mSPRCOLL_Collide && !mSPRSYS_NoCollide) {
 					int collision = ReadCollision(hoff);
 					if (collision > mCollision) {
 						mCollision = collision;
@@ -969,7 +970,7 @@ inline void CSusie::ProcessPixel(ULONG hoff, ULONG pixel)
 // 01/05/00 V0.7	if (mSPRCOLL_Number > collision) {
 						WriteCollision(hoff, mSPRCOLL_Number);
 //					}
-				}
+				}*/
 			}
 			break;
 
@@ -982,10 +983,11 @@ inline void CSusie::ProcessPixel(ULONG hoff, ULONG pixel)
 		// 1   exclusive-or the data
 		case sprite_xor_shadow:
 			if (pixel != 0x00) {
-				suzWritePixel(hoff, ReadPixel(hoff) ^ pixel);
+				suzXorPixel(hoff, pixel);
 			}
 			if (pixel != 0x00 && pixel != 0x0e) {
-				if (!mSPRCOLL_Collide && !mSPRSYS_NoCollide && pixel != 0x0e) {
+				TestCollision(hoff, mSPRCOLL_Number);
+/*				if (!mSPRCOLL_Collide && !mSPRSYS_NoCollide) {
 					int collision = ReadCollision(hoff);
 					if (collision > mCollision) {
 						mCollision = collision;
@@ -993,7 +995,7 @@ inline void CSusie::ProcessPixel(ULONG hoff, ULONG pixel)
 // 01/05/00 V0.7	if (mSPRCOLL_Number > collision) {
 						WriteCollision(hoff, mSPRCOLL_Number);
 //					}
-				}
+				}*/
 			}
 			break;
 		default:
@@ -1021,7 +1023,7 @@ inline void CSusie::WritePixel(ULONG hoff, ULONG pixel)
 	// Increment cycle count for the read/modify/write
 	cycles_used += 2 * SPR_RDWR_CYC;
 }
-*/
+
 inline ULONG CSusie::ReadPixel(ULONG hoff)
 {
 	ULONG scr_addr = mLineBaseAddress + (hoff / 2);
@@ -1082,7 +1084,42 @@ inline ULONG CSusie::ReadCollision(ULONG hoff)
 
 	return data;
 }
+*/
+inline void CSusie::TestCollision(ULONG hoff, ULONG pixel)
+{
+	if (!mSPRCOLL_Collide && !mSPRSYS_NoCollide) {
+		UBYTE collision = suzTestCollision(hoff, pixel);
+/*		ULONG col_addr = mLineCollisionAddress + (hoff / 2);
 
+		UBYTE data = RAM_PEEK(col_addr);
+		UBYTE collision;
+		if (!(hoff & 0x01)) {
+			// Upper nibble read
+			collision = data >> 4;
+			data &= 0x0f;
+// 01/05/00 V0.7	if (pixel > collision) {
+			// Upper nibble screen write
+			data |= pixel<<4;
+//			}
+		}
+		else {
+			// Lower nibble read
+			collision = data & 0x0f;
+			data &= 0xf0;
+// 01/05/00 V0.7	if (pixel > collision) {
+			// Lower nibble screen write
+			data |= pixel;
+//			}
+		}
+
+		RAM_POKE(col_addr,data);*/
+		if (collision > mCollision) {
+			mCollision = collision;
+		}
+		// Increment cycle count for the read/modify/write
+//		cycles_used += 3 * SPR_RDWR_CYC;
+	}
+}
 
 inline ULONG CSusie::LineInit(ULONG voff)
 {
