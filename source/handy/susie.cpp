@@ -64,12 +64,14 @@
 #define RAM_PEEKW(m)			(mRamPointer[(m)]+(mRamPointer[(m)+1]<<8))
 #define RAM_POKE(m1,m2)			{mRamPointer[(m1)]=(m2);}
 
+#define mTMPADR suzy_0.tmpAdr
 #define mHOFF suzy_0.hOff
 #define mVOFF suzy_0.vOff
 #define mTILTACUM suzy_0.tiltAcum
 #define mVIDBAS suzy_0.vidBas
 #define mCOLLBAS suzy_0.collBas
 #define mSCBNEXT suzy_0.SCBNext
+#define mSPRDLINE suzy_0.sprDLine
 #define mCOLLOFF suzy_0.collOff
 #define mHSIZOFF suzy_0.hSizOff
 #define mVSIZOFF suzy_0.vSizOff
@@ -81,7 +83,14 @@
 #define mCollision suzy_0.collision
 #define cycles_used suzy_0.cyclesUsed
 
-//ULONG cycles_used=0;
+#define mSPRCTL1_Literal suzy_0.sprCtl1_Literal
+
+#define mLineType suzy_0.lineType
+#define mLineShiftRegCount suzy_0.lineShiftRegCount
+#define mLineShiftReg suzy_0.lineShiftReg
+#define mLineRepeatCount suzy_0.lineRepeatCount
+#define mLinePixel suzy_0.linePixel
+#define mLinePacketBitsLeft suzy_0.linePacketBitsLeft
 
 CSusie::CSusie(CSystem& parent)
 	:mSystem(parent)
@@ -106,8 +115,8 @@ void CSusie::Reset(void)
 
 	// Reset ALL variables
 
-	mTMPADR.Word = 0;
-	mSPRDLINE.Word = 0;
+//	mTMPADR.Word = 0;
+//	mSPRDLINE.Word = 0;
 	mHPOSSTRT.Word = 0;
 	mVPOSSTRT.Word = 0;
 	mSPRHSIZ.Word = 0;
@@ -144,8 +153,6 @@ void CSusie::Reset(void)
 	mSPRCTL1_Sizing = 0;
 	mSPRCTL1_Literal = 0;
 
-//	mSPRCOLL = 0;
-
 	mSPRSYS_StopOnCurrent = 0;
 	mSPRSYS_LeftHand = 0;
 	mSPRSYS_VStretch = 0;
@@ -165,14 +172,12 @@ void CSusie::Reset(void)
 
 	for (int loop=0;loop<16;loop++) mPenIndex[loop] = loop;
 
-	mLineType = 0;
-	mLineShiftRegCount = 0;
-	mLineShiftReg = 0;
-	mLineRepeatCount = 0;
-	mLinePixel = 0;
-	mLinePacketBitsLeft = 0;
-//	mCollision = 0;
-//	mLineCollisionAddress = 0;
+//	mLineType = 0;
+//	mLineShiftRegCount = 0;
+//	mLineShiftReg = 0;
+//	mLineRepeatCount = 0;
+//	mLinePixel = 0;
+//	mLinePacketBitsLeft = 0;
 
 	hquadoff = vquadoff = 0;
 
@@ -451,7 +456,6 @@ ULONG CSusie::PaintSprites(void)
 			// Optional Palette reload
 
 			if (!mSPRCTL1_ReloadPalette) {
-
 				TRACE_SUSIE0("PaintSprites() Palette reloaded");
 				for (int loop=0;loop<8;loop++) {
 					UBYTE data = RAM_PEEK(mTMPADR.Word++);
@@ -494,8 +498,8 @@ ULONG CSusie::PaintSprites(void)
 			TRACE_SUSIE1("PaintSprites() Quadrant=%d", quadrant);
 
 			// Check ref is inside screen area. !! This is commented out in Mednafen!!
-			if ((SWORD)mHPOSSTRT.Word<screen_h_start || (SWORD)mHPOSSTRT.Word>=screen_h_end ||
-				(SWORD)mVPOSSTRT.Word<screen_v_start || (SWORD)mVPOSSTRT.Word>=screen_v_end) superclip = TRUE;
+			if ((SWORD)mHPOSSTRT.Word < screen_h_start || (SWORD)mHPOSSTRT.Word >= screen_h_end ||
+				(SWORD)mVPOSSTRT.Word < screen_v_start || (SWORD)mVPOSSTRT.Word >= screen_v_end) superclip = TRUE;
 
 			TRACE_SUSIE1("PaintSprites() Superclip=%d",superclip);
 
@@ -630,7 +634,7 @@ ULONG CSusie::PaintSprites(void)
 						mVSIZACUM.Byte.High = 0;
 
 						// Update the next data line pointer and initialise our line
-						mSPRDOFF.Word = (UWORD)LineInit(0);
+						mSPRDOFF.Word = (UWORD)suzLineInit(0);
 
 						// If 1 == next quad, ==0 end of sprite, anyways its END OF LINE
 						if (mSPRDOFF.Word == 1) {		// End of quad
@@ -668,7 +672,7 @@ ULONG CSusie::PaintSprites(void)
 								if (hsign != hquadoff) hoff += hsign;
 
 								// Initialise our line
-								LineInit(voff);
+								suzLineInit(voff);
 								onscreen = FALSE;
 
 								// Now render an individual destination line
@@ -717,7 +721,7 @@ ULONG CSusie::PaintSprites(void)
 					for(;;) {
 						// Read the start of line offset
 
-						mSPRDOFF.Word = (UWORD)LineInit(0);
+						mSPRDOFF.Word = (UWORD)suzLineInit(0);
 
 						// We dont want to process data so mSPRDLINE is useless to us
 						mSPRDLINE.Word += mSPRDOFF.Word;
@@ -809,39 +813,10 @@ ULONG CSusie::PaintSprites(void)
 
 	return cycles_used;
 }
-
+/*
 inline ULONG CSusie::LineInit(ULONG voff)
 {
-	mLineShiftReg = 0;
-	mLineShiftRegCount = 0;
-	mLineRepeatCount = 0;
-	mLinePixel = 0;
-	mLineType = line_error;
-	mLinePacketBitsLeft = 0xffff;
-
-	// Initialise the temporary pointer
-
-	mTMPADR = mSPRDLINE;
-
-	// First read the Offset to the next line
-
-	ULONG offset = LineGetBits(8);
-
-	// Specify the MAXIMUM number of bits in this packet, it
-	// can terminate early but can never use more than this
-	// without ending the current packet, we count down in LineGetBits()
-
-	mLinePacketBitsLeft = (offset - 1) * 8;
-
-	// Literals are a special case and get their count set on a line basis
-
-	if (mSPRCTL1_Literal) {
-		mLineType = line_abs_literal;
-		mLineRepeatCount = mLinePacketBitsLeft / mSPRCTL0_PixelBits;
-	}
-
 	// Set the line base address for use in the calls to pixel painting
-
 	if (voff > 101) {
 		//gError->Warning("CSusie::LineInit() Out of bounds (voff)");
 		voff = 0;
@@ -850,8 +825,67 @@ inline ULONG CSusie::LineInit(ULONG voff)
 	mLineBaseAddress = mVIDBAS.Word + (voff * (LYNX_SCREEN_WIDTH / 2));
 	mLineCollisionAddress = mCOLLBAS.Word + (voff * (LYNX_SCREEN_WIDTH / 2));
 
+	mLineShiftReg = 0;
+	mLineShiftRegCount = 0;
+	mLinePixel = 0;
+
+	// Read the Offset to the next line
+	ULONG offset = RAM_PEEK(mSPRDLINE.Word);
+
+	// Initialise the temporary pointer
+	mTMPADR.Word = mSPRDLINE.Word+1;
+
+	// Specify the MAXIMUM number of bits in this packet, it
+	// can terminate early but can never use more than this
+	// without ending the current packet, we count down in LineGetBits()
+	mLinePacketBitsLeft = (offset - 1) * 8;
+
+	// Literals are a special case and get their count set on a line basis
+	if (mSPRCTL1_Literal) {
+		mLineType = line_abs_literal;
+		mLineRepeatCount = mLinePacketBitsLeft;
+	}
+	else {
+		mLineType = line_error;
+		mLineRepeatCount = 0;
+	}
+
 	// Return the offset to the next line of sprite data.
 	return offset;
+}
+*/
+inline ULONG CSusie::LineGetBits(ULONG bits)
+{
+	// bits should be <= 8
+	// Only return data IF there is enought bits left in the packet
+
+	//if (mLinePacketBitsLeft < bits) return 0;
+	if (mLinePacketBitsLeft <= bits) return 0;	// Hardware bug(<= instead of <), apparently
+
+	// Make sure shift reg has enough bits to fulfil the request
+
+	if (mLineShiftRegCount < bits) {
+		// This assumes data comes into LSB and out of MSB
+		mLineShiftReg <<= 24;
+		mLineShiftReg |= RAM_PEEK(mTMPADR.Word++)<<16;
+		mLineShiftReg |= RAM_PEEK(mTMPADR.Word++)<<8;
+		mLineShiftReg |= RAM_PEEK(mTMPADR.Word++);
+
+		mLineShiftRegCount += 24;
+
+		// Increment cycle count for the read
+		cycles_used += 3 * SPR_RDWR_CYC;
+	}
+
+	// Extract the return value
+	ULONG retval = mLineShiftReg >> (mLineShiftRegCount - bits);
+	retval &= (1 << bits) - 1;
+
+	// Update internal vars;
+	mLineShiftRegCount -= bits;
+	mLinePacketBitsLeft -= bits;
+
+	return retval;
 }
 
 inline ULONG CSusie::LineGetPixel()
@@ -883,101 +917,50 @@ inline ULONG CSusie::LineGetPixel()
 		}
 	}
 
+	if (mLineType == line_abs_literal) {
+		mLineRepeatCount -= mSPRCTL0_PixelBits;
+		if (mLineRepeatCount < mSPRCTL0_PixelBits) {
+			mLineRepeatCount = 0;
+		}
+		mLinePixel = LineGetBits(mSPRCTL0_PixelBits);
+		// Check the special case of a zero in the last pixel
+		if (!mLineRepeatCount && !mLinePixel) {
+			return LINE_END;
+		}
+		return mPenIndex[mLinePixel];
+	}
+
 	mLineRepeatCount--;
 
-	switch(mLineType) {
-		case line_abs_literal:
-			mLinePixel = LineGetBits(mSPRCTL0_PixelBits);
-			// Check the special case of a zero in the last pixel
-			if (!mLineRepeatCount && !mLinePixel) {
-				return LINE_END;
-			}
-			return mPenIndex[mLinePixel];
-		case line_literal:
-			return mPenIndex[LineGetBits(mSPRCTL0_PixelBits)];
+	if (mLineType == line_literal) {
+		return mPenIndex[LineGetBits(mSPRCTL0_PixelBits)];
 	}
 
 	return mLinePixel;
-}
-
-inline ULONG CSusie::LineGetBits(ULONG bits)
-{
-	ULONG retval;
-
-	// Sanity, not really needed
-	// if (bits > 32) return 0;
-
-	// Only return data IF there is enought bits left in the packet
-
-	//if (mLinePacketBitsLeft < bits) return 0;
-	if (mLinePacketBitsLeft <= bits) return 0;	// Hardware bug(<= instead of <), apparently
-
-	// Make sure shift reg has enough bits to fulfil the request
-
-	if (mLineShiftRegCount < bits) {
-		// This assumes data comes into LSB and out of MSB
-		mLineShiftReg <<= 24;
-		mLineShiftReg |= RAM_PEEK(mTMPADR.Word++)<<16;
-		mLineShiftReg |= RAM_PEEK(mTMPADR.Word++)<<8;
-		mLineShiftReg |= RAM_PEEK(mTMPADR.Word++);
-
-		mLineShiftRegCount += 24;
-
-		// Increment cycle count for the read
-		cycles_used += 3 * SPR_RDWR_CYC;
-	}
-
-	// Extract the return value
-	retval = mLineShiftReg >> (mLineShiftRegCount - bits);
-	retval &= (1 << bits) - 1;
-
-	// Update internal vars;
-	mLineShiftRegCount -= bits;
-	mLinePacketBitsLeft -= bits;
-
-	return retval;
 }
 
 void CSusie::Poke(ULONG addr, UBYTE data)
 {
 	switch(addr & 0xff)
 	{
-		case (TMPADRL & 0xff):
-			mTMPADR.Byte.Low = data;
-			mTMPADR.Byte.High = 0;
-			TRACE_SUSIE2("Poke(TMPADRL,%02x) at PC=$%04x", data, mSystem.mCpu->GetPC());
-			break;
-		case (TMPADRH & 0xff):
-			mTMPADR.Byte.High = data;
-			TRACE_SUSIE2("Poke(TMPADRH,%02x) at PC=$%04x", data, mSystem.mCpu->GetPC());
-			break;
-//		case (HOFFL & 0xff):
-//			mHOFF.Byte.Low = data;
-//			mHOFF.Byte.High = 0;
-//			TRACE_SUSIE2("Poke(HOFFL,%02x) at PC=$%04x", data, mSystem.mCpu->GetPC());
+//		case (TMPADRL & 0xff):
+//			mTMPADR.Byte.Low = data;
+//			mTMPADR.Byte.High = 0;
+//			TRACE_SUSIE2("Poke(TMPADRL,%02x) at PC=$%04x", data, mSystem.mCpu->GetPC());
 //			break;
-//		case (HOFFH & 0xff):
-//			mHOFF.Byte.High = data;
-//			TRACE_SUSIE2("Poke(HOFFH,%02x) at PC=$%04x", data, mSystem.mCpu->GetPC());
+//		case (TMPADRH & 0xff):
+//			mTMPADR.Byte.High = data;
+//			TRACE_SUSIE2("Poke(TMPADRH,%02x) at PC=$%04x", data, mSystem.mCpu->GetPC());
 //			break;
-//		case (VOFFL & 0xff):
-//			mVOFF.Byte.Low = data;
-//			mVOFF.Byte.High = 0;
-//			TRACE_SUSIE2("Poke(VOFFL,%02x) at PC=$%04x", data, mSystem.mCpu->GetPC());
+//		case (SPRDLINEL & 0xff):
+//			mSPRDLINE.Byte.Low = data;
+//			mSPRDLINE.Byte.High = 0;
+//			TRACE_SUSIE2("Poke(SPRDLINEL,%02x) at PC=$%04x", data, mSystem.mCpu->GetPC());
 //			break;
-//		case (VOFFH & 0xff):
-//			mVOFF.Byte.High = data;
-//			TRACE_SUSIE2("Poke(VOFFH,%02x) at PC=$%04x", data, mSystem.mCpu->GetPC());
+//		case (SPRDLINEH & 0xff):
+//			mSPRDLINE.Byte.High = data;
+//			TRACE_SUSIE2("Poke(SPRDLINEH,%02x) at PC=$%04x", data, mSystem.mCpu->GetPC());
 //			break;
-		case (SPRDLINEL & 0xff):
-			mSPRDLINE.Byte.Low = data;
-			mSPRDLINE.Byte.High = 0;
-			TRACE_SUSIE2("Poke(SPRDLINEL,%02x) at PC=$%04x", data, mSystem.mCpu->GetPC());
-			break;
-		case (SPRDLINEH & 0xff):
-			mSPRDLINE.Byte.High = data;
-			TRACE_SUSIE2("Poke(SPRDLINEH,%02x) at PC=$%04x", data, mSystem.mCpu->GetPC());
-			break;
 		case (HPOSSTRTL & 0xff):
 			mHPOSSTRT.Byte.Low = data;
 			mHPOSSTRT.Byte.High = 0;
@@ -1236,38 +1219,22 @@ UBYTE CSusie::Peek(ULONG addr)
 	UBYTE retval = 0;
 	switch(addr & 0xff)
 	{
-		case (TMPADRL & 0xff):
-			retval = mTMPADR.Byte.Low;
-			TRACE_SUSIE2("Peek(TMPADRL)=$%02x at PC=$%04x", retval, mSystem.mCpu->GetPC());
-			return retval;
-		case (TMPADRH & 0xff):
-			retval = mTMPADR.Byte.High;
-			TRACE_SUSIE2("Peek(TMPADRH)=$%02x at PC=$%04x", retval, mSystem.mCpu->GetPC());
-			return retval;
-//		case (HOFFL & 0xff):
-//			retval = mHOFF.Byte.Low;
-//			TRACE_SUSIE2("Peek(HOFFL)=$%02x at PC=$%04x", retval, mSystem.mCpu->GetPC());
+//		case (TMPADRL & 0xff):
+//			retval = mTMPADR.Byte.Low;
+//			TRACE_SUSIE2("Peek(TMPADRL)=$%02x at PC=$%04x", retval, mSystem.mCpu->GetPC());
 //			return retval;
-//		case (HOFFH & 0xff):
-//			retval = mHOFF.Byte.High;
-//			TRACE_SUSIE2("Peek(HOFFH)=$%02x at PC=$%04x", retval, mSystem.mCpu->GetPC());
+//		case (TMPADRH & 0xff):
+//			retval = mTMPADR.Byte.High;
+//			TRACE_SUSIE2("Peek(TMPADRH)=$%02x at PC=$%04x", retval, mSystem.mCpu->GetPC());
 //			return retval;
-//		case (VOFFL & 0xff):
-//			retval = mVOFF.Byte.Low;
-//			TRACE_SUSIE2("Peek(VOFFL)=$%02x at PC=$%04x", retval, mSystem.mCpu->GetPC());
+//		case (SPRDLINEL & 0xff):
+//			retval = mSPRDLINE.Byte.Low;
+//			TRACE_SUSIE2("Peek(SPRDLINEL)=$%02x at PC=$%04x", retval, mSystem.mCpu->GetPC());
 //			return retval;
-//		case (VOFFH & 0xff):
-//			retval = mVOFF.Byte.High;
-//			TRACE_SUSIE2("Peek(VOFFH)=$%02x at PC=$%04x", retval, mSystem.mCpu->GetPC());
+//		case (SPRDLINEH & 0xff):
+//			retval = mSPRDLINE.Byte.High;
+//			TRACE_SUSIE2("Peek(SPRDLINEH)=$%02x at PC=$%04x", retval, mSystem.mCpu->GetPC());
 //			return retval;
-		case (SPRDLINEL & 0xff):
-			retval = mSPRDLINE.Byte.Low;
-			TRACE_SUSIE2("Peek(SPRDLINEL)=$%02x at PC=$%04x", retval, mSystem.mCpu->GetPC());
-			return retval;
-		case (SPRDLINEH & 0xff):
-			retval = mSPRDLINE.Byte.High;
-			TRACE_SUSIE2("Peek(SPRDLINEH)=$%02x at PC=$%04x", retval, mSystem.mCpu->GetPC());
-			return retval;
 		case (HPOSSTRTL & 0xff):
 			retval = mHPOSSTRT.Byte.Low;
 			TRACE_SUSIE2("Peek(HPOSSTRTL)=$%02x at PC=$%04x", retval, mSystem.mCpu->GetPC());

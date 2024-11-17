@@ -23,6 +23,8 @@
 	.global suzyGetStateSize
 	.global suzRead
 	.global suzWrite
+	.global suzLineInit
+	.global suzLineGetBits
 	.global suzProcessPixel
 
 	.syntax unified
@@ -80,8 +82,6 @@ suzyReset:		;@ r0=ram, r12=suzptr
 	ldmfd sp!,{r0,lr}
 
 	str r0,[suzptr,#suzyRAM]
-	ldr r0,=SCROLL_BUFF
-	str r0,[suzptr,#scrollBuff]
 
 	bx lr
 
@@ -149,7 +149,7 @@ suzyGetStateSize:			;@ Out r0=state size.
 	.pool
 
 ;@----------------------------------------------------------------------------
-suzRead:						;@ I/O read
+suzRead:					;@ I/O read (0xFC00-0xFCC5)
 ;@----------------------------------------------------------------------------
 	sub r2,r0,#0xFC00
 	cmp r2,#0xC5
@@ -385,7 +385,7 @@ suRegR:
 	.pool
 
 ;@----------------------------------------------------------------------------
-suzWrite:					;@ I/O write
+suzWrite:					;@ I/O write (0xFC00-0xFCC5)
 ;@----------------------------------------------------------------------------
 	sub r2,r0,#0xFC00
 	cmp r2,#0xC5
@@ -605,7 +605,6 @@ suReadOnlyW:
 ;@----------------------------------------------------------------------------
 suUnmappedW:
 ;@----------------------------------------------------------------------------
-	sub r0,r0,#0x2000
 	b _debugIOUnmappedW
 ;@----------------------------------------------------------------------------
 suRegW:
@@ -633,6 +632,60 @@ suBusEnW:					;@ 0x90 Suzy Bus Enable
 	and r1,r1,#0x01
 	strb r1,[suzptr,#suzSuzyBusEn]
 	bx lr
+
+;@----------------------------------------------------------------------------
+suzLineInit:				;@ In r0=voff.
+	.type	suzLineInit STT_FUNC
+;@----------------------------------------------------------------------------
+	ldr suzptr,=suzy_0
+
+	cmp r0,#102
+	movcs r0,#0
+	ldrh r1,[suzptr,#suzVidBas]
+	ldrh r2,[suzptr,#suzCollBas]
+	add r0,r0,r0,lsl#2			;@ *5
+	add r1,r1,r0,lsl#4			;@ *16
+	str r1,[suzptr,#suzLineBaseAddress]
+	add r2,r2,r0,lsl#4			;@ *16
+	str r2,[suzptr,#suzLineCollisionAddress]
+
+	mov r3,#0
+	str r3,[suzptr,#suzLineShiftReg]
+	str r3,[suzptr,#suzLineShiftRegCount]
+
+	ldrh r1,[suzptr,#suzSprDLine]
+	add r2,r1,#1
+	strh r2,[suzptr,#suzTmpAdr]
+	ldr r2,[suzptr,#suzyRAM]
+	ldrb r0,[r2,r1]
+	sub r1,r0,#1
+	mov r1,r1,lsl#3
+	str r1,[suzptr,#suzLinePacketBitsLeft]
+
+	ldr r2,[suzptr,#suzyCyclesUsed]
+	add r2,r2,#3				;@ SPR_RDWR_CYC
+	str r2,[suzptr,#suzyCyclesUsed]
+
+	ldr r2,[suzptr,#suzSprCtl1_Literal]
+	cmp r2,#0
+	movne r2,r1					;@ LineRepeatCount = LinePacketBitsLeft
+	movne r3,#1					;@ line_abs_literal
+	moveq r2,#0
+	str r3,[suzptr,#suzLineType]
+	str r2,[suzptr,#suzLineRepeatCount]
+
+	bx lr
+;@----------------------------------------------------------------------------
+suzLineGetBits:				;@ In r0=bits, less or equal to 8.
+	.type	suzLineGetBits STT_FUNC
+;@----------------------------------------------------------------------------
+	ldr suzptr,=suzy_0
+	ldr r1,[suzptr,#suzLinePacketBitsLeft]
+	cmp r0,r1
+	movpl r0,#0
+	bxpl lr
+	ldr r2,[suzptr,#suzLineShiftRegCount]
+
 
 ;@----------------------------------------------------------------------------
 suzProcessPixel:			;@ In r0=hoff, r1=pixel, r2=sprType.

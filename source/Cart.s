@@ -10,7 +10,6 @@
 	.global biosSpace
 	.global romStart
 	.global lynxRAM
-	.global svVRAM
 	.global DIRTYTILES
 	.global gRomSize
 	.global maxRomSize
@@ -202,8 +201,6 @@ romMask:
 	.align 8
 lynxRAM:
 	.space 0x10000
-svVRAM:
-	.space 0x2000
 DIRTYTILES:
 	.space 0x200
 biosSpace:

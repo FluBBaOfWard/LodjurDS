@@ -146,6 +146,15 @@ suzLCDVSize:		.byte 0		;@ ???
 wsvLatchedDispCtrl:	.byte 0		;@ Latched Display Control
 suzPadding2:		.space 1
 
+suzSprCtl1_Literal:	.long 0
+
+suzLineType:			.long 0	;@
+suzLineShiftRegCount:	.long 0	;@
+suzLineShiftReg:		.long 0	;@
+suzLineRepeatCount:		.long 0	;@
+suzLinePixel:			.long 0	;@
+suzLinePacketBitsLeft:	.long 0	;@
+
 suzLineBaseAddress:	.long 0		;@ Current dest line adr.
 suzLineCollisionAddress:	.long 0		;@ Current collision dest line adr.
 suzyCyclesUsed:		.long 0		;@ Cycles used to paint sprites.
@@ -154,7 +163,6 @@ suzyStateEnd:
 
 dirtyTiles:			.space 4
 suzyRAM:			.long 0		;@ 0x10000
-scrollBuff:			.long 0
 
 suzySize:
 

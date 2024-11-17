@@ -115,14 +115,23 @@ typedef struct {
 	u8 wsvLatchedDispCtrl;		// Latched Display Control
 	u8 suzPadding2[1];
 
+	u32 sprCtl1_Literal;
+
+	// Line rendering related variables
+	u32 lineType;
+	u32 lineShiftRegCount;
+	u32 lineShiftReg;
+	u32 lineRepeatCount;
+	u32 linePixel;
+	u32 linePacketBitsLeft;
+
 	u32 lineBaseAddress;
 	u32 lineCollisionAddress;
 	u32 cyclesUsed;				// Cycles used to paint sprites.
 	u32 scrollLine;
 
 	u8 dirtyTiles[4];
-	void *suzyRAM;
-	u32 *scrollBuff;
+	u8 *suzyRAM;
 
 } SUZY;
 
@@ -150,6 +159,8 @@ int suzyLoadState(SUZY *chip, const void *source);
  */
 int suzyGetStateSize(void);
 
+u32 suzLineInit(u32 voff);
+u32 suzLineGetBits(u32 bits);
 void suzProcessPixel(u32 hoff, u32 pixel, u32 sprType);
 
 #ifdef __cplusplus
