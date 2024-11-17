@@ -681,12 +681,41 @@ suzLineGetBits:				;@ In r0=bits, less or equal to 8.
 ;@----------------------------------------------------------------------------
 	ldr suzptr,=suzy_0
 	ldr r1,[suzptr,#suzLinePacketBitsLeft]
-	cmp r0,r1
-	movpl r0,#0
-	bxpl lr
-	ldr r2,[suzptr,#suzLineShiftRegCount]
+	subs r1,r1,r0
+	movle r0,#0
+	bxle lr
+	str r1,[suzptr,#suzLinePacketBitsLeft]
 
+	ldr r1,[suzptr,#suzLineShiftRegCount]
+	ldr r3,[suzptr,#suzLineShiftReg]
+	subs r1,r1,r0
+	bcs suzExtractBits
+	stmfd sp!,{r4-r5}
+	add r1,r1,#24
+	ldrh r2,[suzptr,#suzTmpAdr]
+	ldr r4,[suzptr,#suzyRAM]
+	ldrb r5,[r4,r2]!
+	orr r3,r5,r3,lsl#8
+	ldrb r5,[r4,#1]
+	orr r3,r5,r3,lsl#8
+	ldrb r5,[r4,#2]
+	add r2,r2,#3
+	orr r3,r5,r3,lsl#8
+	strh r2,[suzptr,#suzTmpAdr]
+	str r3,[suzptr,#suzLineShiftReg]
 
+	ldr r2,[suzptr,#suzyCyclesUsed]
+	add r2,r2,#3*3				;@ 3 * SPR_RDWR_CYC
+	str r2,[suzptr,#suzyCyclesUsed]
+
+	ldmfd sp!,{r4-r5}
+suzExtractBits:
+	str r1,[suzptr,#suzLineShiftRegCount]
+	rsb r2,r0,#32
+	sub r1,r2,r1
+	mov r3,r3,lsl r1
+	mov r0,r3,lsr r2
+	bx lr
 ;@----------------------------------------------------------------------------
 suzProcessPixel:			;@ In r0=hoff, r1=pixel, r2=sprType.
 	.type	suzProcessPixel STT_FUNC

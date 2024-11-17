@@ -814,46 +814,6 @@ ULONG CSusie::PaintSprites(void)
 	return cycles_used;
 }
 /*
-inline ULONG CSusie::LineInit(ULONG voff)
-{
-	// Set the line base address for use in the calls to pixel painting
-	if (voff > 101) {
-		//gError->Warning("CSusie::LineInit() Out of bounds (voff)");
-		voff = 0;
-	}
-
-	mLineBaseAddress = mVIDBAS.Word + (voff * (LYNX_SCREEN_WIDTH / 2));
-	mLineCollisionAddress = mCOLLBAS.Word + (voff * (LYNX_SCREEN_WIDTH / 2));
-
-	mLineShiftReg = 0;
-	mLineShiftRegCount = 0;
-	mLinePixel = 0;
-
-	// Read the Offset to the next line
-	ULONG offset = RAM_PEEK(mSPRDLINE.Word);
-
-	// Initialise the temporary pointer
-	mTMPADR.Word = mSPRDLINE.Word+1;
-
-	// Specify the MAXIMUM number of bits in this packet, it
-	// can terminate early but can never use more than this
-	// without ending the current packet, we count down in LineGetBits()
-	mLinePacketBitsLeft = (offset - 1) * 8;
-
-	// Literals are a special case and get their count set on a line basis
-	if (mSPRCTL1_Literal) {
-		mLineType = line_abs_literal;
-		mLineRepeatCount = mLinePacketBitsLeft;
-	}
-	else {
-		mLineType = line_error;
-		mLineRepeatCount = 0;
-	}
-
-	// Return the offset to the next line of sprite data.
-	return offset;
-}
-*/
 inline ULONG CSusie::LineGetBits(ULONG bits)
 {
 	// bits should be <= 8
@@ -861,6 +821,7 @@ inline ULONG CSusie::LineGetBits(ULONG bits)
 
 	//if (mLinePacketBitsLeft < bits) return 0;
 	if (mLinePacketBitsLeft <= bits) return 0;	// Hardware bug(<= instead of <), apparently
+	mLinePacketBitsLeft -= bits;
 
 	// Make sure shift reg has enough bits to fulfil the request
 
@@ -876,18 +837,16 @@ inline ULONG CSusie::LineGetBits(ULONG bits)
 		// Increment cycle count for the read
 		cycles_used += 3 * SPR_RDWR_CYC;
 	}
+	mLineShiftRegCount -= bits;
 
 	// Extract the return value
-	ULONG retval = mLineShiftReg >> (mLineShiftRegCount - bits);
+	ULONG retval = mLineShiftReg >> (mLineShiftRegCount);
 	retval &= (1 << bits) - 1;
 
-	// Update internal vars;
-	mLineShiftRegCount -= bits;
-	mLinePacketBitsLeft -= bits;
 
 	return retval;
 }
-
+*/
 inline ULONG CSusie::LineGetPixel()
 {
 	if (!mLineRepeatCount) {
@@ -897,11 +856,11 @@ inline ULONG CSusie::LineGetPixel()
 		}
 
 		// Normal sprites fetch their counts on a packet basis
-		ULONG literal = LineGetBits(1);
-		mLineRepeatCount = LineGetBits(4);
+		ULONG literal = suzLineGetBits(1);
+		mLineRepeatCount = suzLineGetBits(4);
 		if (literal) {
 			mLineType = line_literal;
-			return mPenIndex[LineGetBits(mSPRCTL0_PixelBits)];
+			return mPenIndex[suzLineGetBits(mSPRCTL0_PixelBits)];
 		}
 		else {
 			mLineType = line_packed;
@@ -912,7 +871,7 @@ inline ULONG CSusie::LineGetPixel()
 			if (!mLineRepeatCount) {
 				return LINE_END;		// SPEEDUP
 			}
-			mLinePixel = mPenIndex[LineGetBits(mSPRCTL0_PixelBits)];
+			mLinePixel = mPenIndex[suzLineGetBits(mSPRCTL0_PixelBits)];
 			return mLinePixel;		// SPEEDUP
 		}
 	}
@@ -922,7 +881,7 @@ inline ULONG CSusie::LineGetPixel()
 		if (mLineRepeatCount < mSPRCTL0_PixelBits) {
 			mLineRepeatCount = 0;
 		}
-		mLinePixel = LineGetBits(mSPRCTL0_PixelBits);
+		mLinePixel = suzLineGetBits(mSPRCTL0_PixelBits);
 		// Check the special case of a zero in the last pixel
 		if (!mLineRepeatCount && !mLinePixel) {
 			return LINE_END;
@@ -933,7 +892,7 @@ inline ULONG CSusie::LineGetPixel()
 	mLineRepeatCount--;
 
 	if (mLineType == line_literal) {
-		return mPenIndex[LineGetBits(mSPRCTL0_PixelBits)];
+		return mPenIndex[suzLineGetBits(mSPRCTL0_PixelBits)];
 	}
 
 	return mLinePixel;
@@ -943,24 +902,6 @@ void CSusie::Poke(ULONG addr, UBYTE data)
 {
 	switch(addr & 0xff)
 	{
-//		case (TMPADRL & 0xff):
-//			mTMPADR.Byte.Low = data;
-//			mTMPADR.Byte.High = 0;
-//			TRACE_SUSIE2("Poke(TMPADRL,%02x) at PC=$%04x", data, mSystem.mCpu->GetPC());
-//			break;
-//		case (TMPADRH & 0xff):
-//			mTMPADR.Byte.High = data;
-//			TRACE_SUSIE2("Poke(TMPADRH,%02x) at PC=$%04x", data, mSystem.mCpu->GetPC());
-//			break;
-//		case (SPRDLINEL & 0xff):
-//			mSPRDLINE.Byte.Low = data;
-//			mSPRDLINE.Byte.High = 0;
-//			TRACE_SUSIE2("Poke(SPRDLINEL,%02x) at PC=$%04x", data, mSystem.mCpu->GetPC());
-//			break;
-//		case (SPRDLINEH & 0xff):
-//			mSPRDLINE.Byte.High = data;
-//			TRACE_SUSIE2("Poke(SPRDLINEH,%02x) at PC=$%04x", data, mSystem.mCpu->GetPC());
-//			break;
 		case (HPOSSTRTL & 0xff):
 			mHPOSSTRT.Byte.Low = data;
 			mHPOSSTRT.Byte.High = 0;
@@ -1166,18 +1107,10 @@ void CSusie::Poke(ULONG addr, UBYTE data)
 			mSPRCTL1_Literal = data & 0x0080;
 			TRACE_SUSIE2("Poke(SPRCTL1,%02x) at PC=$%04x", data, mSystem.mCpu->GetPC());
 			break;
-//		case (SPRCOLL & 0xff):
-//			mSPRCOLL = data & 0x002f;
-//			TRACE_SUSIE2("Poke(SPRCOLL,%02x) at PC=$%04x", data, mSystem.mCpu->GetPC());
-//			break;
 		case (SPRINIT & 0xff):
 			mSPRINIT.Byte = data;
 			TRACE_SUSIE2("Poke(SPRINIT,%02x) at PC=$%04x", data, mSystem.mCpu->GetPC());
 			break;
-//		case (SUZYBUSEN & 0xff):
-//			mSUZYBUSEN = data & 0x01;
-//			TRACE_SUSIE2("Poke(SUZYBUSEN,%02x) at PC=$%04x", data, mSystem.mCpu->GetPC());
-//			break;
 		case (SPRGO & 0xff):
 			mSPRGO = data & 0x01;
 			mEVERON = data & 0x04;
@@ -1219,22 +1152,6 @@ UBYTE CSusie::Peek(ULONG addr)
 	UBYTE retval = 0;
 	switch(addr & 0xff)
 	{
-//		case (TMPADRL & 0xff):
-//			retval = mTMPADR.Byte.Low;
-//			TRACE_SUSIE2("Peek(TMPADRL)=$%02x at PC=$%04x", retval, mSystem.mCpu->GetPC());
-//			return retval;
-//		case (TMPADRH & 0xff):
-//			retval = mTMPADR.Byte.High;
-//			TRACE_SUSIE2("Peek(TMPADRH)=$%02x at PC=$%04x", retval, mSystem.mCpu->GetPC());
-//			return retval;
-//		case (SPRDLINEL & 0xff):
-//			retval = mSPRDLINE.Byte.Low;
-//			TRACE_SUSIE2("Peek(SPRDLINEL)=$%02x at PC=$%04x", retval, mSystem.mCpu->GetPC());
-//			return retval;
-//		case (SPRDLINEH & 0xff):
-//			retval = mSPRDLINE.Byte.High;
-//			TRACE_SUSIE2("Peek(SPRDLINEH)=$%02x at PC=$%04x", retval, mSystem.mCpu->GetPC());
-//			return retval;
 		case (HPOSSTRTL & 0xff):
 			retval = mHPOSSTRT.Byte.Low;
 			TRACE_SUSIE2("Peek(HPOSSTRTL)=$%02x at PC=$%04x", retval, mSystem.mCpu->GetPC());

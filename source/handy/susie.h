@@ -352,15 +352,12 @@ class CSusie : public CLynxBase
 	private:
 		void	DoMathDivide(void);
 		void	DoMathMultiply(void);
-//		ULONG	LineInit(ULONG voff);
 		ULONG	LineGetPixel(void);
 		ULONG	LineGetBits(ULONG bits);
 
 	private:
 		CSystem&	mSystem;
 
-//		UUWORD		mTMPADR;		// ENG
-//		UUWORD		mSPRDLINE;		// SCB
 		UUWORD		mHPOSSTRT;		// SCB
 		UUWORD		mVPOSSTRT;		// SCB
 		UUWORD		mSPRHSIZ;		// SCB
@@ -391,7 +388,6 @@ class CSusie : public CLynxBase
 		int			mSPRCTL1_ReloadPalette;
 		int			mSPRCTL1_ReloadDepth;
 		int			mSPRCTL1_Sizing;
-//		int			mSPRCTL1_Literal;
 
 		int			mSPRCOLL;				//CPU
 
@@ -413,15 +409,6 @@ class CSusie : public CLynxBase
 		int			mEVERON;
 
 		UBYTE		mPenIndex[16];	// SCB
-
-		// Line rendering related variables
-
-//		ULONG		mLineType;
-//		ULONG		mLineShiftRegCount;
-//		ULONG		mLineShiftReg;
-//		ULONG		mLineRepeatCount;
-//		ULONG		mLinePixel;
-//		ULONG		mLinePacketBitsLeft;
 
 		UBYTE		*mRamPointer;
 
