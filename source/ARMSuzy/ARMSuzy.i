@@ -61,10 +61,10 @@ suzHPosStrtH:		.byte 0		;@ High
 suzVPosStrt:					;@ 0x16 Starting Vpos
 suzVPosStrtL:		.byte 0		;@ Low
 suzVPosStrtH:		.byte 0		;@ High
-suzSprHSiz:						;@ 0x18 Srite Horizontal Size
+suzSprHSiz:						;@ 0x18 Sprite Horizontal Size
 suzSprHSizL:		.byte 0		;@ Low
 suzSprHSizH:		.byte 0		;@ High
-suzSprVSiz:						;@ 0x1A Srite Vertical Size
+suzSprVSiz:						;@ 0x1A Sprite Vertical Size
 suzSprVSizL:		.byte 0		;@ Low
 suzSprVSizH:		.byte 0		;@ High
 suzStretch:						;@ 0x1C Horizontal Size Adder
@@ -137,7 +137,7 @@ suzReserved8:		.space 0x01	;@ 0xC1 Reserved
 suzPPortStat:		.byte 0		;@ 0xC2 Parallel Port Status
 suzPPortData:		.byte 0		;@ 0xC3 Parallel Port Data
 suzHowie:			.byte 0		;@ 0xC4 Read or write as appropriate
-suzPadding:			.space 3
+suzPadding:			.skip 3
 
 ;@----------------------------------------------------------------------------
 
@@ -146,6 +146,7 @@ suzLCDVSize:		.byte 0		;@ ???
 wsvLatchedDispCtrl:	.byte 0		;@ Latched Display Control
 suzPadding2:		.space 1
 
+suzSprCtl0_PixelBits:	.long 0
 suzSprCtl1_Literal:	.long 0
 
 suzLineType:			.long 0	;@
@@ -154,6 +155,8 @@ suzLineShiftReg:		.long 0	;@
 suzLineRepeatCount:		.long 0	;@
 suzLinePixel:			.long 0	;@
 suzLinePacketBitsLeft:	.long 0	;@
+
+suzPenIndex:		.space 16	;@
 
 suzLineBaseAddress:	.long 0		;@ Current dest line adr.
 suzLineCollisionAddress:	.long 0		;@ Current collision dest line adr.

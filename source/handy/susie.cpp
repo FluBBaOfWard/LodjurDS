@@ -83,6 +83,7 @@
 #define mCollision suzy_0.collision
 #define cycles_used suzy_0.cyclesUsed
 
+#define mSPRCTL0_PixelBits suzy_0.sprCtl0_PixelBits
 #define mSPRCTL1_Literal suzy_0.sprCtl1_Literal
 
 #define mLineType suzy_0.lineType
@@ -91,6 +92,8 @@
 #define mLineRepeatCount suzy_0.lineRepeatCount
 #define mLinePixel suzy_0.linePixel
 #define mLinePacketBitsLeft suzy_0.linePacketBitsLeft
+#define mPenIndex suzy_0.penIndex
+
 
 CSusie::CSusie(CSystem& parent)
 	:mSystem(parent)
@@ -115,8 +118,6 @@ void CSusie::Reset(void)
 
 	// Reset ALL variables
 
-//	mTMPADR.Word = 0;
-//	mSPRDLINE.Word = 0;
 	mHPOSSTRT.Word = 0;
 	mVPOSSTRT.Word = 0;
 	mSPRHSIZ.Word = 0;
@@ -170,14 +171,7 @@ void CSusie::Reset(void)
 	mSPRGO = FALSE;
 	mEVERON = FALSE;
 
-	for (int loop=0;loop<16;loop++) mPenIndex[loop] = loop;
-
-//	mLineType = 0;
-//	mLineShiftRegCount = 0;
-//	mLineShiftReg = 0;
-//	mLineRepeatCount = 0;
-//	mLinePixel = 0;
-//	mLinePacketBitsLeft = 0;
+//	for (int loop=0;loop<16;loop++) mPenIndex[loop] = loop;
 
 	hquadoff = vquadoff = 0;
 
@@ -676,7 +670,7 @@ ULONG CSusie::PaintSprites(void)
 								onscreen = FALSE;
 
 								// Now render an individual destination line
-								while ((pixel = LineGetPixel()) != LINE_END) {
+								while ((pixel = suzLineGetPixel()) != LINE_END) {
 									// This is allowed to update every pixel
 									mHSIZACUM.Word += mSPRHSIZ.Word;
 									pixel_width = mHSIZACUM.Byte.High;
@@ -814,39 +808,6 @@ ULONG CSusie::PaintSprites(void)
 	return cycles_used;
 }
 /*
-inline ULONG CSusie::LineGetBits(ULONG bits)
-{
-	// bits should be <= 8
-	// Only return data IF there is enought bits left in the packet
-
-	//if (mLinePacketBitsLeft < bits) return 0;
-	if (mLinePacketBitsLeft <= bits) return 0;	// Hardware bug(<= instead of <), apparently
-	mLinePacketBitsLeft -= bits;
-
-	// Make sure shift reg has enough bits to fulfil the request
-
-	if (mLineShiftRegCount < bits) {
-		// This assumes data comes into LSB and out of MSB
-		mLineShiftReg <<= 24;
-		mLineShiftReg |= RAM_PEEK(mTMPADR.Word++)<<16;
-		mLineShiftReg |= RAM_PEEK(mTMPADR.Word++)<<8;
-		mLineShiftReg |= RAM_PEEK(mTMPADR.Word++);
-
-		mLineShiftRegCount += 24;
-
-		// Increment cycle count for the read
-		cycles_used += 3 * SPR_RDWR_CYC;
-	}
-	mLineShiftRegCount -= bits;
-
-	// Extract the return value
-	ULONG retval = mLineShiftReg >> (mLineShiftRegCount);
-	retval &= (1 << bits) - 1;
-
-
-	return retval;
-}
-*/
 inline ULONG CSusie::LineGetPixel()
 {
 	if (!mLineRepeatCount) {
@@ -856,9 +817,9 @@ inline ULONG CSusie::LineGetPixel()
 		}
 
 		// Normal sprites fetch their counts on a packet basis
-		ULONG literal = suzLineGetBits(1);
-		mLineRepeatCount = suzLineGetBits(4);
-		if (literal) {
+		ULONG literal = suzLineGetBits(5);
+		mLineRepeatCount = literal & 0xF;
+		if (literal & 0x10) {
 			mLineType = line_literal;
 			return mPenIndex[suzLineGetBits(mSPRCTL0_PixelBits)];
 		}
@@ -897,7 +858,7 @@ inline ULONG CSusie::LineGetPixel()
 
 	return mLinePixel;
 }
-
+*/
 void CSusie::Poke(ULONG addr, UBYTE data)
 {
 	switch(addr & 0xff)

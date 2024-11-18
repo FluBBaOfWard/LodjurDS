@@ -101,7 +101,7 @@ typedef struct {
 	u8 switches;		// 0xB1 Read Other Switches
 	u8 rCart0;			// 0xB2 Read or write 8 bits of data
 	u8 rCart1;			// 0xB3 Read or write 8 bits of data
-	u8 reserved7[0x0C];		// 0xB4-0xBF Reserved
+	u8 reserved7[0x0C];	// 0xB4-0xBF Reserved
 	u8 leds;			// 0xC0 Read Joystick and Switches
 	u8 reserved8[0x01];	// 0xC1 Reserved
 	u8 pPortStat;		// 0xC2 Parallel Port Status
@@ -115,6 +115,7 @@ typedef struct {
 	u8 wsvLatchedDispCtrl;		// Latched Display Control
 	u8 suzPadding2[1];
 
+	u32 sprCtl0_PixelBits;
 	u32 sprCtl1_Literal;
 
 	// Line rendering related variables
@@ -124,6 +125,8 @@ typedef struct {
 	u32 lineRepeatCount;
 	u32 linePixel;
 	u32 linePacketBitsLeft;
+
+	u8 penIndex[16];
 
 	u32 lineBaseAddress;
 	u32 lineCollisionAddress;
@@ -161,6 +164,7 @@ int suzyGetStateSize(void);
 
 u32 suzLineInit(u32 voff);
 u32 suzLineGetBits(u32 bits);
+u32 suzLineGetPixel(void);
 void suzProcessPixel(u32 hoff, u32 pixel, u32 sprType);
 
 #ifdef __cplusplus

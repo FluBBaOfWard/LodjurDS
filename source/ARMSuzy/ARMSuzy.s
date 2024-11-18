@@ -16,6 +16,8 @@
 #include "ARMSuzy.i"
 #include "../ARMMikey/ARM6502/M6502.i"
 
+#define LINE_END		0x80
+
 	.global suzyInit
 	.global suzyReset
 	.global suzySaveState
@@ -25,6 +27,7 @@
 	.global suzWrite
 	.global suzLineInit
 	.global suzLineGetBits
+	.global suzLineGetPixel
 	.global suzProcessPixel
 
 	.syntax unified
@@ -689,7 +692,7 @@ suzLineGetBits:				;@ In r0=bits, less or equal to 8.
 	ldr r1,[suzptr,#suzLineShiftRegCount]
 	ldr r3,[suzptr,#suzLineShiftReg]
 	subs r1,r1,r0
-	bcs suzExtractBits
+	bcs extractBits
 	stmfd sp!,{r4-r5}
 	add r1,r1,#24
 	ldrh r2,[suzptr,#suzTmpAdr]
@@ -709,12 +712,84 @@ suzLineGetBits:				;@ In r0=bits, less or equal to 8.
 	str r2,[suzptr,#suzyCyclesUsed]
 
 	ldmfd sp!,{r4-r5}
-suzExtractBits:
+extractBits:
 	str r1,[suzptr,#suzLineShiftRegCount]
 	rsb r2,r0,#32
 	sub r1,r2,r1
 	mov r3,r3,lsl r1
 	mov r0,r3,lsr r2
+	bx lr
+;@----------------------------------------------------------------------------
+suzLineGetPixel:			;@
+	.type	suzLineGetPixel STT_FUNC
+;@----------------------------------------------------------------------------
+	stmfd sp!,{r4,lr}
+	ldr suzptr,=suzy_0
+	ldr r1,[suzptr,#suzLineRepeatCount]
+	ldr r2,[suzptr,#suzLineType]
+	cmp r1,#0
+	bne fetchPixel
+
+	cmp r2,#1					;@ line_abs_literal
+	beq exitLineEnd
+	mov r0,#5
+	bl suzLineGetBits
+	movs r0,r0,lsl#28
+	mov r1,r0,lsr#28
+	str r1,[suzptr,#suzLineRepeatCount]
+	movcc r2,#3					;@ line_packed
+	movcs r2,#2					;@ line_literal
+	str r2,[suzptr,#suzLineType]
+	bcc packedPix
+	ldr r0,[suzptr,#suzSprCtl0_PixelBits]
+	bl suzLineGetBits
+	add r1,suzptr,#suzPenIndex
+	ldrb r0,[r1,r0]
+	ldmfd sp!,{r4,lr}
+	bx lr
+packedPix:
+	beq exitLineEnd
+	ldr r0,[suzptr,#suzSprCtl0_PixelBits]
+	bl suzLineGetBits
+	add r1,suzptr,#suzPenIndex
+	ldrb r0,[r1,r0]
+	str r0,[suzptr,#suzLinePixel]
+	ldmfd sp!,{r4,lr}
+	bx lr
+
+fetchPixel:
+	cmp r2,#1					;@ line_abs_literal
+	bne checkMoreLineType
+	ldr r0,[suzptr,#suzSprCtl0_PixelBits]
+	subs r4,r1,r0
+	cmp r4,r0
+	movcc r4,#0
+	str r4,[suzptr,#suzLineRepeatCount]
+	bl suzLineGetBits
+	orrs r4,r4,r0
+	beq exitLineEnd
+	add r1,suzptr,#suzPenIndex
+	ldrb r0,[r1,r0]
+	ldmfd sp!,{r4,lr}
+	bx lr
+checkMoreLineType:
+	sub r1,r1,#1
+	str r1,[suzptr,#suzLineRepeatCount]
+	cmp r2,#3					;@ line_literal
+	beq fetchPacked
+	ldr r0,[suzptr,#suzSprCtl0_PixelBits]
+	bl suzLineGetBits
+	add r1,suzptr,#suzPenIndex
+	ldrb r0,[r1,r0]
+	ldmfd sp!,{r4,lr}
+	bx lr
+fetchPacked:
+	ldreq r0,[suzptr,#suzLinePixel]
+	ldmfd sp!,{r4,lr}
+	bx lr
+exitLineEnd:
+	mov r0,#LINE_END
+	ldmfd sp!,{r4,lr}
 	bx lr
 ;@----------------------------------------------------------------------------
 suzProcessPixel:			;@ In r0=hoff, r1=pixel, r2=sprType.
