@@ -107,14 +107,17 @@ typedef struct {
 	u8 pPortStat;		// 0xC2 Parallel Port Status
 	u8 pPortData;		// 0xC3 Parallel Port Data
 	u8 howie;			// 0xC4 Read or write as appropriate
-	u8 suzPadding[3];
+	u8 padding[3];
 
 //------------------------------
 	u8 collision;		// Collision value for current sprite.
 	u8 suzLCDVSize;		// ???
 	u8 wsvLatchedDispCtrl;		// Latched Display Control
-	u8 suzPadding2[1];
+	u8 padding2[1];
+	U16_ST hSizAcum;
+	u8 padding3[2];
 
+	u32 sprCtl0_Type;
 	u32 sprCtl0_PixelBits;
 	u32 sprCtl1_Literal;
 
@@ -161,6 +164,8 @@ int suzyLoadState(SUZY *chip, const void *source);
  * @return The size of the state.
  */
 int suzyGetStateSize(void);
+
+u32 suzRenderLine(int hoff, int hsign);
 
 u32 suzLineInit(u32 voff);
 u32 suzLineGetBits(u32 bits);

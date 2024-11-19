@@ -352,21 +352,19 @@ class CSusie : public CLynxBase
 	private:
 		void	DoMathDivide(void);
 		void	DoMathMultiply(void);
-//		ULONG	LineGetPixel(void);
-//		ULONG	LineGetBits(ULONG bits);
 
 	private:
 		CSystem&	mSystem;
 
 		UUWORD		mHPOSSTRT;		// SCB
 		UUWORD		mVPOSSTRT;		// SCB
-		UUWORD		mSPRHSIZ;		// SCB
+//		UUWORD		mSPRHSIZ;		// SCB
 		UUWORD		mSPRVSIZ;		// SCB
 		UUWORD		mSTRETCH;		// ENG
 		UUWORD		mTILT;			// ENG
 		UUWORD		mSPRDOFF;		// ENG
 		UUWORD		mVSIZACUM;		// ENG
-		UUWORD		mHSIZACUM;		//    K.s creation
+//		UUWORD		mHSIZACUM;		//    K.s creation
 		UUWORD		mSCBADR;		// ENG
 
 		TMATHABCD	mMATHABCD;		// ENG
@@ -377,10 +375,9 @@ class CSusie : public CLynxBase
 		int			mMATHCD_sign;
 		int			mMATHEFGH_sign;
 
-		int			mSPRCTL0_Type;			// SCB
+//		int			mSPRCTL0_Type;			// SCB
 		int			mSPRCTL0_Vflip;
 		int			mSPRCTL0_Hflip;
-//		int			mSPRCTL0_PixelBits;
 
 		int			mSPRCTL1_StartLeft;		// SCB
 		int			mSPRCTL1_StartUp;
@@ -407,8 +404,6 @@ class CSusie : public CLynxBase
 
 		ULONG		mSPRGO;			// CPU
 		int			mEVERON;
-
-//		UBYTE		mPenIndex[16];	// SCB
 
 		UBYTE		*mRamPointer;
 

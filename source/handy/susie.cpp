@@ -72,6 +72,7 @@
 #define mCOLLBAS suzy_0.collBas
 #define mSCBNEXT suzy_0.SCBNext
 #define mSPRDLINE suzy_0.sprDLine
+#define mSPRHSIZ suzy_0.sprHSiz
 #define mCOLLOFF suzy_0.collOff
 #define mHSIZOFF suzy_0.hSizOff
 #define mVSIZOFF suzy_0.vSizOff
@@ -83,6 +84,7 @@
 #define mCollision suzy_0.collision
 #define cycles_used suzy_0.cyclesUsed
 
+#define mSPRCTL0_Type suzy_0.sprCtl0_Type
 #define mSPRCTL0_PixelBits suzy_0.sprCtl0_PixelBits
 #define mSPRCTL1_Literal suzy_0.sprCtl1_Literal
 
@@ -93,7 +95,7 @@
 #define mLinePixel suzy_0.linePixel
 #define mLinePacketBitsLeft suzy_0.linePacketBitsLeft
 #define mPenIndex suzy_0.penIndex
-
+#define mHSIZACUM suzy_0.hSizAcum
 
 CSusie::CSusie(CSystem& parent)
 	:mSystem(parent)
@@ -120,13 +122,13 @@ void CSusie::Reset(void)
 
 	mHPOSSTRT.Word = 0;
 	mVPOSSTRT.Word = 0;
-	mSPRHSIZ.Word = 0;
+//	mSPRHSIZ.Word = 0;
 	mSPRVSIZ.Word = 0;
 	mSTRETCH.Word = 0;
 	mTILT.Word = 0;
 	mSPRDOFF.Word = 0;
 	mVSIZACUM.Word = 0;
-	mHSIZACUM.Word = 0;
+//	mHSIZACUM.Word = 0;
 	mSCBADR.Word = 0;
 
 	// Must be initialised to this due to
@@ -170,8 +172,6 @@ void CSusie::Reset(void)
 
 	mSPRGO = FALSE;
 	mEVERON = FALSE;
-
-//	for (int loop=0;loop<16;loop++) mPenIndex[loop] = loop;
 
 	hquadoff = vquadoff = 0;
 
@@ -597,15 +597,10 @@ ULONG CSusie::PaintSprites(void)
 				TRACE_SUSIE1("PaintSprites() Render status %d", render);
 
 				int pixel_height;
-				int pixel_width;
-				int pixel;
-				int hoff,voff;
-				int hloop;
-				bool onscreen;
 
 				if (render) {
 					// Set the vertical position & offset
-					voff = (SWORD)mVPOSSTRT.Word-screen_v_start;
+					int voff = (SWORD)mVPOSSTRT.Word-screen_v_start;
 
 					// Zero the stretch,tilt & acum values
 					mTILTACUM.Word = 0;
@@ -652,7 +647,7 @@ ULONG CSusie::PaintSprites(void)
 								// Work out the horizontal pixel start position, start + tilt
 								mHPOSSTRT.Word += ((SWORD)mTILTACUM.Word>>8);
 								mTILTACUM.Byte.High = 0;
-								hoff = (int)((SWORD)mHPOSSTRT.Word) - screen_h_start;
+								int hoff = (int)((SWORD)mHPOSSTRT.Word) - screen_h_start;
 
 								// Zero/Force the horizontal scaling accumulator
 								mHSIZACUM.Word = (hsign == 1) ? mHSIZOFF.Word : 0;
@@ -667,21 +662,24 @@ ULONG CSusie::PaintSprites(void)
 
 								// Initialise our line
 								suzLineInit(voff);
-								onscreen = FALSE;
+//								bool onscreen = FALSE;
 
-								// Now render an individual destination line
+								if (suzRenderLine(hoff, hsign)) {
+									everonscreen = TRUE;
+								}
+/*								// Now render an individual destination line
+								int pixel;
 								while ((pixel = suzLineGetPixel()) != LINE_END) {
 									// This is allowed to update every pixel
 									mHSIZACUM.Word += mSPRHSIZ.Word;
-									pixel_width = mHSIZACUM.Byte.High;
+									int pixel_width = mHSIZACUM.Byte.High;
 									mHSIZACUM.Byte.High = 0;
 
-									for(hloop=0;hloop<pixel_width;hloop++) {
+									for (int hloop=0;hloop<pixel_width;hloop++) {
 										// Draw if onscreen but break loop on transition to offscreen
 										if (hoff >= 0 && hoff < LYNX_SCREEN_WIDTH) {
 											suzProcessPixel(hoff, pixel, mSPRCTL0_Type);
 											onscreen = TRUE;
-											everonscreen = TRUE;
 										}
 										else {
 											if (onscreen) break;
@@ -689,6 +687,9 @@ ULONG CSusie::PaintSprites(void)
 										hoff += hsign;
 									}
 								}
+								if (onscreen) {
+									everonscreen = TRUE;
+								}*/
 							}
 							voff += vsign;
 
@@ -807,58 +808,7 @@ ULONG CSusie::PaintSprites(void)
 
 	return cycles_used;
 }
-/*
-inline ULONG CSusie::LineGetPixel()
-{
-	if (!mLineRepeatCount) {
-		if (mLineType == line_abs_literal) {
-			// This means end of line for us
-			return LINE_END;		// SPEEDUP
-		}
 
-		// Normal sprites fetch their counts on a packet basis
-		ULONG literal = suzLineGetBits(5);
-		mLineRepeatCount = literal & 0xF;
-		if (literal & 0x10) {
-			mLineType = line_literal;
-			return mPenIndex[suzLineGetBits(mSPRCTL0_PixelBits)];
-		}
-		else {
-			mLineType = line_packed;
-			//
-			// From reading in between the lines only a packed line with
-			// a zero size i.e 0b0000 as a header is allowable as a packet end
-			//
-			if (!mLineRepeatCount) {
-				return LINE_END;		// SPEEDUP
-			}
-			mLinePixel = mPenIndex[suzLineGetBits(mSPRCTL0_PixelBits)];
-			return mLinePixel;		// SPEEDUP
-		}
-	}
-
-	if (mLineType == line_abs_literal) {
-		mLineRepeatCount -= mSPRCTL0_PixelBits;
-		if (mLineRepeatCount < mSPRCTL0_PixelBits) {
-			mLineRepeatCount = 0;
-		}
-		mLinePixel = suzLineGetBits(mSPRCTL0_PixelBits);
-		// Check the special case of a zero in the last pixel
-		if (!mLineRepeatCount && !mLinePixel) {
-			return LINE_END;
-		}
-		return mPenIndex[mLinePixel];
-	}
-
-	mLineRepeatCount--;
-
-	if (mLineType == line_literal) {
-		return mPenIndex[suzLineGetBits(mSPRCTL0_PixelBits)];
-	}
-
-	return mLinePixel;
-}
-*/
 void CSusie::Poke(ULONG addr, UBYTE data)
 {
 	switch(addr & 0xff)
@@ -881,15 +831,15 @@ void CSusie::Poke(ULONG addr, UBYTE data)
 			mVPOSSTRT.Byte.High = data;
 			TRACE_SUSIE2("Poke(VPOSSTRTH,%02x) at PC=$%04x", data, mSystem.mCpu->GetPC());
 			break;
-		case (SPRHSIZL & 0xff):
-			mSPRHSIZ.Byte.Low = data;
-			mSPRHSIZ.Byte.High = 0;
-			TRACE_SUSIE2("Poke(SPRHSIZL,%02x) at PC=$%04x", data, mSystem.mCpu->GetPC());
-			break;
-		case (SPRHSIZH & 0xff):
-			mSPRHSIZ.Byte.High = data;
-			TRACE_SUSIE2("Poke(SPRHSIZH,%02x) at PC=$%04x", data, mSystem.mCpu->GetPC());
-			break;
+//		case (SPRHSIZL & 0xff):
+//			mSPRHSIZ.Byte.Low = data;
+//			mSPRHSIZ.Byte.High = 0;
+//			TRACE_SUSIE2("Poke(SPRHSIZL,%02x) at PC=$%04x", data, mSystem.mCpu->GetPC());
+//			break;
+//		case (SPRHSIZH & 0xff):
+//			mSPRHSIZ.Byte.High = data;
+//			TRACE_SUSIE2("Poke(SPRHSIZH,%02x) at PC=$%04x", data, mSystem.mCpu->GetPC());
+//			break;
 		case (SPRVSIZL & 0xff):
 			mSPRVSIZ.Byte.Low = data;
 			mSPRVSIZ.Byte.High = 0;
@@ -1129,14 +1079,14 @@ UBYTE CSusie::Peek(ULONG addr)
 			retval = mVPOSSTRT.Byte.High;
 			TRACE_SUSIE2("Peek(VPOSSTRTH)=$%02x at PC=$%04x", retval, mSystem.mCpu->GetPC());
 			return retval;
-		case (SPRHSIZL & 0xff):
-			retval = mSPRHSIZ.Byte.Low;
-			TRACE_SUSIE2("Peek(SPRHSIZL)=$%02x at PC=$%04x", retval, mSystem.mCpu->GetPC());
-			return retval;
-		case (SPRHSIZH & 0xff):
-			retval = mSPRHSIZ.Byte.High;
-			TRACE_SUSIE2("Peek(SPRHSIZH)=$%02x at PC=$%04x", retval, mSystem.mCpu->GetPC());
-			return retval;
+//		case (SPRHSIZL & 0xff):
+//			retval = mSPRHSIZ.Byte.Low;
+//			TRACE_SUSIE2("Peek(SPRHSIZL)=$%02x at PC=$%04x", retval, mSystem.mCpu->GetPC());
+//			return retval;
+//		case (SPRHSIZH & 0xff):
+//			retval = mSPRHSIZ.Byte.High;
+//			TRACE_SUSIE2("Peek(SPRHSIZH)=$%02x at PC=$%04x", retval, mSystem.mCpu->GetPC());
+//			return retval;
 		case (SPRVSIZL & 0xff):
 			retval = mSPRVSIZ.Byte.Low;
 			TRACE_SUSIE2("Peek(SPRVSIZL)=$%02x at PC=$%04x", retval, mSystem.mCpu->GetPC());

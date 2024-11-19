@@ -25,6 +25,7 @@
 	.global suzyGetStateSize
 	.global suzRead
 	.global suzWrite
+	.global suzRenderLine
 	.global suzLineInit
 	.global suzLineGetBits
 	.global suzLineGetPixel
@@ -634,6 +635,49 @@ suBusEnW:					;@ 0x90 Suzy Bus Enable
 ;@----------------------------------------------------------------------------
 	and r1,r1,#0x01
 	strb r1,[suzptr,#suzSuzyBusEn]
+	bx lr
+
+;@----------------------------------------------------------------------------
+suzRenderLine:				;@ In r0=hoff, r1=hsign. Out new hoff.
+	.type	suzRenderLine STT_FUNC
+;@----------------------------------------------------------------------------
+	ldr suzptr,=suzy_0
+	stmfd sp!,{r4-r10,lr}
+	mov r4,r0
+	mov r5,r1
+	ldrh r6,[suzptr,#suzSprHSiz]
+	ldrh r7,[suzptr,#suzHSizAcum]
+	mov r8,#0					;@ onScreen
+rendWhile:
+	bl suzLineGetPixel
+	cmp r0,#0x80
+	beq exitRender
+	add r7,r7,r6				;@ mHSIZACUM.Word += mSPRHSIZ.Word
+	ands r9,r7,#0xFF00			;@ pixel_width = mHSIZACUM.Byte.High
+	and r7,r7,#0xFF				;@ mHSIZACUM.Byte.High = 0
+	beq rendWhile
+	mov r10,r0
+rendLoop:
+	movs r0,r4
+	bmi checkBail
+	cmp r0,#GAME_WIDTH
+	bpl checkBail
+	mov r1,r10
+	ldr r2,[suzptr,#suzSprCtl0_Type]
+	bl suzProcessPixel
+	mov r8,#1					;@ onScreen = TRUE
+continueRend:
+	add r4,r4,r5				;@ hoff += hsign
+	subs r9,r9,#0x0100
+	bne rendLoop
+	b rendWhile
+checkBail:
+	cmp r8,#0
+	beq continueRend
+exitRender:
+	strh r7,[suzptr,#suzHSizAcum]
+	mov r0,r8
+	ldmfd sp!,{r4-r10,lr}
 	bx lr
 
 ;@----------------------------------------------------------------------------
