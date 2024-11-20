@@ -150,7 +150,7 @@ suzHSizAcumL:		.byte 0
 suzHSizAcumH:		.byte 0
 suzPadding3:		.space 2
 
-suzSprCtl0_Type:		.long 0
+//suzSprCtl0_Type:		.long 0
 suzSprCtl0_PixelBits:	.long 0
 suzSprCtl1_Literal:	.long 0
 

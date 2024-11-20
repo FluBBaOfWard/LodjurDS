@@ -76,6 +76,7 @@
 #define mCOLLOFF suzy_0.collOff
 #define mHSIZOFF suzy_0.hSizOff
 #define mVSIZOFF suzy_0.vSizOff
+#define mSPRCTL0 suzy_0.sprCtl0
 #define mSPRCOLL suzy_0.sprColl
 #define mSUZYBUSEN suzy_0.suzyBusEn
 
@@ -96,6 +97,10 @@
 #define mLinePacketBitsLeft suzy_0.linePacketBitsLeft
 #define mPenIndex suzy_0.penIndex
 #define mHSIZACUM suzy_0.hSizAcum
+
+#define Type  (0x07)
+#define Vflip (0x10)
+#define Hflip (0x20)
 
 CSusie::CSusie(CSystem& parent)
 	:mSystem(parent)
@@ -143,9 +148,9 @@ void CSusie::Reset(void)
 	mMATHCD_sign = 1;
 	mMATHEFGH_sign = 1;
 
-	mSPRCTL0_Type = 0;
-	mSPRCTL0_Vflip = 0;
-	mSPRCTL0_Hflip = 0;
+//	mSPRCTL0_Type = 0;
+//	mSPRCTL0_Vflip = 0;
+//	mSPRCTL0_Hflip = 0;
 	mSPRCTL0_PixelBits = 0;
 
 	mSPRCTL1_StartLeft = 0;
@@ -320,9 +325,10 @@ ULONG CSusie::PaintSprites(void)
 
 		data = RAM_PEEK(mTMPADR.Word);			// Fetch control 0
 		TRACE_SUSIE1("PaintSprites() SPRCTL0 $%02x", data);
-		mSPRCTL0_Type = data & 0x0007;
-		mSPRCTL0_Vflip = data & 0x0010;
-		mSPRCTL0_Hflip = data & 0x0020;
+		mSPRCTL0 = data;
+//		mSPRCTL0_Type = data & 0x0007;
+//		mSPRCTL0_Vflip = data & 0x0010;
+//		mSPRCTL0_Hflip = data & 0x0020;
 		mSPRCTL0_PixelBits = ((data & 0x00c0)>>6) + 1;
 		mTMPADR.Word += 1;
 
@@ -528,10 +534,10 @@ ULONG CSusie::PaintSprites(void)
 
 				// Use h/v flip to invert h/vsign
 
-				if (mSPRCTL0_Vflip) vsign = -vsign;
-				if (mSPRCTL0_Hflip) hsign = -hsign;
+				if (mSPRCTL0 & Vflip) vsign = -vsign;
+				if (mSPRCTL0 & Hflip) hsign = -hsign;
 
-				TRACE_SUSIE2("PaintSprites() Hflip=%d Vflip=%d", mSPRCTL0_Hflip, mSPRCTL0_Vflip);
+				TRACE_SUSIE2("PaintSprites() Hflip=%d Vflip=%d", mSPRCTL0 & Hflip, mSPRCTL0 & Vflip);
 				TRACE_SUSIE2("PaintSprites() Hsign=%d   Vsign=%d", hsign, vsign);
 				TRACE_SUSIE2("PaintSprites() Hpos =%04x Vpos =%04x", mHPOSSTRT.Word, mVPOSSTRT.Word);
 				TRACE_SUSIE2("PaintSprites() Hsizoff =%04x Vsizoff =%04x", mHSIZOFF.Word, mVSIZOFF.Word);
@@ -563,8 +569,8 @@ ULONG CSusie::PaintSprites(void)
 					static const int vquadflip[4] = {1,0,3,2};
 					static const int hquadflip[4] = {3,2,1,0};
 
-					if (mSPRCTL0_Vflip) modquad = vquadflip[modquad];
-					if (mSPRCTL0_Hflip) modquad = hquadflip[modquad];
+					if (mSPRCTL0 & Vflip) modquad = vquadflip[modquad];
+					if (mSPRCTL0 & Hflip) modquad = hquadflip[modquad];
 
 					// This is causing Eurosoccer to fail!!
 					//if (enable_tilt && mTILT.Word & 0x8000) modquad = hquadflip[modquad];
@@ -596,8 +602,6 @@ ULONG CSusie::PaintSprites(void)
 
 				TRACE_SUSIE1("PaintSprites() Render status %d", render);
 
-				int pixel_height;
-
 				if (render) {
 					// Set the vertical position & offset
 					int voff = (SWORD)mVPOSSTRT.Word-screen_v_start;
@@ -619,7 +623,7 @@ ULONG CSusie::PaintSprites(void)
 					for (;;) {
 						// Vertical scaling is done here
 						mVSIZACUM.Word += mSPRVSIZ.Word;
-						pixel_height = mVSIZACUM.Byte.High;
+						int pixel_height = mVSIZACUM.Byte.High;
 						mVSIZACUM.Byte.High = 0;
 
 						// Update the next data line pointer and initialise our line
@@ -662,34 +666,11 @@ ULONG CSusie::PaintSprites(void)
 
 								// Initialise our line
 								suzLineInit(voff);
-//								bool onscreen = FALSE;
 
+								// Now render an individual destination line
 								if (suzRenderLine(hoff, hsign)) {
 									everonscreen = TRUE;
 								}
-/*								// Now render an individual destination line
-								int pixel;
-								while ((pixel = suzLineGetPixel()) != LINE_END) {
-									// This is allowed to update every pixel
-									mHSIZACUM.Word += mSPRHSIZ.Word;
-									int pixel_width = mHSIZACUM.Byte.High;
-									mHSIZACUM.Byte.High = 0;
-
-									for (int hloop=0;hloop<pixel_width;hloop++) {
-										// Draw if onscreen but break loop on transition to offscreen
-										if (hoff >= 0 && hoff < LYNX_SCREEN_WIDTH) {
-											suzProcessPixel(hoff, pixel, mSPRCTL0_Type);
-											onscreen = TRUE;
-										}
-										else {
-											if (onscreen) break;
-										}
-										hoff += hsign;
-									}
-								}
-								if (onscreen) {
-									everonscreen = TRUE;
-								}*/
 							}
 							voff += vsign;
 
@@ -740,7 +721,7 @@ ULONG CSusie::PaintSprites(void)
 			// Write the collision depositary if required
 
 			if (mSPRCOLL <= 0xF) {
-				switch(mSPRCTL0_Type)
+				switch(mSPRCTL0 & Type)
 				{
 					case sprite_xor_shadow:
 					case sprite_boundary:
@@ -1002,10 +983,11 @@ void CSusie::Poke(ULONG addr, UBYTE data)
 			break;
 
 		case (SPRCTL0 & 0xff):
-			mSPRCTL0_Type = data & 0x0007;
-			mSPRCTL0_Vflip = data & 0x0010;
-			mSPRCTL0_Hflip = data & 0x0020;
+//			mSPRCTL0_Type = data & 0x0007;
+//			mSPRCTL0_Vflip = data & 0x0010;
+//			mSPRCTL0_Hflip = data & 0x0020;
 			mSPRCTL0_PixelBits = ((data & 0x00c0)>>6) + 1;
+			lnxSuzyWrite(addr, data);
 			TRACE_SUSIE2("Poke(SPRCTL0,%02x) at PC=$%04x", data, mSystem.mCpu->GetPC());
 			break;
 		case (SPRCTL1 & 0xff):

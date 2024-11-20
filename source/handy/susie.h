@@ -358,13 +358,11 @@ class CSusie : public CLynxBase
 
 		UUWORD		mHPOSSTRT;		// SCB
 		UUWORD		mVPOSSTRT;		// SCB
-//		UUWORD		mSPRHSIZ;		// SCB
 		UUWORD		mSPRVSIZ;		// SCB
 		UUWORD		mSTRETCH;		// ENG
 		UUWORD		mTILT;			// ENG
 		UUWORD		mSPRDOFF;		// ENG
 		UUWORD		mVSIZACUM;		// ENG
-//		UUWORD		mHSIZACUM;		//    K.s creation
 		UUWORD		mSCBADR;		// ENG
 
 		TMATHABCD	mMATHABCD;		// ENG
@@ -375,9 +373,8 @@ class CSusie : public CLynxBase
 		int			mMATHCD_sign;
 		int			mMATHEFGH_sign;
 
-//		int			mSPRCTL0_Type;			// SCB
-		int			mSPRCTL0_Vflip;
-		int			mSPRCTL0_Hflip;
+//		int			mSPRCTL0_Vflip;
+//		int			mSPRCTL0_Hflip;
 
 		int			mSPRCTL1_StartLeft;		// SCB
 		int			mSPRCTL1_StartUp;

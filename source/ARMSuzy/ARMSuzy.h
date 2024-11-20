@@ -117,7 +117,7 @@ typedef struct {
 	U16_ST hSizAcum;
 	u8 padding3[2];
 
-	u32 sprCtl0_Type;
+//	u32 sprCtl0_Type;
 	u32 sprCtl0_PixelBits;
 	u32 sprCtl1_Literal;
 
@@ -168,9 +168,6 @@ int suzyGetStateSize(void);
 u32 suzRenderLine(int hoff, int hsign);
 
 u32 suzLineInit(u32 voff);
-u32 suzLineGetBits(u32 bits);
-u32 suzLineGetPixel(void);
-void suzProcessPixel(u32 hoff, u32 pixel, u32 sprType);
 
 #ifdef __cplusplus
 } // extern "C"

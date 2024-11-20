@@ -27,9 +27,6 @@
 	.global suzWrite
 	.global suzRenderLine
 	.global suzLineInit
-	.global suzLineGetBits
-	.global suzLineGetPixel
-	.global suzProcessPixel
 
 	.syntax unified
 	.arm
@@ -654,8 +651,8 @@ rendWhile:
 	beq exitRender
 	add r7,r7,r6				;@ mHSIZACUM.Word += mSPRHSIZ.Word
 	ands r9,r7,#0xFF00			;@ pixel_width = mHSIZACUM.Byte.High
-	and r7,r7,#0xFF				;@ mHSIZACUM.Byte.High = 0
 	beq rendWhile
+	and r7,r7,#0xFF				;@ mHSIZACUM.Byte.High = 0
 	mov r10,r0
 rendLoop:
 	movs r0,r4
@@ -663,7 +660,7 @@ rendLoop:
 	cmp r0,#GAME_WIDTH
 	bpl checkBail
 	mov r1,r10
-	ldr r2,[suzptr,#suzSprCtl0_Type]
+	ldrb r2,[suzptr,#suzSprCtl0]
 	bl suzProcessPixel
 	mov r8,#1					;@ onScreen = TRUE
 continueRend:
@@ -723,10 +720,8 @@ suzLineInit:				;@ In r0=voff.
 
 	bx lr
 ;@----------------------------------------------------------------------------
-suzLineGetBits:				;@ In r0=bits, less or equal to 8.
-	.type	suzLineGetBits STT_FUNC
+suzLineGetBits:				;@ In r0=bitCount, less or equal to 8, Out r0=bits.
 ;@----------------------------------------------------------------------------
-	ldr suzptr,=suzy_0
 	ldr r1,[suzptr,#suzLinePacketBitsLeft]
 	subs r1,r1,r0
 	movle r0,#0
@@ -764,11 +759,9 @@ extractBits:
 	mov r0,r3,lsr r2
 	bx lr
 ;@----------------------------------------------------------------------------
-suzLineGetPixel:			;@
-	.type	suzLineGetPixel STT_FUNC
+suzLineGetPixel:			;@ Out r0=pixel
 ;@----------------------------------------------------------------------------
 	stmfd sp!,{r4,lr}
-	ldr suzptr,=suzy_0
 	ldr r1,[suzptr,#suzLineRepeatCount]
 	ldr r2,[suzptr,#suzLineType]
 	cmp r1,#0
@@ -837,9 +830,7 @@ exitLineEnd:
 	bx lr
 ;@----------------------------------------------------------------------------
 suzProcessPixel:			;@ In r0=hoff, r1=pixel, r2=sprType.
-	.type	suzProcessPixel STT_FUNC
 ;@----------------------------------------------------------------------------
-	ldr suzptr,=suzy_0
 	and r2,r2,#7
 	ldr pc,[pc,r2,lsl#2]
 	nop
