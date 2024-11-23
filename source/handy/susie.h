@@ -364,20 +364,14 @@ class CSusie : public CLynxBase
 		int			mMATHCD_sign;
 		int			mMATHEFGH_sign;
 
-//		int			mSPRSYS_StopOnCurrent;	//CPU
-//		int			mSPRSYS_LeftHand;
-//		int			mSPRSYS_VStretch;
-//		int			mSPRSYS_NoCollide;
-//		int			mSPRSYS_Accumulate;
-//		int			mSPRSYS_SignedMath;
 		int			mSPRSYS_Busy;
 		int			mSPRSYS_UnsafeAccess;
 		int			mSPRSYS_LastCarry;
 		int			mSPRSYS_Mathbit;
 		int			mSPRSYS_MathInProgress;
 
-		ULONG		mSPRGO;			// CPU
-		int			mEVERON;
+//		ULONG		mSPRGO;			// CPU
+//		int			mEVERON;
 
 		UBYTE		*mRamPointer;
 

@@ -88,6 +88,7 @@
 #define mSPRCTL1 suzy_0.sprCtl1
 #define mSPRCOLL suzy_0.sprColl
 #define mSUZYBUSEN suzy_0.suzyBusEn
+#define mSPRGO suzy_0.sprGo
 #define mSPRSYS suzy_0.sprSys
 
 #define mLineBaseAddress suzy_0.lineBaseAddress
@@ -104,7 +105,7 @@
 #define mLinePixel suzy_0.linePixel
 #define mLinePacketBitsLeft suzy_0.linePacketBitsLeft
 #define mPenIndex suzy_0.penIndex
-#define mHSIZACUM suzy_0.hSizAcum
+//#define mHSIZACUM suzy_0.hSizAcum
 
 // SprCtl0
 #define Type  (0x07)
@@ -166,20 +167,14 @@ void CSusie::Reset(void)
 
 	mSPRCTL0_PixelBits = 0;
 
-//	mSPRSYS_StopOnCurrent = 0;
-//	mSPRSYS_LeftHand = 0;
-//	mSPRSYS_VStretch = 0;
-//	mSPRSYS_NoCollide = 0;
-//	mSPRSYS_Accumulate = 0;
-//	mSPRSYS_SignedMath = 0;
 	mSPRSYS_UnsafeAccess = 0;
 	mSPRSYS_Busy = 0;
 	mSPRSYS_LastCarry = 0;
 	mSPRSYS_Mathbit = 0;
 	mSPRSYS_MathInProgress = 0;
 
-	mSPRGO = FALSE;
-	mEVERON = FALSE;
+//	mSPRGO = FALSE;
+//	mEVERON = FALSE;
 
 	mJOYSTICK.Byte = 0;
 	mSWITCHES.Byte = 0;
@@ -291,7 +286,7 @@ ULONG CSusie::PaintSprites(void)
 	TRACE_SUSIE1("PaintSprites() COLLBAS $%04x", mCOLLBAS.Word);
 	TRACE_SUSIE1("PaintSprites() SPRSYS  $%02x", Peek(SPRSYS));
 
-	if (!mSUZYBUSEN || !mSPRGO) {
+	if (!mSUZYBUSEN || !(mSPRGO & 0x01)) {
 		TRACE_SUSIE0("PaintSprites() Returned !mSUZYBUSEN || !mSPRGO");
 		return 0;
 	}
@@ -310,7 +305,7 @@ ULONG CSusie::PaintSprites(void)
 		if (!(mSCBNEXT.Word & 0xff00)) {
 			TRACE_SUSIE0("PaintSprites() mSCBNEXT==0 - FINISHED");
 			mSPRSYS_Busy = 0;	// Engine has finished
-			mSPRGO = FALSE;
+			mSPRGO &= ~0x01;
 			break;
 		}
 		else {
@@ -323,8 +318,9 @@ ULONG CSusie::PaintSprites(void)
 
 		int data = RAM_PEEK(mTMPADR.Word);			// Fetch control 0
 		TRACE_SUSIE1("PaintSprites() SPRCTL0 $%02x", data);
-		mSPRCTL0 = data;
-		mSPRCTL0_PixelBits = ((data & 0x00c0)>>6) + 1;
+		lnxSuzyWrite(0xFC80, data);
+//		mSPRCTL0 = data;
+//		mSPRCTL0_PixelBits = ((data & 0x00c0)>>6) + 1;
 		mTMPADR.Word += 1;
 
 		data = RAM_PEEK(mTMPADR.Word);			// Fetch control 1
@@ -637,7 +633,7 @@ ULONG CSusie::PaintSprites(void)
 								int hoff = (int)((SWORD)mHPOSSTRT.Word) - screen_h_start;
 
 								// Zero/Force the horizontal scaling accumulator
-								mHSIZACUM.Word = (hSign == 1) ? mHSIZOFF.Word : 0;
+//								mHSIZACUM.Word = (hSign == 1) ? mHSIZOFF.Word : 0;
 
 								// Take the sign of the first quad (0) as the basic
 								// sign, all other quads drawing in the other direction
@@ -717,7 +713,7 @@ ULONG CSusie::PaintSprites(void)
 				}
 			}
 
-			if (mEVERON) {
+			if (mSPRGO & 0x04) { // EVERON?
 				UWORD coldep = mSCBADR.Word + mCOLLOFF.Word;
 				UBYTE coldat = RAM_PEEK(coldep);
 				if (!everonscreen) coldat |= 0x80; else coldat &= 0x7f;
@@ -743,8 +739,8 @@ ULONG CSusie::PaintSprites(void)
 		// Check if we abort after this sprite is complete
 
 //		if (mSPRSYS.Read.StopOnCurrent) {
-//			mSPRSYS.Read.Status = 0;	// Engine has finished
-//			mSPRGO = FALSE;
+//			mSPRSYS.Read.Busy = 0; // Engine has finished
+//			mSPRGO &= ~0x01;
 //			break;
 //		}
 
@@ -776,7 +772,7 @@ void CSusie::Poke(ULONG addr, UBYTE data)
 			mMATHABCD.Bytes.D = data;
 //			mMATHABCD.Bytes.C = 0;
 			// The hardware manual says that the sign shouldnt change
-			// but if I dont do this then stun runner will hang as it
+			// but if I dont do this then Stun Runner will hang as it
 			// does the init in the wrong order and if the previous
 			// calc left a zero there then we'll get a sign error
 			Poke(MATHC,0);
@@ -877,25 +873,19 @@ void CSusie::Poke(ULONG addr, UBYTE data)
 			TRACE_SUSIE2("Poke(MATHJ,%02x) at PC=$%04x", data, mSystem.mCpu->GetPC());
 			break;
 
-		case (SPRCTL0 & 0xff):
-			mSPRCTL0_PixelBits = ((data & 0x00c0)>>6) + 1;
-			lnxSuzyWrite(addr, data);
-			TRACE_SUSIE2("Poke(SPRCTL0,%02x) at PC=$%04x", data, mSystem.mCpu->GetPC());
-			break;
-		case (SPRGO & 0xff):
-			mSPRGO = data & 0x01;
-			mEVERON = data & 0x04;
-			TRACE_SUSIE2("Poke(SPRGO,%02x) at PC=$%04x", data, mSystem.mCpu->GetPC());
-			break;
+//		case (SPRCTL0 & 0xff):
+//			mSPRCTL0_PixelBits = ((data & 0x00c0)>>6) + 1;
+//			lnxSuzyWrite(addr, data);
+//			TRACE_SUSIE2("Poke(SPRCTL0,%02x) at PC=$%04x", data, mSystem.mCpu->GetPC());
+//			break;
+//		case (SPRGO & 0xff):
+//			mSPRGO = data & 0x01;
+//			mEVERON = data & 0x04;
+//			TRACE_SUSIE2("Poke(SPRGO,%02x) at PC=$%04x", data, mSystem.mCpu->GetPC());
+//			break;
 		case (SPRSYS & 0xff):
-//			mSPRSYS_StopOnCurrent = data & 0x0002;
 			if (data & UnsafeAccess) mSPRSYS_UnsafeAccess = 0;
 			mSPRSYS = data;
-//			mSPRSYS_LeftHand = data & 0x0008;
-//			mSPRSYS_VStretch = data & 0x0010;
-//			mSPRSYS_NoCollide = data & 0x0020;
-//			mSPRSYS_Accumulate = data & 0x0040;
-//			mSPRSYS_SignedMath = data & 0x0080;
 			TRACE_SUSIE2("Poke(SPRSYS,%02x) at PC=$%04x", data, mSystem.mCpu->GetPC());
 			break;
 

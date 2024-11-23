@@ -527,7 +527,7 @@ io_write_tbl:
 	.long suUnmappedW			;@ 0xFC7D
 	.long suUnmappedW			;@ 0xFC7E
 	.long suUnmappedW			;@ 0xFC7F
-	.long suRegW				;@ 0xFC80 SPRCTL0
+	.long suSprCtl0W			;@ 0xFC80 SPRCTL0
 	.long suRegW				;@ 0xFC81 SPRCTL1
 	.long suSprCollW			;@ 0xFC82 SPRCOLL
 	.long suRegW				;@ 0xFC83 SPRINIT
@@ -628,6 +628,14 @@ suRegLW:
 	bx lr
 
 ;@----------------------------------------------------------------------------
+suSprCtl0W:					;@ 0x80 Sprite Coontrol 0
+;@----------------------------------------------------------------------------
+	strb r1,[suzptr,#suzSprCtl0]
+	mov r1,r1,lsr#6
+	add r1,r1,#1
+	strb r1,[suzptr,#suzSprCtl0_PixelBits]
+	bx lr
+;@----------------------------------------------------------------------------
 suSprCollW:					;@ 0x82 Sprite Collision Number
 ;@----------------------------------------------------------------------------
 	and r1,r1,#0x2F
@@ -641,15 +649,22 @@ suBusEnW:					;@ 0x90 Suzy Bus Enable
 	bx lr
 
 ;@----------------------------------------------------------------------------
-suzRenderLine:				;@ In r0=hoff, r1=hsign. Out new hoff.
+suzRenderLine:				;@ In r0=hOff, r1=hSign. Out = if pixels rendered.
 	.type	suzRenderLine STT_FUNC
 ;@----------------------------------------------------------------------------
 	ldr suzptr,=suzy_0
-	stmfd sp!,{r4-r10,lr}
+	stmfd sp!,{r4-r11,lr}
+	ldrb r2,[suzptr,#suzSprCtl0]
+	adr r3,sprTypeTbl
+	and r2,r2,#7
+	ldr r11,[r3,r2,lsl#2]
 	mov r4,r0
 	mov r5,r1
 	ldrh r6,[suzptr,#suzSprHSiz]
-	ldrh r7,[suzptr,#suzHSizAcum]
+	;@ Zero/Force the horizontal scaling accumulator
+	adds r7,r1,#1
+	ldrhne r7,[suzptr,#suzHSizOff]	;@ If hSign == 1
+//	ldrh r7,[suzptr,#suzHSizAcum]
 	mov r8,#0					;@ onScreen
 rendWhile:
 	bl suzLineGetPixel
@@ -665,8 +680,9 @@ rendLoop:
 	bcs checkBail
 	mov r0,r4
 	mov r1,r10
-	ldrb r2,[suzptr,#suzSprCtl0]
-	bl suzProcessPixel
+//	ldrb r2,[suzptr,#suzSprCtl0]
+//	bl suzProcessPixel
+	blx r11
 	mov r8,#1					;@ onScreen = TRUE
 continueRend:
 	add r4,r4,r5				;@ hoff += hsign
@@ -677,9 +693,9 @@ checkBail:
 	cmp r8,#0
 	beq continueRend
 exitRender:
-	strh r7,[suzptr,#suzHSizAcum]
+//	strh r7,[suzptr,#suzHSizAcum]
 	mov r0,r8
-	ldmfd sp!,{r4-r10,lr}
+	ldmfd sp!,{r4-r11,lr}
 	bx lr
 
 ;@----------------------------------------------------------------------------
@@ -847,6 +863,7 @@ suzProcessPixel:			;@ In r0=hoff, r1=pixel, r2=sprType.
 	and r2,r2,#7
 	ldr pc,[pc,r2,lsl#2]
 	nop
+sprTypeTbl:
 	.long sprBgrShdw, sprBgrNoColl, sprBoundShdw, sprBound
 	.long sprNormal,  sprNoColl,    sprXorShdw,   sprShadow
 

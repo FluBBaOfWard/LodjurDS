@@ -141,15 +141,15 @@ suzPadding:			.skip 3
 
 ;@----------------------------------------------------------------------------
 
-suzHSizAcum:
-suzHSizAcumL:		.byte 0
-suzHSizAcumH:		.byte 0
+//suzHSizAcum:
+//suzHSizAcumL:		.byte 0
+//suzHSizAcumH:		.byte 0
 suzSprSysStat:		.byte 0		;@ 0x92 System Control, read.
 suzCollision:		.byte 0		;@ Collision value for current sprite.
 suzLCDVSize:		.byte 0		;@ ???
 wsvLatchedDispCtrl:	.byte 0		;@ Latched Display Control
 suzSprCtl0_PixelBits:	.byte 0
-suzPadding2:		.space 1
+suzPadding2:		.space 3
 
 suzLineType:			.long 0	;@
 suzLineShiftRegCount:	.long 0	;@

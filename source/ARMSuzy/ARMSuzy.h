@@ -110,13 +110,13 @@ typedef struct {
 	u8 padding[3];
 
 //------------------------------
-	U16_ST hSizAcum;
+//	U16_ST hSizAcum;
 	u8 sprSysStat;		// 0x92 System Control, read.
 	u8 collision;		// Collision value for current sprite.
 	u8 suzLCDVSize;		// ???
 	u8 wsvLatchedDispCtrl;		// Latched Display Control
 	u8 sprCtl0_PixelBits;
-	u8 padding2[1];
+	u8 padding2[3];
 
 	// Line rendering related variables
 	u32 lineType;
