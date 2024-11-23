@@ -150,7 +150,6 @@ wsvLatchedDispCtrl:	.byte 0		;@ Latched Display Control
 suzPadding2:		.space 3
 
 suzSprCtl0_PixelBits:	.long 0
-suzSprCtl1_Literal:	.long 0
 
 suzLineType:			.long 0	;@
 suzLineShiftRegCount:	.long 0	;@

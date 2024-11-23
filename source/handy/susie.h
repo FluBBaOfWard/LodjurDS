@@ -356,15 +356,6 @@ class CSusie : public CLynxBase
 	private:
 		CSystem&	mSystem;
 
-//		UUWORD		mHPOSSTRT;		// SCB
-//		UUWORD		mVPOSSTRT;		// SCB
-//		UUWORD		mSPRVSIZ;		// SCB
-//		UUWORD		mSTRETCH;		// ENG
-//		UUWORD		mTILT;			// ENG
-//		UUWORD		mSPRDOFF;		// ENG
-//		UUWORD		mVSIZACUM;		// ENG
-//		UUWORD		mSCBADR;		// ENG
-
 		TMATHABCD	mMATHABCD;		// ENG
 		TMATHEFGH	mMATHEFGH;		// ENG
 		TMATHJKLM	mMATHJKLM;		// ENG
@@ -373,12 +364,12 @@ class CSusie : public CLynxBase
 		int			mMATHCD_sign;
 		int			mMATHEFGH_sign;
 
-		int			mSPRCTL1_StartLeft;		// SCB
-		int			mSPRCTL1_StartUp;
-		int			mSPRCTL1_SkipSprite;
-		int			mSPRCTL1_ReloadPalette;
-		int			mSPRCTL1_ReloadDepth;
-		int			mSPRCTL1_Sizing;
+//		int			mSPRCTL1_StartLeft;		// SCB
+//		int			mSPRCTL1_StartUp;
+//		int			mSPRCTL1_SkipSprite;
+//		int			mSPRCTL1_ReloadPalette;
+//		int			mSPRCTL1_ReloadDepth;
+//		int			mSPRCTL1_Sizing;
 
 		int			mSPRCOLL;				//CPU
 
@@ -394,14 +385,10 @@ class CSusie : public CLynxBase
 		int			mSPRSYS_Mathbit;
 		int			mSPRSYS_MathInProgress;
 
-//		TSPRINIT	mSPRINIT;		// CPU
-
 		ULONG		mSPRGO;			// CPU
 		int			mEVERON;
 
 		UBYTE		*mRamPointer;
-
-		int hquadoff, vquadoff;
 
 		// Joystick switches
 

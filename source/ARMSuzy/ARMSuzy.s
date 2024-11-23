@@ -724,11 +724,10 @@ suzLineInit:				;@ In r0=voff.
 	add r2,r2,#3				;@ SPR_RDWR_CYC
 	str r2,[suzptr,#suzyCyclesUsed]
 
-	ldr r2,[suzptr,#suzSprCtl1_Literal]
-	cmp r2,#0
+	ldrb r2,[suzptr,#suzSprCtl1]
+	ands r2,r2,#0x80			;@ Literal
 	movne r2,r1					;@ LineRepeatCount = LinePacketBitsLeft
 	movne r3,#1					;@ line_abs_literal
-//	moveq r2,#0
 	str r3,[suzptr,#suzLineType]
 	str r2,[suzptr,#suzLineRepeatCount]
 

@@ -85,6 +85,7 @@
 #define mVSIZOFF suzy_0.vSizOff
 #define mSCBADR suzy_0.SCBAdr
 #define mSPRCTL0 suzy_0.sprCtl0
+#define mSPRCTL1 suzy_0.sprCtl1
 #define mSPRCOLL suzy_0.sprColl
 #define mSUZYBUSEN suzy_0.suzyBusEn
 
@@ -93,9 +94,7 @@
 #define mCollision suzy_0.collision
 #define cycles_used suzy_0.cyclesUsed
 
-#define mSPRCTL0_Type suzy_0.sprCtl0_Type
 #define mSPRCTL0_PixelBits suzy_0.sprCtl0_PixelBits
-#define mSPRCTL1_Literal suzy_0.sprCtl1_Literal
 
 #define mLineType suzy_0.lineType
 #define mLineShiftRegCount suzy_0.lineShiftRegCount
@@ -106,9 +105,19 @@
 #define mPenIndex suzy_0.penIndex
 #define mHSIZACUM suzy_0.hSizAcum
 
+// SprCtl0
 #define Type  (0x07)
 #define Vflip (0x10)
 #define Hflip (0x20)
+
+// SPRCTL1
+#define StartLeft (0x01)
+#define StartUp (0x02)
+#define SkipSprite (0x04)
+#define ReloadPalette (0x08)
+#define ReloadDepth (0x30)
+#define Sizing (0x40)
+#define Literal (0x80)
 
 CSusie::CSusie(CSystem& parent)
 	:mSystem(parent)
@@ -133,15 +142,6 @@ void CSusie::Reset(void)
 
 	// Reset ALL variables
 
-//	mHPOSSTRT.Word = 0;
-//	mVPOSSTRT.Word = 0;
-//	mSPRVSIZ.Word = 0;
-//	mSTRETCH.Word = 0;
-//	mTILT.Word = 0;
-//	mSPRDOFF.Word = 0;
-//	mVSIZACUM.Word = 0;
-//	mSCBADR.Word = 0;
-
 	// Must be initialised to this due to
 	// Stun Runner math initialisation bug
 	// see whatsnew for 0.7
@@ -156,13 +156,12 @@ void CSusie::Reset(void)
 
 	mSPRCTL0_PixelBits = 0;
 
-	mSPRCTL1_StartLeft = 0;
-	mSPRCTL1_StartUp = 0;
-	mSPRCTL1_SkipSprite = 0;
-	mSPRCTL1_ReloadPalette = 0;
-	mSPRCTL1_ReloadDepth = 0;
-	mSPRCTL1_Sizing = 0;
-	mSPRCTL1_Literal = 0;
+//	mSPRCTL1_StartLeft = 0;
+//	mSPRCTL1_StartUp = 0;
+//	mSPRCTL1_SkipSprite = 0;
+//	mSPRCTL1_ReloadPalette = 0;
+//	mSPRCTL1_ReloadDepth = 0;
+//	mSPRCTL1_Sizing = 0;
 
 	mSPRSYS_StopOnCurrent = 0;
 	mSPRSYS_LeftHand = 0;
@@ -180,8 +179,6 @@ void CSusie::Reset(void)
 
 	mSPRGO = FALSE;
 	mEVERON = FALSE;
-
-	hquadoff = vquadoff = 0;
 
 	mJOYSTICK.Byte = 0;
 	mSWITCHES.Byte = 0;
@@ -331,13 +328,14 @@ ULONG CSusie::PaintSprites(void)
 
 		data = RAM_PEEK(mTMPADR.Word);			// Fetch control 1
 		TRACE_SUSIE1("PaintSprites() SPRCTL1 $%02x", data);
-		mSPRCTL1_StartLeft = data & 0x0001;
-		mSPRCTL1_StartUp = data & 0x0002;
-		mSPRCTL1_SkipSprite = data & 0x0004;
-		mSPRCTL1_ReloadPalette = data & 0x0008;
-		mSPRCTL1_ReloadDepth = (data & 0x0030)>>4;
-		mSPRCTL1_Sizing = data & 0x0040;
-		mSPRCTL1_Literal = data & 0x0080;
+		mSPRCTL1 = data;
+//		mSPRCTL1_StartLeft = data & 0x0001;
+//		mSPRCTL1_StartUp = data & 0x0002;
+//		mSPRCTL1_SkipSprite = data & 0x0004;
+//		mSPRCTL1_ReloadPalette = data & 0x0008;
+//		mSPRCTL1_ReloadDepth = (data & 0x0030)>>4;
+//		mSPRCTL1_Sizing = data & 0x0040;
+//		mSPRCTL1_Literal = data & 0x0080;
 		mTMPADR.Word += 1;
 
 		data = RAM_PEEK(mTMPADR.Word);			// Collision num
@@ -353,7 +351,7 @@ ULONG CSusie::PaintSprites(void)
 
 		// Check if this is a skip sprite
 
-		if (!mSPRCTL1_SkipSprite) {
+		if (!(mSPRCTL1 & SkipSprite)) {
 			// Initialise the collision depositary
 
 // Although Tom Schenck says this is correct, it doesnt appear to be
@@ -384,9 +382,9 @@ ULONG CSusie::PaintSprites(void)
 			// Optional section defined by reload type in Control 1
 
 			TRACE_SUSIE1("PaintSprites() mSPRCTL1.Bits.ReloadDepth=%d", mSPRCTL1_ReloadDepth);
-			switch(mSPRCTL1_ReloadDepth)
+			switch(mSPRCTL1 & ReloadDepth)
 			{
-				case 1:
+				case 0x10:
 					TRACE_SUSIE0("PaintSprites() Sizing Enabled");
 					// enable_sizing=TRUE; // unused
 
@@ -399,7 +397,7 @@ ULONG CSusie::PaintSprites(void)
 					cycles_used += 4 * SPR_RDWR_CYC;
 					break;
 
-				case 2:
+				case 0x20:
 					TRACE_SUSIE0("PaintSprites() Sizing Enabled");
 					TRACE_SUSIE0("PaintSprites() Stretch Enabled");
 					// enable_sizing = TRUE; // unused
@@ -417,7 +415,7 @@ ULONG CSusie::PaintSprites(void)
 					cycles_used += 6 * SPR_RDWR_CYC;
 					break;
 
-				case 3:
+				case 0x30:
 					TRACE_SUSIE0("PaintSprites() Sizing Enabled");
 					TRACE_SUSIE0("PaintSprites() Stretch Enabled");
 					TRACE_SUSIE0("PaintSprites() Tilt Enabled");
@@ -452,7 +450,7 @@ ULONG CSusie::PaintSprites(void)
 
 			// Optional Palette reload
 
-			if (!mSPRCTL1_ReloadPalette) {
+			if (!(mSPRCTL1 & ReloadPalette)) {
 				TRACE_SUSIE0("PaintSprites() Palette reloaded");
 				for (int loop=0;loop<8;loop++) {
 					UBYTE pen = RAM_PEEK(mTMPADR.Word++);
@@ -482,28 +480,26 @@ ULONG CSusie::PaintSprites(void)
 			TRACE_SUSIE2("PaintSprites() screen_v_start $%04x screen_v_end $%04x", screen_v_start, screen_v_end);
 			TRACE_SUSIE2("PaintSprites() world_h_mid    $%04x world_v_mid  $%04x", world_h_mid, world_v_mid);
 
-			bool superclip = FALSE;
 			int quadrant = 0;
 
-			if (mSPRCTL1_StartLeft) quadrant = 3;
-			if (mSPRCTL1_StartUp) quadrant ^= 1;
+			if (mSPRCTL1 & StartLeft) quadrant = 3;
+			if (mSPRCTL1 & StartUp) quadrant ^= 1;
 
 			TRACE_SUSIE1("PaintSprites() Quadrant=%d", quadrant);
 
 			// Check ref is inside screen area. !! This is commented out in Mednafen!!
-			if ((SWORD)mHPOSSTRT.Word < screen_h_start
-				|| (SWORD)mHPOSSTRT.Word >= screen_h_end
-				|| (SWORD)mVPOSSTRT.Word < screen_v_start
-				|| (SWORD)mVPOSSTRT.Word >= screen_v_end)
-				superclip = TRUE;
+			bool superclip = ((SWORD)mHPOSSTRT.Word < screen_h_start
+							  || (SWORD)mHPOSSTRT.Word >= screen_h_end
+							  || (SWORD)mVPOSSTRT.Word < screen_v_start
+							  || (SWORD)mVPOSSTRT.Word >= screen_v_end);
 
 			TRACE_SUSIE1("PaintSprites() Superclip=%d",superclip);
 
 
 			// Quadrant mapping is:	SE	NE	NW	SW
 			//						0	1	2	3
-			// hsign				+1	+1	-1	-1
-			// vsign				+1	-1	-1	+1
+			// hSign				+1	+1	-1	-1
+			// vSign				+1	-1	-1	+1
 			//
 			//
 			//		2 | 1
@@ -511,8 +507,9 @@ ULONG CSusie::PaintSprites(void)
 			//      3 | 0
 			//
 
-			// Loop for 4 quadrants
+			int hQuadOff, vQuadOff;
 
+			// Loop for 4 quadrants
 			for (int loop=0;loop<4;loop++)
 			{
 				TRACE_SUSIE1("PaintSprites() -------- Rendering Quadrant %03d --------", quadrant);
@@ -523,19 +520,20 @@ ULONG CSusie::PaintSprites(void)
 				bool render = FALSE;
 
 				// Set quadrand multipliers
-				int hsign = (quadrant == 0 || quadrant == 1) ? 1 : -1;
-				int vsign = (quadrant == 0 || quadrant == 3) ? 1 : -1;
+				int hSign = (quadrant == 0 || quadrant == 1) ? 1 : -1;
+				int vSign = (quadrant == 0 || quadrant == 3) ? 1 : -1;
 
-// Preflip		TRACE_SUSIE2("PaintSprites() hsign=%d vsign=%d",hsign,vsign);
+// Preflip		TRACE_SUSIE2("PaintSprites() hSign=%d vSign=%d",hSign,vSign);
 
-				// Use h/v flip to invert h/vsign
-				if (mSPRCTL0 & Vflip) vsign = -vsign;
-				if (mSPRCTL0 & Hflip) hsign = -hsign;
-				if (loop == 0) vquadoff = vsign;
-				if (loop == 0) hquadoff = hsign;
-
+				// Use h/v flip to invert h/vSign
+				if (mSPRCTL0 & Vflip) vSign = -vSign;
+				if (mSPRCTL0 & Hflip) hSign = -hSign;
+				if (loop == 0) {
+					vQuadOff = vSign;
+					hQuadOff = hSign;
+				}
 				TRACE_SUSIE2("PaintSprites() Hflip=%d Vflip=%d", mSPRCTL0 & Hflip, mSPRCTL0 & Vflip);
-				TRACE_SUSIE2("PaintSprites() Hsign=%d   Vsign=%d", hsign, vsign);
+				TRACE_SUSIE2("PaintSprites() Hsign=%d   Vsign=%d", hSign, vSign);
 				TRACE_SUSIE2("PaintSprites() Hpos =%04x Vpos =%04x", mHPOSSTRT.Word, mVPOSSTRT.Word);
 				TRACE_SUSIE2("PaintSprites() Hsizoff =%04x Vsizoff =%04x", mHSIZOFF.Word, mVSIZOFF.Word);
 
@@ -551,8 +549,8 @@ ULONG CSusie::PaintSprites(void)
 
 					// Quadrant mapping is:	SE	NE	NW	SW
 					//						0	1	2	3
-					// hsign				+1	+1	-1	-1
-					// vsign				+1	-1	-1	+1
+					// hSign				+1	+1	-1	-1
+					// vSign				+1	-1	-1	+1
 					//
 					//
 					//		2 | 1
@@ -604,13 +602,14 @@ ULONG CSusie::PaintSprites(void)
 					mTILTACUM.Word = 0;
 
 					// Perform the SIZOFF
-					if (vsign == 1) mVSIZACUM.Word = mVSIZOFF.Word; else mVSIZACUM.Word = 0;
+					if (vSign == 1) mVSIZACUM.Word = mVSIZOFF.Word;
+					else mVSIZACUM.Word = 0;
 
 					// Take the sign of the first quad (0) as the basic
 					// sign, all other quads drawing in the other direction
 					// get offset by 1 pixel in the other direction, this
 					// fixes the squashed look on the multi-quad sprites.
-					if (vsign != vquadoff) voff += vsign;
+					if (vSign != vQuadOff) voff += vSign;
 
 					for (;;) {
 						// Vertical scaling is done here
@@ -633,8 +632,8 @@ ULONG CSusie::PaintSprites(void)
 						// Draw one horizontal line of the sprite
 						for (int vloop=0;vloop<pixel_height;vloop++) {
 							// Early bailout if the sprite has moved off screen, terminate quad
-							if (vsign == 1 && voff >= LYNX_SCREEN_HEIGHT) break;
-							if (vsign == -1 && voff < 0) break;
+							if (vSign == 1 && voff >= LYNX_SCREEN_HEIGHT) break;
+							if (vSign == -1 && voff < 0) break;
 
 							// Only allow the draw to take place if the line is visible
 							if (voff >= 0 && voff < LYNX_SCREEN_HEIGHT) {
@@ -644,23 +643,23 @@ ULONG CSusie::PaintSprites(void)
 								int hoff = (int)((SWORD)mHPOSSTRT.Word) - screen_h_start;
 
 								// Zero/Force the horizontal scaling accumulator
-								mHSIZACUM.Word = (hsign == 1) ? mHSIZOFF.Word : 0;
+								mHSIZACUM.Word = (hSign == 1) ? mHSIZOFF.Word : 0;
 
 								// Take the sign of the first quad (0) as the basic
 								// sign, all other quads drawing in the other direction
 								// get offset by 1 pixel in the other direction, this
 								// fixes the squashed look on the multi-quad sprites.
-								if (hsign != hquadoff) hoff += hsign;
+								if (hSign != hQuadOff) hoff += hSign;
 
 								// Initialise our line
 								suzLineInit(voff);
 
 								// Now render an individual destination line
-								if (suzRenderLine(hoff, hsign)) {
+								if (suzRenderLine(hoff, hSign)) {
 									everonscreen = TRUE;
 								}
 							}
-							voff += vsign;
+							voff += vSign;
 
 							// For every destination line we can modify SPRHSIZ & SPRVSIZ & TILTACUM
 							if (enable_stretch) {
@@ -778,79 +777,6 @@ void CSusie::Poke(ULONG addr, UBYTE data)
 {
 	switch(addr & 0xff)
 	{
-//		case (HPOSSTRTL & 0xff):
-//			mHPOSSTRT.Byte.Low = data;
-//			mHPOSSTRT.Byte.High = 0;
-//			TRACE_SUSIE2("Poke(HPOSSTRTL,%02x) at PC=$%04x", data, mSystem.mCpu->GetPC());
-//			break;
-//		case (HPOSSTRTH & 0xff):
-//			mHPOSSTRT.Byte.High = data;
-//			TRACE_SUSIE2("Poke(HPOSSTRTH,%02x) at PC=$%04x", data, mSystem.mCpu->GetPC());
-//			break;
-//		case (VPOSSTRTL & 0xff):
-//			mVPOSSTRT.Byte.Low = data;
-//			mVPOSSTRT.Byte.High = 0;
-//			TRACE_SUSIE2("Poke(VPOSSTRTL,%02x) at PC=$%04x", data, mSystem.mCpu->GetPC());
-//			break;
-//		case (VPOSSTRTH & 0xff):
-//			mVPOSSTRT.Byte.High = data;
-//			TRACE_SUSIE2("Poke(VPOSSTRTH,%02x) at PC=$%04x", data, mSystem.mCpu->GetPC());
-//			break;
-//		case (SPRVSIZL & 0xff):
-//			mSPRVSIZ.Byte.Low = data;
-//			mSPRVSIZ.Byte.High = 0;
-//			TRACE_SUSIE2("Poke(SPRVSIZL,%02x) at PC=$%04x", data, mSystem.mCpu->GetPC());
-//			break;
-//		case (SPRVSIZH & 0xff):
-//			mSPRVSIZ.Byte.High = data;
-//			TRACE_SUSIE2("Poke(SPRVSIZH,%02x) at PC=$%04x", data, mSystem.mCpu->GetPC());
-//			break;
-//		case (STRETCHL & 0xff):
-//			mSTRETCH.Byte.Low = data;
-//			mSTRETCH.Byte.High = 0;
-//			TRACE_SUSIE2("Poke(STRETCHL,%02x) at PC=$%04x", data, mSystem.mCpu->GetPC());
-//			break;
-//		case (STRETCHH & 0xff):
-//			TRACE_SUSIE2("Poke(STRETCHH,%02x) at PC=$%04x", data, mSystem.mCpu->GetPC());
-//			mSTRETCH.Byte.High = data;
-//			break;
-//		case (TILTL & 0xff):
-//			mTILT.Byte.Low = data;
-//			mTILT.Byte.High = 0;
-//			TRACE_SUSIE2("Poke(TILTL,%02x) at PC=$%04x", data, mSystem.mCpu->GetPC());
-//			break;
-//		case (TILTH & 0xff):
-//			mTILT.Byte.High = data;
-//			TRACE_SUSIE2("Poke(TILTH,%02x) at PC=$%04x", data, mSystem.mCpu->GetPC());
-//			break;
-//		case (SPRDOFFL & 0xff):
-//			TRACE_SUSIE2("Poke(SPRDOFFL,%02x) at PC=$%04x", data, mSystem.mCpu->GetPC());
-//			mSPRDOFF.Byte.Low = data;
-//			mSPRDOFF.Byte.High = 0;
-//			break;
-//		case (SPRDOFFH & 0xff):
-//			TRACE_SUSIE2("Poke(SPRDOFFH,%02x) at PC=$%04x", data, mSystem.mCpu->GetPC());
-//			mSPRDOFF.Byte.High = data;
-//			break;
-//		case (VSIZACUML & 0xff):
-//			mVSIZACUM.Byte.Low = data;
-//			mVSIZACUM.Byte.High = 0;
-//			TRACE_SUSIE2("Poke(VSIZACUML,%02x) at PC=$%04x", data, mSystem.mCpu->GetPC());
-//			break;
-//		case (VSIZACUMH & 0xff):
-//			mVSIZACUM.Byte.High = data;
-//			TRACE_SUSIE2("Poke(VSIZACUMH,%02x) at PC=$%04x", data, mSystem.mCpu->GetPC());
-//			break;
-//		case (SCBADRL & 0xff):
-//			mSCBADR.Byte.Low = data;
-//			mSCBADR.Byte.High = 0;
-//			TRACE_SUSIE2("Poke(SCBADRL,%02x) at PC=$%04x", data, mSystem.mCpu->GetPC());
-//			break;
-//		case (SCBADRH & 0xff):
-//			mSCBADR.Byte.High = data;
-//			TRACE_SUSIE2("Poke(SCBADRH,%02x) at PC=$%04x", data, mSystem.mCpu->GetPC());
-//			break;
-
 		case (MATHD & 0xff):
 			TRACE_SUSIE2("Poke(MATHD,%02x) at PC=$%04x", data, mSystem.mCpu->GetPC());
 			mMATHABCD.Bytes.D = data;
@@ -962,19 +888,15 @@ void CSusie::Poke(ULONG addr, UBYTE data)
 			lnxSuzyWrite(addr, data);
 			TRACE_SUSIE2("Poke(SPRCTL0,%02x) at PC=$%04x", data, mSystem.mCpu->GetPC());
 			break;
-		case (SPRCTL1 & 0xff):
-			mSPRCTL1_StartLeft = data & 0x0001;
-			mSPRCTL1_StartUp = data & 0x0002;
-			mSPRCTL1_SkipSprite = data & 0x0004;
-			mSPRCTL1_ReloadPalette = data & 0x0008;
-			mSPRCTL1_ReloadDepth = (data & 0x0030)>>4;
-			mSPRCTL1_Sizing = data & 0x0040;
-			mSPRCTL1_Literal = data & 0x0080;
-			TRACE_SUSIE2("Poke(SPRCTL1,%02x) at PC=$%04x", data, mSystem.mCpu->GetPC());
-			break;
-//		case (SPRINIT & 0xff):
-//			mSPRINIT.Byte = data;
-//			TRACE_SUSIE2("Poke(SPRINIT,%02x) at PC=$%04x", data, mSystem.mCpu->GetPC());
+//		case (SPRCTL1 & 0xff):
+//			mSPRCTL1_StartLeft = data & 0x0001;
+//			mSPRCTL1_StartUp = data & 0x0002;
+//			mSPRCTL1_SkipSprite = data & 0x0004;
+//			mSPRCTL1_ReloadPalette = data & 0x0008;
+//			mSPRCTL1_ReloadDepth = (data & 0x0030)>>4;
+//			mSPRCTL1_Sizing = data & 0x0040;
+//			mSPRCTL1_Literal = data & 0x0080;
+//			TRACE_SUSIE2("Poke(SPRCTL1,%02x) at PC=$%04x", data, mSystem.mCpu->GetPC());
 //			break;
 		case (SPRGO & 0xff):
 			mSPRGO = data & 0x01;
@@ -1017,71 +939,6 @@ UBYTE CSusie::Peek(ULONG addr)
 	UBYTE retval = 0;
 	switch(addr & 0xff)
 	{
-//		case (HPOSSTRTL & 0xff):
-//			retval = mHPOSSTRT.Byte.Low;
-//			TRACE_SUSIE2("Peek(HPOSSTRTL)=$%02x at PC=$%04x", retval, mSystem.mCpu->GetPC());
-//			return retval;
-//		case (HPOSSTRTH & 0xff):
-//			retval = mHPOSSTRT.Byte.High;
-//			TRACE_SUSIE2("Peek(HPOSSTRTH)=$%02x at PC=$%04x", retval, mSystem.mCpu->GetPC());
-//			return retval;
-//		case (VPOSSTRTL & 0xff):
-//			retval = mVPOSSTRT.Byte.Low;
-//			TRACE_SUSIE2("Peek(VPOSSTRTL)=$%02x at PC=$%04x", retval, mSystem.mCpu->GetPC());
-//			return retval;
-//		case (VPOSSTRTH & 0xff):
-//			retval = mVPOSSTRT.Byte.High;
-//			TRACE_SUSIE2("Peek(VPOSSTRTH)=$%02x at PC=$%04x", retval, mSystem.mCpu->GetPC());
-//			return retval;
-//		case (SPRVSIZL & 0xff):
-//			retval = mSPRVSIZ.Byte.Low;
-//			TRACE_SUSIE2("Peek(SPRVSIZL)=$%02x at PC=$%04x", retval, mSystem.mCpu->GetPC());
-//			return retval;
-//		case (SPRVSIZH & 0xff):
-//			retval = mSPRVSIZ.Byte.High;
-//			TRACE_SUSIE2("Peek(SPRVSIZH)=$%02x at PC=$%04x", retval, mSystem.mCpu->GetPC());
-//			return retval;
-//		case (STRETCHL & 0xff):
-//			retval = mSTRETCH.Byte.Low;
-//			TRACE_SUSIE2("Peek(STRETCHL)=$%02x at PC=$%04x", retval, mSystem.mCpu->GetPC());
-//			return retval;
-//		case (STRETCHH & 0xff):
-//			retval = mSTRETCH.Byte.High;
-//			TRACE_SUSIE2("Peek(STRETCHH)=$%02x at PC=$%04x", retval, mSystem.mCpu->GetPC());
-//			return retval;
-//		case (TILTL & 0xff):
-//			retval = mTILT.Byte.Low;
-//			TRACE_SUSIE2("Peek(TILTL)=$%02x at PC=$%04x", retval, mSystem.mCpu->GetPC());
-//			return retval;
-//		case (TILTH & 0xff):
-//			retval = mTILT.Byte.High;
-//			TRACE_SUSIE2("Peek(TILTH)=$%02x at PC=$%04x", retval, mSystem.mCpu->GetPC());
-//			return retval;
-//		case (SPRDOFFL & 0xff):
-//			retval = mSPRDOFF.Byte.Low;
-//			TRACE_SUSIE2("Peek(SPRDOFFL)=$%02x at PC=$%04x", retval, mSystem.mCpu->GetPC());
-//			return retval;
-//		case (SPRDOFFH & 0xff):
-//			retval = mSPRDOFF.Byte.High;
-//			TRACE_SUSIE2("Peek(SPRDOFFH)=$%02x at PC=$%04x", retval, mSystem.mCpu->GetPC());
-//			return retval;
-//		case (VSIZACUML & 0xff):
-//			retval = mVSIZACUM.Byte.Low;
-//			TRACE_SUSIE2("Peek(VSIZACUML)=$%02x at PC=$%04x", retval, mSystem.mCpu->GetPC());
-//			return retval;
-//		case (VSIZACUMH & 0xff):
-//			retval = mVSIZACUM.Byte.High;
-//			TRACE_SUSIE2("Peek(VSIZACUMH)=$%02x at PC=$%04x", retval, mSystem.mCpu->GetPC());
-//			return retval;
-//		case (SCBADRL & 0xff):
-//			retval = mSCBADR.Byte.Low;
-//			TRACE_SUSIE2("Peek(SCBADRL)=$%02x at PC=$%04x", retval, mSystem.mCpu->GetPC());
-//			return retval;
-//		case (SCBADRH & 0xff):
-//			retval = mSCBADR.Byte.High;
-//			TRACE_SUSIE2("Peek(SCBADRH)=$%02x at PC=$%04x", retval, mSystem.mCpu->GetPC());
-//			return retval;
-
 		case (MATHD & 0xff):
 			retval = mMATHABCD.Bytes.D;
 			TRACE_SUSIE2("Peek(MATHD)=$%02x at PC=$%04x", retval, mSystem.mCpu->GetPC());

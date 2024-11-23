@@ -117,7 +117,6 @@ typedef struct {
 	u8 padding2[3];
 
 	u32 sprCtl0_PixelBits;
-	u32 sprCtl1_Literal;
 
 	// Line rendering related variables
 	u32 lineType;
