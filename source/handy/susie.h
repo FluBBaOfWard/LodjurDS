@@ -356,14 +356,14 @@ class CSusie : public CLynxBase
 	private:
 		CSystem&	mSystem;
 
-		UUWORD		mHPOSSTRT;		// SCB
-		UUWORD		mVPOSSTRT;		// SCB
-		UUWORD		mSPRVSIZ;		// SCB
-		UUWORD		mSTRETCH;		// ENG
-		UUWORD		mTILT;			// ENG
-		UUWORD		mSPRDOFF;		// ENG
-		UUWORD		mVSIZACUM;		// ENG
-		UUWORD		mSCBADR;		// ENG
+//		UUWORD		mHPOSSTRT;		// SCB
+//		UUWORD		mVPOSSTRT;		// SCB
+//		UUWORD		mSPRVSIZ;		// SCB
+//		UUWORD		mSTRETCH;		// ENG
+//		UUWORD		mTILT;			// ENG
+//		UUWORD		mSPRDOFF;		// ENG
+//		UUWORD		mVSIZACUM;		// ENG
+//		UUWORD		mSCBADR;		// ENG
 
 		TMATHABCD	mMATHABCD;		// ENG
 		TMATHEFGH	mMATHEFGH;		// ENG
@@ -394,7 +394,7 @@ class CSusie : public CLynxBase
 		int			mSPRSYS_Mathbit;
 		int			mSPRSYS_MathInProgress;
 
-		TSPRINIT	mSPRINIT;		// CPU
+//		TSPRINIT	mSPRINIT;		// CPU
 
 		ULONG		mSPRGO;			// CPU
 		int			mEVERON;

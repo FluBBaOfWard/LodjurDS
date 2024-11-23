@@ -67,7 +67,7 @@ typedef struct {
 	U16_ST vSizOff;		// 0x2A Vertical Size Offset
 	U16_ST SCBAdr;		// 0x2C Address of Current SCB
 	U16_ST procAdr;		// 0x2E Current Spr Data Proc Address
-	u8 reserved[0x22];	// 0x30-0x51 Reserved
+	u8 reserved0[0x22];	// 0x30-0x51 Reserved
 	u8 mathD;			// 0x52 Math D
 	u8 mathC;			// 0x53 Math C
 	u8 mathB;			// 0x54 Math B
@@ -110,14 +110,12 @@ typedef struct {
 	u8 padding[3];
 
 //------------------------------
+	U16_ST hSizAcum;
 	u8 collision;		// Collision value for current sprite.
 	u8 suzLCDVSize;		// ???
 	u8 wsvLatchedDispCtrl;		// Latched Display Control
-	u8 padding2[1];
-	U16_ST hSizAcum;
-	u8 padding3[2];
+	u8 padding2[3];
 
-//	u32 sprCtl0_Type;
 	u32 sprCtl0_PixelBits;
 	u32 sprCtl1_Literal;
 

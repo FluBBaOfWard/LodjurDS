@@ -97,7 +97,7 @@ suzSCBAdrH:			.byte 0		;@ High
 suzProcAdr:						;@ 0x2E Current Spr Data Proc Address
 suzProcAdrL:		.byte 0		;@ Low
 suzProcAdrH:		.byte 0		;@ High
-suzReserved:		.space 0x22	;@ 0x30-0x51 Reserved
+suzReserved0:		.space 0x22	;@ 0x30-0x51 Reserved
 suzMathD:			.byte 0		;@ 0x52 Math D
 suzMathC:			.byte 0		;@ 0x53 Math C
 suzMathB:			.byte 0		;@ 0x54 Math B
@@ -141,16 +141,14 @@ suzPadding:			.skip 3
 
 ;@----------------------------------------------------------------------------
 
-suzCollision:		.byte 0		;@ Collision value for current sprite.
-suzLCDVSize:		.byte 0		;@ ???
-wsvLatchedDispCtrl:	.byte 0		;@ Latched Display Control
-suzPadding2:		.space 1
 suzHSizAcum:
 suzHSizAcumL:		.byte 0
 suzHSizAcumH:		.byte 0
-suzPadding3:		.space 2
+suzCollision:		.byte 0		;@ Collision value for current sprite.
+suzLCDVSize:		.byte 0		;@ ???
+wsvLatchedDispCtrl:	.byte 0		;@ Latched Display Control
+suzPadding2:		.space 3
 
-//suzSprCtl0_Type:		.long 0
 suzSprCtl0_PixelBits:	.long 0
 suzSprCtl1_Literal:	.long 0
 

@@ -72,10 +72,18 @@
 #define mCOLLBAS suzy_0.collBas
 #define mSCBNEXT suzy_0.SCBNext
 #define mSPRDLINE suzy_0.sprDLine
+#define mHPOSSTRT suzy_0.hPosStrt
+#define mVPOSSTRT suzy_0.vPosStrt
 #define mSPRHSIZ suzy_0.sprHSiz
+#define mSPRVSIZ suzy_0.sprVSiz
+#define mSTRETCH suzy_0.stretch
+#define mTILT suzy_0.tilt
+#define mSPRDOFF suzy_0.sprDOff
 #define mCOLLOFF suzy_0.collOff
+#define mVSIZACUM suzy_0.vSizAcum
 #define mHSIZOFF suzy_0.hSizOff
 #define mVSIZOFF suzy_0.vSizOff
+#define mSCBADR suzy_0.SCBAdr
 #define mSPRCTL0 suzy_0.sprCtl0
 #define mSPRCOLL suzy_0.sprColl
 #define mSUZYBUSEN suzy_0.suzyBusEn
@@ -125,17 +133,17 @@ void CSusie::Reset(void)
 
 	// Reset ALL variables
 
-	mHPOSSTRT.Word = 0;
-	mVPOSSTRT.Word = 0;
-	mSPRVSIZ.Word = 0;
-	mSTRETCH.Word = 0;
-	mTILT.Word = 0;
-	mSPRDOFF.Word = 0;
-	mVSIZACUM.Word = 0;
-	mSCBADR.Word = 0;
+//	mHPOSSTRT.Word = 0;
+//	mVPOSSTRT.Word = 0;
+//	mSPRVSIZ.Word = 0;
+//	mSTRETCH.Word = 0;
+//	mTILT.Word = 0;
+//	mSPRDOFF.Word = 0;
+//	mVSIZACUM.Word = 0;
+//	mSCBADR.Word = 0;
 
 	// Must be initialised to this due to
-	// stun runner math initialisation bug
+	// Stun Runner math initialisation bug
 	// see whatsnew for 0.7
 	mMATHABCD.Long = 0xffffffff;
 	mMATHEFGH.Long = 0xffffffff;
@@ -168,7 +176,7 @@ void CSusie::Reset(void)
 	mSPRSYS_Mathbit = 0;
 	mSPRSYS_MathInProgress = 0;
 
-	mSPRINIT.Byte = 0;
+//	mSPRINIT.Byte = 0;
 
 	mSPRGO = FALSE;
 	mEVERON = FALSE;
@@ -273,10 +281,6 @@ void CSusie::DoMathDivide(void)
 
 ULONG CSusie::PaintSprites(void)
 {
-	int	sprcount = 0;
-	int data = 0;
-	int everonscreen = 0;
-
 	TRACE_SUSIE0("                                                              ");
 	TRACE_SUSIE0("                                                              ");
 	TRACE_SUSIE0("                                                              ");
@@ -295,7 +299,8 @@ ULONG CSusie::PaintSprites(void)
 	}
 
 	cycles_used = 0;
-	everonscreen = 0;
+	int	sprcount = 0;
+	int everonscreen = 0;
 
 	do {
 		TRACE_SUSIE1("PaintSprites() ************ Rendering Sprite %03d ************", sprcount);
@@ -318,7 +323,7 @@ ULONG CSusie::PaintSprites(void)
 		mSCBADR.Word = mSCBNEXT.Word;	// Copy SCB pointer
 		TRACE_SUSIE1("PaintSprites() SCBADDR $%04x", mSCBADR.Word);
 
-		data = RAM_PEEK(mTMPADR.Word);			// Fetch control 0
+		int data = RAM_PEEK(mTMPADR.Word);			// Fetch control 0
 		TRACE_SUSIE1("PaintSprites() SPRCTL0 $%02x", data);
 		mSPRCTL0 = data;
 		mSPRCTL0_PixelBits = ((data & 0x00c0)>>6) + 1;
@@ -450,9 +455,9 @@ ULONG CSusie::PaintSprites(void)
 			if (!mSPRCTL1_ReloadPalette) {
 				TRACE_SUSIE0("PaintSprites() Palette reloaded");
 				for (int loop=0;loop<8;loop++) {
-					UBYTE data = RAM_PEEK(mTMPADR.Word++);
-					mPenIndex[loop*2] = (data>>4) & 0x0f;
-					mPenIndex[(loop*2)+1] = data & 0x0f;
+					UBYTE pen = RAM_PEEK(mTMPADR.Word++);
+					mPenIndex[loop*2] = (pen>>4) & 0x0f;
+					mPenIndex[(loop*2)+1] = pen & 0x0f;
 				}
 				// Increment cycle count for the reads
 				cycles_used += 8 * SPR_RDWR_CYC;
@@ -557,8 +562,6 @@ ULONG CSusie::PaintSprites(void)
 					// Quadrant mapping for superclipping must also take into account
 					// the hflip, vflip bits & negative tilt to be able to work correctly
 					//
-//					static const int vquadflip[4] = {1,0,3,2};
-//					static const int hquadflip[4] = {3,2,1,0};
 					int	modquad = quadrant;
 
 					if (mSPRCTL0 & Vflip) modquad ^= 1;
@@ -775,78 +778,78 @@ void CSusie::Poke(ULONG addr, UBYTE data)
 {
 	switch(addr & 0xff)
 	{
-		case (HPOSSTRTL & 0xff):
-			mHPOSSTRT.Byte.Low = data;
-			mHPOSSTRT.Byte.High = 0;
-			TRACE_SUSIE2("Poke(HPOSSTRTL,%02x) at PC=$%04x", data, mSystem.mCpu->GetPC());
-			break;
-		case (HPOSSTRTH & 0xff):
-			mHPOSSTRT.Byte.High = data;
-			TRACE_SUSIE2("Poke(HPOSSTRTH,%02x) at PC=$%04x", data, mSystem.mCpu->GetPC());
-			break;
-		case (VPOSSTRTL & 0xff):
-			mVPOSSTRT.Byte.Low = data;
-			mVPOSSTRT.Byte.High = 0;
-			TRACE_SUSIE2("Poke(VPOSSTRTL,%02x) at PC=$%04x", data, mSystem.mCpu->GetPC());
-			break;
-		case (VPOSSTRTH & 0xff):
-			mVPOSSTRT.Byte.High = data;
-			TRACE_SUSIE2("Poke(VPOSSTRTH,%02x) at PC=$%04x", data, mSystem.mCpu->GetPC());
-			break;
-		case (SPRVSIZL & 0xff):
-			mSPRVSIZ.Byte.Low = data;
-			mSPRVSIZ.Byte.High = 0;
-			TRACE_SUSIE2("Poke(SPRVSIZL,%02x) at PC=$%04x", data, mSystem.mCpu->GetPC());
-			break;
-		case (SPRVSIZH & 0xff):
-			mSPRVSIZ.Byte.High = data;
-			TRACE_SUSIE2("Poke(SPRVSIZH,%02x) at PC=$%04x", data, mSystem.mCpu->GetPC());
-			break;
-		case (STRETCHL & 0xff):
-			mSTRETCH.Byte.Low = data;
-			mSTRETCH.Byte.High = 0;
-			TRACE_SUSIE2("Poke(STRETCHL,%02x) at PC=$%04x", data, mSystem.mCpu->GetPC());
-			break;
-		case (STRETCHH & 0xff):
-			TRACE_SUSIE2("Poke(STRETCHH,%02x) at PC=$%04x", data, mSystem.mCpu->GetPC());
-			mSTRETCH.Byte.High = data;
-			break;
-		case (TILTL & 0xff):
-			mTILT.Byte.Low = data;
-			mTILT.Byte.High = 0;
-			TRACE_SUSIE2("Poke(TILTL,%02x) at PC=$%04x", data, mSystem.mCpu->GetPC());
-			break;
-		case (TILTH & 0xff):
-			mTILT.Byte.High = data;
-			TRACE_SUSIE2("Poke(TILTH,%02x) at PC=$%04x", data, mSystem.mCpu->GetPC());
-			break;
-		case (SPRDOFFL & 0xff):
-			TRACE_SUSIE2("Poke(SPRDOFFL,%02x) at PC=$%04x", data, mSystem.mCpu->GetPC());
-			mSPRDOFF.Byte.Low = data;
-			mSPRDOFF.Byte.High = 0;
-			break;
-		case (SPRDOFFH & 0xff):
-			TRACE_SUSIE2("Poke(SPRDOFFH,%02x) at PC=$%04x", data, mSystem.mCpu->GetPC());
-			mSPRDOFF.Byte.High = data;
-			break;
-		case (VSIZACUML & 0xff):
-			mVSIZACUM.Byte.Low = data;
-			mVSIZACUM.Byte.High = 0;
-			TRACE_SUSIE2("Poke(VSIZACUML,%02x) at PC=$%04x", data, mSystem.mCpu->GetPC());
-			break;
-		case (VSIZACUMH & 0xff):
-			mVSIZACUM.Byte.High = data;
-			TRACE_SUSIE2("Poke(VSIZACUMH,%02x) at PC=$%04x", data, mSystem.mCpu->GetPC());
-			break;
-		case (SCBADRL & 0xff):
-			mSCBADR.Byte.Low = data;
-			mSCBADR.Byte.High = 0;
-			TRACE_SUSIE2("Poke(SCBADRL,%02x) at PC=$%04x", data, mSystem.mCpu->GetPC());
-			break;
-		case (SCBADRH & 0xff):
-			mSCBADR.Byte.High = data;
-			TRACE_SUSIE2("Poke(SCBADRH,%02x) at PC=$%04x", data, mSystem.mCpu->GetPC());
-			break;
+//		case (HPOSSTRTL & 0xff):
+//			mHPOSSTRT.Byte.Low = data;
+//			mHPOSSTRT.Byte.High = 0;
+//			TRACE_SUSIE2("Poke(HPOSSTRTL,%02x) at PC=$%04x", data, mSystem.mCpu->GetPC());
+//			break;
+//		case (HPOSSTRTH & 0xff):
+//			mHPOSSTRT.Byte.High = data;
+//			TRACE_SUSIE2("Poke(HPOSSTRTH,%02x) at PC=$%04x", data, mSystem.mCpu->GetPC());
+//			break;
+//		case (VPOSSTRTL & 0xff):
+//			mVPOSSTRT.Byte.Low = data;
+//			mVPOSSTRT.Byte.High = 0;
+//			TRACE_SUSIE2("Poke(VPOSSTRTL,%02x) at PC=$%04x", data, mSystem.mCpu->GetPC());
+//			break;
+//		case (VPOSSTRTH & 0xff):
+//			mVPOSSTRT.Byte.High = data;
+//			TRACE_SUSIE2("Poke(VPOSSTRTH,%02x) at PC=$%04x", data, mSystem.mCpu->GetPC());
+//			break;
+//		case (SPRVSIZL & 0xff):
+//			mSPRVSIZ.Byte.Low = data;
+//			mSPRVSIZ.Byte.High = 0;
+//			TRACE_SUSIE2("Poke(SPRVSIZL,%02x) at PC=$%04x", data, mSystem.mCpu->GetPC());
+//			break;
+//		case (SPRVSIZH & 0xff):
+//			mSPRVSIZ.Byte.High = data;
+//			TRACE_SUSIE2("Poke(SPRVSIZH,%02x) at PC=$%04x", data, mSystem.mCpu->GetPC());
+//			break;
+//		case (STRETCHL & 0xff):
+//			mSTRETCH.Byte.Low = data;
+//			mSTRETCH.Byte.High = 0;
+//			TRACE_SUSIE2("Poke(STRETCHL,%02x) at PC=$%04x", data, mSystem.mCpu->GetPC());
+//			break;
+//		case (STRETCHH & 0xff):
+//			TRACE_SUSIE2("Poke(STRETCHH,%02x) at PC=$%04x", data, mSystem.mCpu->GetPC());
+//			mSTRETCH.Byte.High = data;
+//			break;
+//		case (TILTL & 0xff):
+//			mTILT.Byte.Low = data;
+//			mTILT.Byte.High = 0;
+//			TRACE_SUSIE2("Poke(TILTL,%02x) at PC=$%04x", data, mSystem.mCpu->GetPC());
+//			break;
+//		case (TILTH & 0xff):
+//			mTILT.Byte.High = data;
+//			TRACE_SUSIE2("Poke(TILTH,%02x) at PC=$%04x", data, mSystem.mCpu->GetPC());
+//			break;
+//		case (SPRDOFFL & 0xff):
+//			TRACE_SUSIE2("Poke(SPRDOFFL,%02x) at PC=$%04x", data, mSystem.mCpu->GetPC());
+//			mSPRDOFF.Byte.Low = data;
+//			mSPRDOFF.Byte.High = 0;
+//			break;
+//		case (SPRDOFFH & 0xff):
+//			TRACE_SUSIE2("Poke(SPRDOFFH,%02x) at PC=$%04x", data, mSystem.mCpu->GetPC());
+//			mSPRDOFF.Byte.High = data;
+//			break;
+//		case (VSIZACUML & 0xff):
+//			mVSIZACUM.Byte.Low = data;
+//			mVSIZACUM.Byte.High = 0;
+//			TRACE_SUSIE2("Poke(VSIZACUML,%02x) at PC=$%04x", data, mSystem.mCpu->GetPC());
+//			break;
+//		case (VSIZACUMH & 0xff):
+//			mVSIZACUM.Byte.High = data;
+//			TRACE_SUSIE2("Poke(VSIZACUMH,%02x) at PC=$%04x", data, mSystem.mCpu->GetPC());
+//			break;
+//		case (SCBADRL & 0xff):
+//			mSCBADR.Byte.Low = data;
+//			mSCBADR.Byte.High = 0;
+//			TRACE_SUSIE2("Poke(SCBADRL,%02x) at PC=$%04x", data, mSystem.mCpu->GetPC());
+//			break;
+//		case (SCBADRH & 0xff):
+//			mSCBADR.Byte.High = data;
+//			TRACE_SUSIE2("Poke(SCBADRH,%02x) at PC=$%04x", data, mSystem.mCpu->GetPC());
+//			break;
 
 		case (MATHD & 0xff):
 			TRACE_SUSIE2("Poke(MATHD,%02x) at PC=$%04x", data, mSystem.mCpu->GetPC());
@@ -969,10 +972,10 @@ void CSusie::Poke(ULONG addr, UBYTE data)
 			mSPRCTL1_Literal = data & 0x0080;
 			TRACE_SUSIE2("Poke(SPRCTL1,%02x) at PC=$%04x", data, mSystem.mCpu->GetPC());
 			break;
-		case (SPRINIT & 0xff):
-			mSPRINIT.Byte = data;
-			TRACE_SUSIE2("Poke(SPRINIT,%02x) at PC=$%04x", data, mSystem.mCpu->GetPC());
-			break;
+//		case (SPRINIT & 0xff):
+//			mSPRINIT.Byte = data;
+//			TRACE_SUSIE2("Poke(SPRINIT,%02x) at PC=$%04x", data, mSystem.mCpu->GetPC());
+//			break;
 		case (SPRGO & 0xff):
 			mSPRGO = data & 0x01;
 			mEVERON = data & 0x04;
@@ -1014,70 +1017,70 @@ UBYTE CSusie::Peek(ULONG addr)
 	UBYTE retval = 0;
 	switch(addr & 0xff)
 	{
-		case (HPOSSTRTL & 0xff):
-			retval = mHPOSSTRT.Byte.Low;
-			TRACE_SUSIE2("Peek(HPOSSTRTL)=$%02x at PC=$%04x", retval, mSystem.mCpu->GetPC());
-			return retval;
-		case (HPOSSTRTH & 0xff):
-			retval = mHPOSSTRT.Byte.High;
-			TRACE_SUSIE2("Peek(HPOSSTRTH)=$%02x at PC=$%04x", retval, mSystem.mCpu->GetPC());
-			return retval;
-		case (VPOSSTRTL & 0xff):
-			retval = mVPOSSTRT.Byte.Low;
-			TRACE_SUSIE2("Peek(VPOSSTRTL)=$%02x at PC=$%04x", retval, mSystem.mCpu->GetPC());
-			return retval;
-		case (VPOSSTRTH & 0xff):
-			retval = mVPOSSTRT.Byte.High;
-			TRACE_SUSIE2("Peek(VPOSSTRTH)=$%02x at PC=$%04x", retval, mSystem.mCpu->GetPC());
-			return retval;
-		case (SPRVSIZL & 0xff):
-			retval = mSPRVSIZ.Byte.Low;
-			TRACE_SUSIE2("Peek(SPRVSIZL)=$%02x at PC=$%04x", retval, mSystem.mCpu->GetPC());
-			return retval;
-		case (SPRVSIZH & 0xff):
-			retval = mSPRVSIZ.Byte.High;
-			TRACE_SUSIE2("Peek(SPRVSIZH)=$%02x at PC=$%04x", retval, mSystem.mCpu->GetPC());
-			return retval;
-		case (STRETCHL & 0xff):
-			retval = mSTRETCH.Byte.Low;
-			TRACE_SUSIE2("Peek(STRETCHL)=$%02x at PC=$%04x", retval, mSystem.mCpu->GetPC());
-			return retval;
-		case (STRETCHH & 0xff):
-			retval = mSTRETCH.Byte.High;
-			TRACE_SUSIE2("Peek(STRETCHH)=$%02x at PC=$%04x", retval, mSystem.mCpu->GetPC());
-			return retval;
-		case (TILTL & 0xff):
-			retval = mTILT.Byte.Low;
-			TRACE_SUSIE2("Peek(TILTL)=$%02x at PC=$%04x", retval, mSystem.mCpu->GetPC());
-			return retval;
-		case (TILTH & 0xff):
-			retval = mTILT.Byte.High;
-			TRACE_SUSIE2("Peek(TILTH)=$%02x at PC=$%04x", retval, mSystem.mCpu->GetPC());
-			return retval;
-		case (SPRDOFFL & 0xff):
-			retval = mSPRDOFF.Byte.Low;
-			TRACE_SUSIE2("Peek(SPRDOFFL)=$%02x at PC=$%04x", retval, mSystem.mCpu->GetPC());
-			return retval;
-		case (SPRDOFFH & 0xff):
-			retval = mSPRDOFF.Byte.High;
-			TRACE_SUSIE2("Peek(SPRDOFFH)=$%02x at PC=$%04x", retval, mSystem.mCpu->GetPC());
-			return retval;
-		case (VSIZACUML & 0xff):
-			retval = mVSIZACUM.Byte.Low;
-			TRACE_SUSIE2("Peek(VSIZACUML)=$%02x at PC=$%04x", retval, mSystem.mCpu->GetPC());
-			return retval;
-		case (VSIZACUMH & 0xff):
-			retval = mVSIZACUM.Byte.High;
-			TRACE_SUSIE2("Peek(VSIZACUMH)=$%02x at PC=$%04x", retval, mSystem.mCpu->GetPC());
-			return retval;
-		case (SCBADRL & 0xff):
-			retval = mSCBADR.Byte.Low;
-			TRACE_SUSIE2("Peek(SCBADRL)=$%02x at PC=$%04x", retval, mSystem.mCpu->GetPC());
-			return retval;
-		case (SCBADRH & 0xff):
-			retval = mSCBADR.Byte.High;
-			TRACE_SUSIE2("Peek(SCBADRH)=$%02x at PC=$%04x", retval, mSystem.mCpu->GetPC());
-			return retval;
+//		case (HPOSSTRTL & 0xff):
+//			retval = mHPOSSTRT.Byte.Low;
+//			TRACE_SUSIE2("Peek(HPOSSTRTL)=$%02x at PC=$%04x", retval, mSystem.mCpu->GetPC());
+//			return retval;
+//		case (HPOSSTRTH & 0xff):
+//			retval = mHPOSSTRT.Byte.High;
+//			TRACE_SUSIE2("Peek(HPOSSTRTH)=$%02x at PC=$%04x", retval, mSystem.mCpu->GetPC());
+//			return retval;
+//		case (VPOSSTRTL & 0xff):
+//			retval = mVPOSSTRT.Byte.Low;
+//			TRACE_SUSIE2("Peek(VPOSSTRTL)=$%02x at PC=$%04x", retval, mSystem.mCpu->GetPC());
+//			return retval;
+//		case (VPOSSTRTH & 0xff):
+//			retval = mVPOSSTRT.Byte.High;
+//			TRACE_SUSIE2("Peek(VPOSSTRTH)=$%02x at PC=$%04x", retval, mSystem.mCpu->GetPC());
+//			return retval;
+//		case (SPRVSIZL & 0xff):
+//			retval = mSPRVSIZ.Byte.Low;
+//			TRACE_SUSIE2("Peek(SPRVSIZL)=$%02x at PC=$%04x", retval, mSystem.mCpu->GetPC());
+//			return retval;
+//		case (SPRVSIZH & 0xff):
+//			retval = mSPRVSIZ.Byte.High;
+//			TRACE_SUSIE2("Peek(SPRVSIZH)=$%02x at PC=$%04x", retval, mSystem.mCpu->GetPC());
+//			return retval;
+//		case (STRETCHL & 0xff):
+//			retval = mSTRETCH.Byte.Low;
+//			TRACE_SUSIE2("Peek(STRETCHL)=$%02x at PC=$%04x", retval, mSystem.mCpu->GetPC());
+//			return retval;
+//		case (STRETCHH & 0xff):
+//			retval = mSTRETCH.Byte.High;
+//			TRACE_SUSIE2("Peek(STRETCHH)=$%02x at PC=$%04x", retval, mSystem.mCpu->GetPC());
+//			return retval;
+//		case (TILTL & 0xff):
+//			retval = mTILT.Byte.Low;
+//			TRACE_SUSIE2("Peek(TILTL)=$%02x at PC=$%04x", retval, mSystem.mCpu->GetPC());
+//			return retval;
+//		case (TILTH & 0xff):
+//			retval = mTILT.Byte.High;
+//			TRACE_SUSIE2("Peek(TILTH)=$%02x at PC=$%04x", retval, mSystem.mCpu->GetPC());
+//			return retval;
+//		case (SPRDOFFL & 0xff):
+//			retval = mSPRDOFF.Byte.Low;
+//			TRACE_SUSIE2("Peek(SPRDOFFL)=$%02x at PC=$%04x", retval, mSystem.mCpu->GetPC());
+//			return retval;
+//		case (SPRDOFFH & 0xff):
+//			retval = mSPRDOFF.Byte.High;
+//			TRACE_SUSIE2("Peek(SPRDOFFH)=$%02x at PC=$%04x", retval, mSystem.mCpu->GetPC());
+//			return retval;
+//		case (VSIZACUML & 0xff):
+//			retval = mVSIZACUM.Byte.Low;
+//			TRACE_SUSIE2("Peek(VSIZACUML)=$%02x at PC=$%04x", retval, mSystem.mCpu->GetPC());
+//			return retval;
+//		case (VSIZACUMH & 0xff):
+//			retval = mVSIZACUM.Byte.High;
+//			TRACE_SUSIE2("Peek(VSIZACUMH)=$%02x at PC=$%04x", retval, mSystem.mCpu->GetPC());
+//			return retval;
+//		case (SCBADRL & 0xff):
+//			retval = mSCBADR.Byte.Low;
+//			TRACE_SUSIE2("Peek(SCBADRL)=$%02x at PC=$%04x", retval, mSystem.mCpu->GetPC());
+//			return retval;
+//		case (SCBADRH & 0xff):
+//			retval = mSCBADR.Byte.High;
+//			TRACE_SUSIE2("Peek(SCBADRH)=$%02x at PC=$%04x", retval, mSystem.mCpu->GetPC());
+//			return retval;
 
 		case (MATHD & 0xff):
 			retval = mMATHABCD.Bytes.D;
@@ -1138,11 +1141,6 @@ UBYTE CSusie::Peek(ULONG addr)
 			retval = mMATHJKLM.Bytes.J;
 			TRACE_SUSIE2("Peek(MATHJ)=$%02x at PC=$%04x", retval, mSystem.mCpu->GetPC());
 			return retval;
-
-//		case (SUZYHREV & 0xff):
-//			retval = 0x01;
-//			TRACE_SUSIE2("Peek(SUZYHREV)=$%02x at PC=$%04x", retval, mSystem.mCpu->GetPC());
-//			return retval;
 
 		case (SPRSYS & 0xff):
 			retval = 0x0000;
