@@ -26,6 +26,7 @@
 	.global suzRead
 	.global suzWrite
 	.global suzRenderLine
+	.global suzLineStart
 	.global suzLineInit
 
 	.syntax unified
@@ -293,7 +294,7 @@ io_read_tbl:
 	.long suUnmappedR			;@ 0xFC85
 	.long suUnmappedR			;@ 0xFC86
 	.long suUnmappedR			;@ 0xFC87
-	.long suRegR				;@ 0xFC88 SUZYHREV
+	.long suHRevR				;@ 0xFC88 SUZYHREV
 	.long suRegR				;@ 0xFC89 SUZYSREV
 	.long suUnmappedR			;@ 0xFC8A
 	.long suUnmappedR			;@ 0xFC8B
@@ -384,6 +385,11 @@ suRegR:
 	ldrb r0,[r2,r0]
 	bx lr
 	.pool
+;@----------------------------------------------------------------------------
+suHRevR:					;@ Suzy HW Revision (0xFC88)
+;@----------------------------------------------------------------------------
+	mov r0,#1					;@ Revision 1
+	bx lr
 
 ;@----------------------------------------------------------------------------
 suzWrite:					;@ I/O write (0xFC00-0xFCC5)
@@ -649,16 +655,15 @@ rendWhile:
 	bl suzLineGetPixel
 	cmp r0,#0x80
 	beq exitRender
-	add r7,r7,r6				;@ mHSIZACUM.Word += mSPRHSIZ.Word
-	ands r9,r7,#0xFF00			;@ pixel_width = mHSIZACUM.Byte.High
+	add r7,r7,r6				;@ HSIZACUM.Word += SPRHSIZ.Word
+	ands r9,r7,#0xFF00			;@ pixel_width = HSIZACUM.Byte.High
 	beq rendWhile
-	and r7,r7,#0xFF				;@ mHSIZACUM.Byte.High = 0
+	and r7,r7,#0xFF				;@ HSIZACUM.Byte.High = 0
 	mov r10,r0
 rendLoop:
-	movs r0,r4
-	bmi checkBail
-	cmp r0,#GAME_WIDTH
-	bpl checkBail
+	cmp r4,#GAME_WIDTH
+	bcs checkBail
+	mov r0,r4
 	mov r1,r10
 	ldrb r2,[suzptr,#suzSprCtl0]
 	bl suzProcessPixel
@@ -677,6 +682,15 @@ exitRender:
 	ldmfd sp!,{r4-r10,lr}
 	bx lr
 
+;@----------------------------------------------------------------------------
+suzLineStart:				;@ Out = SPRDOFF.
+	.type	suzLineStart STT_FUNC
+;@----------------------------------------------------------------------------
+	ldr suzptr,=suzy_0
+	ldrh r1,[suzptr,#suzSprDLine]
+	ldr r2,[suzptr,#suzyRAM]
+	ldrb r0,[r2,r1]
+	bx lr
 ;@----------------------------------------------------------------------------
 suzLineInit:				;@ In r0=voff.
 	.type	suzLineInit STT_FUNC
@@ -714,7 +728,7 @@ suzLineInit:				;@ In r0=voff.
 	cmp r2,#0
 	movne r2,r1					;@ LineRepeatCount = LinePacketBitsLeft
 	movne r3,#1					;@ line_abs_literal
-	moveq r2,#0
+//	moveq r2,#0
 	str r3,[suzptr,#suzLineType]
 	str r2,[suzptr,#suzLineRepeatCount]
 

@@ -127,13 +127,11 @@ void CSusie::Reset(void)
 
 	mHPOSSTRT.Word = 0;
 	mVPOSSTRT.Word = 0;
-//	mSPRHSIZ.Word = 0;
 	mSPRVSIZ.Word = 0;
 	mSTRETCH.Word = 0;
 	mTILT.Word = 0;
 	mSPRDOFF.Word = 0;
 	mVSIZACUM.Word = 0;
-//	mHSIZACUM.Word = 0;
 	mSCBADR.Word = 0;
 
 	// Must be initialised to this due to
@@ -148,9 +146,6 @@ void CSusie::Reset(void)
 	mMATHCD_sign = 1;
 	mMATHEFGH_sign = 1;
 
-//	mSPRCTL0_Type = 0;
-//	mSPRCTL0_Vflip = 0;
-//	mSPRCTL0_Hflip = 0;
 	mSPRCTL0_PixelBits = 0;
 
 	mSPRCTL1_StartLeft = 0;
@@ -326,9 +321,6 @@ ULONG CSusie::PaintSprites(void)
 		data = RAM_PEEK(mTMPADR.Word);			// Fetch control 0
 		TRACE_SUSIE1("PaintSprites() SPRCTL0 $%02x", data);
 		mSPRCTL0 = data;
-//		mSPRCTL0_Type = data & 0x0007;
-//		mSPRCTL0_Vflip = data & 0x0010;
-//		mSPRCTL0_Hflip = data & 0x0020;
 		mSPRCTL0_PixelBits = ((data & 0x00c0)>>6) + 1;
 		mTMPADR.Word += 1;
 
@@ -487,19 +479,18 @@ ULONG CSusie::PaintSprites(void)
 
 			bool superclip = FALSE;
 			int quadrant = 0;
-			int hsign, vsign;
 
-			if (mSPRCTL1_StartLeft) {
-				if (mSPRCTL1_StartUp) quadrant = 2; else quadrant = 3;
-			}
-			else {
-				if (mSPRCTL1_StartUp) quadrant = 1; else quadrant = 0;
-			}
+			if (mSPRCTL1_StartLeft) quadrant = 3;
+			if (mSPRCTL1_StartUp) quadrant ^= 1;
+
 			TRACE_SUSIE1("PaintSprites() Quadrant=%d", quadrant);
 
 			// Check ref is inside screen area. !! This is commented out in Mednafen!!
-			if ((SWORD)mHPOSSTRT.Word < screen_h_start || (SWORD)mHPOSSTRT.Word >= screen_h_end ||
-				(SWORD)mVPOSSTRT.Word < screen_v_start || (SWORD)mVPOSSTRT.Word >= screen_v_end) superclip = TRUE;
+			if ((SWORD)mHPOSSTRT.Word < screen_h_start
+				|| (SWORD)mHPOSSTRT.Word >= screen_h_end
+				|| (SWORD)mVPOSSTRT.Word < screen_v_start
+				|| (SWORD)mVPOSSTRT.Word >= screen_v_end)
+				superclip = TRUE;
 
 			TRACE_SUSIE1("PaintSprites() Superclip=%d",superclip);
 
@@ -527,15 +518,16 @@ ULONG CSusie::PaintSprites(void)
 				bool render = FALSE;
 
 				// Set quadrand multipliers
-				hsign = (quadrant == 0 || quadrant == 1) ? 1 : -1;
-				vsign = (quadrant == 0 || quadrant == 3) ? 1 : -1;
+				int hsign = (quadrant == 0 || quadrant == 1) ? 1 : -1;
+				int vsign = (quadrant == 0 || quadrant == 3) ? 1 : -1;
 
 // Preflip		TRACE_SUSIE2("PaintSprites() hsign=%d vsign=%d",hsign,vsign);
 
 				// Use h/v flip to invert h/vsign
-
 				if (mSPRCTL0 & Vflip) vsign = -vsign;
 				if (mSPRCTL0 & Hflip) hsign = -hsign;
+				if (loop == 0) vquadoff = vsign;
+				if (loop == 0) hquadoff = hsign;
 
 				TRACE_SUSIE2("PaintSprites() Hflip=%d Vflip=%d", mSPRCTL0 & Hflip, mSPRCTL0 & Vflip);
 				TRACE_SUSIE2("PaintSprites() Hsign=%d   Vsign=%d", hsign, vsign);
@@ -565,12 +557,12 @@ ULONG CSusie::PaintSprites(void)
 					// Quadrant mapping for superclipping must also take into account
 					// the hflip, vflip bits & negative tilt to be able to work correctly
 					//
+//					static const int vquadflip[4] = {1,0,3,2};
+//					static const int hquadflip[4] = {3,2,1,0};
 					int	modquad = quadrant;
-					static const int vquadflip[4] = {1,0,3,2};
-					static const int hquadflip[4] = {3,2,1,0};
 
-					if (mSPRCTL0 & Vflip) modquad = vquadflip[modquad];
-					if (mSPRCTL0 & Hflip) modquad = hquadflip[modquad];
+					if (mSPRCTL0 & Vflip) modquad ^= 1;
+					if (mSPRCTL0 & Hflip) modquad ^= 3;
 
 					// This is causing Eurosoccer to fail!!
 					//if (enable_tilt && mTILT.Word & 0x8000) modquad = hquadflip[modquad];
@@ -593,8 +585,7 @@ ULONG CSusie::PaintSprites(void)
 							break;
 					}
 				}
-				else
-				{
+				else {
 					render = TRUE;
 				}
 
@@ -616,8 +607,6 @@ ULONG CSusie::PaintSprites(void)
 					// sign, all other quads drawing in the other direction
 					// get offset by 1 pixel in the other direction, this
 					// fixes the squashed look on the multi-quad sprites.
-//					if (vsign == -1 && loop > 0) voff += vsign;
-					if (loop == 0) vquadoff = vsign;
 					if (vsign != vquadoff) voff += vsign;
 
 					for (;;) {
@@ -627,14 +616,12 @@ ULONG CSusie::PaintSprites(void)
 						mVSIZACUM.Byte.High = 0;
 
 						// Update the next data line pointer and initialise our line
-						mSPRDOFF.Word = (UWORD)suzLineInit(0);
-
+						mSPRDOFF.Word = (UWORD)suzLineStart();
 						// If 1 == next quad, ==0 end of sprite, anyways its END OF LINE
 						if (mSPRDOFF.Word == 1) {		// End of quad
 							mSPRDLINE.Word += mSPRDOFF.Word;
 							break;
 						}
-
 						if (mSPRDOFF.Word == 0) {		// End of sprite
 							loop = 4;		// Halt the quad loop
 							break;
@@ -660,8 +647,6 @@ ULONG CSusie::PaintSprites(void)
 								// sign, all other quads drawing in the other direction
 								// get offset by 1 pixel in the other direction, this
 								// fixes the squashed look on the multi-quad sprites.
-//								if (hsign == -1 && loop > 0) hoff += hsign;
-								if (loop ==0) hquadoff = hsign;
 								if (hsign != hquadoff) hoff += hsign;
 
 								// Initialise our line
@@ -696,20 +681,16 @@ ULONG CSusie::PaintSprites(void)
 					// Skip thru data to next quad
 					for(;;) {
 						// Read the start of line offset
-
-						mSPRDOFF.Word = (UWORD)suzLineInit(0);
-
-						// We dont want to process data so mSPRDLINE is useless to us
+						mSPRDOFF.Word = (UWORD)suzLineStart();
 						mSPRDLINE.Word += mSPRDOFF.Word;
-
 						// If 1 == next quad, ==0 end of sprite, anyways its END OF LINE
-
-						if (mSPRDOFF.Word == 1) break;	// End of quad
+						if (mSPRDOFF.Word == 1) {		// End of quad
+							break;
+						}
 						if (mSPRDOFF.Word == 0) {		// End of sprite
 							loop = 4;		// Halt the quad loop
 							break;
 						}
-
 					}
 				}
 
@@ -812,15 +793,6 @@ void CSusie::Poke(ULONG addr, UBYTE data)
 			mVPOSSTRT.Byte.High = data;
 			TRACE_SUSIE2("Poke(VPOSSTRTH,%02x) at PC=$%04x", data, mSystem.mCpu->GetPC());
 			break;
-//		case (SPRHSIZL & 0xff):
-//			mSPRHSIZ.Byte.Low = data;
-//			mSPRHSIZ.Byte.High = 0;
-//			TRACE_SUSIE2("Poke(SPRHSIZL,%02x) at PC=$%04x", data, mSystem.mCpu->GetPC());
-//			break;
-//		case (SPRHSIZH & 0xff):
-//			mSPRHSIZ.Byte.High = data;
-//			TRACE_SUSIE2("Poke(SPRHSIZH,%02x) at PC=$%04x", data, mSystem.mCpu->GetPC());
-//			break;
 		case (SPRVSIZL & 0xff):
 			mSPRVSIZ.Byte.Low = data;
 			mSPRVSIZ.Byte.High = 0;
@@ -983,9 +955,6 @@ void CSusie::Poke(ULONG addr, UBYTE data)
 			break;
 
 		case (SPRCTL0 & 0xff):
-//			mSPRCTL0_Type = data & 0x0007;
-//			mSPRCTL0_Vflip = data & 0x0010;
-//			mSPRCTL0_Hflip = data & 0x0020;
 			mSPRCTL0_PixelBits = ((data & 0x00c0)>>6) + 1;
 			lnxSuzyWrite(addr, data);
 			TRACE_SUSIE2("Poke(SPRCTL0,%02x) at PC=$%04x", data, mSystem.mCpu->GetPC());
@@ -1061,14 +1030,6 @@ UBYTE CSusie::Peek(ULONG addr)
 			retval = mVPOSSTRT.Byte.High;
 			TRACE_SUSIE2("Peek(VPOSSTRTH)=$%02x at PC=$%04x", retval, mSystem.mCpu->GetPC());
 			return retval;
-//		case (SPRHSIZL & 0xff):
-//			retval = mSPRHSIZ.Byte.Low;
-//			TRACE_SUSIE2("Peek(SPRHSIZL)=$%02x at PC=$%04x", retval, mSystem.mCpu->GetPC());
-//			return retval;
-//		case (SPRHSIZH & 0xff):
-//			retval = mSPRHSIZ.Byte.High;
-//			TRACE_SUSIE2("Peek(SPRHSIZH)=$%02x at PC=$%04x", retval, mSystem.mCpu->GetPC());
-//			return retval;
 		case (SPRVSIZL & 0xff):
 			retval = mSPRVSIZ.Byte.Low;
 			TRACE_SUSIE2("Peek(SPRVSIZL)=$%02x at PC=$%04x", retval, mSystem.mCpu->GetPC());
@@ -1178,10 +1139,10 @@ UBYTE CSusie::Peek(ULONG addr)
 			TRACE_SUSIE2("Peek(MATHJ)=$%02x at PC=$%04x", retval, mSystem.mCpu->GetPC());
 			return retval;
 
-		case (SUZYHREV & 0xff):
-			retval = 0x01;
-			TRACE_SUSIE2("Peek(SUZYHREV)=$%02x at PC=$%04x", retval, mSystem.mCpu->GetPC());
-			return retval;
+//		case (SUZYHREV & 0xff):
+//			retval = 0x01;
+//			TRACE_SUSIE2("Peek(SUZYHREV)=$%02x at PC=$%04x", retval, mSystem.mCpu->GetPC());
+//			return retval;
 
 		case (SPRSYS & 0xff):
 			retval = 0x0000;

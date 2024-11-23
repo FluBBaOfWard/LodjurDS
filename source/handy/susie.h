@@ -373,9 +373,6 @@ class CSusie : public CLynxBase
 		int			mMATHCD_sign;
 		int			mMATHEFGH_sign;
 
-//		int			mSPRCTL0_Vflip;
-//		int			mSPRCTL0_Hflip;
-
 		int			mSPRCTL1_StartLeft;		// SCB
 		int			mSPRCTL1_StartUp;
 		int			mSPRCTL1_SkipSprite;

@@ -167,7 +167,8 @@ int suzyGetStateSize(void);
 
 u32 suzRenderLine(int hoff, int hsign);
 
-u32 suzLineInit(u32 voff);
+u32 suzLineStart(void);
+void suzLineInit(u32 voff);
 
 #ifdef __cplusplus
 } // extern "C"
