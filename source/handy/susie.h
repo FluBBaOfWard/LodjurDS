@@ -364,22 +364,13 @@ class CSusie : public CLynxBase
 		int			mMATHCD_sign;
 		int			mMATHEFGH_sign;
 
-//		int			mSPRCTL1_StartLeft;		// SCB
-//		int			mSPRCTL1_StartUp;
-//		int			mSPRCTL1_SkipSprite;
-//		int			mSPRCTL1_ReloadPalette;
-//		int			mSPRCTL1_ReloadDepth;
-//		int			mSPRCTL1_Sizing;
-
-		int			mSPRCOLL;				//CPU
-
-		int			mSPRSYS_StopOnCurrent;	//CPU
-		int			mSPRSYS_LeftHand;
-		int			mSPRSYS_VStretch;
-		int			mSPRSYS_NoCollide;
-		int			mSPRSYS_Accumulate;
-		int			mSPRSYS_SignedMath;
-		int			mSPRSYS_Status;
+//		int			mSPRSYS_StopOnCurrent;	//CPU
+//		int			mSPRSYS_LeftHand;
+//		int			mSPRSYS_VStretch;
+//		int			mSPRSYS_NoCollide;
+//		int			mSPRSYS_Accumulate;
+//		int			mSPRSYS_SignedMath;
+		int			mSPRSYS_Busy;
 		int			mSPRSYS_UnsafeAccess;
 		int			mSPRSYS_LastCarry;
 		int			mSPRSYS_Mathbit;

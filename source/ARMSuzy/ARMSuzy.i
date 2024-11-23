@@ -132,7 +132,7 @@ suzSwitches:		.byte 0		;@ 0xB1 Read Other Switches
 suzRCart0:			.byte 0		;@ 0xB2 Read or write 8 bits of data
 suzRCart1:			.byte 0		;@ 0xB3 Read or write 8 bits of data
 suzReserved7:		.space 0x0C	;@ 0xB4-0xBF Reserved
-suzLeds:			.byte 0		;@ 0xC0 Read Joystick and Switches
+suzLeds:			.byte 0		;@ 0xC0 Control Leds
 suzReserved8:		.space 0x01	;@ 0xC1 Reserved
 suzPPortStat:		.byte 0		;@ 0xC2 Parallel Port Status
 suzPPortData:		.byte 0		;@ 0xC3 Parallel Port Data
@@ -144,12 +144,12 @@ suzPadding:			.skip 3
 suzHSizAcum:
 suzHSizAcumL:		.byte 0
 suzHSizAcumH:		.byte 0
+suzSprSysStat:		.byte 0		;@ 0x92 System Control, read.
 suzCollision:		.byte 0		;@ Collision value for current sprite.
 suzLCDVSize:		.byte 0		;@ ???
 wsvLatchedDispCtrl:	.byte 0		;@ Latched Display Control
-suzPadding2:		.space 3
-
-suzSprCtl0_PixelBits:	.long 0
+suzSprCtl0_PixelBits:	.byte 0
+suzPadding2:		.space 1
 
 suzLineType:			.long 0	;@
 suzLineShiftRegCount:	.long 0	;@

@@ -88,6 +88,7 @@
 #define mSPRCTL1 suzy_0.sprCtl1
 #define mSPRCOLL suzy_0.sprColl
 #define mSUZYBUSEN suzy_0.suzyBusEn
+#define mSPRSYS suzy_0.sprSys
 
 #define mLineBaseAddress suzy_0.lineBaseAddress
 #define mLineCollisionAddress suzy_0.lineCollisionAddress
@@ -118,6 +119,15 @@
 #define ReloadDepth (0x30)
 #define Sizing (0x40)
 #define Literal (0x80)
+
+// SPRSYS
+#define StopOnCurrent (0x02)
+#define UnsafeAccess (0x04)
+#define LeftHand (0x08)
+#define VStretch (0x10)
+#define NoCollide (0x20)
+#define Accumulate (0x40)
+#define SignedMath (0x80)
 
 CSusie::CSusie(CSystem& parent)
 	:mSystem(parent)
@@ -156,26 +166,17 @@ void CSusie::Reset(void)
 
 	mSPRCTL0_PixelBits = 0;
 
-//	mSPRCTL1_StartLeft = 0;
-//	mSPRCTL1_StartUp = 0;
-//	mSPRCTL1_SkipSprite = 0;
-//	mSPRCTL1_ReloadPalette = 0;
-//	mSPRCTL1_ReloadDepth = 0;
-//	mSPRCTL1_Sizing = 0;
-
-	mSPRSYS_StopOnCurrent = 0;
-	mSPRSYS_LeftHand = 0;
-	mSPRSYS_VStretch = 0;
-	mSPRSYS_NoCollide = 0;
-	mSPRSYS_Accumulate = 0;
-	mSPRSYS_SignedMath = 0;
-	mSPRSYS_Status = 0;
+//	mSPRSYS_StopOnCurrent = 0;
+//	mSPRSYS_LeftHand = 0;
+//	mSPRSYS_VStretch = 0;
+//	mSPRSYS_NoCollide = 0;
+//	mSPRSYS_Accumulate = 0;
+//	mSPRSYS_SignedMath = 0;
 	mSPRSYS_UnsafeAccess = 0;
+	mSPRSYS_Busy = 0;
 	mSPRSYS_LastCarry = 0;
 	mSPRSYS_Mathbit = 0;
 	mSPRSYS_MathInProgress = 0;
-
-//	mSPRINIT.Byte = 0;
 
 	mSPRGO = FALSE;
 	mEVERON = FALSE;
@@ -206,7 +207,7 @@ void CSusie::DoMathMultiply(void)
 	result = (ULONG)mMATHABCD.Words.AB * (ULONG)mMATHABCD.Words.CD;
 	mMATHEFGH.Long = result;
 
-	if (mSPRSYS_SignedMath) {
+	if (mSPRSYS & SignedMath) {
 		TRACE_SUSIE0("DoMathMultiply() - SIGNED");
 		// Add the sign bits, only >0 is +ve result
 		mMATHEFGH_sign = mMATHAB_sign+mMATHCD_sign;
@@ -223,7 +224,7 @@ void CSusie::DoMathMultiply(void)
 	TRACE_SUSIE2("DoMathMultiply() AB=$%04x * CD=$%04x", mMATHABCD.Words.AB, mMATHABCD.Words.CD);
 
 	// Check overflow, if B31 has changed from 1->0 then its overflow time
-	if (mSPRSYS_Accumulate) {
+	if (mSPRSYS & Accumulate) {
 		TRACE_SUSIE0("DoMathMultiply() - ACCUMULATED JKLM+=EFGH");
 		ULONG tmp = mMATHJKLM.Long + mMATHEFGH.Long;
 		// Let sign change indicate overflow
@@ -308,12 +309,12 @@ ULONG CSusie::PaintSprites(void)
 		// Its mentioned under the bits that are broke section in the bluebook
 		if (!(mSCBNEXT.Word & 0xff00)) {
 			TRACE_SUSIE0("PaintSprites() mSCBNEXT==0 - FINISHED");
-			mSPRSYS_Status = 0;	// Engine has finished
+			mSPRSYS_Busy = 0;	// Engine has finished
 			mSPRGO = FALSE;
 			break;
 		}
 		else {
-			mSPRSYS_Status = 1;
+			mSPRSYS_Busy = 1;
 		}
 
 		mTMPADR.Word = mSCBNEXT.Word;	// Copy SCB pointer
@@ -329,18 +330,11 @@ ULONG CSusie::PaintSprites(void)
 		data = RAM_PEEK(mTMPADR.Word);			// Fetch control 1
 		TRACE_SUSIE1("PaintSprites() SPRCTL1 $%02x", data);
 		mSPRCTL1 = data;
-//		mSPRCTL1_StartLeft = data & 0x0001;
-//		mSPRCTL1_StartUp = data & 0x0002;
-//		mSPRCTL1_SkipSprite = data & 0x0004;
-//		mSPRCTL1_ReloadPalette = data & 0x0008;
-//		mSPRCTL1_ReloadDepth = (data & 0x0030)>>4;
-//		mSPRCTL1_Sizing = data & 0x0040;
-//		mSPRCTL1_Literal = data & 0x0080;
 		mTMPADR.Word += 1;
 
 		data = RAM_PEEK(mTMPADR.Word);			// Collision num
 		TRACE_SUSIE1("PaintSprites() SPRCOLL $%02x", data);
-		mSPRCOLL = (data & 0x002f) | mSPRSYS_NoCollide;
+		mSPRCOLL = (data & 0x2f) | (mSPRSYS & NoCollide);
 		mTMPADR.Word += 1;
 
 		mSCBNEXT.Word = RAM_PEEKW(mTMPADR.Word);	// Next SCB
@@ -664,7 +658,7 @@ ULONG CSusie::PaintSprites(void)
 							// For every destination line we can modify SPRHSIZ & SPRVSIZ & TILTACUM
 							if (enable_stretch) {
 								mSPRHSIZ.Word += mSTRETCH.Word;
-//								if (mSPRSYS_VStretch) mSPRVSIZ.Word += mSTRETCH.Word;
+//								if (mSPRSYS & VStretch) mSPRVSIZ.Word += mSTRETCH.Word;
 							}
 							if (enable_tilt) {
 								// Manipulate the tilt stuff
@@ -673,7 +667,7 @@ ULONG CSusie::PaintSprites(void)
 						}
 						// According to the docs this increments per dest line
 						// but only gets set when the source line is read
-						if (mSPRSYS_VStretch) mSPRVSIZ.Word += mSTRETCH.Word*pixel_height;
+						if (mSPRSYS & VStretch) mSPRVSIZ.Word += mSTRETCH.Word*pixel_height;
 
 						// Update the line start for our next run thru the loop
 						mSPRDLINE.Word += mSPRDOFF.Word;
@@ -791,7 +785,7 @@ void CSusie::Poke(ULONG addr, UBYTE data)
 			TRACE_SUSIE2("Poke(MATHC,%02x) at PC=$%04x", data, mSystem.mCpu->GetPC());
 			mMATHABCD.Bytes.C = data;
 			// Perform sign conversion if required
-			if (mSPRSYS_SignedMath) {
+			if (mSPRSYS & SignedMath) {
 				// Account for the math bug that 0x8000 is +ve & 0x0000 is -ve by subracting 1
 				if ((mMATHABCD.Words.CD - 1) & 0x8000) {
 					UWORD conv;
@@ -816,7 +810,7 @@ void CSusie::Poke(ULONG addr, UBYTE data)
 			TRACE_SUSIE2("Poke(MATHA,%02x) at PC=$%04x", data, mSystem.mCpu->GetPC());
 			mMATHABCD.Bytes.A = data;
 			// Perform sign conversion if required
-			if (mSPRSYS_SignedMath) {
+			if (mSPRSYS & SignedMath) {
 				// Account for the math bug that 0x8000 is +ve & 0x0000 is -ve by subracting 1
 				if ((mMATHABCD.Words.AB - 1) & 0x8000) {
 					UWORD conv;
@@ -888,29 +882,20 @@ void CSusie::Poke(ULONG addr, UBYTE data)
 			lnxSuzyWrite(addr, data);
 			TRACE_SUSIE2("Poke(SPRCTL0,%02x) at PC=$%04x", data, mSystem.mCpu->GetPC());
 			break;
-//		case (SPRCTL1 & 0xff):
-//			mSPRCTL1_StartLeft = data & 0x0001;
-//			mSPRCTL1_StartUp = data & 0x0002;
-//			mSPRCTL1_SkipSprite = data & 0x0004;
-//			mSPRCTL1_ReloadPalette = data & 0x0008;
-//			mSPRCTL1_ReloadDepth = (data & 0x0030)>>4;
-//			mSPRCTL1_Sizing = data & 0x0040;
-//			mSPRCTL1_Literal = data & 0x0080;
-//			TRACE_SUSIE2("Poke(SPRCTL1,%02x) at PC=$%04x", data, mSystem.mCpu->GetPC());
-//			break;
 		case (SPRGO & 0xff):
 			mSPRGO = data & 0x01;
 			mEVERON = data & 0x04;
 			TRACE_SUSIE2("Poke(SPRGO,%02x) at PC=$%04x", data, mSystem.mCpu->GetPC());
 			break;
 		case (SPRSYS & 0xff):
-			mSPRSYS_StopOnCurrent = data & 0x0002;
-			if (data & 0x0004) mSPRSYS_UnsafeAccess = 0;
-			mSPRSYS_LeftHand = data & 0x0008;
-			mSPRSYS_VStretch = data & 0x0010;
-			mSPRSYS_NoCollide = data & 0x0020;
-			mSPRSYS_Accumulate = data & 0x0040;
-			mSPRSYS_SignedMath = data & 0x0080;
+//			mSPRSYS_StopOnCurrent = data & 0x0002;
+			if (data & UnsafeAccess) mSPRSYS_UnsafeAccess = 0;
+			mSPRSYS = data;
+//			mSPRSYS_LeftHand = data & 0x0008;
+//			mSPRSYS_VStretch = data & 0x0010;
+//			mSPRSYS_NoCollide = data & 0x0020;
+//			mSPRSYS_Accumulate = data & 0x0040;
+//			mSPRSYS_SignedMath = data & 0x0080;
 			TRACE_SUSIE2("Poke(SPRSYS,%02x) at PC=$%04x", data, mSystem.mCpu->GetPC());
 			break;
 
@@ -1001,20 +986,20 @@ UBYTE CSusie::Peek(ULONG addr)
 
 		case (SPRSYS & 0xff):
 			retval = 0x0000;
-			//	retval += (mSPRSYS_Status) ? 0x0001 : 0x0000;
-			retval += (mikey_0.suzieDoneTime) ? 0x0001 : 0x0000;
-			retval += (mSPRSYS_StopOnCurrent) ? 0x0002 : 0x0000;
-			retval += (mSPRSYS_UnsafeAccess) ? 0x0004 : 0x0000;
-			retval += (mSPRSYS_LeftHand) ? 0x0008 : 0x0000;
-			retval += (mSPRSYS_VStretch) ? 0x0010 : 0x0000;
-			retval += (mSPRSYS_LastCarry) ? 0x0020 : 0x0000;
-			retval += (mSPRSYS_Mathbit) ? 0x0040 : 0x0000;
-			retval += (mSPRSYS_MathInProgress) ? 0x0080 : 0x0000;
+			//	retval |= (mSPRSYS_Busy) ? 0x0001 : 0x0000;
+			retval |= (mikey_0.suzieDoneTime) ? 0x0001 : 0x0000;
+			retval |= (mSPRSYS & StopOnCurrent);
+			retval |= (mSPRSYS_UnsafeAccess) ? 0x0004 : 0x0000;
+			retval |= (mSPRSYS & LeftHand);
+			retval |= (mSPRSYS & VStretch);
+			retval |= (mSPRSYS_LastCarry) ? 0x0020 : 0x0000;
+			retval |= (mSPRSYS_Mathbit) ? 0x0040 : 0x0000;
+			retval |= (mSPRSYS_MathInProgress) ? 0x0080 : 0x0000;
 			TRACE_SUSIE2("Peek(SPRSYS)=$%02x at PC=$%04x", retval, mSystem.mCpu->GetPC());
 			return retval;
 
 		case (JOYSTICK & 0xff):
-			if (mSPRSYS_LeftHand) {
+			if (mSPRSYS & LeftHand) {
 				retval = mJOYSTICK.Byte;
 			}
 			else {
