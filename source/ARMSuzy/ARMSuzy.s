@@ -25,9 +25,8 @@
 	.global suzyGetStateSize
 	.global suzRead
 	.global suzWrite
-	.global suzRenderLine
+	.global suzLineRender
 	.global suzLineStart
-	.global suzLineInit
 
 	.syntax unified
 	.arm
@@ -663,58 +662,54 @@ suzLineStart:				;@ Out = SPRDOFF.
 
 	bx lr
 ;@----------------------------------------------------------------------------
-suzLineInit:				;@ In r0=vOff.
-	.type	suzLineInit STT_FUNC
+suzLineRender:				;@ In r0=scr_h_strt, r1=hSign, r2=hQuadOff, r3=vOff.
+							;@ Out = true if pixels rendered.
+	.type	suzLineRender STT_FUNC
 ;@----------------------------------------------------------------------------
-	cmp r0,#GAME_HEIGHT
+	cmp r3,#GAME_HEIGHT
 	movcs r0,#0
 	bxcs lr
 
 	ldr suzptr,=suzy_0
-	stmfd sp!,{r1-r3}
-	ldr r2,[suzptr,#suzVidBas]	;@ Also suzCollBas
-	mov r1,r2,lsl#16
-//	ldrh r2,[suzptr,#suzCollBas]
-	ldr r3,[suzptr,#suzyRAM]
-	add r0,r0,r0,lsl#2			;@ *5
-	add r1,r1,r0,lsl#4+16		;@ *16
-	add r1,r3,r1,lsr#16
-	str r1,[suzptr,#suzLineBaseAddress]
-	add r2,r2,r0,lsl#4+16		;@ *16
-	add r2,r3,r2,lsr#16
-	str r2,[suzptr,#suzLineCollisionAddress]
-
-	ldrh r1,[suzptr,#suzSprDLine]
-	ldrb r0,[r3,r1]
-	add r1,r1,#1
-	strh r1,[suzptr,#suzTmpAdr]
-	sub r1,r0,#1
-	mov r1,r1,lsl#3
-	str r1,[suzptr,#suzLinePacketBitsLeft]
-
-	ldr r3,[suzptr,#suzyCyclesUsed]
-	add r3,r3,#3				;@ SPR_RDWR_CYC
-	str r3,[suzptr,#suzyCyclesUsed]
-
-	mov r2,#0
-	str r2,[suzptr,#suzLineShiftReg]
-	str r2,[suzptr,#suzLineShiftRegCount]
-
-	ldrb r3,[suzptr,#suzSprCtl1]
-	ands r3,r3,#0x80			;@ Literal
-	movne r3,r1					;@ LineRepeatCount = LinePacketBitsLeft
-	movne r2,#1					;@ line_abs_literal
-	str r2,[suzptr,#suzLineType]
-	str r3,[suzptr,#suzLineRepeatCount]
-
-	ldmfd sp!,{r0-r2}
-//	bx lr
-;@----------------------------------------------------------------------------
-suzRenderLine:				;@ In r0=scr_h_strt, r1=hSign, r2=hQuadOff. Out = if pixels rendered.
-	.type	suzRenderLine STT_FUNC
-;@----------------------------------------------------------------------------
-//	ldr suzptr,=suzy_0
 	stmfd sp!,{r4-r11,lr}
+	ldr r9,[suzptr,#suzyCyclesUsed]
+
+	ldr r6,[suzptr,#suzVidBas]	;@ Also suzCollBas
+	mov r5,r6,lsl#16
+	ldr r7,[suzptr,#suzyRAM]
+	add r3,r3,r3,lsl#2			;@ *5
+	add r5,r5,r3,lsl#4+16		;@ *16
+	add r5,r7,r5,lsr#16
+	str r5,[suzptr,#suzLineBaseAddress]
+	add r6,r6,r3,lsl#4+16		;@ *16
+	add r6,r7,r6,lsr#16
+	str r6,[suzptr,#suzLineCollisionAddress]
+
+	ldrh r5,[suzptr,#suzSprDLine]
+	ldrb r3,[r7,r5]
+	add r5,r5,#1
+	strh r5,[suzptr,#suzTmpAdr]
+	sub r5,r3,#1
+	mov r5,r5,lsl#3
+	str r5,[suzptr,#suzLinePacketBitsLeft]
+
+	add r9,r9,#3				;@ SPR_RDWR_CYC
+
+	mov r6,#0
+	str r6,[suzptr,#suzLineShiftReg]
+	str r6,[suzptr,#suzLineShiftRegCount]
+
+	ldrb r7,[suzptr,#suzSprCtl1]
+	ands r7,r7,#0x80			;@ Literal
+	movne r7,r5					;@ LineRepeatCount = LinePacketBitsLeft
+	movne r6,#1					;@ line_abs_literal
+	str r6,[suzptr,#suzLineType]
+	str r7,[suzptr,#suzLineRepeatCount]
+
+;@----------------------------------------------------------------------------
+suzRenderLine:				;@ In r0=scr_h_strt, r1=hSign, r2=hQuadOff.
+							;@ Out = if pixels rendered.
+;@----------------------------------------------------------------------------
 
 	;@ Work out the horizontal pixel start position, start + tilt
 	ldrsh r3,[suzptr,#suzHPosStrt]
@@ -738,17 +733,18 @@ suzRenderLine:				;@ In r0=scr_h_strt, r1=hSign, r2=hQuadOff. Out = if pixels re
 	mov r5,r1
 	ldrh r6,[suzptr,#suzSprHSiz]
 	;@ Zero/Force the horizontal scaling accumulator
-	adds r7,r1,#1
-	ldrhne r7,[suzptr,#suzHSizOff]	;@ If hSign == 1
+	adds r0,r1,#1
+	ldrhne r0,[suzptr,#suzHSizOff]	;@ If hSign == 1
+	orr r6,r6,r0,lsl#16
 	mov r8,#0					;@ onScreen
 rendWhile:
 	bl suzLineGetPixel
 	cmp r0,#0x80
 	beq exitRender
-	add r7,r7,r6				;@ HSIZACUM.Word += SPRHSIZ.Word
-	ands r9,r7,#0xFF00			;@ pixel_width = HSIZACUM.Byte.High
+	add r6,r6,r6,lsl#16			;@ HSIZACUM.Word += SPRHSIZ.Word
+	movs r7,r6,lsr#24			;@ pixel_width = HSIZACUM.Byte.High
 	beq rendWhile
-	and r7,r7,#0xFF				;@ HSIZACUM.Byte.High = 0
+	bic r6,r6,#0xFF000000		;@ HSIZACUM.Byte.High = 0
 	mov r10,r0
 rendLoop:
 	cmp r4,#GAME_WIDTH
@@ -759,7 +755,7 @@ rendLoop:
 	mov r8,#1					;@ onScreen = TRUE
 continueRend:
 	add r4,r4,r5				;@ hoff += hsign
-	subs r9,r9,#0x0100
+	subs r7,r7,#1
 	bne rendLoop
 	b rendWhile
 checkBail:
@@ -767,6 +763,7 @@ checkBail:
 	beq continueRend
 exitRender:
 	mov r0,r8
+	str r9,[suzptr,#suzyCyclesUsed]
 	ldmfd sp!,{r4-r11,lr}
 	bx lr
 
@@ -797,9 +794,7 @@ suzLineGetBits:				;@ In r0=bitCount, less or equal to 8, Out r0=bits.
 	strh r2,[suzptr,#suzTmpAdr]
 	str r3,[suzptr,#suzLineShiftReg]
 
-	ldr r2,[suzptr,#suzyCyclesUsed]
-	add r2,r2,#3*3				;@ 3 * SPR_RDWR_CYC
-	str r2,[suzptr,#suzyCyclesUsed]
+	add r9,r9,#3*3				;@ 3 * SPR_RDWR_CYC
 
 	ldmfd sp!,{r4-r5}
 extractBits:
@@ -1014,9 +1009,7 @@ suzWritePixel:				;@ In r0=hoff, r1=pixel.
 	orrne r3,r3,r1
 	strb r3,[r2,r0,lsr#1]
 
-	ldr r2,[suzptr,#suzyCyclesUsed]
-	add r2,r2,#2*3				;@ 2*SPR_RDWR_CYC
-	str r2,[suzptr,#suzyCyclesUsed]
+	add r9,r9,#2*3				;@ 2*SPR_RDWR_CYC
 
 	bx lr
 ;@----------------------------------------------------------------------------
@@ -1029,9 +1022,7 @@ suzXorPixel:				;@ In r0=hoff, r1=pixel.
 	eorne r3,r3,r1
 	strb r3,[r2,r0,lsr#1]
 
-	ldr r2,[suzptr,#suzyCyclesUsed]
-	add r2,r2,#3*3				;@ 3*SPR_RDWR_CYC
-	str r2,[suzptr,#suzyCyclesUsed]
+	add r9,r9,#3*3				;@ 3*SPR_RDWR_CYC
 
 	bx lr
 ;@----------------------------------------------------------------------------
@@ -1049,9 +1040,7 @@ suzWriteCollision:			;@ In r0=hoff.
 	orrne r3,r3,r1
 	strb r3,[r2,r0,lsr#1]
 
-	ldr r2,[suzptr,#suzyCyclesUsed]
-	add r2,r2,#2*3				;@ 2*SPR_RDWR_CYC
-	str r2,[suzptr,#suzyCyclesUsed]
+	add r9,r9,#2*3				;@ 2*SPR_RDWR_CYC
 
 	bx lr
 ;@----------------------------------------------------------------------------
@@ -1075,9 +1064,7 @@ suzTestCollision:			;@ In r0=hoff. Out r0=collision
 	cmp r2,r0
 	strbmi r0,[suzptr,#suzCollision]
 
-	ldr r2,[suzptr,#suzyCyclesUsed]
-	add r2,r2,#3*3				;@ 3*SPR_RDWR_CYC
-	str r2,[suzptr,#suzyCyclesUsed]
+	add r9,r9,#3*3				;@ 3*SPR_RDWR_CYC
 
 	bx lr
 

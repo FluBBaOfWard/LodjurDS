@@ -607,18 +607,8 @@ ULONG CSusie::PaintSprites(void)
 							if (vSign == 1 && voff >= LYNX_SCREEN_HEIGHT) break;
 							if (vSign == -1 && voff < 0) break;
 
-							// Only allow the draw to take place if the line is visible
-/*							if (voff >= 0 && voff < LYNX_SCREEN_HEIGHT) {
-								// Initialise our line
-								suzLineInit(voff);
-
-								// Now render an individual destination line
-								if (suzRenderLine(screen_h_start, hSign, hQuadOff)) {
-									everonscreen = TRUE;
-								}
-							}*/
 							// Now render an individual destination line
-							if (suzLineInit(voff, screen_h_start, hSign, hQuadOff)) {
+							if (suzLineRender(screen_h_start, hSign, hQuadOff, voff)) {
 								everonscreen = TRUE;
 							}
 							voff += vSign;
