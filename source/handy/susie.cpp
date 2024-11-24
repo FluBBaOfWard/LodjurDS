@@ -91,21 +91,20 @@
 #define mSPRGO suzy_0.sprGo
 #define mSPRSYS suzy_0.sprSys
 
-#define mLineBaseAddress suzy_0.lineBaseAddress
-#define mLineCollisionAddress suzy_0.lineCollisionAddress
+//#define mLineBaseAddress suzy_0.lineBaseAddress
+//#define mLineCollisionAddress suzy_0.lineCollisionAddress
 #define mCollision suzy_0.collision
 #define cycles_used suzy_0.cyclesUsed
 
-#define mSPRCTL0_PixelBits suzy_0.sprCtl0_PixelBits
+//#define mSPRCTL0_PixelBits suzy_0.sprCtl0_PixelBits
 
-#define mLineType suzy_0.lineType
-#define mLineShiftRegCount suzy_0.lineShiftRegCount
-#define mLineShiftReg suzy_0.lineShiftReg
-#define mLineRepeatCount suzy_0.lineRepeatCount
-#define mLinePixel suzy_0.linePixel
-#define mLinePacketBitsLeft suzy_0.linePacketBitsLeft
+//#define mLineType suzy_0.lineType
+//#define mLineShiftRegCount suzy_0.lineShiftRegCount
+//#define mLineShiftReg suzy_0.lineShiftReg
+//#define mLineRepeatCount suzy_0.lineRepeatCount
+//#define mLinePixel suzy_0.linePixel
+//#define mLinePacketBitsLeft suzy_0.linePacketBitsLeft
 #define mPenIndex suzy_0.penIndex
-//#define mHSIZACUM suzy_0.hSizAcum
 
 // SprCtl0
 #define Type  (0x07)
@@ -165,16 +164,13 @@ void CSusie::Reset(void)
 	mMATHCD_sign = 1;
 	mMATHEFGH_sign = 1;
 
-	mSPRCTL0_PixelBits = 0;
+//	mSPRCTL0_PixelBits = 0;
 
 	mSPRSYS_UnsafeAccess = 0;
 	mSPRSYS_Busy = 0;
 	mSPRSYS_LastCarry = 0;
 	mSPRSYS_Mathbit = 0;
 	mSPRSYS_MathInProgress = 0;
-
-//	mSPRGO = FALSE;
-//	mEVERON = FALSE;
 
 	mJOYSTICK.Byte = 0;
 	mSWITCHES.Byte = 0;
@@ -319,8 +315,6 @@ ULONG CSusie::PaintSprites(void)
 		int data = RAM_PEEK(mTMPADR.Word);			// Fetch control 0
 		TRACE_SUSIE1("PaintSprites() SPRCTL0 $%02x", data);
 		lnxSuzyWrite(0xFC80, data);
-//		mSPRCTL0 = data;
-//		mSPRCTL0_PixelBits = ((data & 0x00c0)>>6) + 1;
 		mTMPADR.Word += 1;
 
 		data = RAM_PEEK(mTMPADR.Word);			// Fetch control 1
@@ -632,9 +626,6 @@ ULONG CSusie::PaintSprites(void)
 								mTILTACUM.Byte.High = 0;
 								int hoff = (int)((SWORD)mHPOSSTRT.Word) - screen_h_start;
 
-								// Zero/Force the horizontal scaling accumulator
-//								mHSIZACUM.Word = (hSign == 1) ? mHSIZOFF.Word : 0;
-
 								// Take the sign of the first quad (0) as the basic
 								// sign, all other quads drawing in the other direction
 								// get offset by 1 pixel in the other direction, this
@@ -873,16 +864,6 @@ void CSusie::Poke(ULONG addr, UBYTE data)
 			TRACE_SUSIE2("Poke(MATHJ,%02x) at PC=$%04x", data, mSystem.mCpu->GetPC());
 			break;
 
-//		case (SPRCTL0 & 0xff):
-//			mSPRCTL0_PixelBits = ((data & 0x00c0)>>6) + 1;
-//			lnxSuzyWrite(addr, data);
-//			TRACE_SUSIE2("Poke(SPRCTL0,%02x) at PC=$%04x", data, mSystem.mCpu->GetPC());
-//			break;
-//		case (SPRGO & 0xff):
-//			mSPRGO = data & 0x01;
-//			mEVERON = data & 0x04;
-//			TRACE_SUSIE2("Poke(SPRGO,%02x) at PC=$%04x", data, mSystem.mCpu->GetPC());
-//			break;
 		case (SPRSYS & 0xff):
 			if (data & UnsafeAccess) mSPRSYS_UnsafeAccess = 0;
 			mSPRSYS = data;

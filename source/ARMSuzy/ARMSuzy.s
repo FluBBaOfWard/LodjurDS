@@ -664,7 +664,6 @@ suzRenderLine:				;@ In r0=hOff, r1=hSign. Out = if pixels rendered.
 	;@ Zero/Force the horizontal scaling accumulator
 	adds r7,r1,#1
 	ldrhne r7,[suzptr,#suzHSizOff]	;@ If hSign == 1
-//	ldrh r7,[suzptr,#suzHSizAcum]
 	mov r8,#0					;@ onScreen
 rendWhile:
 	bl suzLineGetPixel
@@ -680,9 +679,7 @@ rendLoop:
 	bcs checkBail
 	mov r0,r4
 	mov r1,r10
-//	ldrb r2,[suzptr,#suzSprCtl0]
-//	bl suzProcessPixel
-	blx r11
+	blx r11						;@ ProcessPixel
 	mov r8,#1					;@ onScreen = TRUE
 continueRend:
 	add r4,r4,r5				;@ hoff += hsign
@@ -693,7 +690,6 @@ checkBail:
 	cmp r8,#0
 	beq continueRend
 exitRender:
-//	strh r7,[suzptr,#suzHSizAcum]
 	mov r0,r8
 	ldmfd sp!,{r4-r11,lr}
 	bx lr
@@ -717,10 +713,13 @@ suzLineInit:				;@ In r0=voff.
 	movcs r0,#0
 	ldrh r1,[suzptr,#suzVidBas]
 	ldrh r2,[suzptr,#suzCollBas]
+	ldr r3,[suzptr,#suzyRAM]
 	add r0,r0,r0,lsl#2			;@ *5
 	add r1,r1,r0,lsl#4			;@ *16
+	add r1,r3,r1
 	str r1,[suzptr,#suzLineBaseAddress]
 	add r2,r2,r0,lsl#4			;@ *16
+	add r2,r3,r2
 	str r2,[suzptr,#suzLineCollisionAddress]
 
 	mov r3,#0
@@ -891,13 +890,13 @@ sprBgrShdw:
 // 0   exclusive-or the data
 sprBoundShdw:
 	cmp r1,#0
-	cmpne r1,#0xE
+	cmpne r1,#0xE				;@ This seems weird
 	bxeq lr
-	stmfd sp!,{r0,lr}
 	cmp r1,#0xF
-	blne suzWritePixel
+	beq suzTestCollision		;@ Only collision
+	stmfd sp!,{r0,lr}
+	bl suzWritePixel
 	ldmfd sp!,{r0,lr}
-	ldrb r1,[suzptr,#suzSprColl]
 	b suzTestCollision
 // BOUNDARY
 // 0   F is opaque
@@ -909,11 +908,11 @@ sprBoundShdw:
 sprBound:
 	cmp r1,#0
 	bxeq lr
-	stmfd sp!,{r0,lr}
 	cmp r1,#0xF
-	blne suzWritePixel
+	beq suzTestCollision		;@ Only collision
+	stmfd sp!,{r0,lr}
+	bl suzWritePixel
 	ldmfd sp!,{r0,lr}
-	ldrb r1,[suzptr,#suzSprColl]
 	b suzTestCollision
 // NORMAL
 // 1   F is opaque
@@ -928,7 +927,6 @@ sprNormal:
 	stmfd sp!,{r0,lr}
 	bl suzWritePixel
 	ldmfd sp!,{r0,lr}
-	ldrb r1,[suzptr,#suzSprColl]
 	b suzTestCollision
 // XOR SHADOW
 // 1   F is opaque
@@ -945,7 +943,6 @@ sprXorShdw:
 	stmfd sp!,{r0,lr}
 	bl suzXorPixel
 	ldmfd sp!,{r0,lr}
-	ldrb r1,[suzptr,#suzSprColl]
 	b suzTestCollision
 // SHADOW
 // 1   F is opaque
@@ -962,7 +959,6 @@ sprShadow:
 	stmfd sp!,{r0,lr}
 	bl suzWritePixel
 	ldmfd sp!,{r0,lr}
-	ldrb r1,[suzptr,#suzSprColl]
 	b suzTestCollision
 ;@----------------------------------------------------------------------------
 // NOCOLLIDE
@@ -989,14 +985,14 @@ suzWritePixel:				;@ In r0=hoff, r1=pixel.
 ;@----------------------------------------------------------------------------
 	ldr r2,[suzptr,#suzLineBaseAddress]
 	tst r0,#1
-	add r2,r2,r0,lsr#1
-	ldr r0,[suzptr,#suzyRAM]
-	ldrb r3,[r0,r2]
+//	add r2,r2,r0,lsr#1
+//	ldr r0,[suzptr,#suzyRAM]
+	ldrb r3,[r2,r0,lsr#1]
 	andeq r3,r3,#0x0F
 	orreq r3,r3,r1,lsl#4
 	andne r3,r3,#0xF0
 	orrne r3,r3,r1
-	strb r3,[r0,r2]
+	strb r3,[r2,r0,lsr#1]
 	ldr r0,[suzptr,#suzyCyclesUsed]
 	add r0,r0,#2*3				;@ 2*SPR_RDWR_CYC
 	str r0,[suzptr,#suzyCyclesUsed]
@@ -1007,12 +1003,12 @@ suzXorPixel:				;@ In r0=hoff, r1=pixel.
 ;@----------------------------------------------------------------------------
 	ldr r2,[suzptr,#suzLineBaseAddress]
 	tst r0,#1
-	add r2,r2,r0,lsr#1
-	ldr r0,[suzptr,#suzyRAM]
-	ldrb r3,[r0,r2]
+//	add r2,r2,r0,lsr#1
+//	ldr r0,[suzptr,#suzyRAM]
+	ldrb r3,[r2,r0,lsr#1]
 	eoreq r3,r3,r1,lsl#4
 	eorne r3,r3,r1
-	strb r3,[r0,r2]
+	strb r3,[r2,r0,lsr#1]
 	ldr r0,[suzptr,#suzyCyclesUsed]
 	add r0,r0,#3*3				;@ 3*SPR_RDWR_CYC
 	str r0,[suzptr,#suzyCyclesUsed]
@@ -1025,14 +1021,14 @@ suzWriteCollision:			;@ In r0=hoff, r1=colVal.
 	bxpl lr
 	ldr r2,[suzptr,#suzLineCollisionAddress]
 	tst r0,#1
-	add r2,r2,r0,lsr#1
-	ldr r0,[suzptr,#suzyRAM]
-	ldrb r3,[r0,r2]
+//	add r2,r2,r0,lsr#1
+//	ldr r0,[suzptr,#suzyRAM]
+	ldrb r3,[r2,r0,lsr#1]
 	andeq r3,r3,#0x0F
 	orreq r3,r3,r1,lsl#4
 	andne r3,r3,#0xF0
 	orrne r3,r3,r1
-	strb r3,[r0,r2]
+	strb r3,[r2,r0,lsr#1]
 
 	ldr r0,[suzptr,#suzyCyclesUsed]
 	add r0,r0,#2*3				;@ 2*SPR_RDWR_CYC
@@ -1042,13 +1038,14 @@ suzWriteCollision:			;@ In r0=hoff, r1=colVal.
 ;@----------------------------------------------------------------------------
 suzTestCollision:			;@ In r0=hoff, r1=colVal. Out r0=collision
 ;@----------------------------------------------------------------------------
+	ldrb r1,[suzptr,#suzSprColl]
 	cmp r1,#0x10
 	bxpl lr
 	ldr r2,[suzptr,#suzLineCollisionAddress]
 	tst r0,#1
-	add r2,r2,r0,lsr#1
-	ldr r0,[suzptr,#suzyRAM]
-	ldrb r3,[r2,r0]!
+//	add r2,r2,r0,lsr#1
+//	ldr r0,[suzptr,#suzyRAM]
+	ldrb r3,[r2,r0,lsr#1]!
 	moveq r0,r3,lsr#4
 	andeq r3,r3,#0x0F
 	orreq r3,r3,r1,lsl#4

@@ -107,55 +107,6 @@ typedef struct
 		struct
 		{
 #ifdef MSB_FIRST
-			UBYTE	High;
-			UBYTE	Low;
-#else
-			UBYTE	Low;
-			UBYTE	High;
-#endif
-		}Byte;
-		UWORD	Word;
-	};
-}UUWORD;
-
-
-typedef struct
-{
-	union
-	{
-		struct
-		{
-#ifdef MSB_FIRST
-			UBYTE	Fc1:1;
-			UBYTE	Fc2:1;
-			UBYTE	Fc3:1;
-			UBYTE	reserved:1;
-			UBYTE	Ac1:1;
-			UBYTE	Ac2:1;
-			UBYTE	Ac3:1;
-			UBYTE	Ac4:1;
-#else
-			UBYTE	Ac4:1;
-			UBYTE	Ac3:1;
-			UBYTE	Ac2:1;
-			UBYTE	Ac1:1;
-			UBYTE	reserved:1;
-			UBYTE	Fc3:1;
-			UBYTE	Fc2:1;
-			UBYTE	Fc1:1;
-#endif
-		}Bits;
-		UBYTE	Byte;
-	};
-}TSPRINIT;
-
-typedef struct
-{
-	union
-	{
-		struct
-		{
-#ifdef MSB_FIRST
 			UBYTE	Up:1;
 			UBYTE	Down:1;
 			UBYTE	Left:1;
@@ -369,9 +320,6 @@ class CSusie : public CLynxBase
 		int			mSPRSYS_LastCarry;
 		int			mSPRSYS_Mathbit;
 		int			mSPRSYS_MathInProgress;
-
-//		ULONG		mSPRGO;			// CPU
-//		int			mEVERON;
 
 		UBYTE		*mRamPointer;
 
