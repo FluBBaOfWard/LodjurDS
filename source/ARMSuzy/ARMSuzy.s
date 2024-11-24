@@ -696,13 +696,13 @@ suzLineRender:				;@ In r0=hSign, r1=hQuadOff, r2=vOff.
 	add r9,r9,#3				;@ SPR_RDWR_CYC
 
 	mov r6,#0
-	str r6,[suzptr,#suzLineShiftReg]
 	str r6,[suzptr,#suzLineShiftRegCount]
+	str r6,[suzptr,#suzLineShiftReg]
 
 	ldrb r7,[suzptr,#suzSprCtl1]
 	ands r7,r7,#0x80			;@ Literal -> line_abs_literal
 	movne r6,r5					;@ LineRepeatCount = LinePacketBitsLeft
-	str r7,[suzptr,#suzLineType]
+	strb r7,[suzptr,#suzLineType]
 	str r6,[suzptr,#suzLineRepeatCount]
 
 ;@----------------------------------------------------------------------------
@@ -779,30 +779,30 @@ suzLineGetBits:				;@ In r0=bitCount, less or equal to 8, Out r0=bits.
 	bxle lr
 	str r1,[suzptr,#suzLinePacketBitsLeft]
 
-	ldr r1,[suzptr,#suzLineShiftRegCount]
-	ldr r3,[suzptr,#suzLineShiftReg]
-	subs r1,r1,r0
+	ldrd r2,r3,[suzptr,#suzLineShiftRegCount]
+//	ldr r3,[suzptr,#suzLineShiftReg]
+	subs r2,r2,r0
 	bcc fetchNewBits
 extractBits:
-	str r1,[suzptr,#suzLineShiftRegCount]
-	rsb r2,r0,#32
-	sub r1,r2,r1
-	mov r3,r3,lsl r1
-	mov r0,r3,lsr r2
+	str r2,[suzptr,#suzLineShiftRegCount]
+	rsb r1,r0,#32
+	sub r2,r1,r2
+	mov r3,r3,lsl r2
+	mov r0,r3,lsr r1
 	bx lr
 
 fetchNewBits:
 	stmfd sp!,{r4-r5}
 	ldr r4,[suzptr,#suzyRAM]
 	ldrh r5,[suzptr,#suzTmpAdr]
-	add r1,r1,#24
-	ldrb r2,[r4,r5]!
-	orr r3,r2,r3,lsl#8
-	ldrb r2,[r4,#1]
-	orr r3,r2,r3,lsl#8
-	ldrb r2,[r4,#2]
+	add r2,r2,#24
+	ldrb r1,[r4,r5]!
+	orr r3,r1,r3,lsl#8
+	ldrb r1,[r4,#1]
+	orr r3,r1,r3,lsl#8
+	ldrb r1,[r4,#2]
 	add r5,r5,#3
-	orr r3,r2,r3,lsl#8
+	orr r3,r1,r3,lsl#8
 	strh r5,[suzptr,#suzTmpAdr]
 	str r3,[suzptr,#suzLineShiftReg]
 
@@ -816,7 +816,7 @@ suzLineGetPixel:			;@ Out r0=pixel
 ;@----------------------------------------------------------------------------
 	stmfd sp!,{r4,lr}
 	ldr r1,[suzptr,#suzLineRepeatCount]
-	ldr r2,[suzptr,#suzLineType]
+	ldrb r2,[suzptr,#suzLineType]
 	cmp r1,#0
 	beq fetchPacket
 
@@ -844,7 +844,7 @@ checkMoreLineType:
 	ldrb r0,[r1,r0]
 	ldmfd sp!,{r4,pc}
 fetchPacked:
-	ldr r0,[suzptr,#suzLinePixel]
+	ldrb r0,[suzptr,#suzLinePixel]
 	ldmfd sp!,{r4,pc}
 
 fetchPacket:
@@ -857,7 +857,7 @@ fetchPacket:
 	str r1,[suzptr,#suzLineRepeatCount]
 	movcc r2,#3					;@ line_packed
 	movcs r2,#2					;@ line_literal
-	str r2,[suzptr,#suzLineType]
+	strb r2,[suzptr,#suzLineType]
 	bcc packedPix
 	bl suzGetPixelBits
 	add r1,suzptr,#suzPenIndex
@@ -868,7 +868,7 @@ packedPix:
 	bl suzGetPixelBits
 	add r1,suzptr,#suzPenIndex
 	ldrb r0,[r1,r0]
-	str r0,[suzptr,#suzLinePixel]
+	strb r0,[suzptr,#suzLinePixel]
 	ldmfd sp!,{r4,pc}
 
 exitLineEnd:
@@ -894,9 +894,9 @@ sprTypeTbl:
 sprBgrShdw:
 	cmp r1,#0xE
 	beq suzWritePixel
-	stmfd sp!,{r0,lr}
-	bl suzWritePixel
-	ldmfd sp!,{r0,lr}
+	stmfd sp!,{lr}
+	bl suzWritePixel			;@ r0 is not modified
+	ldmfd sp!,{lr}
 	b suzWriteCollision
 // BOUNDARY_SHADOW
 // 0   F is opaque
@@ -911,9 +911,9 @@ sprBoundShdw:
 	bxeq lr
 	cmp r1,#0xF
 	beq suzTestCollision		;@ Only collision
-	stmfd sp!,{r0,lr}
-	bl suzWritePixel
-	ldmfd sp!,{r0,lr}
+	stmfd sp!,{lr}
+	bl suzWritePixel			;@ r0 is not modified
+	ldmfd sp!,{lr}
 	b suzTestCollision
 // BOUNDARY
 // 0   F is opaque
@@ -927,9 +927,9 @@ sprBound:
 	bxeq lr
 	cmp r1,#0xF
 	beq suzTestCollision		;@ Only collision
-	stmfd sp!,{r0,lr}
-	bl suzWritePixel
-	ldmfd sp!,{r0,lr}
+	stmfd sp!,{lr}
+	bl suzWritePixel			;@ r0 is not modified
+	ldmfd sp!,{lr}
 	b suzTestCollision
 // NORMAL
 // 1   F is opaque
@@ -941,9 +941,9 @@ sprBound:
 sprNormal:
 	cmp r1,#0
 	bxeq lr
-	stmfd sp!,{r0,lr}
-	bl suzWritePixel
-	ldmfd sp!,{r0,lr}
+	stmfd sp!,{lr}
+	bl suzWritePixel			;@ r0 is not modified
+	ldmfd sp!,{lr}
 	b suzTestCollision
 // XOR SHADOW
 // 1   F is opaque
@@ -957,9 +957,9 @@ sprXorShdw:
 	bxeq lr
 	cmp r1,#0xE
 	beq suzXorPixel
-	stmfd sp!,{r0,lr}
-	bl suzXorPixel
-	ldmfd sp!,{r0,lr}
+	stmfd sp!,{lr}
+	bl suzXorPixel				;@ r0 is not modified
+	ldmfd sp!,{lr}
 	b suzTestCollision
 // SHADOW
 // 1   F is opaque
@@ -973,9 +973,9 @@ sprShadow:
 	bxeq lr
 	cmp r1,#0xE
 	beq suzWritePixel
-	stmfd sp!,{r0,lr}
-	bl suzWritePixel
-	ldmfd sp!,{r0,lr}
+	stmfd sp!,{lr}
+	bl suzWritePixel			;@ r0 is not modified
+	ldmfd sp!,{lr}
 	b suzTestCollision
 ;@----------------------------------------------------------------------------
 // NOCOLLIDE

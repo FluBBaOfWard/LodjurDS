@@ -81,7 +81,7 @@
 #define mSPRDOFF suzy_0.sprDOff
 #define mCOLLOFF suzy_0.collOff
 #define mVSIZACUM suzy_0.vSizAcum
-#define mHSIZOFF suzy_0.hSizOff
+//#define mHSIZOFF suzy_0.hSizOff
 #define mVSIZOFF suzy_0.vSizOff
 #define mSCBADR suzy_0.SCBAdr
 #define mSPRCTL0 suzy_0.sprCtl0
@@ -327,7 +327,7 @@ ULONG CSusie::PaintSprites(void)
 			// Initialise the collision depositary
 
 // Although Tom Schenck says this is correct, it doesnt appear to be
-//			if (mSPRCOLL <= 0xF)
+//			if (mSPRCOLL < 0x10)
 //			{
 //				mCollision = RAM_PEEK((mSCBADR.Word+mCOLLOFF.Word) & 0xffff) & 0x0f;
 //			}

@@ -144,13 +144,13 @@ suzSprSysStat:		.byte 0		;@ 0x92 System Control, read.
 suzCollision:		.byte 0		;@ Collision value for current sprite.
 wsvLatchedDispCtrl:	.byte 0		;@ Latched Display Control
 suzSprCtl0_PixelBits:	.byte 0
-suzPadding2:		.skip 4
+suzLineType:		.byte 0	;@
+suzLinePixel:		.byte 0	;@
+suzPadding2:		.skip 2
 
-suzLineType:			.long 0	;@
 suzLineShiftRegCount:	.long 0	;@
 suzLineShiftReg:		.long 0	;@
 suzLineRepeatCount:		.long 0	;@
-suzLinePixel:			.long 0	;@
 suzLinePacketBitsLeft:	.long 0	;@
 
 suzPenIndex:		.space 16	;@

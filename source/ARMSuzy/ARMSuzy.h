@@ -114,14 +114,14 @@ typedef struct {
 	u8 collision;		// Collision value for current sprite.
 	u8 wsvLatchedDispCtrl;		// Latched Display Control
 	u8 sprCtl0_PixelBits;
-	u8 padding2[4];
+	u8 lineType;
+	u8 linePixel;
+	u8 padding2[2];
 
 	// Line rendering related variables
-	u32 lineType;
 	u32 lineShiftRegCount;
 	u32 lineShiftReg;
 	u32 lineRepeatCount;
-	u32 linePixel;
 	u32 linePacketBitsLeft;
 
 	u8 penIndex[16];
