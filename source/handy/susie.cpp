@@ -608,7 +608,7 @@ ULONG CSusie::PaintSprites(void)
 							if (vSign == -1 && voff < 0) break;
 
 							// Now render an individual destination line
-							if (suzLineRender(screen_h_start, hSign, hQuadOff, voff)) {
+							if (suzLineRender(hSign, hQuadOff, voff)) {
 								everonscreen = TRUE;
 							}
 							voff += vSign;

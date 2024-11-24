@@ -662,34 +662,34 @@ suzLineStart:				;@ Out = SPRDOFF.
 
 	bx lr
 ;@----------------------------------------------------------------------------
-suzLineRender:				;@ In r0=scr_h_strt, r1=hSign, r2=hQuadOff, r3=vOff.
+suzLineRender:				;@ In r0=hSign, r1=hQuadOff, r2=vOff.
 							;@ Out = true if pixels rendered.
 	.type	suzLineRender STT_FUNC
 ;@----------------------------------------------------------------------------
-	cmp r3,#GAME_HEIGHT
+	cmp r2,#GAME_HEIGHT
 	movcs r0,#0
 	bxcs lr
 
-	ldr suzptr,=suzy_0
 	stmfd sp!,{r4-r11,lr}
+	ldr suzptr,=suzy_0
 	ldr r9,[suzptr,#suzyCyclesUsed]
 
 	ldr r6,[suzptr,#suzVidBas]	;@ Also suzCollBas
 	mov r5,r6,lsl#16
 	ldr r7,[suzptr,#suzyRAM]
-	add r3,r3,r3,lsl#2			;@ *5
-	add r5,r5,r3,lsl#4+16		;@ *16
+	add r2,r2,r2,lsl#2			;@ *5
+	add r5,r5,r2,lsl#4+16		;@ *16
 	add r5,r7,r5,lsr#16
 	str r5,[suzptr,#suzLineBaseAddress]
-	add r6,r6,r3,lsl#4+16		;@ *16
+	add r6,r6,r2,lsl#4+16		;@ *16
 	add r6,r7,r6,lsr#16
 	str r6,[suzptr,#suzLineCollisionAddress]
 
 	ldrh r5,[suzptr,#suzSprDLine]
-	ldrb r3,[r7,r5]
+	ldrb r2,[r7,r5]
 	add r5,r5,#1
 	strh r5,[suzptr,#suzTmpAdr]
-	sub r5,r3,#1
+	sub r5,r2,#1
 	mov r5,r5,lsl#3
 	str r5,[suzptr,#suzLinePacketBitsLeft]
 
@@ -700,43 +700,42 @@ suzLineRender:				;@ In r0=scr_h_strt, r1=hSign, r2=hQuadOff, r3=vOff.
 	str r6,[suzptr,#suzLineShiftRegCount]
 
 	ldrb r7,[suzptr,#suzSprCtl1]
-	ands r7,r7,#0x80			;@ Literal
-	movne r7,r5					;@ LineRepeatCount = LinePacketBitsLeft
-	movne r6,#1					;@ line_abs_literal
-	str r6,[suzptr,#suzLineType]
-	str r7,[suzptr,#suzLineRepeatCount]
+	ands r7,r7,#0x80			;@ Literal -> line_abs_literal
+	movne r6,r5					;@ LineRepeatCount = LinePacketBitsLeft
+	str r7,[suzptr,#suzLineType]
+	str r6,[suzptr,#suzLineRepeatCount]
 
 ;@----------------------------------------------------------------------------
-suzRenderLine:				;@ In r0=scr_h_strt, r1=hSign, r2=hQuadOff.
+suzRenderLine:				;@ In r0=hSign, r1=hQuadOff.
 							;@ Out = if pixels rendered.
 ;@----------------------------------------------------------------------------
 
 	;@ Work out the horizontal pixel start position, start + tilt
 	ldrsh r3,[suzptr,#suzHPosStrt]
 	ldrsb r4,[suzptr,#suzTiltAcumH]
+	ldrsh r2,[suzptr,#suzHOff]
 	add r3,r3,r4
 	mov r4,#0
 	strh r3,[suzptr,#suzHPosStrt]
 	strb r4,[suzptr,#suzTiltAcumH]
-	sub r4,r3,r0				;@ r4=hOff
+	sub r4,r3,r2				;@ r4=hOff
 	;@ Take the sign of the first quad (0) as the basic
 	;@ sign, all other quads drawing in the other direction
 	;@ get offset by 1 pixel in the other direction, this
 	;@ fixes the squashed look on the multi-quad sprites.
-	cmp r1,r2
-	addne r4,r4,r1
+	cmp r0,r1
+	addne r4,r4,r0
 
 	ldrb r2,[suzptr,#suzSprCtl0]
 	adr r3,sprTypeTbl
 	and r2,r2,#7
 	ldr r11,[r3,r2,lsl#2]
-	mov r5,r1
+	mov r5,r0,lsl#16			;@ Bottom part is "onScreen"
 	ldrh r6,[suzptr,#suzSprHSiz]
 	;@ Zero/Force the horizontal scaling accumulator
-	adds r0,r1,#1
+	adds r0,r0,#1
 	ldrhne r0,[suzptr,#suzHSizOff]	;@ If hSign == 1
 	orr r6,r6,r0,lsl#16
-	mov r8,#0					;@ onScreen
 rendWhile:
 	bl suzLineGetPixel
 	cmp r0,#0x80
@@ -751,22 +750,26 @@ rendLoop:
 	bcs checkBail
 	mov r0,r4
 	mov r1,r10
-	blx r11						;@ ProcessPixel
-	mov r8,#1					;@ onScreen = TRUE
+	blx r11						;@ ProcessPixel(hOff, pix)
+	orr r5,r5,#1				;@ onScreen = TRUE
 continueRend:
-	add r4,r4,r5				;@ hoff += hsign
+	add r4,r4,r5,asr#16			;@ hOff += hSign
 	subs r7,r7,#1
 	bne rendLoop
 	b rendWhile
 checkBail:
-	cmp r8,#0
+	tst r5,#1
 	beq continueRend
 exitRender:
-	mov r0,r8
+	and r0,r5,#1				;@ onScreen
 	str r9,[suzptr,#suzyCyclesUsed]
 	ldmfd sp!,{r4-r11,lr}
 	bx lr
 
+;@----------------------------------------------------------------------------
+suzGetPixelBits:			;@ Out r0=bits.
+;@----------------------------------------------------------------------------
+	ldrb r0,[suzptr,#suzSprCtl0_PixelBits]
 ;@----------------------------------------------------------------------------
 suzLineGetBits:				;@ In r0=bitCount, less or equal to 8, Out r0=bits.
 ;@----------------------------------------------------------------------------
@@ -779,24 +782,7 @@ suzLineGetBits:				;@ In r0=bitCount, less or equal to 8, Out r0=bits.
 	ldr r1,[suzptr,#suzLineShiftRegCount]
 	ldr r3,[suzptr,#suzLineShiftReg]
 	subs r1,r1,r0
-	bcs extractBits
-	stmfd sp!,{r4-r5}
-	ldrh r2,[suzptr,#suzTmpAdr]
-	ldr r4,[suzptr,#suzyRAM]
-	add r1,r1,#24
-	ldrb r5,[r4,r2]!
-	orr r3,r5,r3,lsl#8
-	ldrb r5,[r4,#1]
-	orr r3,r5,r3,lsl#8
-	ldrb r5,[r4,#2]
-	add r2,r2,#3
-	orr r3,r5,r3,lsl#8
-	strh r2,[suzptr,#suzTmpAdr]
-	str r3,[suzptr,#suzLineShiftReg]
-
-	add r9,r9,#3*3				;@ 3 * SPR_RDWR_CYC
-
-	ldmfd sp!,{r4-r5}
+	bcc fetchNewBits
 extractBits:
 	str r1,[suzptr,#suzLineShiftRegCount]
 	rsb r2,r0,#32
@@ -804,6 +790,27 @@ extractBits:
 	mov r3,r3,lsl r1
 	mov r0,r3,lsr r2
 	bx lr
+
+fetchNewBits:
+	stmfd sp!,{r4-r5}
+	ldr r4,[suzptr,#suzyRAM]
+	ldrh r5,[suzptr,#suzTmpAdr]
+	add r1,r1,#24
+	ldrb r2,[r4,r5]!
+	orr r3,r2,r3,lsl#8
+	ldrb r2,[r4,#1]
+	orr r3,r2,r3,lsl#8
+	ldrb r2,[r4,#2]
+	add r5,r5,#3
+	orr r3,r2,r3,lsl#8
+	strh r5,[suzptr,#suzTmpAdr]
+	str r3,[suzptr,#suzLineShiftReg]
+
+	add r9,r9,#3*3				;@ 3 * SPR_RDWR_CYC
+
+	ldmfd sp!,{r4-r5}
+	b extractBits
+
 ;@----------------------------------------------------------------------------
 suzLineGetPixel:			;@ Out r0=pixel
 ;@----------------------------------------------------------------------------
@@ -811,37 +818,10 @@ suzLineGetPixel:			;@ Out r0=pixel
 	ldr r1,[suzptr,#suzLineRepeatCount]
 	ldr r2,[suzptr,#suzLineType]
 	cmp r1,#0
-	bne fetchPixel
-
-	cmp r2,#1					;@ line_abs_literal
-	beq exitLineEnd
-	mov r0,#5
-	bl suzLineGetBits
-	movs r0,r0,lsl#28
-	mov r1,r0,lsr#28
-	str r1,[suzptr,#suzLineRepeatCount]
-	movcc r2,#3					;@ line_packed
-	movcs r2,#2					;@ line_literal
-	str r2,[suzptr,#suzLineType]
-	bcc packedPix
-	ldrb r0,[suzptr,#suzSprCtl0_PixelBits]
-	bl suzLineGetBits
-	add r1,suzptr,#suzPenIndex
-	ldrb r0,[r1,r0]
-	ldmfd sp!,{r4,lr}
-	bx lr
-packedPix:
-	beq exitLineEnd
-	ldrb r0,[suzptr,#suzSprCtl0_PixelBits]
-	bl suzLineGetBits
-	add r1,suzptr,#suzPenIndex
-	ldrb r0,[r1,r0]
-	str r0,[suzptr,#suzLinePixel]
-	ldmfd sp!,{r4,lr}
-	bx lr
+	beq fetchPacket
 
 fetchPixel:
-	cmp r2,#1					;@ line_abs_literal
+	cmp r2,#0x80				;@ line_abs_literal
 	bne checkMoreLineType
 	ldrb r0,[suzptr,#suzSprCtl0_PixelBits]
 	subs r4,r1,r0
@@ -853,27 +833,47 @@ fetchPixel:
 	beq exitLineEnd
 	add r1,suzptr,#suzPenIndex
 	ldrb r0,[r1,r0]
-	ldmfd sp!,{r4,lr}
-	bx lr
+	ldmfd sp!,{r4,pc}
 checkMoreLineType:
 	sub r1,r1,#1
 	str r1,[suzptr,#suzLineRepeatCount]
 	cmp r2,#3					;@ line_literal
 	beq fetchPacked
-	ldrb r0,[suzptr,#suzSprCtl0_PixelBits]
-	bl suzLineGetBits
+	bl suzGetPixelBits
 	add r1,suzptr,#suzPenIndex
 	ldrb r0,[r1,r0]
-	ldmfd sp!,{r4,lr}
-	bx lr
+	ldmfd sp!,{r4,pc}
 fetchPacked:
 	ldr r0,[suzptr,#suzLinePixel]
-	ldmfd sp!,{r4,lr}
-	bx lr
+	ldmfd sp!,{r4,pc}
+
+fetchPacket:
+	cmp r2,#0x80				;@ line_abs_literal
+	beq exitLineEnd
+	mov r0,#5
+	bl suzLineGetBits
+	movs r0,r0,lsl#28
+	mov r1,r0,lsr#28
+	str r1,[suzptr,#suzLineRepeatCount]
+	movcc r2,#3					;@ line_packed
+	movcs r2,#2					;@ line_literal
+	str r2,[suzptr,#suzLineType]
+	bcc packedPix
+	bl suzGetPixelBits
+	add r1,suzptr,#suzPenIndex
+	ldrb r0,[r1,r0]
+	ldmfd sp!,{r4,pc}
+packedPix:
+	beq exitLineEnd
+	bl suzGetPixelBits
+	add r1,suzptr,#suzPenIndex
+	ldrb r0,[r1,r0]
+	str r0,[suzptr,#suzLinePixel]
+	ldmfd sp!,{r4,pc}
+
 exitLineEnd:
 	mov r0,#LINE_END
-	ldmfd sp!,{r4,lr}
-	bx lr
+	ldmfd sp!,{r4,pc}
 ;@----------------------------------------------------------------------------
 suzProcessPixel:			;@ In r0=hoff, r1=pixel, r2=sprType.
 ;@----------------------------------------------------------------------------
