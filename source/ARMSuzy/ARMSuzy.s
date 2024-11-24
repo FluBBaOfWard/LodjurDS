@@ -649,52 +649,6 @@ suBusEnW:					;@ 0x90 Suzy Bus Enable
 	bx lr
 
 ;@----------------------------------------------------------------------------
-suzRenderLine:				;@ In r0=hOff, r1=hSign. Out = if pixels rendered.
-	.type	suzRenderLine STT_FUNC
-;@----------------------------------------------------------------------------
-	ldr suzptr,=suzy_0
-	stmfd sp!,{r4-r11,lr}
-	ldrb r2,[suzptr,#suzSprCtl0]
-	adr r3,sprTypeTbl
-	and r2,r2,#7
-	ldr r11,[r3,r2,lsl#2]
-	mov r4,r0
-	mov r5,r1
-	ldrh r6,[suzptr,#suzSprHSiz]
-	;@ Zero/Force the horizontal scaling accumulator
-	adds r7,r1,#1
-	ldrhne r7,[suzptr,#suzHSizOff]	;@ If hSign == 1
-	mov r8,#0					;@ onScreen
-rendWhile:
-	bl suzLineGetPixel
-	cmp r0,#0x80
-	beq exitRender
-	add r7,r7,r6				;@ HSIZACUM.Word += SPRHSIZ.Word
-	ands r9,r7,#0xFF00			;@ pixel_width = HSIZACUM.Byte.High
-	beq rendWhile
-	and r7,r7,#0xFF				;@ HSIZACUM.Byte.High = 0
-	mov r10,r0
-rendLoop:
-	cmp r4,#GAME_WIDTH
-	bcs checkBail
-	mov r0,r4
-	mov r1,r10
-	blx r11						;@ ProcessPixel
-	mov r8,#1					;@ onScreen = TRUE
-continueRend:
-	add r4,r4,r5				;@ hoff += hsign
-	subs r9,r9,#0x0100
-	bne rendLoop
-	b rendWhile
-checkBail:
-	cmp r8,#0
-	beq continueRend
-exitRender:
-	mov r0,r8
-	ldmfd sp!,{r4-r11,lr}
-	bx lr
-
-;@----------------------------------------------------------------------------
 suzLineStart:				;@ Out = SPRDOFF.
 	.type	suzLineStart STT_FUNC
 ;@----------------------------------------------------------------------------
@@ -714,8 +668,8 @@ suzLineInit:				;@ In r0=vOff.
 ;@----------------------------------------------------------------------------
 	ldr suzptr,=suzy_0
 
-	cmp r0,#102
-	movcs r0,#0
+//	cmp r0,#GAME_HEIGHT
+//	movcs r0,#0
 	ldrh r1,[suzptr,#suzVidBas]
 	ldrh r2,[suzptr,#suzCollBas]
 	ldr r3,[suzptr,#suzyRAM]
@@ -751,6 +705,62 @@ suzLineInit:				;@ In r0=vOff.
 	str r3,[suzptr,#suzLineRepeatCount]
 
 	bx lr
+;@----------------------------------------------------------------------------
+suzRenderLine:				;@ In r0=scr_h_strt, r1=hSign, r2=hQuadOff. Out = if pixels rendered.
+	.type	suzRenderLine STT_FUNC
+;@----------------------------------------------------------------------------
+	ldr suzptr,=suzy_0
+	stmfd sp!,{r4-r11,lr}
+
+	ldrsh r3,[suzptr,#suzHPosStrt]
+	ldrsb r4,[suzptr,#suzTiltAcumH]
+	add r3,r3,r4
+	mov r4,#0
+	strh r3,[suzptr,#suzHPosStrt]
+	strb r4,[suzptr,#suzTiltAcumH]
+	sub r4,r3,r0				;@ r4=hOff
+	cmp r1,r2
+	addne r4,r4,r1
+
+	ldrb r2,[suzptr,#suzSprCtl0]
+	adr r3,sprTypeTbl
+	and r2,r2,#7
+	ldr r11,[r3,r2,lsl#2]
+	mov r5,r1
+	ldrh r6,[suzptr,#suzSprHSiz]
+	;@ Zero/Force the horizontal scaling accumulator
+	adds r7,r1,#1
+	ldrhne r7,[suzptr,#suzHSizOff]	;@ If hSign == 1
+	mov r8,#0					;@ onScreen
+rendWhile:
+	bl suzLineGetPixel
+	cmp r0,#0x80
+	beq exitRender
+	add r7,r7,r6				;@ HSIZACUM.Word += SPRHSIZ.Word
+	ands r9,r7,#0xFF00			;@ pixel_width = HSIZACUM.Byte.High
+	beq rendWhile
+	and r7,r7,#0xFF				;@ HSIZACUM.Byte.High = 0
+	mov r10,r0
+rendLoop:
+	cmp r4,#GAME_WIDTH
+	bcs checkBail
+	mov r0,r4
+	mov r1,r10
+	blx r11						;@ ProcessPixel
+	mov r8,#1					;@ onScreen = TRUE
+continueRend:
+	add r4,r4,r5				;@ hoff += hsign
+	subs r9,r9,#0x0100
+	bne rendLoop
+	b rendWhile
+checkBail:
+	cmp r8,#0
+	beq continueRend
+exitRender:
+	mov r0,r8
+	ldmfd sp!,{r4-r11,lr}
+	bx lr
+
 ;@----------------------------------------------------------------------------
 suzLineGetBits:				;@ In r0=bitCount, less or equal to 8, Out r0=bits.
 ;@----------------------------------------------------------------------------

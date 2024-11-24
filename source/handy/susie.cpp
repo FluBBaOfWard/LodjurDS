@@ -441,9 +441,9 @@ ULONG CSusie::PaintSprites(void)
 			// Setup screen start end variables
 
 			int screen_h_start = (SWORD)mHOFF.Word;
-			int screen_h_end = (SWORD)mHOFF.Word + LYNX_SCREEN_WIDTH;
+			int screen_h_end = screen_h_start + LYNX_SCREEN_WIDTH;
 			int screen_v_start = (SWORD)mVOFF.Word;
-			int screen_v_end = (SWORD)mVOFF.Word + LYNX_SCREEN_HEIGHT;
+			int screen_v_end = screen_v_start + LYNX_SCREEN_HEIGHT;
 
 			int world_h_mid = screen_h_start + 0x8000 + (LYNX_SCREEN_WIDTH / 2);
 			int world_v_mid = screen_v_start + 0x8000 + (LYNX_SCREEN_HEIGHT / 2);
@@ -609,22 +609,22 @@ ULONG CSusie::PaintSprites(void)
 
 							// Only allow the draw to take place if the line is visible
 							if (voff >= 0 && voff < LYNX_SCREEN_HEIGHT) {
+								// Initialise our line
+								suzLineInit(voff);
+
 								// Work out the horizontal pixel start position, start + tilt
-								mHPOSSTRT.Word += ((SWORD)mTILTACUM.Word>>8);
-								mTILTACUM.Byte.High = 0;
-								int hoff = (int)((SWORD)mHPOSSTRT.Word) - screen_h_start;
+//								mHPOSSTRT.Word += ((SWORD)mTILTACUM.Word>>8);
+//								mTILTACUM.Byte.High = 0;
+//								int hOff = (int)((SWORD)mHPOSSTRT.Word) - screen_h_start;
 
 								// Take the sign of the first quad (0) as the basic
 								// sign, all other quads drawing in the other direction
 								// get offset by 1 pixel in the other direction, this
 								// fixes the squashed look on the multi-quad sprites.
-								if (hSign != hQuadOff) hoff += hSign;
-
-								// Initialise our line
-								suzLineInit(voff);
+//								if (hSign != hQuadOff) hOff += hSign;
 
 								// Now render an individual destination line
-								if (suzRenderLine(hoff, hSign)) {
+								if (suzRenderLine(screen_h_start, hSign, hQuadOff)) {
 									everonscreen = TRUE;
 								}
 							}
