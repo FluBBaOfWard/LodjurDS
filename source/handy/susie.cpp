@@ -68,8 +68,8 @@
 #define mHOFF suzy_0.hOff
 #define mVOFF suzy_0.vOff
 #define mTILTACUM suzy_0.tiltAcum
-#define mVIDBAS suzy_0.vidBas
-#define mCOLLBAS suzy_0.collBas
+//#define mVIDBAS suzy_0.vidBas
+//#define mCOLLBAS suzy_0.collBas
 #define mSCBNEXT suzy_0.SCBNext
 #define mSPRDLINE suzy_0.sprDLine
 #define mHPOSSTRT suzy_0.hPosStrt
@@ -91,19 +91,9 @@
 #define mSPRGO suzy_0.sprGo
 #define mSPRSYS suzy_0.sprSys
 
-//#define mLineBaseAddress suzy_0.lineBaseAddress
-//#define mLineCollisionAddress suzy_0.lineCollisionAddress
 #define mCollision suzy_0.collision
 #define cycles_used suzy_0.cyclesUsed
 
-//#define mSPRCTL0_PixelBits suzy_0.sprCtl0_PixelBits
-
-//#define mLineType suzy_0.lineType
-//#define mLineShiftRegCount suzy_0.lineShiftRegCount
-//#define mLineShiftReg suzy_0.lineShiftReg
-//#define mLineRepeatCount suzy_0.lineRepeatCount
-//#define mLinePixel suzy_0.linePixel
-//#define mLinePacketBitsLeft suzy_0.linePacketBitsLeft
 #define mPenIndex suzy_0.penIndex
 
 // SprCtl0
@@ -117,8 +107,8 @@
 #define SkipSprite (0x04)
 #define ReloadPalette (0x08)
 #define ReloadDepth (0x30)
-#define Sizing (0x40)
-#define Literal (0x80)
+//#define Sizing (0x40)
+//#define Literal (0x80)
 
 // SPRSYS
 #define StopOnCurrent (0x02)
@@ -163,8 +153,6 @@ void CSusie::Reset(void)
 	mMATHAB_sign = 1;
 	mMATHCD_sign = 1;
 	mMATHEFGH_sign = 1;
-
-//	mSPRCTL0_PixelBits = 0;
 
 	mSPRSYS_UnsafeAccess = 0;
 	mSPRSYS_Busy = 0;
@@ -684,7 +672,7 @@ ULONG CSusie::PaintSprites(void)
 
 			// Write the collision depositary if required
 
-			if (mSPRCOLL <= 0xF) {
+			if (mSPRCOLL < 0x10) {
 				switch(mSPRCTL0 & Type)
 				{
 					case sprite_xor_shadow:

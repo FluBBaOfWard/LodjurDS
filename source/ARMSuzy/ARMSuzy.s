@@ -702,9 +702,14 @@ suzLineStart:				;@ Out = SPRDOFF.
 	ldrh r1,[suzptr,#suzSprDLine]
 	ldr r2,[suzptr,#suzyRAM]
 	ldrb r0,[r2,r1]
+
+	ldr r1,[suzptr,#suzyCyclesUsed]
+	add r1,r1,#3				;@ SPR_RDWR_CYC
+	str r1,[suzptr,#suzyCyclesUsed]
+
 	bx lr
 ;@----------------------------------------------------------------------------
-suzLineInit:				;@ In r0=voff.
+suzLineInit:				;@ In r0=vOff.
 	.type	suzLineInit STT_FUNC
 ;@----------------------------------------------------------------------------
 	ldr suzptr,=suzy_0
@@ -722,29 +727,28 @@ suzLineInit:				;@ In r0=voff.
 	add r2,r3,r2
 	str r2,[suzptr,#suzLineCollisionAddress]
 
-	mov r3,#0
-	str r3,[suzptr,#suzLineShiftReg]
-	str r3,[suzptr,#suzLineShiftRegCount]
-
 	ldrh r1,[suzptr,#suzSprDLine]
-	add r2,r1,#1
-	strh r2,[suzptr,#suzTmpAdr]
-	ldr r2,[suzptr,#suzyRAM]
-	ldrb r0,[r2,r1]
+	ldrb r0,[r3,r1]
+	add r1,r1,#1
+	strh r1,[suzptr,#suzTmpAdr]
 	sub r1,r0,#1
 	mov r1,r1,lsl#3
 	str r1,[suzptr,#suzLinePacketBitsLeft]
 
-	ldr r2,[suzptr,#suzyCyclesUsed]
-	add r2,r2,#3				;@ SPR_RDWR_CYC
-	str r2,[suzptr,#suzyCyclesUsed]
+	ldr r3,[suzptr,#suzyCyclesUsed]
+	add r3,r3,#3				;@ SPR_RDWR_CYC
+	str r3,[suzptr,#suzyCyclesUsed]
 
-	ldrb r2,[suzptr,#suzSprCtl1]
-	ands r2,r2,#0x80			;@ Literal
-	movne r2,r1					;@ LineRepeatCount = LinePacketBitsLeft
-	movne r3,#1					;@ line_abs_literal
-	str r3,[suzptr,#suzLineType]
-	str r2,[suzptr,#suzLineRepeatCount]
+	mov r2,#0
+	str r2,[suzptr,#suzLineShiftReg]
+	str r2,[suzptr,#suzLineShiftRegCount]
+
+	ldrb r3,[suzptr,#suzSprCtl1]
+	ands r3,r3,#0x80			;@ Literal
+	movne r3,r1					;@ LineRepeatCount = LinePacketBitsLeft
+	movne r2,#1					;@ line_abs_literal
+	str r2,[suzptr,#suzLineType]
+	str r3,[suzptr,#suzLineRepeatCount]
 
 	bx lr
 ;@----------------------------------------------------------------------------
@@ -761,9 +765,9 @@ suzLineGetBits:				;@ In r0=bitCount, less or equal to 8, Out r0=bits.
 	subs r1,r1,r0
 	bcs extractBits
 	stmfd sp!,{r4-r5}
-	add r1,r1,#24
 	ldrh r2,[suzptr,#suzTmpAdr]
 	ldr r4,[suzptr,#suzyRAM]
+	add r1,r1,#24
 	ldrb r5,[r4,r2]!
 	orr r3,r5,r3,lsl#8
 	ldrb r5,[r4,#1]
@@ -806,7 +810,7 @@ suzLineGetPixel:			;@ Out r0=pixel
 	movcs r2,#2					;@ line_literal
 	str r2,[suzptr,#suzLineType]
 	bcc packedPix
-	ldr r0,[suzptr,#suzSprCtl0_PixelBits]
+	ldrb r0,[suzptr,#suzSprCtl0_PixelBits]
 	bl suzLineGetBits
 	add r1,suzptr,#suzPenIndex
 	ldrb r0,[r1,r0]
@@ -814,7 +818,7 @@ suzLineGetPixel:			;@ Out r0=pixel
 	bx lr
 packedPix:
 	beq exitLineEnd
-	ldr r0,[suzptr,#suzSprCtl0_PixelBits]
+	ldrb r0,[suzptr,#suzSprCtl0_PixelBits]
 	bl suzLineGetBits
 	add r1,suzptr,#suzPenIndex
 	ldrb r0,[r1,r0]
@@ -825,7 +829,7 @@ packedPix:
 fetchPixel:
 	cmp r2,#1					;@ line_abs_literal
 	bne checkMoreLineType
-	ldr r0,[suzptr,#suzSprCtl0_PixelBits]
+	ldrb r0,[suzptr,#suzSprCtl0_PixelBits]
 	subs r4,r1,r0
 	cmp r4,r0
 	movcc r4,#0
@@ -842,14 +846,14 @@ checkMoreLineType:
 	str r1,[suzptr,#suzLineRepeatCount]
 	cmp r2,#3					;@ line_literal
 	beq fetchPacked
-	ldr r0,[suzptr,#suzSprCtl0_PixelBits]
+	ldrb r0,[suzptr,#suzSprCtl0_PixelBits]
 	bl suzLineGetBits
 	add r1,suzptr,#suzPenIndex
 	ldrb r0,[r1,r0]
 	ldmfd sp!,{r4,lr}
 	bx lr
 fetchPacked:
-	ldreq r0,[suzptr,#suzLinePixel]
+	ldr r0,[suzptr,#suzLinePixel]
 	ldmfd sp!,{r4,lr}
 	bx lr
 exitLineEnd:
@@ -879,7 +883,6 @@ sprBgrShdw:
 	stmfd sp!,{r0,lr}
 	bl suzWritePixel
 	ldmfd sp!,{r0,lr}
-	ldrb r1,[suzptr,#suzSprColl]
 	b suzWriteCollision
 // BOUNDARY_SHADOW
 // 0   F is opaque
@@ -985,17 +988,16 @@ suzWritePixel:				;@ In r0=hoff, r1=pixel.
 ;@----------------------------------------------------------------------------
 	ldr r2,[suzptr,#suzLineBaseAddress]
 	tst r0,#1
-//	add r2,r2,r0,lsr#1
-//	ldr r0,[suzptr,#suzyRAM]
 	ldrb r3,[r2,r0,lsr#1]
 	andeq r3,r3,#0x0F
 	orreq r3,r3,r1,lsl#4
 	andne r3,r3,#0xF0
 	orrne r3,r3,r1
 	strb r3,[r2,r0,lsr#1]
-	ldr r0,[suzptr,#suzyCyclesUsed]
-	add r0,r0,#2*3				;@ 2*SPR_RDWR_CYC
-	str r0,[suzptr,#suzyCyclesUsed]
+
+	ldr r2,[suzptr,#suzyCyclesUsed]
+	add r2,r2,#2*3				;@ 2*SPR_RDWR_CYC
+	str r2,[suzptr,#suzyCyclesUsed]
 
 	bx lr
 ;@----------------------------------------------------------------------------
@@ -1003,26 +1005,24 @@ suzXorPixel:				;@ In r0=hoff, r1=pixel.
 ;@----------------------------------------------------------------------------
 	ldr r2,[suzptr,#suzLineBaseAddress]
 	tst r0,#1
-//	add r2,r2,r0,lsr#1
-//	ldr r0,[suzptr,#suzyRAM]
 	ldrb r3,[r2,r0,lsr#1]
 	eoreq r3,r3,r1,lsl#4
 	eorne r3,r3,r1
 	strb r3,[r2,r0,lsr#1]
-	ldr r0,[suzptr,#suzyCyclesUsed]
-	add r0,r0,#3*3				;@ 3*SPR_RDWR_CYC
-	str r0,[suzptr,#suzyCyclesUsed]
+
+	ldr r2,[suzptr,#suzyCyclesUsed]
+	add r2,r2,#3*3				;@ 3*SPR_RDWR_CYC
+	str r2,[suzptr,#suzyCyclesUsed]
 
 	bx lr
 ;@----------------------------------------------------------------------------
-suzWriteCollision:			;@ In r0=hoff, r1=colVal.
+suzWriteCollision:			;@ In r0=hoff.
 ;@----------------------------------------------------------------------------
+	ldrb r1,[suzptr,#suzSprColl]
 	cmp r1,#0x10
 	bxpl lr
 	ldr r2,[suzptr,#suzLineCollisionAddress]
 	tst r0,#1
-//	add r2,r2,r0,lsr#1
-//	ldr r0,[suzptr,#suzyRAM]
 	ldrb r3,[r2,r0,lsr#1]
 	andeq r3,r3,#0x0F
 	orreq r3,r3,r1,lsl#4
@@ -1030,21 +1030,19 @@ suzWriteCollision:			;@ In r0=hoff, r1=colVal.
 	orrne r3,r3,r1
 	strb r3,[r2,r0,lsr#1]
 
-	ldr r0,[suzptr,#suzyCyclesUsed]
-	add r0,r0,#2*3				;@ 2*SPR_RDWR_CYC
-	str r0,[suzptr,#suzyCyclesUsed]
+	ldr r2,[suzptr,#suzyCyclesUsed]
+	add r2,r2,#2*3				;@ 2*SPR_RDWR_CYC
+	str r2,[suzptr,#suzyCyclesUsed]
 
 	bx lr
 ;@----------------------------------------------------------------------------
-suzTestCollision:			;@ In r0=hoff, r1=colVal. Out r0=collision
+suzTestCollision:			;@ In r0=hoff. Out r0=collision
 ;@----------------------------------------------------------------------------
 	ldrb r1,[suzptr,#suzSprColl]
 	cmp r1,#0x10
 	bxpl lr
 	ldr r2,[suzptr,#suzLineCollisionAddress]
 	tst r0,#1
-//	add r2,r2,r0,lsr#1
-//	ldr r0,[suzptr,#suzyRAM]
 	ldrb r3,[r2,r0,lsr#1]!
 	moveq r0,r3,lsr#4
 	andeq r3,r3,#0x0F
@@ -1058,9 +1056,9 @@ suzTestCollision:			;@ In r0=hoff, r1=colVal. Out r0=collision
 	cmp r2,r0
 	strbmi r0,[suzptr,#suzCollision]
 
-	ldr r1,[suzptr,#suzyCyclesUsed]
-	add r1,r1,#3*3				;@ 3*SPR_RDWR_CYC
-	str r1,[suzptr,#suzyCyclesUsed]
+	ldr r2,[suzptr,#suzyCyclesUsed]
+	add r2,r2,#3*3				;@ 3*SPR_RDWR_CYC
+	str r2,[suzptr,#suzyCyclesUsed]
 
 	bx lr
 
