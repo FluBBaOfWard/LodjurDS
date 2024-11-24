@@ -159,10 +159,11 @@ int suzyLoadState(SUZY *chip, const void *source);
  */
 int suzyGetStateSize(void);
 
-u32 suzRenderLine(int scr_h_strt, int hsign, int hQuadOff);
+//u32 suzRenderLine(int scr_h_strt, int hsign, int hQuadOff);
 
 u32 suzLineStart(void);
-void suzLineInit(u32 voff);
+//void suzLineInit(u32 voff);
+bool suzLineInit(int voff, int scr_h_strt, int hsign, int hQuadOff);
 
 #ifdef __cplusplus
 } // extern "C"

@@ -666,19 +666,22 @@ suzLineStart:				;@ Out = SPRDOFF.
 suzLineInit:				;@ In r0=vOff.
 	.type	suzLineInit STT_FUNC
 ;@----------------------------------------------------------------------------
-	ldr suzptr,=suzy_0
+	cmp r0,#GAME_HEIGHT
+	movcs r0,#0
+	bxcs lr
 
-//	cmp r0,#GAME_HEIGHT
-//	movcs r0,#0
-	ldrh r1,[suzptr,#suzVidBas]
-	ldrh r2,[suzptr,#suzCollBas]
+	ldr suzptr,=suzy_0
+	stmfd sp!,{r1-r3}
+	ldr r2,[suzptr,#suzVidBas]	;@ Also suzCollBas
+	mov r1,r2,lsl#16
+//	ldrh r2,[suzptr,#suzCollBas]
 	ldr r3,[suzptr,#suzyRAM]
 	add r0,r0,r0,lsl#2			;@ *5
-	add r1,r1,r0,lsl#4			;@ *16
-	add r1,r3,r1
+	add r1,r1,r0,lsl#4+16		;@ *16
+	add r1,r3,r1,lsr#16
 	str r1,[suzptr,#suzLineBaseAddress]
-	add r2,r2,r0,lsl#4			;@ *16
-	add r2,r3,r2
+	add r2,r2,r0,lsl#4+16		;@ *16
+	add r2,r3,r2,lsr#16
 	str r2,[suzptr,#suzLineCollisionAddress]
 
 	ldrh r1,[suzptr,#suzSprDLine]
@@ -704,14 +707,16 @@ suzLineInit:				;@ In r0=vOff.
 	str r2,[suzptr,#suzLineType]
 	str r3,[suzptr,#suzLineRepeatCount]
 
-	bx lr
+	ldmfd sp!,{r0-r2}
+//	bx lr
 ;@----------------------------------------------------------------------------
 suzRenderLine:				;@ In r0=scr_h_strt, r1=hSign, r2=hQuadOff. Out = if pixels rendered.
 	.type	suzRenderLine STT_FUNC
 ;@----------------------------------------------------------------------------
-	ldr suzptr,=suzy_0
+//	ldr suzptr,=suzy_0
 	stmfd sp!,{r4-r11,lr}
 
+	;@ Work out the horizontal pixel start position, start + tilt
 	ldrsh r3,[suzptr,#suzHPosStrt]
 	ldrsb r4,[suzptr,#suzTiltAcumH]
 	add r3,r3,r4
@@ -719,6 +724,10 @@ suzRenderLine:				;@ In r0=scr_h_strt, r1=hSign, r2=hQuadOff. Out = if pixels re
 	strh r3,[suzptr,#suzHPosStrt]
 	strb r4,[suzptr,#suzTiltAcumH]
 	sub r4,r3,r0				;@ r4=hOff
+	;@ Take the sign of the first quad (0) as the basic
+	;@ sign, all other quads drawing in the other direction
+	;@ get offset by 1 pixel in the other direction, this
+	;@ fixes the squashed look on the multi-quad sprites.
 	cmp r1,r2
 	addne r4,r4,r1
 
