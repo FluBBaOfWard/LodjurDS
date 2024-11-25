@@ -148,10 +148,10 @@ suzLineType:		.byte 0	;@
 suzLinePixel:		.byte 0	;@
 suzPadding2:		.skip 2
 
-suzLineShiftRegCount:	.long 0	;@
-suzLineShiftReg:		.long 0	;@
 suzLineRepeatCount:		.long 0	;@
 suzLinePacketBitsLeft:	.long 0	;@
+suzLineShiftRegCount:	.long 0	;@
+suzLineShiftReg:		.long 0	;@
 
 suzPenIndex:		.space 16	;@
 

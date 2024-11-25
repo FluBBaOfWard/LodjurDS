@@ -60,9 +60,9 @@
 // we can access this directly without the hassle of
 // going through the system object, much faster
 //
-#define RAM_PEEK(m)				(mRamPointer[(m)])
-#define RAM_PEEKW(m)			(mRamPointer[(m)]+(mRamPointer[(m)+1]<<8))
-#define RAM_POKE(m1,m2)			{mRamPointer[(m1)]=(m2);}
+#define RAM_PEEK(m)				(suzy_0.suzyRAM[(m)])
+#define RAM_PEEKW(m)			(suzy_0.suzyRAM[(m)]+(suzy_0.suzyRAM[(m)+1]<<8))
+#define RAM_POKE(m1,m2)			{suzy_0.suzyRAM[(m1)]=(m2);}
 
 #define mTMPADR suzy_0.tmpAdr
 #define mHOFF suzy_0.hOff
@@ -134,11 +134,6 @@ CSusie::~CSusie()
 void CSusie::Reset(void)
 {
 	TRACE_SUSIE0("Reset()");
-
-	// Fetch pointer to system RAM, faster than object access
-	// and seeing as Susie only ever sees RAM.
-
-	mRamPointer = mSystem.GetRamPointer();
 
 	// Reset ALL variables
 

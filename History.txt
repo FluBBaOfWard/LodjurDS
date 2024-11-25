@@ -1,7 +1,7 @@
 LodjurDS revision history
 -=-=-=-=-=-=-=-=-=-=-=-=-=-
 
-V0.0.2 - 2024-11-24 (FluBBa)
+V0.0.3 - 2024-11-24 (FluBBa)
 	First version released for NDS.
 
 V0.0.1 - 2024-07-29 (FluBBa)

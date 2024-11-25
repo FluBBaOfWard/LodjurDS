@@ -4,7 +4,6 @@
 #include "Shared/EmuMenu.h"
 #include "Shared/EmuSettings.h"
 #include "Main.h"
-//#include "SVController.h"
 #include "FileHandling.h"
 #include "Cart.h"
 #include "Gfx.h"
@@ -14,7 +13,7 @@
 #include "ARMMikey/Version.h"
 #include "ARMSuzy/Version.h"
 
-#define EMUVERSION "V0.0.2 2024-11-24"
+#define EMUVERSION "V0.0.3 2024-11-25"
 
 static void gammaChange(void);
 static void paletteChange(void);

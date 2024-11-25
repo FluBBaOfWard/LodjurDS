@@ -814,15 +814,28 @@ fetchNewBits:
 ;@----------------------------------------------------------------------------
 suzLineGetPixel:			;@ Out r0=pixel
 ;@----------------------------------------------------------------------------
-	stmfd sp!,{r4,lr}
+	stmfd sp!,{lr}
 	ldr r1,[suzptr,#suzLineRepeatCount]
 	ldrb r2,[suzptr,#suzLineType]
 	cmp r1,#0
 	beq fetchPacket
 
 fetchPixel:
-	cmp r2,#0x80				;@ line_abs_literal
-	bne checkMoreLineType
+	movs r2,r2,lsr#1			;@ Check bit #0 & #7
+	bne doLiteralLine
+checkMoreLineType:
+	sub r1,r1,#1
+	str r1,[suzptr,#suzLineRepeatCount]
+	bcc fetchPacked				;@ line_packed?
+	bl suzGetPixelBits
+	add r1,suzptr,#suzPenIndex
+	ldrb r0,[r1,r0]
+	ldmfd sp!,{pc}
+fetchPacked:
+	ldrb r0,[suzptr,#suzLinePixel]
+	ldmfd sp!,{pc}
+doLiteralLine:
+	stmfd sp!,{r4}				;@ line_abs_literal
 	ldrb r0,[suzptr,#suzSprCtl0_PixelBits]
 	subs r4,r1,r0
 	cmp r4,r0
@@ -830,21 +843,9 @@ fetchPixel:
 	str r4,[suzptr,#suzLineRepeatCount]
 	bl suzLineGetBits
 	orrs r4,r4,r0
-	beq exitLineEnd
-	add r1,suzptr,#suzPenIndex
-	ldrb r0,[r1,r0]
-	ldmfd sp!,{r4,pc}
-checkMoreLineType:
-	sub r1,r1,#1
-	str r1,[suzptr,#suzLineRepeatCount]
-	cmp r2,#3					;@ line_literal
-	beq fetchPacked
-	bl suzGetPixelBits
-	add r1,suzptr,#suzPenIndex
-	ldrb r0,[r1,r0]
-	ldmfd sp!,{r4,pc}
-fetchPacked:
-	ldrb r0,[suzptr,#suzLinePixel]
+	moveq r0,#LINE_END
+	addne r1,suzptr,#suzPenIndex
+	ldrbne r0,[r1,r0]
 	ldmfd sp!,{r4,pc}
 
 fetchPacket:
@@ -852,28 +853,27 @@ fetchPacket:
 	beq exitLineEnd
 	mov r0,#5
 	bl suzLineGetBits
-	movs r0,r0,lsl#28
-	mov r1,r0,lsr#28
-	str r1,[suzptr,#suzLineRepeatCount]
-	movcc r2,#3					;@ line_packed
-	movcs r2,#2					;@ line_literal
+	movs r2,r0,lsl#27
+	and r0,r0,#0xF
+	str r0,[suzptr,#suzLineRepeatCount]
+	movmi r2,#1					;@ line_literal
 	strb r2,[suzptr,#suzLineType]
-	bcc packedPix
+	bpl packedPix
 	bl suzGetPixelBits
 	add r1,suzptr,#suzPenIndex
 	ldrb r0,[r1,r0]
-	ldmfd sp!,{r4,pc}
+	ldmfd sp!,{pc}
 packedPix:
 	beq exitLineEnd
 	bl suzGetPixelBits
 	add r1,suzptr,#suzPenIndex
 	ldrb r0,[r1,r0]
 	strb r0,[suzptr,#suzLinePixel]
-	ldmfd sp!,{r4,pc}
+	ldmfd sp!,{pc}
 
 exitLineEnd:
 	mov r0,#LINE_END
-	ldmfd sp!,{r4,pc}
+	ldmfd sp!,{pc}
 ;@----------------------------------------------------------------------------
 suzProcessPixel:			;@ In r0=hoff, r1=pixel, r2=sprType.
 ;@----------------------------------------------------------------------------

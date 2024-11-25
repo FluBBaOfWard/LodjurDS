@@ -321,8 +321,6 @@ class CSusie : public CLynxBase
 		int			mSPRSYS_Mathbit;
 		int			mSPRSYS_MathInProgress;
 
-		UBYTE		*mRamPointer;
-
 		// Joystick switches
 
 		TJOYSTICK	mJOYSTICK;

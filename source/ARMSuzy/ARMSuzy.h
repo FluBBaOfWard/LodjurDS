@@ -119,10 +119,10 @@ typedef struct {
 	u8 padding2[2];
 
 	// Line rendering related variables
-	u32 lineShiftRegCount;
-	u32 lineShiftReg;
 	u32 lineRepeatCount;
 	u32 linePacketBitsLeft;
+	u32 lineShiftRegCount;
+	u32 lineShiftReg;
 
 	u8 penIndex[16];
 
