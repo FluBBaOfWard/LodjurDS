@@ -730,7 +730,7 @@ suzRenderLine:				;@ In r0=hSign, r1=hQuadOff.
 	adr r3,sprTypeTbl
 	and r2,r2,#7
 	ldr r11,[r3,r2,lsl#2]
-	mov r5,r0,lsl#16			;@ Bottom part is "onScreen"
+	mov r10,r0,lsl#16			;@ Bottom part is "onScreen"
 	ldrh r6,[suzptr,#suzSprHSiz]
 	;@ Zero/Force the horizontal scaling accumulator
 	adds r0,r0,#1
@@ -744,24 +744,24 @@ rendWhile:
 	movs r7,r6,lsr#24			;@ pixel_width = HSIZACUM.Byte.High
 	beq rendWhile
 	bic r6,r6,#0xFF000000		;@ HSIZACUM.Byte.High = 0
-	mov r10,r0
+	mov r5,r0
 rendLoop:
 	cmp r4,#GAME_WIDTH
 	bcs checkBail
 	mov r0,r4
-	mov r1,r10
+	mov r1,r5
 	blx r11						;@ ProcessPixel(hOff, pix)
-	orr r5,r5,#1				;@ onScreen = TRUE
+	orr r10,r10,#1				;@ onScreen = TRUE
 continueRend:
-	add r4,r4,r5,asr#16			;@ hOff += hSign
+	add r4,r4,r10,asr#16		;@ hOff += hSign
 	subs r7,r7,#1
 	bne rendLoop
 	b rendWhile
 checkBail:
-	tst r5,#1
+	tst r10,#1
 	beq continueRend
 exitRender:
-	and r0,r5,#1				;@ onScreen
+	and r0,r10,#1				;@ onScreen
 	str r9,[suzptr,#suzyCyclesUsed]
 	ldmfd sp!,{r4-r11,lr}
 	bx lr
