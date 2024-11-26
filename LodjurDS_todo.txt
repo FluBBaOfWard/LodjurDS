@@ -6,7 +6,7 @@ GFX:
 	See Suzy todo.
 
 GUI:
-	Eng/Jap:
+	Fix rotated controls.
 
 Mem:
 

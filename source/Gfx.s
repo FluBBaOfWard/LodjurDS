@@ -398,20 +398,14 @@ suzyReset0:		;@ r0=ram+LUTs
 lnxSuzyRead:
 	.type lnxSuzyRead STT_FUNC
 ;@----------------------------------------------------------------------------
-	stmfd sp!,{r12,lr}
 	adr suzptr,suzy_0
-	bl suzRead
-	ldmfd sp!,{r12,lr}
-	bx lr
+	b suzyRead
 ;@----------------------------------------------------------------------------
 lnxSuzyWrite:
 	.type lnxSuzyWrite STT_FUNC
 ;@----------------------------------------------------------------------------
-	stmfd sp!,{r12,lr}
 	adr suzptr,suzy_0
-	bl suzWrite
-	ldmfd sp!,{r12,lr}
-	bx lr
+	b suzyWrite
 
 ;@----------------------------------------------------------------------------
 suzy_0:

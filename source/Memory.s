@@ -60,8 +60,7 @@ pokeCPU:
 ;@----------------------------------------------------------------------------
 	cmp r0,#0xFC00
 	bpl checkIOW
-	ldr r2,=lynxRAM
-	strb r1,[r2,r0]
+	strb r1,[m6502zpage,r0]
 	bx lr
 checkIOW:
 	ldrb r3,[mikptr,#memSelector]
@@ -71,7 +70,7 @@ checkIOW:
 	.long checkSusieW, checkMikieW, checkRomW, checkVectorW
 checkSusieW:
 	tst r3,#1
-	ldreq pc,=susiePoke
+	beq lnxSuzyWrite
 	b ramPoke
 checkMikieW:
 	tst r3,#2
@@ -96,8 +95,7 @@ checkRomW:
 ;@----------------------------------------------------------------------------
 ramPoke:
 ;@----------------------------------------------------------------------------
-	ldr r2,=lynxRAM
-	strb r1,[r2,r0]
+	strb r1,[m6502zpage,r0]
 	bx lr
 
 ;@----------------------------------------------------------------------------
@@ -105,7 +103,7 @@ peekCPU:
 ;@----------------------------------------------------------------------------
 	cmp r0,#0xFC00
 	bpl checkIOR
-	ldr r1,=lynxRAM
+	mov r1,m6502zpage
 	ldrb r0,[r1,r0]!
 	bx lr
 checkIOR:
@@ -116,7 +114,7 @@ checkIOR:
 	.long checkSusieR, checkMikieR, checkRomR, checkVectorR
 checkSusieR:
 	tst r3,#1
-	ldreq pc,=susiePeek
+	beq lnxSuzyRead
 	b ramPeek
 checkMikieR:
 	tst r3,#2
@@ -129,7 +127,7 @@ checkVectorR:
 	beq ramPeek
 	add r2,r2,#1
 	cmp r0,r2			;@ 0xFFF9
-	ldrbeq r0,[mikptr,#memSelector]
+	moveq r0,r3			;@ MemSelector
 	bxeq lr
 	tst r3,#8
 	beq romPeek
@@ -140,7 +138,7 @@ checkRomR:
 ;@----------------------------------------------------------------------------
 ramPeek:
 ;@----------------------------------------------------------------------------
-	ldr r1,=lynxRAM
+	mov r1,m6502zpage
 	ldrb r0,[r1,r0]!
 	bx lr
 ;@----------------------------------------------------------------------------
