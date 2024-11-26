@@ -181,12 +181,7 @@ static void setupGraphics() {
 	// Background 2 for border
 //	REG_BG2CNT = BG_32x32 | BG_MAP_BASE(15) | BG_COLOR_256 | BG_TILE_BASE(4) | BG_PRIORITY(2);
 	REG_BG2CNT = BG_BMP16_256x256 | BG_TILE_BASE(0) | BG_PRIORITY(0);
-	REG_BG2X = -48<<8;
-	REG_BG2Y = -45<<8;
-	REG_BG2PA = 1<<8;
-	REG_BG2PB = 0;
-	REG_BG2PC = 0;
-	REG_BG2PD = 1<<8;
+	setScreenMode(0);
 
 	// Set up the sub display
 	videoSetModeSub(MODE_0_2D

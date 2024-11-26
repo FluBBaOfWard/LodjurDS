@@ -13,7 +13,7 @@
 #include "ARMMikey/Version.h"
 #include "ARMSuzy/Version.h"
 
-#define EMUVERSION "V0.0.3 2024-11-25"
+#define EMUVERSION "V0.0.3 2024-11-26"
 
 static void gammaChange(void);
 static void paletteChange(void);
@@ -30,6 +30,8 @@ static void swapABSet(void);
 static const char *getSwapABText(void);
 static void contrastSet(void);
 static const char *getContrastText(void);
+static void screenModeSet(void);
+static const char *getScreenModeText(void);
 
 const MItem dummyItems[] = {
 	{"", uiDummy}
@@ -56,6 +58,7 @@ const MItem ctrlItems[] = {
 	{"Swap A-B:  ", swapABSet, getSwapABText},
 };
 const MItem displayItems[] = {
+	{"Screen:", screenModeSet, getScreenModeText},
 	{"Gamma:", gammaChange, getGammaText},
 	{"Contrast:", contrastSet, getContrastText},
 	{"B&W Palette:", paletteChange, getPaletteText},
@@ -100,9 +103,11 @@ const Menu *const menus[] = {&menu0, &menu1, &menu2, &menu3, &menu4, &menu5, &me
 
 u8 gContrastValue = 1;
 u8 gBorderEnable = 1;
+u8 gScreenMode = 0;
 
 const char *const machTxt[]  = {"Auto", "Lynx", "LynxII", "Proto"};
 const char *const bordTxt[]  = {"Black", "Border Color", "None"};
+const char *const scrModeTxt[]  = {"1:1", "Rot Left", "Rot Right", "Zoom"};
 const char *const palTxt[]   = {"Classic", "Black & White", "Red", "Green", "Blue", "Green-Blue", "Blue-Green", "Puyo Puyo Tsu"};
 
 
@@ -223,6 +228,17 @@ void contrastSet() {
 }
 const char *getContrastText() {
 	return brighTxt[gContrastValue];
+}
+
+/// Change screen mode
+void screenModeSet() {
+	gScreenMode++;
+	if (gScreenMode > 3) gScreenMode = 0;
+	setScreenMode(gScreenMode);
+	settingsChanged = true;
+}
+const char *getScreenModeText() {
+	return scrModeTxt[gScreenMode];
 }
 
 void paletteChange() {

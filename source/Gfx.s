@@ -163,6 +163,8 @@ gammaConvert:	;@ Takes value in r0(0-0xFF), gamma in r1(0-4),returns new value i
 lodjurFrameCallback:		;@ (void)
 ;@----------------------------------------------------------------------------
 	mov r0,#0x06000000
+	add r0,r0,#(((256-GAME_HEIGHT)/2) * SCREEN_WIDTH * 2)
+	add r0,r0,#SCREEN_WIDTH-GAME_WIDTH
 	str r0,currentDest
 	ldr r1,=gScreenUpdateRequired
 	mov r0,#1
