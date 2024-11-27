@@ -21,7 +21,6 @@
 	.global gfxRefresh
 	.global gfxEndFrame
 	.global vblIrqHandler
-	.global lnxSuzyRead
 	.global lnxSuzyWrite
 	.global updateLCDRefresh
 	.global setScreenRefresh
@@ -394,12 +393,6 @@ suzyReset0:		;@ r0=ram+LUTs
 ;@----------------------------------------------------------------------------
 	adr suzptr,suzy_0
 	b suzyReset
-;@----------------------------------------------------------------------------
-lnxSuzyRead:
-	.type lnxSuzyRead STT_FUNC
-;@----------------------------------------------------------------------------
-	adr suzptr,suzy_0
-	b suzyRead
 ;@----------------------------------------------------------------------------
 lnxSuzyWrite:
 	.type lnxSuzyWrite STT_FUNC

@@ -24,7 +24,6 @@ void vblIrqHandler(void);
 void paletteInit(u8 gammaVal);
 void updateLCDRefresh(void);
 void gfxRefresh(void);
-u8 lnxSuzyRead(u16 adr);
 void lnxSuzyWrite(u16 adr, u8 value);
 
 #ifdef __cplusplus

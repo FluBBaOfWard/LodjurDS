@@ -239,10 +239,10 @@ io_read_tbl:
 	.long suUnmappedR			;@ 0xFC4F
 	.long suUnmappedR			;@ 0xFC50
 	.long suUnmappedR			;@ 0xFC51
-	.long susiePeek				;@ 0xFC52 MATHD
-	.long susiePeek				;@ 0xFC53 MATHC
-	.long susiePeek				;@ 0xFC54 MATHB
-	.long susiePeek				;@ 0xFC55 MATHA
+	.long suRegR				;@ 0xFC52 MATHD
+	.long suRegR				;@ 0xFC53 MATHC
+	.long suRegR				;@ 0xFC54 MATHB
+	.long suRegR				;@ 0xFC55 MATHA
 	.long suRegR				;@ 0xFC56 MATHP
 	.long suRegR				;@ 0xFC57 MATHN
 	.long suUnmappedR			;@ 0xFC58
@@ -482,7 +482,7 @@ io_write_tbl:
 	.long suUnmappedW			;@ 0xFC51
 	.long susiePoke				;@ 0xFC52 MATHD
 	.long susiePoke				;@ 0xFC53 MATHC
-	.long susiePoke				;@ 0xFC54 MATHB
+	.long suRegLW				;@ 0xFC54 MATHB
 	.long susiePoke				;@ 0xFC55 MATHA
 	.long suRegLW				;@ 0xFC56 MATHP
 	.long suRegW				;@ 0xFC57 MATHN

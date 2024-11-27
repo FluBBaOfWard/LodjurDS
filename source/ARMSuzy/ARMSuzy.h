@@ -36,17 +36,19 @@ typedef	union {
 
 typedef union {
 	struct {
-		u8	D;
-		u8	C;
 		u8	B;
 		u8	A;
 	} Bytes;
+	u16	AB;
+} MATH_AB;
+
+typedef union {
 	struct {
-		u16	CD;
-		u16	AB;
-	} Words;
-	u32	Long;
-} MATH_ABCD;
+		u8	D;
+		u8	C;
+	} Bytes;
+	u16	CD;
+} MATH_CD;
 
 typedef union {
 	struct {
@@ -114,11 +116,12 @@ typedef struct {
 	U16_ST SCBAdr;		// 0x2C Address of Current SCB
 	U16_ST procAdr;		// 0x2E Current Spr Data Proc Address
 	u8 reserved0[0x22];	// 0x30-0x51 Reserved
-//	MATH_ABCD mathABCD;	// 0x52 Math D, C, B & A
-	u8 mathD;			// 0x52 Math D
-	u8 mathC;			// 0x53 Math C
-	u8 mathB;			// 0x54 Math B
-	u8 mathA;			// 0x55 Math A
+	MATH_CD mathCD;		// 0x52 Math D & C
+//	u8 mathD;			// 0x52 Math D
+//	u8 mathC;			// 0x53 Math C
+	MATH_AB mathAB;		// 0x54 Math B & A
+//	u8 mathB;			// 0x54 Math B
+//	u8 mathA;			// 0x55 Math A
 	MATH_NP mathNP;		// 0x56 Math P & N
 //	u8 mathP;			// 0x56 Math P
 //	u8 mathN;			// 0x57 Math N

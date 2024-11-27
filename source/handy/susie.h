@@ -184,92 +184,6 @@ typedef struct
 	};
 }TMATHABCD;
 
-typedef struct
-{
-	union
-	{
-		struct
-		{
-#ifdef MSB_FIRST
-			UBYTE	E;
-			UBYTE	F;
-			UBYTE	G;
-			UBYTE	H;
-#else
-			UBYTE	H;
-			UBYTE	G;
-			UBYTE	F;
-			UBYTE	E;
-#endif
-		}Bytes;
-		struct
-		{
-#ifdef MSB_FIRST
-			UWORD	EF;
-			UWORD	GH;
-#else
-			UWORD	GH;
-			UWORD	EF;
-#endif
-		}Words;
-		ULONG	Long;
-	};
-}TMATHEFGH;
-
-typedef struct
-{
-	union
-	{
-		struct
-		{
-#ifdef MSB_FIRST
-			UBYTE	J;
-			UBYTE	K;
-			UBYTE	L;
-			UBYTE	M;
-#else
-			UBYTE	M;
-			UBYTE	L;
-			UBYTE	K;
-			UBYTE	J;
-#endif
-		}Bytes;
-		struct
-		{
-#ifdef MSB_FIRST
-			UWORD	JK;
-			UWORD	LM;
-#else
-			UWORD	LM;
-			UWORD	JK;
-#endif
-		}Words;
-		ULONG	Long;
-	};
-}TMATHJKLM;
-
-typedef struct
-{
-	union
-	{
-		struct
-		{
-#ifdef MSB_FIRST
-			UBYTE	N;
-			UBYTE	P;
-#else
-			UBYTE	P;
-			UBYTE	N;
-#endif
-		}Bytes;
-		struct
-		{
-			UWORD	NP;
-		}Word;
-	};
-}TMATHNP;
-
-
 class CSusie : public CLynxBase
 {
 	public:
@@ -296,10 +210,7 @@ class CSusie : public CLynxBase
 	private:
 		CSystem&	mSystem;
 
-		TMATHABCD	mMATHABCD;		// ENG
-//		TMATHEFGH	mMATHEFGH;		// ENG
-//		TMATHJKLM	mMATHJKLM;		// ENG
-//		TMATHNP		mMATHNP;		// ENG
+//		TMATHABCD	mMATHABCD;		// ENG
 		int			mMATHAB_sign;
 		int			mMATHCD_sign;
 		int			mMATHEFGH_sign;

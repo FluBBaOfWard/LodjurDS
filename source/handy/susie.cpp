@@ -84,7 +84,8 @@
 //#define mHSIZOFF suzy_0.hSizOff
 #define mVSIZOFF suzy_0.vSizOff
 #define mSCBADR suzy_0.SCBAdr
-//#define mMATHABCD suzy_0.mathABCD
+#define mMATHAB suzy_0.mathAB
+#define mMATHCD suzy_0.mathCD
 #define mMATHEFGH suzy_0.mathEFGH
 #define mMATHJKLM suzy_0.mathJKLM
 #define mMATHNP suzy_0.mathNP
@@ -144,7 +145,8 @@ void CSusie::Reset(void)
 	// Must be initialised to this due to
 	// Stun Runner math initialisation bug
 	// see whatsnew for 0.7
-	mMATHABCD.Long = 0xffffffff;
+	mMATHAB.AB = 0xffff;
+	mMATHCD.CD = 0xffff;
 	mMATHEFGH.Long = 0xffffffff;
 	mMATHJKLM.Long = 0xffffffff;
 	mMATHNP.Word.NP = 0xffff;
@@ -182,7 +184,7 @@ void CSusie::DoMathMultiply(void)
 	ULONG result;
 
 	// Basic multiply is ALWAYS unsigned, sign conversion is done later
-	result = (ULONG)mMATHABCD.Words.AB * (ULONG)mMATHABCD.Words.CD;
+	result = (ULONG)mMATHAB.AB * (ULONG)mMATHCD.CD;
 	mMATHEFGH.Long = result;
 
 	if (mSPRSYS & SignedMath) {
@@ -199,7 +201,7 @@ void CSusie::DoMathMultiply(void)
 		TRACE_SUSIE0("DoMathMultiply() - UNSIGNED");
 	}
 
-	TRACE_SUSIE2("DoMathMultiply() AB=$%04x * CD=$%04x", mMATHABCD.Words.AB, mMATHABCD.Words.CD);
+	TRACE_SUSIE2("DoMathMultiply() AB=$%04x * CD=$%04x", mMATHAB.AB, mMATHCD.CD);
 
 	// Check overflow, if B31 has changed from 1->0 then its overflow time
 	if (mSPRSYS & Accumulate) {
@@ -237,20 +239,23 @@ void CSusie::DoMathDivide(void)
 	// Accumulate in JKLM         Remainder in (JK)LM
 	//
 
+	ULONG result;
 	// Divide is ALWAYS unsigned arithmetic...
 	if (mMATHNP.Word.NP) {
 		TRACE_SUSIE0("DoMathDivide() - UNSIGNED");
-		mMATHABCD.Long = mMATHEFGH.Long / mMATHNP.Word.NP;
+		result = mMATHEFGH.Long / mMATHNP.Word.NP;
 		mMATHJKLM.Long = mMATHEFGH.Long % mMATHNP.Word.NP;
 	}
 	else {
 		TRACE_SUSIE0("DoMathDivide() - DIVIDE BY ZERO ERROR");
-		mMATHABCD.Long = 0xffffffff;
+		result = 0xffffffff;
 		mMATHJKLM.Long = 0;
 		mSPRSYS_Mathbit = TRUE;
 	}
+	mMATHAB.AB = result>>16;
+	mMATHCD.CD = result;
 	TRACE_SUSIE2("DoMathDivide() EFGH=$%08x / NP=%04x", mMATHEFGH.Long, mMATHNP.Long);
-	TRACE_SUSIE1("DoMathDivide() Results (div) ABCD=$%08x", mMATHABCD.Long);
+	TRACE_SUSIE1("DoMathDivide() Results (div) ABCD=$%08x", result);
 	TRACE_SUSIE1("DoMathDivide() Results (mod) JKLM=$%08x", mMATHJKLM.Long);
 }
 
@@ -730,8 +735,8 @@ void CSusie::Poke(ULONG addr, UBYTE data)
 	{
 		case (MATHD & 0xff):
 			TRACE_SUSIE2("Poke(MATHD,%02x) at PC=$%04x", data, mSystem.mCpu->GetPC());
-			mMATHABCD.Bytes.D = data;
-//			mMATHABCD.Bytes.C = 0;
+			mMATHCD.Bytes.D = data;
+//			mMATHCD.Bytes.C = 0;
 			// The hardware manual says that the sign shouldnt change
 			// but if I dont do this then Stun Runner will hang as it
 			// does the init in the wrong order and if the previous
@@ -740,17 +745,17 @@ void CSusie::Poke(ULONG addr, UBYTE data)
 			break;
 		case (MATHC & 0xff):
 			TRACE_SUSIE2("Poke(MATHC,%02x) at PC=$%04x", data, mSystem.mCpu->GetPC());
-			mMATHABCD.Bytes.C = data;
+			mMATHCD.Bytes.C = data;
 			// Perform sign conversion if required
 			if (mSPRSYS & SignedMath) {
 				// Account for the math bug that 0x8000 is +ve & 0x0000 is -ve by subracting 1
-				if ((mMATHABCD.Words.CD - 1) & 0x8000) {
+				if ((mMATHCD.CD - 1) & 0x8000) {
 					UWORD conv;
-					conv = mMATHABCD.Words.CD ^ 0xffff;
+					conv = mMATHCD.CD ^ 0xffff;
 					conv++;
 					mMATHCD_sign = -1;
 					TRACE_SUSIE2("MATH CD signed conversion complete %04x to %04x", mMATHABCD.Words.CD, conv);
-					mMATHABCD.Words.CD = conv;
+					mMATHCD.CD = conv;
 				}
 				else
 				{
@@ -758,24 +763,24 @@ void CSusie::Poke(ULONG addr, UBYTE data)
 				}
 			}
 			break;
-		case (MATHB & 0xff):
-			TRACE_SUSIE2("Poke(MATHB,%02x) at PC=$%04x", data, mSystem.mCpu->GetPC());
-			mMATHABCD.Bytes.B = data;
-			mMATHABCD.Bytes.A = 0;
-			break;
+//		case (MATHB & 0xff):
+//			TRACE_SUSIE2("Poke(MATHB,%02x) at PC=$%04x", data, mSystem.mCpu->GetPC());
+//			mMATHAB.Bytes.B = data;
+//			mMATHAB.Bytes.A = 0;
+//			break;
 		case (MATHA & 0xff):
 			TRACE_SUSIE2("Poke(MATHA,%02x) at PC=$%04x", data, mSystem.mCpu->GetPC());
-			mMATHABCD.Bytes.A = data;
+			mMATHAB.Bytes.A = data;
 			// Perform sign conversion if required
 			if (mSPRSYS & SignedMath) {
 				// Account for the math bug that 0x8000 is +ve & 0x0000 is -ve by subracting 1
-				if ((mMATHABCD.Words.AB - 1) & 0x8000) {
+				if ((mMATHAB.AB - 1) & 0x8000) {
 					UWORD conv;
-					conv = mMATHABCD.Words.AB ^ 0xffff;
+					conv = mMATHAB.AB ^ 0xffff;
 					conv++;
 					mMATHAB_sign = -1;
-					TRACE_SUSIE2("MATH AB signed conversion complete %04x to %04x", mMATHABCD.Words.AB, conv);
-					mMATHABCD.Words.AB = conv;
+					TRACE_SUSIE2("MATH AB signed conversion complete %04x to %04x", mMATHAB.AB, conv);
+					mMATHAB.AB = conv;
 				}
 				else {
 					mMATHAB_sign = 1;
@@ -784,55 +789,11 @@ void CSusie::Poke(ULONG addr, UBYTE data)
 			DoMathMultiply();
 			break;
 
-//		case (MATHP & 0xff):
-//			mMATHNP.Bytes.P = data;
-//			mMATHNP.Bytes.N = 0;
-//			TRACE_SUSIE2("Poke(MATHP,%02x) at PC=$%04x", data, mSystem.mCpu->GetPC());
-//			break;
-//		case (MATHN & 0xff):
-//			mMATHNP.Bytes.N = data;
-//			TRACE_SUSIE2("Poke(MATHN,%02x) at PC=$%04x", data, mSystem.mCpu->GetPC());
-//			break;
-
-//		case (MATHH & 0xff):
-//			mMATHEFGH.Bytes.H = data;
-//			mMATHEFGH.Bytes.G = 0;
-//			TRACE_SUSIE2("Poke(MATHH,%02x) at PC=$%04x", data, mSystem.mCpu->GetPC());
-//			break;
-//		case (MATHG & 0xff):
-//			mMATHEFGH.Bytes.G = data;
-//			TRACE_SUSIE2("Poke(MATHG,%02x) at PC=$%04x", data, mSystem.mCpu->GetPC());
-//			break;
-//		case (MATHF & 0xff):
-//			mMATHEFGH.Bytes.F = data;
-//			mMATHEFGH.Bytes.E = 0;
-//			TRACE_SUSIE2("Poke(MATHF,%02x) at PC=$%04x", data, mSystem.mCpu->GetPC());
-//			break;
 		case (MATHE & 0xff):
 			mMATHEFGH.Bytes.E = data;
 			TRACE_SUSIE2("Poke(MATHE,%02x) at PC=$%04x", data, mSystem.mCpu->GetPC());
 			DoMathDivide();
 			break;
-
-//		case (MATHM & 0xff):
-//			mMATHJKLM.Bytes.M = data;
-//			mMATHJKLM.Bytes.L = 0;
-//			mSPRSYS_Mathbit = FALSE;
-//			TRACE_SUSIE2("Poke(MATHM,%02x) at PC=$%04x", data, mSystem.mCpu->GetPC());
-//			break;
-//		case (MATHL & 0xff):
-//			mMATHJKLM.Bytes.L = data;
-//			TRACE_SUSIE2("Poke(MATHL,%02x) at PC=$%04x", data, mSystem.mCpu->GetPC());
-//			break;
-//		case (MATHK & 0xff):
-//			mMATHJKLM.Bytes.K = data;
-//			mMATHJKLM.Bytes.J = 0;
-//			TRACE_SUSIE2("Poke(MATHK,%02x) at PC=$%04x", data, mSystem.mCpu->GetPC());
-//			break;
-//		case (MATHJ & 0xff):
-//			mMATHJKLM.Bytes.J = data;
-//			TRACE_SUSIE2("Poke(MATHJ,%02x) at PC=$%04x", data, mSystem.mCpu->GetPC());
-//			break;
 
 		case (SPRSYS & 0xff):
 			if (data & UnsafeAccess) mSPRSYS_UnsafeAccess = 0;
@@ -854,7 +815,6 @@ void CSusie::Poke(ULONG addr, UBYTE data)
 // Errors on illegal location accesses
 
 		default:
-//			lnxSuzyWrite(addr, data);
 			TRACE_SUSIE3("Poke(%04x,%02x) - Poke to illegal location at PC=%04x", addr, data, mSystem.mCpu->GetPC());
 			break;
 	}
@@ -865,64 +825,21 @@ UBYTE CSusie::Peek(ULONG addr)
 	UBYTE retval = 0;
 	switch(addr & 0xff)
 	{
-		case (MATHD & 0xff):
-			retval = mMATHABCD.Bytes.D;
-			TRACE_SUSIE2("Peek(MATHD)=$%02x at PC=$%04x", retval, mSystem.mCpu->GetPC());
-			return retval;
-		case (MATHC & 0xff):
-			retval = mMATHABCD.Bytes.C;
-			TRACE_SUSIE2("Peek(MATHC)=$%02x at PC=$%04x", retval, mSystem.mCpu->GetPC());
-			return retval;
-		case (MATHB & 0xff):
-			retval = mMATHABCD.Bytes.B;
-			TRACE_SUSIE2("Peek(MATHB)=$%02x at PC=$%04x", retval, mSystem.mCpu->GetPC());
-			return retval;
-		case (MATHA & 0xff):
-			retval = mMATHABCD.Bytes.A;
-			TRACE_SUSIE2("Peek(MATHA)=$%02x at PC=$%04x", retval, mSystem.mCpu->GetPC());
-			return retval;
-
-//		case (MATHP & 0xff):
-//			retval = mMATHNP.Bytes.P;
-//			TRACE_SUSIE2("Peek(MATHP)=$%02x at PC=$%04x", retval, mSystem.mCpu->GetPC());
+//		case (MATHD & 0xff):
+//			retval = mMATHCD.Bytes.D;
+//			TRACE_SUSIE2("Peek(MATHD)=$%02x at PC=$%04x", retval, mSystem.mCpu->GetPC());
 //			return retval;
-//		case (MATHN & 0xff):
-//			retval = mMATHNP.Bytes.N;
-//			TRACE_SUSIE2("Peek(MATHN)=$%02x at PC=$%04x", retval, mSystem.mCpu->GetPC());
+//		case (MATHC & 0xff):
+//			retval = mMATHCD.Bytes.C;
+//			TRACE_SUSIE2("Peek(MATHC)=$%02x at PC=$%04x", retval, mSystem.mCpu->GetPC());
 //			return retval;
-
-//		case (MATHH & 0xff):
-//			retval = mMATHEFGH.Bytes.H;
-//			TRACE_SUSIE2("Peek(MATHH)=$%02x at PC=$%04x", retval, mSystem.mCpu->GetPC());
+//		case (MATHB & 0xff):
+//			retval = mMATHAB.Bytes.B;
+//			TRACE_SUSIE2("Peek(MATHB)=$%02x at PC=$%04x", retval, mSystem.mCpu->GetPC());
 //			return retval;
-//		case (MATHG & 0xff):
-//			retval = mMATHEFGH.Bytes.G;
-//			TRACE_SUSIE2("Peek(MATHG)=$%02x at PC=$%04x", retval, mSystem.mCpu->GetPC());
-//			return retval;
-//		case (MATHF & 0xff):
-//			retval = mMATHEFGH.Bytes.F;
-//			TRACE_SUSIE2("Peek(MATHF)=$%02x at PC=$%04x", retval, mSystem.mCpu->GetPC());
-//			return retval;
-//		case (MATHE & 0xff):
-//			retval = mMATHEFGH.Bytes.E;
-//			TRACE_SUSIE2("Peek(MATHE)=$%02x at PC=$%04x", retval, mSystem.mCpu->GetPC());
-//			return retval;
-
-//		case (MATHM & 0xff):
-//			retval = mMATHJKLM.Bytes.M;
-//			TRACE_SUSIE2("Peek(MATHM)=$%02x at PC=$%04x", retval, mSystem.mCpu->GetPC());
-//			return retval;
-//		case (MATHL & 0xff):
-//			retval = mMATHJKLM.Bytes.L;
-//			TRACE_SUSIE2("Peek(MATHL)=$%02x at PC=$%04x", retval, mSystem.mCpu->GetPC());
-//			return retval;
-//		case (MATHK & 0xff):
-//			retval = mMATHJKLM.Bytes.K;
-//			TRACE_SUSIE2("Peek(MATHK)=$%02x at PC=$%04x", retval, mSystem.mCpu->GetPC());
-//			return retval;
-//		case (MATHJ & 0xff):
-//			retval = mMATHJKLM.Bytes.J;
-//			TRACE_SUSIE2("Peek(MATHJ)=$%02x at PC=$%04x", retval, mSystem.mCpu->GetPC());
+//		case (MATHA & 0xff):
+//			retval = mMATHAB.Bytes.A;
+//			TRACE_SUSIE2("Peek(MATHA)=$%02x at PC=$%04x", retval, mSystem.mCpu->GetPC());
 //			return retval;
 
 		case (SPRSYS & 0xff):
@@ -974,7 +891,6 @@ UBYTE CSusie::Peek(ULONG addr)
 
 		default:
 			TRACE_SUSIE2("Peek(%04x) - Peek from illegal location at PC=$%04x", addr, mSystem.mCpu->GetPC());
-//			return lnxSuzyRead(addr);
 	}
 
 	return 0xff;
