@@ -25,6 +25,7 @@
 	.global suzyGetStateSize
 	.global suzyRead
 	.global suzyWrite
+	.global suzDoMultiply
 	.global suzLineRender
 	.global suzLineStart
 
@@ -647,6 +648,33 @@ suBusEnW:					;@ 0x90 Suzy Bus Enable
 	strb r1,[suzptr,#suzSuzyBusEn]
 	bx lr
 
+;@----------------------------------------------------------------------------
+suzDoMultiply:				;@
+	.type	suzDoMultiply STT_FUNC
+;@----------------------------------------------------------------------------
+	ldr suzptr,=suzy_0
+	mov r0,#0
+	str r0,[suzptr,#sprSys_Mathbit]
+	ldrh r0,[suzptr,#suzMathAB]
+	ldrh r1,[suzptr,#suzMathCD]
+	mul r2,r1,r0
+	ldrb r3,[suzptr,#suzSprSys]
+	tst r3,#0x80						;@ SignedMath
+	beq noSignedMult
+	ldrd r0,r1,[suzptr,#mathAB_sign]	;@ r1=mathCD_sign
+//	ldr r1,[suzptr,#mathCD_sign]
+	adds r0,r0,r1
+	str r0,[suzptr,#mathEFGH_sign]
+	rsbeq r2,r2,#0
+noSignedMult:
+	str r2,[suzptr,#suzMathEFGH]
+
+	tst r3,#0x40						;@ Accumulate
+	ldrne r0,[suzptr,#suzMathJKLM]
+	addne r0,r0,r2
+	strne r0,[suzptr,#suzMathJKLM]
+
+	bx lr
 ;@----------------------------------------------------------------------------
 suzLineStart:				;@ Out = SPRDOFF.
 	.type	suzLineStart STT_FUNC

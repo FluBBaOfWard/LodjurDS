@@ -85,7 +85,6 @@ CSystem::~CSystem()
 void CSystem::Reset(void)
 {
 	gCPUBootAddress = 0;
-	gSystemNMI = FALSE;
 	gSystemHalt = FALSE;
 
 	gAudioBufferPointer = 0;

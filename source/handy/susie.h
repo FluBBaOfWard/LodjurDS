@@ -152,38 +152,6 @@ typedef struct
 	};
 }TSWITCHES;
 
-typedef struct
-{
-	union
-	{
-		struct
-		{
-#ifdef MSB_FIRST
-			UBYTE	A;
-			UBYTE	B;
-			UBYTE	C;
-			UBYTE	D;
-#else
-			UBYTE	D;
-			UBYTE	C;
-			UBYTE	B;
-			UBYTE	A;
-#endif
-		}Bytes;
-		struct
-		{
-#ifdef MSB_FIRST
-			UWORD	AB;
-			UWORD	CD;
-#else
-			UWORD	CD;
-			UWORD	AB;
-#endif
-		}Words;
-		ULONG	Long;
-	};
-}TMATHABCD;
-
 class CSusie : public CLynxBase
 {
 	public:
@@ -199,26 +167,24 @@ class CSusie : public CLynxBase
 		ULONG	ObjectSize(void) {return SUSIE_SIZE;};
 
 		void	SetButtonData(ULONG data) {mJOYSTICK.Byte=(UBYTE)data;mSWITCHES.Byte=(UBYTE)(data>>8);};
-		ULONG	GetButtonData(void) {return mJOYSTICK.Byte+(mSWITCHES.Byte<<8);};
 
 		ULONG	PaintSprites(void);
 
 	private:
 		void	DoMathDivide(void);
-		void	DoMathMultiply(void);
+//		void	DoMathMultiply(void);
 
 	private:
 		CSystem&	mSystem;
 
-//		TMATHABCD	mMATHABCD;		// ENG
-		int			mMATHAB_sign;
-		int			mMATHCD_sign;
-		int			mMATHEFGH_sign;
+//		int			mMATHAB_sign;
+//		int			mMATHCD_sign;
+//		int			mMATHEFGH_sign;
 
 		int			mSPRSYS_Busy;
 		int			mSPRSYS_UnsafeAccess;
 		int			mSPRSYS_LastCarry;
-		int			mSPRSYS_Mathbit;
+//		int			mSPRSYS_Mathbit;
 		int			mSPRSYS_MathInProgress;
 
 		// Joystick switches

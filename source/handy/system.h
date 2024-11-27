@@ -48,7 +48,6 @@
 #ifdef SYSTEM_CPP
 	ULONG	gCPUBootAddress = 0;
 	ULONG	gSingleStepModeSprites = FALSE;
-	BOOL	gSystemNMI = FALSE;
 	BOOL	gSystemHalt = FALSE;
 
 	ULONG	gAudioEnabled = FALSE;
@@ -57,13 +56,10 @@
 	UBYTE	*gAudioBuffer2; // UBYTE	gAudioBuffer2[HANDY_AUDIO_BUFFER_SIZE];
 	UBYTE	*gAudioBuffer3; // UBYTE	gAudioBuffer3[HANDY_AUDIO_BUFFER_SIZE];
 	ULONG	gAudioBufferPointer = 0;
-
-	BOOL	gWindowInFocus = TRUE;
 #else
 
 	extern ULONG	gCPUBootAddress;
 	extern ULONG	gSingleStepModeSprites;
-	extern BOOL		gSystemNMI;
 	extern BOOL		gSystemHalt;
 
 	extern ULONG	gAudioEnabled;
@@ -72,8 +68,6 @@
 	extern UBYTE	*gAudioBuffer2; // extern UBYTE	gAudioBuffer2[HANDY_AUDIO_BUFFER_SIZE];
 	extern UBYTE	*gAudioBuffer3; // extern UBYTE	gAudioBuffer3[HANDY_AUDIO_BUFFER_SIZE];
 	extern ULONG	gAudioBufferPointer;
-
-	extern BOOL		gWindowInFocus;
 #endif
 
 
@@ -88,10 +82,6 @@ class CSystem;
 #define RAM_SIZE				0x10000
 #define DEFAULT_RAM_CONTENTS	0xff
 
-extern "C" {
-	extern UBYTE lynxRAM[RAM_SIZE];
-}
-
 class CSystem : public CSystemBase
 {
 	public:
@@ -100,13 +90,6 @@ class CSystem : public CSystemBase
 
 	public:
 		void	Reset(void);
-
-		//
-		// We MUST have separate CPU & RAM peek & poke handlers as all CPU accesses must
-		// go thru the address generator at $FFF9
-		//
-		// BUT, Mikie video refresh & Susie see the whole system as RAM
-		//
 
 // High level cart access for debug etc
 
@@ -140,8 +123,6 @@ class CSystem : public CSystemBase
 // Miscellaneous
 
 		void	SetButtonData(ULONG data) {mSusie->SetButtonData(data);};
-		ULONG	GetButtonData(void) {return mSusie->GetButtonData();};
-		UBYTE	*GetRamPointer(void) {return lynxRAM;};
 
 	public:
 		CCart			*mCart;

@@ -35,7 +35,6 @@ class CSystemBase
 	public:
 		virtual void	Reset(void) = 0;
 
-		virtual UBYTE	*GetRamPointer(void) = 0;
 };
 
 #endif

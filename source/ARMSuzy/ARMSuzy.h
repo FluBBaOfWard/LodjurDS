@@ -38,7 +38,7 @@ typedef union {
 	struct {
 		u8	B;
 		u8	A;
-	} Bytes;
+	};
 	u16	AB;
 } MATH_AB;
 
@@ -46,7 +46,7 @@ typedef union {
 	struct {
 		u8	D;
 		u8	C;
-	} Bytes;
+	};
 	u16	CD;
 } MATH_CD;
 
@@ -56,11 +56,11 @@ typedef union {
 		u8	G;
 		u8	F;
 		u8	E;
-	} Bytes;
+	};
 	struct {
 		u16	GH;
 		u16	EF;
-	} Words;
+	};
 	u32	Long;
 } MATH_EFGH;
 
@@ -70,11 +70,11 @@ typedef union {
 		u8	L;
 		u8	K;
 		u8	J;
-	} Bytes;
+	};
 	struct {
 		u16	LM;
 		u16	JK;
-	} Words;
+	};
 	u32	Long;
 } MATH_JKLM;
 
@@ -85,7 +85,7 @@ typedef union {
 	} Bytes;
 	struct {
 		u16	NP;
-	} Word;
+	};
 } MATH_NP;
 
 typedef struct {
@@ -183,6 +183,12 @@ typedef struct {
 	u32 lineCollisionAddress;
 	u32 cyclesUsed;				// Cycles used to paint sprites.
 
+	int mathAB_sign;
+	int mathCD_sign;
+	int mathEFGH_sign;
+
+	int sprSys_Mathbit;
+
 	u8 dirtyTiles[4];
 	u8 *suzyRAM;
 
@@ -212,6 +218,7 @@ int suzyLoadState(SUZY *chip, const void *source);
  */
 int suzyGetStateSize(void);
 
+void suzDoMultiply(void);
 u32 suzLineStart(void);
 bool suzLineRender(int hsign, int hQuadOff, int voff);
 
