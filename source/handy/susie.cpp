@@ -170,63 +170,6 @@ void CSusie::Reset(void)
 	mSWITCHES.Byte = 0;
 }
 
-/*
-void CSusie::DoMathMultiply(void)
-{
-	mSPRSYS_Mathbit = FALSE;
-
-	// Multiplies without sign or accumulate take 44 ticks to complete.
-	// Multiplies with sign and accumulate take 54 ticks to complete.
-	//
-	//    AB                                    EFGH
-	//  * CD                                  /   NP
-	// -------                            -----------
-	//  EFGH                                    ABCD
-	// Accumulate in JKLM         Remainder in (JK)LM
-	//
-
-
-	// Basic multiply is ALWAYS unsigned, sign conversion is done later
-	ULONG result = (ULONG)mMATHAB.AB * (ULONG)mMATHCD.CD;
-	mMATHEFGH.Long = result;
-
-	if (mSPRSYS & SignedMath) {
-		TRACE_SUSIE0("DoMathMultiply() - SIGNED");
-		// Add the sign bits, only >0 is +ve result
-		mMATHEFGH_sign = mMATHAB_sign+mMATHCD_sign;
-		if (!mMATHEFGH_sign)
-		{
-			mMATHEFGH.Long ^= 0xffffffff;
-			mMATHEFGH.Long++;
-		}
-	}
-	else {
-		TRACE_SUSIE0("DoMathMultiply() - UNSIGNED");
-	}
-
-	TRACE_SUSIE2("DoMathMultiply() AB=$%04x * CD=$%04x", mMATHAB.AB, mMATHCD.CD);
-
-	// Check overflow, if B31 has changed from 1->0 then its overflow time
-	if (mSPRSYS & Accumulate) {
-		TRACE_SUSIE0("DoMathMultiply() - ACCUMULATED JKLM+=EFGH");
-		ULONG tmp = mMATHJKLM.Long + mMATHEFGH.Long;
-		// Let sign change indicate overflow
-		if ((tmp & 0x80000000) != (mMATHJKLM.Long & 0x80000000)) {
-			TRACE_SUSIE0("DoMathMultiply() - OVERFLOW DETECTED");
-//			mSPRSYS_Mathbit = TRUE;
-		}
-		else {
-//			mSPRSYS_Mathbit = FALSE;
-		}
-		// Save accumulated result
-		mMATHJKLM.Long = tmp;
-	}
-
-	TRACE_SUSIE1("DoMathMultiply() Results (raw - no sign) Result=$%08x", result);
-	TRACE_SUSIE1("DoMathMultiply() Results (Multi) EFGH=$%08x", mMATHEFGH.Long);
-	TRACE_SUSIE1("DoMathMultiply() Results (Accum) JKLM=$%08x", mMATHJKLM.Long);
-}
-*/
 void CSusie::DoMathDivide(void)
 {
 	mSPRSYS_Mathbit = FALSE;
@@ -736,7 +679,7 @@ void CSusie::Poke(ULONG addr, UBYTE data)
 {
 	switch(addr & 0xff)
 	{
-		case (MATHD & 0xff):
+/*		case (MATHD & 0xff):
 			TRACE_SUSIE2("Poke(MATHD,%02x) at PC=$%04x", data, mSystem.mCpu->GetPC());
 			mMATHCD.D = data;
 //			mMATHCD.C = 0;
@@ -782,10 +725,9 @@ void CSusie::Poke(ULONG addr, UBYTE data)
 					mMATHAB_sign = 1;
 				}
 			}
-//			DoMathMultiply();
 			suzDoMultiply();
 			break;
-
+*/
 		case (MATHE & 0xff):
 			mMATHEFGH.E = data;
 			TRACE_SUSIE2("Poke(MATHE,%02x) at PC=$%04x", data, mSystem.mCpu->GetPC());

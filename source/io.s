@@ -81,9 +81,9 @@ refreshEMUjoypads:			;@ Call every frame
 	and r1,r4,#0x08				;@ NDS Start
 	orr r0,r0,r1,lsl#5			;@ Lynx Start
 	tst r4,#0x400				;@ NDS X button
-	orrne r0,r0,#0x04			;@ Lynx Option1
+	orrne r0,r0,#0x08			;@ Lynx Option1
 	tst r4,#0x800				;@ NDS Y button
-	orrne r0,r0,#0x08			;@ Lynx Option2
+	orrne r0,r0,#0x04			;@ Lynx Option2
 
 	ands r1,r3,#3				;@ A/B buttons
 	cmpne r1,#3

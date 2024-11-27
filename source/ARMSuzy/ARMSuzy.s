@@ -25,7 +25,7 @@
 	.global suzyGetStateSize
 	.global suzyRead
 	.global suzyWrite
-	.global suzDoMultiply
+//	.global suzDoMultiply
 	.global suzLineRender
 	.global suzLineStart
 
@@ -481,10 +481,10 @@ io_write_tbl:
 	.long suUnmappedW			;@ 0xFC4F
 	.long suUnmappedW			;@ 0xFC50
 	.long suUnmappedW			;@ 0xFC51
-	.long susiePoke				;@ 0xFC52 MATHD
-	.long susiePoke				;@ 0xFC53 MATHC
+	.long suMathDW				;@ 0xFC52 MATHD
+	.long suMathCW				;@ 0xFC53 MATHC
 	.long suRegLW				;@ 0xFC54 MATHB
-	.long susiePoke				;@ 0xFC55 MATHA
+	.long suMathAW				;@ 0xFC55 MATHA
 	.long suRegLW				;@ 0xFC56 MATHP
 	.long suRegW				;@ 0xFC57 MATHN
 	.long suUnmappedW			;@ 0xFC58
@@ -628,6 +628,47 @@ suRegLW:
 	bx lr
 
 ;@----------------------------------------------------------------------------
+suMathDW:					;@ 0x52 Math D Register
+;@----------------------------------------------------------------------------
+	strb r1,[suzptr,#suzMathD]
+	mov r1,#0				;@ Set Math C to zero.
+;@----------------------------------------------------------------------------
+suMathCW:					;@ 0x53 Math C Register
+;@----------------------------------------------------------------------------
+	ldrb r0,[suzptr,#suzMathD]
+	orr r0,r0,r1,lsl#8
+	ldrb r2,[suzptr,#suzSprSys]
+	tst r2,#0x80						;@ SignedMath
+	beq noSignedCD
+	;@ Account for the math bug that 0x8000 is +ve & 0x0000 is -ve by subracting 1
+	sub r1,r0,#1
+	tst r1,#0x8000
+	rsbne r0,r0,#0						;@ Negate CD
+	mov r1,#1
+	movne r1,#-1
+	str r1,[suzptr,#mathCD_sign]
+noSignedCD:
+	strh r0,[suzptr,#suzMathCD]
+	bx lr
+;@----------------------------------------------------------------------------
+suMathAW:					;@ 0x55 Math A Register
+;@----------------------------------------------------------------------------
+	ldrb r0,[suzptr,#suzMathB]
+	orr r0,r0,r1,lsl#8
+	ldrb r2,[suzptr,#suzSprSys]
+	tst r2,#0x80						;@ SignedMath
+	beq noSignedAB
+	;@ Account for the math bug that 0x8000 is +ve & 0x0000 is -ve by subracting 1
+	sub r1,r0,#1
+	tst r1,#0x8000
+	rsbne r0,r0,#0						;@ Negate AB
+	mov r1,#1
+	movne r1,#-1
+	str r1,[suzptr,#mathAB_sign]
+noSignedAB:
+	strh r0,[suzptr,#suzMathAB]
+	b suzDoMultiply
+;@----------------------------------------------------------------------------
 suSprCtl0W:					;@ 0x80 Sprite Coontrol 0
 ;@----------------------------------------------------------------------------
 	strb r1,[suzptr,#suzSprCtl0]
@@ -650,9 +691,9 @@ suBusEnW:					;@ 0x90 Suzy Bus Enable
 
 ;@----------------------------------------------------------------------------
 suzDoMultiply:				;@
-	.type	suzDoMultiply STT_FUNC
+//	.type	suzDoMultiply STT_FUNC
 ;@----------------------------------------------------------------------------
-	ldr suzptr,=suzy_0
+//	ldr suzptr,=suzy_0
 	mov r0,#0
 	str r0,[suzptr,#sprSys_Mathbit]
 	ldrh r0,[suzptr,#suzMathAB]

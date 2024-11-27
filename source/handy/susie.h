@@ -172,19 +172,13 @@ class CSusie : public CLynxBase
 
 	private:
 		void	DoMathDivide(void);
-//		void	DoMathMultiply(void);
 
 	private:
 		CSystem&	mSystem;
 
-//		int			mMATHAB_sign;
-//		int			mMATHCD_sign;
-//		int			mMATHEFGH_sign;
-
 		int			mSPRSYS_Busy;
 		int			mSPRSYS_UnsafeAccess;
 		int			mSPRSYS_LastCarry;
-//		int			mSPRSYS_Mathbit;
 		int			mSPRSYS_MathInProgress;
 
 		// Joystick switches
