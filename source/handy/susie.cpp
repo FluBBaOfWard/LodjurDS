@@ -679,59 +679,11 @@ void CSusie::Poke(ULONG addr, UBYTE data)
 {
 	switch(addr & 0xff)
 	{
-/*		case (MATHD & 0xff):
-			TRACE_SUSIE2("Poke(MATHD,%02x) at PC=$%04x", data, mSystem.mCpu->GetPC());
-			mMATHCD.D = data;
-//			mMATHCD.C = 0;
-			// The hardware manual says that the sign shouldnt change
-			// but if I dont do this then Stun Runner will hang as it
-			// does the init in the wrong order and if the previous
-			// calc left a zero there then we'll get a sign error
-			Poke(MATHC,0);
-			break;
-		case (MATHC & 0xff):
-			TRACE_SUSIE2("Poke(MATHC,%02x) at PC=$%04x", data, mSystem.mCpu->GetPC());
-			mMATHCD.C = data;
-			// Perform sign conversion if required
-			if (mSPRSYS & SignedMath) {
-				// Account for the math bug that 0x8000 is +ve & 0x0000 is -ve by subracting 1
-				if ((mMATHCD.CD - 1) & 0x8000) {
-					UWORD conv = mMATHCD.CD ^ 0xffff;
-					conv++;
-					mMATHCD_sign = -1;
-					TRACE_SUSIE2("MATH CD signed conversion complete %04x to %04x", mMATHCD.CD, conv);
-					mMATHCD.CD = conv;
-				}
-				else
-				{
-					mMATHCD_sign = 1;
-				}
-			}
-			break;
-		case (MATHA & 0xff):
-			TRACE_SUSIE2("Poke(MATHA,%02x) at PC=$%04x", data, mSystem.mCpu->GetPC());
-			mMATHAB.A = data;
-			// Perform sign conversion if required
-			if (mSPRSYS & SignedMath) {
-				// Account for the math bug that 0x8000 is +ve & 0x0000 is -ve by subracting 1
-				if ((mMATHAB.AB - 1) & 0x8000) {
-					UWORD conv = mMATHAB.AB ^ 0xffff;
-					conv++;
-					mMATHAB_sign = -1;
-					TRACE_SUSIE2("MATH AB signed conversion complete %04x to %04x", mMATHAB.AB, conv);
-					mMATHAB.AB = conv;
-				}
-				else {
-					mMATHAB_sign = 1;
-				}
-			}
-			suzDoMultiply();
-			break;
-*/
 		case (MATHE & 0xff):
 			mMATHEFGH.E = data;
 			TRACE_SUSIE2("Poke(MATHE,%02x) at PC=$%04x", data, mSystem.mCpu->GetPC());
 			DoMathDivide();
+//			suzDoDivide();
 			break;
 
 		case (SPRSYS & 0xff):

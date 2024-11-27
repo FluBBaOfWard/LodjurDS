@@ -25,7 +25,7 @@
 	.global suzyGetStateSize
 	.global suzyRead
 	.global suzyWrite
-//	.global suzDoMultiply
+	.global suzDoDivide
 	.global suzLineRender
 	.global suzLineStart
 
@@ -667,7 +667,55 @@ suMathAW:					;@ 0x55 Math A Register
 	str r1,[suzptr,#mathAB_sign]
 noSignedAB:
 	strh r0,[suzptr,#suzMathAB]
-	b suzDoMultiply
+;@----------------------------------------------------------------------------
+;@ suzDoMultiply:				;@
+;@----------------------------------------------------------------------------
+	mov r1,#0
+	str r1,[suzptr,#sprSys_Mathbit]
+	ldrh r0,[suzptr,#suzMathAB]
+	ldrh r1,[suzptr,#suzMathCD]
+	mul r3,r1,r0
+	tst r2,#0x80						;@ SignedMath
+	beq noSignedMult
+	ldrd r0,r1,[suzptr,#mathAB_sign]	;@ r1=mathCD_sign
+//	ldr r1,[suzptr,#mathCD_sign]
+	adds r0,r0,r1
+	str r0,[suzptr,#mathEFGH_sign]
+	rsbeq r3,r3,#0
+noSignedMult:
+	str r3,[suzptr,#suzMathEFGH]
+
+	tst r2,#0x40						;@ Accumulate
+	ldrne r0,[suzptr,#suzMathJKLM]
+	addne r0,r0,r3
+	strne r0,[suzptr,#suzMathJKLM]
+
+	bx lr
+
+;@----------------------------------------------------------------------------
+suMathEW:					;@ 0x63 Math E Register
+;@----------------------------------------------------------------------------
+	strb r1,[suzptr,#suzMathE]
+;@----------------------------------------------------------------------------
+suzDoDivide:				;@
+	.type	suzDoDivide STT_FUNC
+;@----------------------------------------------------------------------------
+	ldr suzptr,=suzy_0
+	ldrh r1,[suzptr,#suzMathNP]
+	cmp r1,#0
+	mov r2,#0
+	moveq r2,#1
+	str r2,[suzptr,#sprSys_Mathbit]
+	moveq r0,#-1
+	beq zeroDvide
+	ldr r0,[suzptr,#suzMathEFGH]
+//	bl divide
+zeroDvide:
+	str r1,[suzptr,#suzMathJKLM]
+	strh r0,[suzptr,#suzMathCD]
+	mov r0,r0,lsr#16
+	strh r0,[suzptr,#suzMathAB]
+	bx lr
 ;@----------------------------------------------------------------------------
 suSprCtl0W:					;@ 0x80 Sprite Coontrol 0
 ;@----------------------------------------------------------------------------
@@ -689,33 +737,6 @@ suBusEnW:					;@ 0x90 Suzy Bus Enable
 	strb r1,[suzptr,#suzSuzyBusEn]
 	bx lr
 
-;@----------------------------------------------------------------------------
-suzDoMultiply:				;@
-//	.type	suzDoMultiply STT_FUNC
-;@----------------------------------------------------------------------------
-//	ldr suzptr,=suzy_0
-	mov r0,#0
-	str r0,[suzptr,#sprSys_Mathbit]
-	ldrh r0,[suzptr,#suzMathAB]
-	ldrh r1,[suzptr,#suzMathCD]
-	mul r2,r1,r0
-	ldrb r3,[suzptr,#suzSprSys]
-	tst r3,#0x80						;@ SignedMath
-	beq noSignedMult
-	ldrd r0,r1,[suzptr,#mathAB_sign]	;@ r1=mathCD_sign
-//	ldr r1,[suzptr,#mathCD_sign]
-	adds r0,r0,r1
-	str r0,[suzptr,#mathEFGH_sign]
-	rsbeq r2,r2,#0
-noSignedMult:
-	str r2,[suzptr,#suzMathEFGH]
-
-	tst r3,#0x40						;@ Accumulate
-	ldrne r0,[suzptr,#suzMathJKLM]
-	addne r0,r0,r2
-	strne r0,[suzptr,#suzMathJKLM]
-
-	bx lr
 ;@----------------------------------------------------------------------------
 suzLineStart:				;@ Out = SPRDOFF.
 	.type	suzLineStart STT_FUNC
