@@ -2,6 +2,7 @@
 
 #include "ARMMikey/ARM6502/M6502mac.h"
 #include "ARMMikey/ARMMikey.i"
+#include "ARMSuzy/ARMSuzy.i"
 
 	.global pokeCPU
 	.global peekCPU
@@ -70,7 +71,8 @@ checkIOW:
 	.long checkSusieW, checkMikieW, checkRomW, checkVectorW
 checkSusieW:
 	tst r3,#1
-	beq lnxSuzyWrite
+	ldreq suzptr,=suzy_0
+	beq suzyWrite
 	b ramPoke
 checkMikieW:
 	tst r3,#2
@@ -114,7 +116,8 @@ checkIOR:
 	.long checkSusieR, checkMikieR, checkRomR, checkVectorR
 checkSusieR:
 	tst r3,#1
-	beq lnxSuzyRead
+	ldreq suzptr,=suzy_0
+	beq suzyRead
 	b ramPeek
 checkMikieR:
 	tst r3,#2

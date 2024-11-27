@@ -84,6 +84,10 @@
 //#define mHSIZOFF suzy_0.hSizOff
 #define mVSIZOFF suzy_0.vSizOff
 #define mSCBADR suzy_0.SCBAdr
+//#define mMATHABCD suzy_0.mathABCD
+#define mMATHEFGH suzy_0.mathEFGH
+#define mMATHJKLM suzy_0.mathJKLM
+#define mMATHNP suzy_0.mathNP
 #define mSPRCTL0 suzy_0.sprCtl0
 #define mSPRCTL1 suzy_0.sprCtl1
 #define mSPRCOLL suzy_0.sprColl
@@ -143,7 +147,7 @@ void CSusie::Reset(void)
 	mMATHABCD.Long = 0xffffffff;
 	mMATHEFGH.Long = 0xffffffff;
 	mMATHJKLM.Long = 0xffffffff;
-	mMATHNP.Long = 0xffff;
+	mMATHNP.Word.NP = 0xffff;
 
 	mMATHAB_sign = 1;
 	mMATHCD_sign = 1;
@@ -234,10 +238,10 @@ void CSusie::DoMathDivide(void)
 	//
 
 	// Divide is ALWAYS unsigned arithmetic...
-	if (mMATHNP.Long) {
+	if (mMATHNP.Word.NP) {
 		TRACE_SUSIE0("DoMathDivide() - UNSIGNED");
-		mMATHABCD.Long = mMATHEFGH.Long / mMATHNP.Long;
-		mMATHJKLM.Long = mMATHEFGH.Long % mMATHNP.Long;
+		mMATHABCD.Long = mMATHEFGH.Long / mMATHNP.Word.NP;
+		mMATHJKLM.Long = mMATHEFGH.Long % mMATHNP.Word.NP;
 	}
 	else {
 		TRACE_SUSIE0("DoMathDivide() - DIVIDE BY ZERO ERROR");
@@ -780,55 +784,55 @@ void CSusie::Poke(ULONG addr, UBYTE data)
 			DoMathMultiply();
 			break;
 
-		case (MATHP & 0xff):
-			mMATHNP.Bytes.P = data;
-			mMATHNP.Bytes.N = 0;
-			TRACE_SUSIE2("Poke(MATHP,%02x) at PC=$%04x", data, mSystem.mCpu->GetPC());
-			break;
-		case (MATHN & 0xff):
-			mMATHNP.Bytes.N = data;
-			TRACE_SUSIE2("Poke(MATHN,%02x) at PC=$%04x", data, mSystem.mCpu->GetPC());
-			break;
+//		case (MATHP & 0xff):
+//			mMATHNP.Bytes.P = data;
+//			mMATHNP.Bytes.N = 0;
+//			TRACE_SUSIE2("Poke(MATHP,%02x) at PC=$%04x", data, mSystem.mCpu->GetPC());
+//			break;
+//		case (MATHN & 0xff):
+//			mMATHNP.Bytes.N = data;
+//			TRACE_SUSIE2("Poke(MATHN,%02x) at PC=$%04x", data, mSystem.mCpu->GetPC());
+//			break;
 
-		case (MATHH & 0xff):
-			mMATHEFGH.Bytes.H = data;
-			mMATHEFGH.Bytes.G = 0;
-			TRACE_SUSIE2("Poke(MATHH,%02x) at PC=$%04x", data, mSystem.mCpu->GetPC());
-			break;
-		case (MATHG & 0xff):
-			mMATHEFGH.Bytes.G = data;
-			TRACE_SUSIE2("Poke(MATHG,%02x) at PC=$%04x", data, mSystem.mCpu->GetPC());
-			break;
-		case (MATHF & 0xff):
-			mMATHEFGH.Bytes.F = data;
-			mMATHEFGH.Bytes.E = 0;
-			TRACE_SUSIE2("Poke(MATHF,%02x) at PC=$%04x", data, mSystem.mCpu->GetPC());
-			break;
+//		case (MATHH & 0xff):
+//			mMATHEFGH.Bytes.H = data;
+//			mMATHEFGH.Bytes.G = 0;
+//			TRACE_SUSIE2("Poke(MATHH,%02x) at PC=$%04x", data, mSystem.mCpu->GetPC());
+//			break;
+//		case (MATHG & 0xff):
+//			mMATHEFGH.Bytes.G = data;
+//			TRACE_SUSIE2("Poke(MATHG,%02x) at PC=$%04x", data, mSystem.mCpu->GetPC());
+//			break;
+//		case (MATHF & 0xff):
+//			mMATHEFGH.Bytes.F = data;
+//			mMATHEFGH.Bytes.E = 0;
+//			TRACE_SUSIE2("Poke(MATHF,%02x) at PC=$%04x", data, mSystem.mCpu->GetPC());
+//			break;
 		case (MATHE & 0xff):
 			mMATHEFGH.Bytes.E = data;
 			TRACE_SUSIE2("Poke(MATHE,%02x) at PC=$%04x", data, mSystem.mCpu->GetPC());
 			DoMathDivide();
 			break;
 
-		case (MATHM & 0xff):
-			mMATHJKLM.Bytes.M = data;
-			mMATHJKLM.Bytes.L = 0;
-			mSPRSYS_Mathbit = FALSE;
-			TRACE_SUSIE2("Poke(MATHM,%02x) at PC=$%04x", data, mSystem.mCpu->GetPC());
-			break;
-		case (MATHL & 0xff):
-			mMATHJKLM.Bytes.L = data;
-			TRACE_SUSIE2("Poke(MATHL,%02x) at PC=$%04x", data, mSystem.mCpu->GetPC());
-			break;
-		case (MATHK & 0xff):
-			mMATHJKLM.Bytes.K = data;
-			mMATHJKLM.Bytes.J = 0;
-			TRACE_SUSIE2("Poke(MATHK,%02x) at PC=$%04x", data, mSystem.mCpu->GetPC());
-			break;
-		case (MATHJ & 0xff):
-			mMATHJKLM.Bytes.J = data;
-			TRACE_SUSIE2("Poke(MATHJ,%02x) at PC=$%04x", data, mSystem.mCpu->GetPC());
-			break;
+//		case (MATHM & 0xff):
+//			mMATHJKLM.Bytes.M = data;
+//			mMATHJKLM.Bytes.L = 0;
+//			mSPRSYS_Mathbit = FALSE;
+//			TRACE_SUSIE2("Poke(MATHM,%02x) at PC=$%04x", data, mSystem.mCpu->GetPC());
+//			break;
+//		case (MATHL & 0xff):
+//			mMATHJKLM.Bytes.L = data;
+//			TRACE_SUSIE2("Poke(MATHL,%02x) at PC=$%04x", data, mSystem.mCpu->GetPC());
+//			break;
+//		case (MATHK & 0xff):
+//			mMATHJKLM.Bytes.K = data;
+//			mMATHJKLM.Bytes.J = 0;
+//			TRACE_SUSIE2("Poke(MATHK,%02x) at PC=$%04x", data, mSystem.mCpu->GetPC());
+//			break;
+//		case (MATHJ & 0xff):
+//			mMATHJKLM.Bytes.J = data;
+//			TRACE_SUSIE2("Poke(MATHJ,%02x) at PC=$%04x", data, mSystem.mCpu->GetPC());
+//			break;
 
 		case (SPRSYS & 0xff):
 			if (data & UnsafeAccess) mSPRSYS_UnsafeAccess = 0;
@@ -850,7 +854,7 @@ void CSusie::Poke(ULONG addr, UBYTE data)
 // Errors on illegal location accesses
 
 		default:
-			lnxSuzyWrite(addr, data);
+//			lnxSuzyWrite(addr, data);
 			TRACE_SUSIE3("Poke(%04x,%02x) - Poke to illegal location at PC=%04x", addr, data, mSystem.mCpu->GetPC());
 			break;
 	}
@@ -878,48 +882,48 @@ UBYTE CSusie::Peek(ULONG addr)
 			TRACE_SUSIE2("Peek(MATHA)=$%02x at PC=$%04x", retval, mSystem.mCpu->GetPC());
 			return retval;
 
-		case (MATHP & 0xff):
-			retval = mMATHNP.Bytes.P;
-			TRACE_SUSIE2("Peek(MATHP)=$%02x at PC=$%04x", retval, mSystem.mCpu->GetPC());
-			return retval;
-		case (MATHN & 0xff):
-			retval = mMATHNP.Bytes.N;
-			TRACE_SUSIE2("Peek(MATHN)=$%02x at PC=$%04x", retval, mSystem.mCpu->GetPC());
-			return retval;
+//		case (MATHP & 0xff):
+//			retval = mMATHNP.Bytes.P;
+//			TRACE_SUSIE2("Peek(MATHP)=$%02x at PC=$%04x", retval, mSystem.mCpu->GetPC());
+//			return retval;
+//		case (MATHN & 0xff):
+//			retval = mMATHNP.Bytes.N;
+//			TRACE_SUSIE2("Peek(MATHN)=$%02x at PC=$%04x", retval, mSystem.mCpu->GetPC());
+//			return retval;
 
-		case (MATHH & 0xff):
-			retval = mMATHEFGH.Bytes.H;
-			TRACE_SUSIE2("Peek(MATHH)=$%02x at PC=$%04x", retval, mSystem.mCpu->GetPC());
-			return retval;
-		case (MATHG & 0xff):
-			retval = mMATHEFGH.Bytes.G;
-			TRACE_SUSIE2("Peek(MATHG)=$%02x at PC=$%04x", retval, mSystem.mCpu->GetPC());
-			return retval;
-		case (MATHF & 0xff):
-			retval = mMATHEFGH.Bytes.F;
-			TRACE_SUSIE2("Peek(MATHF)=$%02x at PC=$%04x", retval, mSystem.mCpu->GetPC());
-			return retval;
-		case (MATHE & 0xff):
-			retval = mMATHEFGH.Bytes.E;
-			TRACE_SUSIE2("Peek(MATHE)=$%02x at PC=$%04x", retval, mSystem.mCpu->GetPC());
-			return retval;
+//		case (MATHH & 0xff):
+//			retval = mMATHEFGH.Bytes.H;
+//			TRACE_SUSIE2("Peek(MATHH)=$%02x at PC=$%04x", retval, mSystem.mCpu->GetPC());
+//			return retval;
+//		case (MATHG & 0xff):
+//			retval = mMATHEFGH.Bytes.G;
+//			TRACE_SUSIE2("Peek(MATHG)=$%02x at PC=$%04x", retval, mSystem.mCpu->GetPC());
+//			return retval;
+//		case (MATHF & 0xff):
+//			retval = mMATHEFGH.Bytes.F;
+//			TRACE_SUSIE2("Peek(MATHF)=$%02x at PC=$%04x", retval, mSystem.mCpu->GetPC());
+//			return retval;
+//		case (MATHE & 0xff):
+//			retval = mMATHEFGH.Bytes.E;
+//			TRACE_SUSIE2("Peek(MATHE)=$%02x at PC=$%04x", retval, mSystem.mCpu->GetPC());
+//			return retval;
 
-		case (MATHM & 0xff):
-			retval = mMATHJKLM.Bytes.M;
-			TRACE_SUSIE2("Peek(MATHM)=$%02x at PC=$%04x", retval, mSystem.mCpu->GetPC());
-			return retval;
-		case (MATHL & 0xff):
-			retval = mMATHJKLM.Bytes.L;
-			TRACE_SUSIE2("Peek(MATHL)=$%02x at PC=$%04x", retval, mSystem.mCpu->GetPC());
-			return retval;
-		case (MATHK & 0xff):
-			retval = mMATHJKLM.Bytes.K;
-			TRACE_SUSIE2("Peek(MATHK)=$%02x at PC=$%04x", retval, mSystem.mCpu->GetPC());
-			return retval;
-		case (MATHJ & 0xff):
-			retval = mMATHJKLM.Bytes.J;
-			TRACE_SUSIE2("Peek(MATHJ)=$%02x at PC=$%04x", retval, mSystem.mCpu->GetPC());
-			return retval;
+//		case (MATHM & 0xff):
+//			retval = mMATHJKLM.Bytes.M;
+//			TRACE_SUSIE2("Peek(MATHM)=$%02x at PC=$%04x", retval, mSystem.mCpu->GetPC());
+//			return retval;
+//		case (MATHL & 0xff):
+//			retval = mMATHJKLM.Bytes.L;
+//			TRACE_SUSIE2("Peek(MATHL)=$%02x at PC=$%04x", retval, mSystem.mCpu->GetPC());
+//			return retval;
+//		case (MATHK & 0xff):
+//			retval = mMATHJKLM.Bytes.K;
+//			TRACE_SUSIE2("Peek(MATHK)=$%02x at PC=$%04x", retval, mSystem.mCpu->GetPC());
+//			return retval;
+//		case (MATHJ & 0xff):
+//			retval = mMATHJKLM.Bytes.J;
+//			TRACE_SUSIE2("Peek(MATHJ)=$%02x at PC=$%04x", retval, mSystem.mCpu->GetPC());
+//			return retval;
 
 		case (SPRSYS & 0xff):
 			retval = 0x0000;
@@ -970,7 +974,7 @@ UBYTE CSusie::Peek(ULONG addr)
 
 		default:
 			TRACE_SUSIE2("Peek(%04x) - Peek from illegal location at PC=$%04x", addr, mSystem.mCpu->GetPC());
-			return lnxSuzyRead(addr);
+//			return lnxSuzyRead(addr);
 	}
 
 	return 0xff;

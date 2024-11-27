@@ -243,8 +243,8 @@ io_read_tbl:
 	.long susiePeek				;@ 0xFC53 MATHC
 	.long susiePeek				;@ 0xFC54 MATHB
 	.long susiePeek				;@ 0xFC55 MATHA
-	.long susiePeek				;@ 0xFC56 MATHP
-	.long susiePeek				;@ 0xFC57 MATHN
+	.long suRegR				;@ 0xFC56 MATHP
+	.long suRegR				;@ 0xFC57 MATHN
 	.long suUnmappedR			;@ 0xFC58
 	.long suUnmappedR			;@ 0xFC59
 	.long suUnmappedR			;@ 0xFC5A
@@ -253,10 +253,10 @@ io_read_tbl:
 	.long suUnmappedR			;@ 0xFC5D
 	.long suUnmappedR			;@ 0xFC5E
 	.long suUnmappedR			;@ 0xFC5F
-	.long susiePeek				;@ 0xFC60 MATHH
-	.long susiePeek				;@ 0xFC61 MATHG
-	.long susiePeek				;@ 0xFC62 MATHF
-	.long susiePeek				;@ 0xFC63 MATHE
+	.long suRegR				;@ 0xFC60 MATHH
+	.long suRegR				;@ 0xFC61 MATHG
+	.long suRegR				;@ 0xFC62 MATHF
+	.long suRegR				;@ 0xFC63 MATHE
 	.long suUnmappedR			;@ 0xFC64
 	.long suUnmappedR			;@ 0xFC65
 	.long suUnmappedR			;@ 0xFC66
@@ -265,10 +265,10 @@ io_read_tbl:
 	.long suUnmappedR			;@ 0xFC69
 	.long suUnmappedR			;@ 0xFC6A
 	.long suUnmappedR			;@ 0xFC6B
-	.long susiePeek				;@ 0xFC6C MATHM
-	.long susiePeek				;@ 0xFC6D MATHL
-	.long susiePeek				;@ 0xFC6E MATHK
-	.long susiePeek				;@ 0xFC6F MATHJ
+	.long suRegR				;@ 0xFC6C MATHM
+	.long suRegR				;@ 0xFC6D MATHL
+	.long suRegR				;@ 0xFC6E MATHK
+	.long suRegR				;@ 0xFC6F MATHJ
 	.long suUnmappedR			;@ 0xFC70
 	.long suUnmappedR			;@ 0xFC71
 	.long suUnmappedR			;@ 0xFC72
@@ -484,8 +484,8 @@ io_write_tbl:
 	.long susiePoke				;@ 0xFC53 MATHC
 	.long susiePoke				;@ 0xFC54 MATHB
 	.long susiePoke				;@ 0xFC55 MATHA
-	.long susiePoke				;@ 0xFC56 MATHP
-	.long susiePoke				;@ 0xFC57 MATHN
+	.long suRegLW				;@ 0xFC56 MATHP
+	.long suRegW				;@ 0xFC57 MATHN
 	.long suUnmappedW			;@ 0xFC58
 	.long suUnmappedW			;@ 0xFC59
 	.long suUnmappedW			;@ 0xFC5A
@@ -494,9 +494,9 @@ io_write_tbl:
 	.long suUnmappedW			;@ 0xFC5D
 	.long suUnmappedW			;@ 0xFC5E
 	.long suUnmappedW			;@ 0xFC5F
-	.long susiePoke				;@ 0xFC60 MATHH
-	.long susiePoke				;@ 0xFC61 MATHG
-	.long susiePoke				;@ 0xFC62 MATHF
+	.long suRegLW				;@ 0xFC60 MATHH
+	.long suRegW				;@ 0xFC61 MATHG
+	.long suRegLW				;@ 0xFC62 MATHF
 	.long susiePoke				;@ 0xFC63 MATHE
 	.long suUnmappedW			;@ 0xFC64
 	.long suUnmappedW			;@ 0xFC65
@@ -506,10 +506,10 @@ io_write_tbl:
 	.long suUnmappedW			;@ 0xFC69
 	.long suUnmappedW			;@ 0xFC6A
 	.long suUnmappedW			;@ 0xFC6B
-	.long susiePoke				;@ 0xFC6C MATHM
-	.long susiePoke				;@ 0xFC6D MATHL
-	.long susiePoke				;@ 0xFC6E MATHK
-	.long susiePoke				;@ 0xFC6F MATHJ
+	.long suRegLW				;@ 0xFC6C MATHM
+	.long suRegW				;@ 0xFC6D MATHL
+	.long suRegLW				;@ 0xFC6E MATHK
+	.long suRegW				;@ 0xFC6F MATHJ
 	.long suUnmappedW			;@ 0xFC70
 	.long suUnmappedW			;@ 0xFC71
 	.long suUnmappedW			;@ 0xFC72
@@ -620,7 +620,7 @@ suRegW:
 	bx lr
 ;@----------------------------------------------------------------------------
 suRegLW:
-	and r0,r0,#0xFF
+	and r0,r0,#0xFE
 	and r1,r1,#0xFF
 	add r2,suzptr,#suzRegs
 	strh r1,[r2,r0]

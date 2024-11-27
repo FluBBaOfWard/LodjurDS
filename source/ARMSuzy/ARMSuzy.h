@@ -26,19 +26,65 @@ extern "C" {
 /** Game screen height in pixels */
 #define GAME_HEIGHT (102)
 
-typedef struct
-{
-	union
-	{
-		struct
-		{
-			u8	Low;
-			u8	High;
-		}Byte;
-		u16	Word;
-	};
+typedef	union {
+	struct {
+		u8	Low;
+		u8	High;
+	} Byte;
+	u16	Word;
 } U16_ST;
 
+typedef union {
+	struct {
+		u8	D;
+		u8	C;
+		u8	B;
+		u8	A;
+	} Bytes;
+	struct {
+		u16	CD;
+		u16	AB;
+	} Words;
+	u32	Long;
+} MATH_ABCD;
+
+typedef union {
+	struct {
+		u8	H;
+		u8	G;
+		u8	F;
+		u8	E;
+	} Bytes;
+	struct {
+		u16	GH;
+		u16	EF;
+	} Words;
+	u32	Long;
+} MATH_EFGH;
+
+typedef union {
+	struct {
+		u8	M;
+		u8	L;
+		u8	K;
+		u8	J;
+	} Bytes;
+	struct {
+		u16	LM;
+		u16	JK;
+	} Words;
+	u32	Long;
+} MATH_JKLM;
+
+typedef union {
+	struct {
+		u8	N;
+		u8	P;
+	} Bytes;
+	struct {
+		u16	NP;
+	} Word;
+} MATH_NP;
 
 typedef struct {
 //suzState:
@@ -68,22 +114,26 @@ typedef struct {
 	U16_ST SCBAdr;		// 0x2C Address of Current SCB
 	U16_ST procAdr;		// 0x2E Current Spr Data Proc Address
 	u8 reserved0[0x22];	// 0x30-0x51 Reserved
+//	MATH_ABCD mathABCD;	// 0x52 Math D, C, B & A
 	u8 mathD;			// 0x52 Math D
 	u8 mathC;			// 0x53 Math C
 	u8 mathB;			// 0x54 Math B
 	u8 mathA;			// 0x55 Math A
-	u8 mathP;			// 0x56 Math P
-	u8 MathN;			// 0x57 Math N
+	MATH_NP mathNP;		// 0x56 Math P & N
+//	u8 mathP;			// 0x56 Math P
+//	u8 mathN;			// 0x57 Math N
 	u8 reserved1[0x08];	// 0x58-0x5F Reserved
-	u8 mathH;			// 0x60 Math H
-	u8 mathF;			// 0x61 Math G
-	u8 mathG;			// 0x62 Math F
-	u8 mathE;			// 0x63 Math E
+	MATH_EFGH mathEFGH;	// 0x60 Math H, G, F & E
+//	u8 mathH;			// 0x60 Math H
+//	u8 mathG;			// 0x61 Math G
+//	u8 mathF;			// 0x62 Math F
+//	u8 mathE;			// 0x63 Math E
 	u8 reserved2[0x08];	// 0x64-0x6B Reserved
-	u8 mathM;			// 0x6C Math M
-	u8 mathL;			// 0x6D Math L
-	u8 mathK;			// 0x6E Math K
-	u8 mathJ;			// 0x6F Math J
+	MATH_JKLM mathJKLM;	// 0x6C Math M, L, K & J
+//	u8 mathM;			// 0x6C Math M
+//	u8 mathL;			// 0x6D Math L
+//	u8 mathK;			// 0x6E Math K
+//	u8 mathJ;			// 0x6F Math J
 	u8 reserved3[0x10];	// 0x70-0x7F Reserved
 	u8 sprCtl0;			// 0x80 Sprite Control 0
 	u8 sprCtl1;			// 0x81 Sprite Control 1
@@ -102,7 +152,7 @@ typedef struct {
 	u8 rCart0;			// 0xB2 Read or write 8 bits of data
 	u8 rCart1;			// 0xB3 Read or write 8 bits of data
 	u8 reserved7[0x0C];	// 0xB4-0xBF Reserved
-	u8 leds;			// 0xC0 Read Joystick and Switches
+	u8 leds;			// 0xC0 Control LEDs
 	u8 reserved8[0x01];	// 0xC1 Reserved
 	u8 pPortStat;		// 0xC2 Parallel Port Status
 	u8 pPortData;		// 0xC3 Parallel Port Data

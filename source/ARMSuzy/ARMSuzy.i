@@ -98,20 +98,29 @@ suzProcAdr:						;@ 0x2E Current Spr Data Proc Address
 suzProcAdrL:		.byte 0		;@ Low
 suzProcAdrH:		.byte 0		;@ High
 suzReserved0:		.space 0x22	;@ 0x30-0x51 Reserved
+suzMathCD:
 suzMathD:			.byte 0		;@ 0x52 Math D
 suzMathC:			.byte 0		;@ 0x53 Math C
+suzMathAB:
 suzMathB:			.byte 0		;@ 0x54 Math B
 suzMathA:			.byte 0		;@ 0x55 Math A
+suzMathNP:
 suzMathP:			.byte 0		;@ 0x56 Math P
 suzMathN:			.byte 0		;@ 0x57 Math N
 suzReserved1:		.space 0x08	;@ 0x58-0x5F Reserved
+suzMathEFGH:
+suzMathGH:
 suzMathH:			.byte 0		;@ 0x60 Math H
-suzMathF:			.byte 0		;@ 0x61 Math G
-suzMathG:			.byte 0		;@ 0x62 Math F
+suzMathG:			.byte 0		;@ 0x61 Math G
+suzMathEF:
+suzMathF:			.byte 0		;@ 0x62 Math F
 suzMathE:			.byte 0		;@ 0x63 Math E
 suzReserved2:		.space 0x08	;@ 0x64-0x6B Reserved
+suzMathJKLM:
+suzMathLM:
 suzMathM:			.byte 0		;@ 0x6C Math M
 suzMathL:			.byte 0		;@ 0x6D Math L
+suzMathJK:
 suzMathK:			.byte 0		;@ 0x6E Math K
 suzMathJ:			.byte 0		;@ 0x6F Math J
 suzReserved3:		.space 0x10	;@ 0x70-0x7F Reserved
@@ -132,7 +141,7 @@ suzSwitches:		.byte 0		;@ 0xB1 Read Other Switches
 suzRCart0:			.byte 0		;@ 0xB2 Read or write 8 bits of data
 suzRCart1:			.byte 0		;@ 0xB3 Read or write 8 bits of data
 suzReserved7:		.space 0x0C	;@ 0xB4-0xBF Reserved
-suzLeds:			.byte 0		;@ 0xC0 Control Leds
+suzLeds:			.byte 0		;@ 0xC0 Control LEDs
 suzReserved8:		.space 0x01	;@ 0xC1 Reserved
 suzPPortStat:		.byte 0		;@ 0xC2 Parallel Port Status
 suzPPortData:		.byte 0		;@ 0xC3 Parallel Port Data

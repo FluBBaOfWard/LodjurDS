@@ -255,28 +255,17 @@ typedef struct
 		struct
 		{
 #ifdef MSB_FIRST
-			UBYTE	xx2;
-			UBYTE	xx1;
 			UBYTE	N;
 			UBYTE	P;
 #else
 			UBYTE	P;
 			UBYTE	N;
-			UBYTE	xx1;
-			UBYTE	xx2;
 #endif
 		}Bytes;
 		struct
 		{
-#ifdef MSB_FIRST
-			UWORD	xx1;
 			UWORD	NP;
-#else
-			UWORD	NP;
-			UWORD	xx1;
-#endif
-		}Words;
-		ULONG	Long;
+		}Word;
 	};
 }TMATHNP;
 
@@ -308,9 +297,9 @@ class CSusie : public CLynxBase
 		CSystem&	mSystem;
 
 		TMATHABCD	mMATHABCD;		// ENG
-		TMATHEFGH	mMATHEFGH;		// ENG
-		TMATHJKLM	mMATHJKLM;		// ENG
-		TMATHNP		mMATHNP;		// ENG
+//		TMATHEFGH	mMATHEFGH;		// ENG
+//		TMATHJKLM	mMATHJKLM;		// ENG
+//		TMATHNP		mMATHNP;		// ENG
 		int			mMATHAB_sign;
 		int			mMATHCD_sign;
 		int			mMATHEFGH_sign;
