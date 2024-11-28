@@ -1,4 +1,4 @@
-# LodjurDS V0.0.1
+# LodjurDS V0.0.3
 
 A Lynx emulator for Nintendo DS(i)/3DS
 
@@ -95,5 +95,5 @@ Keith Wilkins for Handy source and info.
 Fredrik Ahlström
 
 X/Twitter @TheRealFluBBa
-
+<https://bsky.app/profile/therealflubba.bsky.social>
 <https://www.github.com/FluBBaOfWard>

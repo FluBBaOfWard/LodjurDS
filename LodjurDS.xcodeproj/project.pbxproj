@@ -93,6 +93,7 @@
 		9C9B0E5A2C5A47B1004AE287 /* Lynx2Border.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = Lynx2Border.png; sourceTree = "<group>"; };
 		9C9B0E5B2C5A47B1004AE287 /* LynxBorder.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = LynxBorder.png; sourceTree = "<group>"; };
 		9C9B0E5C2C5A47C3004AE287 /* LynxLogo.bmp */ = {isa = PBXFileReference; lastKnownFileType = image.bmp; path = LynxLogo.bmp; sourceTree = "<group>"; };
+		9CB421802CF8CE8D00FF4F8A /* udiv32.s */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.asm; path = udiv32.s; sourceTree = "<group>"; };
 		9CBC0C8E26DD7C2A0039D17E /* README.md */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
 		9CC013FC2668FDD9005714F7 /* Emubase.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Emubase.h; sourceTree = "<group>"; };
 		9CEE818F2CBD76A300A7B738 /* ARMMikey.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ARMMikey.h; sourceTree = "<group>"; };
@@ -174,6 +175,7 @@
 				9C41C6B92C9F6DA50026DE6C /* ARMSuzy.h */,
 				9C41C6BA2C9F6DA50026DE6C /* ARMSuzy.i */,
 				9C41C6BE2C9F6DA50026DE6C /* ARMSuzy.s */,
+				9CB421802CF8CE8D00FF4F8A /* udiv32.s */,
 			);
 			path = ARMSuzy;
 			sourceTree = "<group>";

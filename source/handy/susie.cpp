@@ -163,13 +163,13 @@ void CSusie::Reset(void)
 	mSPRSYS_UnsafeAccess = 0;
 	mSPRSYS_Busy = 0;
 	mSPRSYS_LastCarry = 0;
-	mSPRSYS_Mathbit = 0;
+//	mSPRSYS_Mathbit = 0;
 	mSPRSYS_MathInProgress = 0;
 
 	mJOYSTICK.Byte = 0;
 	mSWITCHES.Byte = 0;
 }
-
+/*
 void CSusie::DoMathDivide(void)
 {
 	mSPRSYS_Mathbit = FALSE;
@@ -204,7 +204,7 @@ void CSusie::DoMathDivide(void)
 	TRACE_SUSIE1("DoMathDivide() Results (div) ABCD=$%08x", result);
 	TRACE_SUSIE1("DoMathDivide() Results (mod) JKLM=$%08x", mMATHJKLM.Long);
 }
-
+*/
 
 ULONG CSusie::PaintSprites(void)
 {
@@ -513,9 +513,7 @@ ULONG CSusie::PaintSprites(void)
 				}
 
 				// Is this quad to be rendered ??
-
 				TRACE_SUSIE1("PaintSprites() Render status %d", render);
-
 				if (render) {
 					// Set the vertical position & offset
 					int voff = (SWORD)mVPOSSTRT.Word-screen_v_start;
@@ -604,7 +602,6 @@ ULONG CSusie::PaintSprites(void)
 			}
 
 			// Write the collision depositary if required
-
 			if (mSPRCOLL < 0x10) {
 				switch(mSPRCTL0 & Type)
 				{
@@ -649,7 +646,6 @@ ULONG CSusie::PaintSprites(void)
 		sprcount++;
 
 		// Check if we abort after this sprite is complete
-
 //		if (mSPRSYS.Read.StopOnCurrent) {
 //			mSPRSYS.Read.Busy = 0; // Engine has finished
 //			mSPRGO &= ~0x01;
@@ -679,12 +675,11 @@ void CSusie::Poke(ULONG addr, UBYTE data)
 {
 	switch(addr & 0xff)
 	{
-		case (MATHE & 0xff):
-			mMATHEFGH.E = data;
-			TRACE_SUSIE2("Poke(MATHE,%02x) at PC=$%04x", data, mSystem.mCpu->GetPC());
-			DoMathDivide();
-//			suzDoDivide();
-			break;
+//		case (MATHE & 0xff):
+//			mMATHEFGH.E = data;
+//			TRACE_SUSIE2("Poke(MATHE,%02x) at PC=$%04x", data, mSystem.mCpu->GetPC());
+//			DoMathDivide();
+//			break;
 
 		case (SPRSYS & 0xff):
 			if (data & UnsafeAccess) mSPRSYS_UnsafeAccess = 0;
@@ -693,7 +688,6 @@ void CSusie::Poke(ULONG addr, UBYTE data)
 			break;
 
 // Cartridge writing ports
-
 		case (RCART0 & 0xff):
 			mSystem.Poke_CARTB0(data);
 			TRACE_SUSIE2("Poke(RCART0,%02x) at PC=$%04x", data, mSystem.mCpu->GetPC());
@@ -704,7 +698,6 @@ void CSusie::Poke(ULONG addr, UBYTE data)
 			break;
 
 // Errors on illegal location accesses
-
 		default:
 			TRACE_SUSIE3("Poke(%04x,%02x) - Poke to illegal location at PC=%04x", addr, data, mSystem.mCpu->GetPC());
 			break;
@@ -742,27 +735,18 @@ UBYTE CSusie::Peek(ULONG addr)
 				Modified.Bits.Up = mJOYSTICK.Bits.Down;
 				retval = Modified.Byte;
 			}
-//			TRACE_SUSIE2("Peek(JOYSTICK)=$%02x at PC=$%04x", retval, mSystem.mCpu->GetPC());
 			return retval;
 
 		case (SWITCHES & 0xff):
-			retval = mSWITCHES.Byte;
-//			TRACE_SUSIE2("Peek(SWITCHES)=$%02x at PC=$%04x", retval, mSystem.mCpu->GetPC());
-			return retval;
+			return mSWITCHES.Byte;
 
 // Cartridge reading ports
-
 		case (RCART0 & 0xff):
-			retval = mSystem.Peek_CARTB0();
-//			TRACE_SUSIE2("Peek(RCART0)=$%02x at PC=$%04x", retval, mSystem.mCpu->GetPC());
-			return retval;
+			return mSystem.Peek_CARTB0();
 		case (RCART1 & 0xff):
-			retval = mSystem.Peek_CARTB1();
-//			TRACE_SUSIE2("Peek(RCART1)=$%02x at PC=$%04x", retval, mSystem.mCpu->GetPC());
-			return retval;
+			return mSystem.Peek_CARTB1();
 
 // Errors on illegal location accesses
-
 		default:
 			TRACE_SUSIE2("Peek(%04x) - Peek from illegal location at PC=$%04x", addr, mSystem.mCpu->GetPC());
 	}

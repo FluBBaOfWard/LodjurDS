@@ -162,16 +162,16 @@ class CSusie : public CLynxBase
 
 		UBYTE	Peek(ULONG addr);
 		void	Poke(ULONG addr,UBYTE data);
-		ULONG	ReadCycle(void) {return 9;};
-		ULONG	WriteCycle(void) {return 5;};
-		ULONG	ObjectSize(void) {return SUSIE_SIZE;};
+//		ULONG	ReadCycle(void) {return 9;};
+//		ULONG	WriteCycle(void) {return 5;};
+//		ULONG	ObjectSize(void) {return SUSIE_SIZE;};
 
 		void	SetButtonData(ULONG data) {mJOYSTICK.Byte=(UBYTE)data;mSWITCHES.Byte=(UBYTE)(data>>8);};
 
 		ULONG	PaintSprites(void);
 
-	private:
-		void	DoMathDivide(void);
+//	private:
+//		void	DoMathDivide(void);
 
 	private:
 		CSystem&	mSystem;

@@ -498,7 +498,7 @@ io_write_tbl:
 	.long suRegLW				;@ 0xFC60 MATHH
 	.long suRegW				;@ 0xFC61 MATHG
 	.long suRegLW				;@ 0xFC62 MATHF
-	.long susiePoke				;@ 0xFC63 MATHE
+	.long suMathEW				;@ 0xFC63 MATHE
 	.long suUnmappedW			;@ 0xFC64
 	.long suUnmappedW			;@ 0xFC65
 	.long suUnmappedW			;@ 0xFC66
@@ -709,12 +709,14 @@ suzDoDivide:				;@
 	moveq r0,#-1
 	beq zeroDvide
 	ldr r0,[suzptr,#suzMathEFGH]
-//	bl divide
+	stmfd sp!,{lr}
+	bl ui32div
+	ldmfd sp!,{lr}
 zeroDvide:
 	str r1,[suzptr,#suzMathJKLM]
+	mov r1,r0,lsr#16
+	strh r1,[suzptr,#suzMathAB]
 	strh r0,[suzptr,#suzMathCD]
-	mov r0,r0,lsr#16
-	strh r0,[suzptr,#suzMathAB]
 	bx lr
 ;@----------------------------------------------------------------------------
 suSprCtl0W:					;@ 0x80 Sprite Coontrol 0
