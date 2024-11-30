@@ -68,8 +68,6 @@
 #define mHOFF suzy_0.hOff
 #define mVOFF suzy_0.vOff
 #define mTILTACUM suzy_0.tiltAcum
-//#define mVIDBAS suzy_0.vidBas
-//#define mCOLLBAS suzy_0.collBas
 #define mSCBNEXT suzy_0.SCBNext
 #define mSPRDLINE suzy_0.sprDLine
 #define mHPOSSTRT suzy_0.hPosStrt
@@ -81,7 +79,6 @@
 #define mSPRDOFF suzy_0.sprDOff
 #define mCOLLOFF suzy_0.collOff
 #define mVSIZACUM suzy_0.vSizAcum
-//#define mHSIZOFF suzy_0.hSizOff
 #define mVSIZOFF suzy_0.vSizOff
 #define mSCBADR suzy_0.SCBAdr
 #define mMATHAB suzy_0.mathAB
@@ -163,48 +160,11 @@ void CSusie::Reset(void)
 	mSPRSYS_UnsafeAccess = 0;
 	mSPRSYS_Busy = 0;
 	mSPRSYS_LastCarry = 0;
-//	mSPRSYS_Mathbit = 0;
 	mSPRSYS_MathInProgress = 0;
 
-	mJOYSTICK.Byte = 0;
-	mSWITCHES.Byte = 0;
+//	mJOYSTICK.Byte = 0;
+//	mSWITCHES.Byte = 0;
 }
-/*
-void CSusie::DoMathDivide(void)
-{
-	mSPRSYS_Mathbit = FALSE;
-
-	//
-	// Divides take 176 + 14*N ticks
-	// (N is the number of most significant zeros in the divisor.)
-	//
-	//    AB                                    EFGH
-	//  * CD                                  /   NP
-	// -------                            -----------
-	//  EFGH                                    ABCD
-	// Accumulate in JKLM         Remainder in (JK)LM
-	//
-
-	ULONG result;
-	// Divide is ALWAYS unsigned arithmetic...
-	if (mMATHNP.NP) {
-		TRACE_SUSIE0("DoMathDivide() - UNSIGNED");
-		result = mMATHEFGH.Long / mMATHNP.NP;
-		mMATHJKLM.Long = mMATHEFGH.Long % mMATHNP.NP;
-	}
-	else {
-		TRACE_SUSIE0("DoMathDivide() - DIVIDE BY ZERO ERROR");
-		result = 0xffffffff;
-		mMATHJKLM.Long = 0;
-		mSPRSYS_Mathbit = TRUE;
-	}
-	mMATHAB.AB = result>>16;
-	mMATHCD.CD = result;
-	TRACE_SUSIE2("DoMathDivide() EFGH=$%08x / NP=%04x", mMATHEFGH.Long, mMATHNP.Long);
-	TRACE_SUSIE1("DoMathDivide() Results (div) ABCD=$%08x", result);
-	TRACE_SUSIE1("DoMathDivide() Results (mod) JKLM=$%08x", mMATHJKLM.Long);
-}
-*/
 
 ULONG CSusie::PaintSprites(void)
 {
@@ -675,12 +635,6 @@ void CSusie::Poke(ULONG addr, UBYTE data)
 {
 	switch(addr & 0xff)
 	{
-//		case (MATHE & 0xff):
-//			mMATHEFGH.E = data;
-//			TRACE_SUSIE2("Poke(MATHE,%02x) at PC=$%04x", data, mSystem.mCpu->GetPC());
-//			DoMathDivide();
-//			break;
-
 		case (SPRSYS & 0xff):
 			if (data & UnsafeAccess) mSPRSYS_UnsafeAccess = 0;
 			mSPRSYS = data;
@@ -723,22 +677,22 @@ UBYTE CSusie::Peek(ULONG addr)
 			TRACE_SUSIE2("Peek(SPRSYS)=$%02x at PC=$%04x", retval, mSystem.mCpu->GetPC());
 			return retval;
 
-		case (JOYSTICK & 0xff):
-			if (mSPRSYS & LeftHand) {
-				retval = mJOYSTICK.Byte;
-			}
-			else {
-				TJOYSTICK Modified = mJOYSTICK;
-				Modified.Bits.Left = mJOYSTICK.Bits.Right;
-				Modified.Bits.Right = mJOYSTICK.Bits.Left;
-				Modified.Bits.Down = mJOYSTICK.Bits.Up;
-				Modified.Bits.Up = mJOYSTICK.Bits.Down;
-				retval = Modified.Byte;
-			}
-			return retval;
-
-		case (SWITCHES & 0xff):
-			return mSWITCHES.Byte;
+//		case (JOYSTICK & 0xff):
+//			if (mSPRSYS & LeftHand) {
+//				return mJOYSTICK.Byte;
+//			}
+//			else {
+//				TJOYSTICK Modified = mJOYSTICK;
+//				Modified.Bits.Left = mJOYSTICK.Bits.Right;
+//				Modified.Bits.Right = mJOYSTICK.Bits.Left;
+//				Modified.Bits.Down = mJOYSTICK.Bits.Up;
+//				Modified.Bits.Up = mJOYSTICK.Bits.Down;
+//				retval = Modified.Byte;
+//			}
+//			return retval;
+//
+//		case (SWITCHES & 0xff):
+//			return mSWITCHES.Byte;
 
 // Cartridge reading ports
 		case (RCART0 & 0xff):

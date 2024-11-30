@@ -164,14 +164,10 @@ class CSusie : public CLynxBase
 		void	Poke(ULONG addr,UBYTE data);
 //		ULONG	ReadCycle(void) {return 9;};
 //		ULONG	WriteCycle(void) {return 5;};
-//		ULONG	ObjectSize(void) {return SUSIE_SIZE;};
 
-		void	SetButtonData(ULONG data) {mJOYSTICK.Byte=(UBYTE)data;mSWITCHES.Byte=(UBYTE)(data>>8);};
+//		void	SetButtonData(ULONG data) {mJOYSTICK.Byte=(UBYTE)data;mSWITCHES.Byte=(UBYTE)(data>>8);};
 
 		ULONG	PaintSprites(void);
-
-//	private:
-//		void	DoMathDivide(void);
 
 	private:
 		CSystem&	mSystem;
@@ -182,9 +178,8 @@ class CSusie : public CLynxBase
 		int			mSPRSYS_MathInProgress;
 
 		// Joystick switches
-
-		TJOYSTICK	mJOYSTICK;
-		TSWITCHES	mSWITCHES;
+//		TJOYSTICK	mJOYSTICK;
+//		TSWITCHES	mSWITCHES;
 };
 
 #endif

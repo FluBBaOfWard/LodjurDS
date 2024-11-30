@@ -8,9 +8,9 @@
 ;@ r0: the numerator / r1: the denominator
 ;@ after it, r0 has the quotient and r1 has the modulo
 	.syntax unified
+	.arm
 	.section .iwram, "ax", %progbits
 	.align 2
-	.arm
 	.global ui32div
 	.type ui32div STT_FUNC
 ui32div:
@@ -46,23 +46,23 @@ ui32div:
 	subge r3,r3,#4
 	movge r1,r1,lsr#4
 
-	;@ shift the numerator by the counter
+	;@ Shift the numerator by the counter
 	mov r0,r0,lsl r3
 	adds r0,r0,r0           ;@ bump r0 a first time
 
-	;@ dynamically jump to the exact copy of the iteration
-	add r3,r3,r3,lsl#1			;@ counter *= 3
-	add pc,pc,r3,lsl#2			;@ jump
-	mov r0,r0					;@ pipelining issues
+	;@ Dynamically jump to the exact copy of the iteration
+	add r3,r3,r3,lsl#1			;@ Counter *= 3
+	add pc,pc,r3,lsl#2			;@ Jump
+	mov r0,r0					;@ Pipelining issues
 
-	;@ here, r0 = num << (r3 + 1), r1 = num >> (32-r3), r2 = -denom
-	;@ now, the real iteration part
+	;@ Here, r0 = num << (r3 + 1), r1 = num >> (32-r3), r2 = -denom
+	;@ Now, the real iteration part
 	.rept 32
 	adcs r1,r2,r1,lsl#1
 	subcc r1,r1,r2
 	adcs r0,r0,r0
 	.endr
 
-	;@ and then finally quit
+	;@ And then finally quit
 	;@ r0 = quotient, r1 = remainder
 	bx lr

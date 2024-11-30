@@ -22,6 +22,7 @@
 	.global gfxEndFrame
 	.global vblIrqHandler
 	.global lnxSuzyWrite
+	.global lnxSuzySetButtonData
 	.global updateLCDRefresh
 	.global setScreenRefresh
 
@@ -399,6 +400,12 @@ lnxSuzyWrite:
 ;@----------------------------------------------------------------------------
 	adr suzptr,suzy_0
 	b suzyWrite
+;@----------------------------------------------------------------------------
+lnxSuzySetButtonData:
+	.type lnxSuzySetButtonData STT_FUNC
+;@----------------------------------------------------------------------------
+	adr suzptr,suzy_0
+	b suzySetButtonData
 
 ;@----------------------------------------------------------------------------
 suzy_0:

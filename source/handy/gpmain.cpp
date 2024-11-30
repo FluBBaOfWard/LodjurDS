@@ -59,7 +59,7 @@ void GpDelete() {
 void GpMain() {
 	while (newsystem != NULL) {
 
-		newsystem->SetButtonData( joy0_R() );
+		lnxSuzySetButtonData( joy0_R() );
 		mikSysUpdate();
 
 		if (gScreenUpdateRequired) {

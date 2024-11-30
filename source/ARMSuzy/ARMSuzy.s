@@ -25,7 +25,7 @@
 	.global suzyGetStateSize
 	.global suzyRead
 	.global suzyWrite
-	.global suzDoDivide
+	.global suzySetButtonData
 	.global suzLineRender
 	.global suzLineStart
 
@@ -334,8 +334,8 @@ io_read_tbl:
 	.long suUnmappedR			;@ 0xFCAD
 	.long suUnmappedR			;@ 0xFCAE
 	.long suUnmappedR			;@ 0xFCAF
-	.long susiePeek				;@ 0xFCB0 JOYSTICK
-	.long susiePeek				;@ 0xFCB1 SWITCHES
+	.long suJoystickR				;@ 0xFCB0 JOYSTICK
+	.long suRegR				;@ 0xFCB1 SWITCHES
 	.long susiePeek				;@ 0xFCB2 RCART0
 	.long susiePeek				;@ 0xFCB3 RCART1
 	.long suUnmappedR			;@ 0xFCB4
@@ -390,7 +390,21 @@ suHRevR:					;@ Suzy HW Revision (0xFC88)
 ;@----------------------------------------------------------------------------
 	mov r0,#1					;@ Revision 1
 	bx lr
-
+;@----------------------------------------------------------------------------
+suJoystickR:				;@ Suzy Joystick (0xFCB0)
+;@----------------------------------------------------------------------------
+	ldrb r0,[suzptr,#suzSprSys]
+	tst r0,#0x08						;@ LeftHand
+	ldrb r0,[suzptr,#suzJoystick]
+	bxne lr
+	adr r1,joyFlipTbl
+	and r2,r0,#0xF						;@ Keep buttons
+	ldrb r0,[r1,r0,lsr#4]
+	orr r0,r2,r0,lsl#4
+	bx lr
+joyFlipTbl:
+	.byte 0x0, 0x2, 0x1, 0x3, 0x8, 0xA, 0x9, 0xB
+	.byte 0x4, 0x6, 0x5, 0x7, 0xC, 0xE, 0xD, 0xF
 ;@----------------------------------------------------------------------------
 suzyWrite:					;@ I/O write (0xFC00-0xFCC5)
 ;@----------------------------------------------------------------------------
@@ -737,6 +751,12 @@ suBusEnW:					;@ 0x90 Suzy Bus Enable
 ;@----------------------------------------------------------------------------
 	and r1,r1,#0x01
 	strb r1,[suzptr,#suzSuzyBusEn]
+	bx lr
+
+;@----------------------------------------------------------------------------
+suzySetButtonData:			;@ r0=buttons & switches, r12=suzptr.
+;@----------------------------------------------------------------------------
+	strh r0,[suzptr,#suzJoystick]
 	bx lr
 
 ;@----------------------------------------------------------------------------

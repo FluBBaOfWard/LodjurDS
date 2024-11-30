@@ -122,7 +122,7 @@ class CSystem : public CSystemBase
 
 // Miscellaneous
 
-		void	SetButtonData(ULONG data) {mSusie->SetButtonData(data);};
+//		void	SetButtonData(ULONG data) {mSusie->SetButtonData(data);};
 
 	public:
 		CCart			*mCart;
