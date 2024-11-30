@@ -182,7 +182,8 @@ ULONG CSusie::PaintSprites(void)
 			mSPRSYS_Busy = 1;
 		}
 
-		mTMPADR.Word = mSCBNEXT.Word;	// Copy SCB pointer
+		suzFetchSpriteData();
+/*		mTMPADR.Word = mSCBNEXT.Word;	// Copy SCB pointer
 		mSCBADR.Word = mSCBNEXT.Word;	// Copy SCB pointer
 		TRACE_SUSIE1("PaintSprites() SCBADDR $%04x", mSCBADR.Word);
 
@@ -206,9 +207,8 @@ ULONG CSusie::PaintSprites(void)
 		mTMPADR.Word += 2;
 
 		cycles_used += 5 * SPR_RDWR_CYC;
-
+*/
 		// Check if this is a skip sprite
-
 		if (!(mSPRCTL1 & SkipSprite)) {
 			// Initialise the collision depositary
 
@@ -217,93 +217,9 @@ ULONG CSusie::PaintSprites(void)
 //			{
 //				mCollision = RAM_PEEK((mSCBADR.Word+mCOLLOFF.Word) & 0xffff) & 0x0f;
 //			}
-			mCollision = 0;
-
-			suzFetchSpriteData();
-/*			mSPRDLINE.Word = RAM_PEEKW(mTMPADR.Word);	// Sprite pack data
-			TRACE_SUSIE1("PaintSprites() SPRDLINE $%04x",mSPRDLINE.Word);
-			mTMPADR.Word += 2;
-
-			mHPOSSTRT.Word = RAM_PEEKW(mTMPADR.Word);	// Sprite horizontal start position
-			TRACE_SUSIE1("PaintSprites() HPOSSTRT $%04x",mHPOSSTRT.Word);
-			mTMPADR.Word += 2;
-
-			mVPOSSTRT.Word = RAM_PEEKW(mTMPADR.Word);	// Sprite vertical start position
-			TRACE_SUSIE1("PaintSprites() VPOSSTRT $%04x",mVPOSSTRT.Word);
-			mTMPADR.Word += 2;
-
-			cycles_used += 6 * SPR_RDWR_CYC;
-
-			// bool enable_sizing = FALSE; // unused
-
-			// Optional section defined by reload type in Control 1
-
-			TRACE_SUSIE1("PaintSprites() mSPRCTL1.Bits.ReloadDepth=%d", mSPRCTL1_ReloadDepth);
-			switch(mSPRCTL1 & ReloadDepth)
-			{
-				case 0x10:
-					TRACE_SUSIE0("PaintSprites() Sizing Enabled");
-					// enable_sizing=TRUE; // unused
-
-					mSPRHSIZ.Word = RAM_PEEKW(mTMPADR.Word);	// Sprite Horizontal size
-					mTMPADR.Word += 2;
-
-					mSPRVSIZ.Word = RAM_PEEKW(mTMPADR.Word);	// Sprite Vertical size
-					mTMPADR.Word += 2;
-
-					cycles_used += 4 * SPR_RDWR_CYC;
-					break;
-
-				case 0x20:
-					TRACE_SUSIE0("PaintSprites() Sizing Enabled");
-					TRACE_SUSIE0("PaintSprites() Stretch Enabled");
-					// enable_sizing = TRUE; // unused
-
-					mSPRHSIZ.Word = RAM_PEEKW(mTMPADR.Word);	// Sprite Horizontal size
-					mTMPADR.Word += 2;
-
-					mSPRVSIZ.Word = RAM_PEEKW(mTMPADR.Word);	// Sprite Vertical size
-					mTMPADR.Word += 2;
-
-					mSTRETCH.Word = RAM_PEEKW(mTMPADR.Word);	// Sprite stretch
-					mTMPADR.Word += 2;
-
-					cycles_used += 6 * SPR_RDWR_CYC;
-					break;
-
-				case 0x30:
-					TRACE_SUSIE0("PaintSprites() Sizing Enabled");
-					TRACE_SUSIE0("PaintSprites() Stretch Enabled");
-					TRACE_SUSIE0("PaintSprites() Tilt Enabled");
-					// enable_sizing = TRUE;  // unused
-
-					mSPRHSIZ.Word = RAM_PEEKW(mTMPADR.Word);	// Sprite Horizontal size
-					mTMPADR.Word += 2;
-
-					mSPRVSIZ.Word = RAM_PEEKW(mTMPADR.Word);	// Sprite Vertical size
-					mTMPADR.Word += 2;
-
-					mSTRETCH.Word = RAM_PEEKW(mTMPADR.Word);	// Sprite stretch
-					mTMPADR.Word += 2;
-
-					mTILT.Word = RAM_PEEKW(mTMPADR.Word);		// Sprite tilt
-					mTMPADR.Word += 2;
-
-					cycles_used += 8 * SPR_RDWR_CYC;
-					break;
-
-				default:
-					break;
-			}*/
-
-			TRACE_SUSIE1("PaintSprites() SPRHSIZ $%04x", mSPRHSIZ.Word);
-			TRACE_SUSIE1("PaintSprites() SPRVSIZ $%04x", mSPRVSIZ.Word);
-			TRACE_SUSIE1("PaintSprites() STRETCH $%04x", mSTRETCH.Word);
-			TRACE_SUSIE1("PaintSprites() TILT    $%04x", mTILT.Word);
-
+/*			mCollision = 0;
 
 			// Optional Palette reload
-
 			if (!(mSPRCTL1 & ReloadPalette)) {
 				TRACE_SUSIE0("PaintSprites() Palette reloaded");
 				for (int loop=0;loop<8;loop++) {
@@ -313,10 +229,15 @@ ULONG CSusie::PaintSprites(void)
 				}
 				// Increment cycle count for the reads
 				cycles_used += 8 * SPR_RDWR_CYC;
-			}
+			}*/
+
+			TRACE_SUSIE1("PaintSprites() SPRHSIZ $%04x", mSPRHSIZ.Word);
+			TRACE_SUSIE1("PaintSprites() SPRVSIZ $%04x", mSPRVSIZ.Word);
+			TRACE_SUSIE1("PaintSprites() STRETCH $%04x", mSTRETCH.Word);
+			TRACE_SUSIE1("PaintSprites() TILT    $%04x", mTILT.Word);
 
 			// Now we can start painting
-		
+
 			// Quadrant drawing order is: SE,NE,NW,SW
 			// start quadrant is given by sprite_control1:0 & 1
 

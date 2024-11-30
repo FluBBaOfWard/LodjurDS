@@ -779,69 +779,110 @@ suzFetchSpriteData:
 	.type	suzFetchSpriteData STT_FUNC
 ;@----------------------------------------------------------------------------
 	ldr suzptr,=suzy_0
-	stmfd sp!,{r4-r11,lr}
-	ldr r1,[suzptr,#suzyRAM]
-	ldrh r0,[suzptr,#suzTmpAdr]
+	stmfd sp!,{r4-r9,lr}
+	ldr r5,[suzptr,#suzyRAM]
 	ldr r9,[suzptr,#suzyCyclesUsed]
-	add r0,r0,r1
+	ldrh r4,[suzptr,#suzSCBNext]
+	strh r4,[suzptr,#suzSCBAdr]
+//	strh r4,[suzptr,#suzTmpAdr]
+	add r4,r4,r5
 
-	ldrb r2,[r0],#1
-	ldrb r3,[r0],#1
-	orr r2,r2,r3,lsl#8
-	strh r2,[suzptr,#suzSprDLine]
+	ldrb r1,[r4],#1
+	bl suSprCtl0W
 
-	ldrb r2,[r0],#1
-	ldrb r3,[r0],#1
-	orr r2,r2,r3,lsl#8
-	strh r2,[suzptr,#suzHPosStrt]
+	ldrb r6,[r4],#1
+	strb r6,[suzptr,#suzSprCtl1]
 
-	ldrb r2,[r0],#1
-	ldrb r3,[r0],#1
-	orr r2,r2,r3,lsl#8
-	strh r2,[suzptr,#suzVPosStrt]
+	ldrb r0,[r4],#1
+	and r0,r0,#0x2F
+	ldrb r1,[suzptr,#suzSprSys]
+	and r1,r1,#0x20
+	orr r0,r0,r1
+	strb r0,[suzptr,#suzSprColl]
+
+	ldrb r0,[r4],#1
+	ldrb r1,[r4],#1
+	orr r0,r0,r1,lsl#8
+	strh r0,[suzptr,#suzSCBNext]
+
+	add r9,r9,#5*3				;@ 5 * SPR_RDWR_CYC
+
+	tst r6,#0x04				;@ SkipSprite
+	bne skipPalette
+
+	mov r0,#0
+	strb r0,[suzptr,#suzCollision]
+
+	ldrb r0,[r4],#1
+	ldrb r1,[r4],#1
+	orr r0,r0,r1,lsl#8
+	strh r0,[suzptr,#suzSprDLine]
+
+	ldrb r0,[r4],#1
+	ldrb r1,[r4],#1
+	orr r0,r0,r1,lsl#8
+	strh r0,[suzptr,#suzHPosStrt]
+
+	ldrb r0,[r4],#1
+	ldrb r1,[r4],#1
+	orr r0,r0,r1,lsl#8
+	strh r0,[suzptr,#suzVPosStrt]
 
 	add r9,r9,#6*3				;@ 6 * SPR_RDWR_CYC
 
-	ldrb r4,[suzptr,#suzSprCtl1]
-	ands r4,r4,#0x30			;@ ReloadDepth
+	ands r2,r6,#0x30			;@ sprCtl1 - ReloadDepth
 	beq endSpriteFetch
 
-	ldrb r2,[r0],#1
-	ldrb r3,[r0],#1
-	orr r2,r2,r3,lsl#8
-	strh r2,[suzptr,#suzSprHSiz]
+	ldrb r0,[r4],#1
+	ldrb r1,[r4],#1
+	orr r0,r0,r1,lsl#8
+	strh r0,[suzptr,#suzSprHSiz]
 
-	ldrb r2,[r0],#1
-	ldrb r3,[r0],#1
-	orr r2,r2,r3,lsl#8
-	strh r2,[suzptr,#suzSprVSiz]
+	ldrb r0,[r4],#1
+	ldrb r1,[r4],#1
+	orr r0,r0,r1,lsl#8
+	strh r0,[suzptr,#suzSprVSiz]
 
 	add r9,r9,#4*3				;@ 4 * SPR_RDWR_CYC
 
-	cmp r4,#0x20
+	cmp r2,#0x20
 	bcc endSpriteFetch
 
-	ldrb r2,[r0],#1
-	ldrb r3,[r0],#1
-	orr r2,r2,r3,lsl#8
-	strh r2,[suzptr,#suzStretch]
+	ldrb r0,[r4],#1
+	ldrb r1,[r4],#1
+	orr r0,r0,r1,lsl#8
+	strh r0,[suzptr,#suzStretch]
 
 	add r9,r9,#2*3				;@ 2 * SPR_RDWR_CYC
 
 	beq endSpriteFetch
 
-	ldrb r2,[r0],#1
-	ldrb r3,[r0],#1
-	orr r2,r2,r3,lsl#8
-	strh r2,[suzptr,#suzTilt]
+	ldrb r0,[r4],#1
+	ldrb r1,[r4],#1
+	orr r0,r0,r1,lsl#8
+	strh r0,[suzptr,#suzTilt]
 
 	add r9,r9,#2*3				;@ 2 * SPR_RDWR_CYC
 
 endSpriteFetch:
-	sub r0,r0,r1
-	strh r0,[suzptr,#suzTmpAdr]
+	tst r6,#0x08				;@ !ReloadPalette
+	bne skipPalette
+	add r0,suzptr,#suzPenIndex
+	mov r1,#8
+penLoop:
+	ldrb r2,[r4],#1
+	mov r2,r2,ror#4
+	orr r2,r2,r2,lsr#16+4
+	strh r2,[r0],#2
+	subs r1,r1,#1
+	bne penLoop
+	add r9,r9,#8*3				;@ 8 * SPR_RDWR_CYC
+
+skipPalette:
+	sub r4,r4,r5
+	strh r4,[suzptr,#suzTmpAdr]
 	str r9,[suzptr,#suzyCyclesUsed]
-	ldmfd sp!,{r4-r11,lr}
+	ldmfd sp!,{r4-r9,lr}
 	bx lr
 ;@----------------------------------------------------------------------------
 suzLineStart:				;@ Out = SPRDOFF.
