@@ -46,7 +46,7 @@ suzCollBasH:		.byte 0		;@ High
 suzVidAdr:						;@ 0x0C Video Address
 suzVidAdrL:			.byte 0		;@ Low
 suzVidAdrH:			.byte 0		;@ High
-suzCollAdr:						;@ 0x0C Collision Address
+suzCollAdr:						;@ 0x0E Collision Address
 suzCollAdrL:		.byte 0		;@ Low
 suzCollAdrH:		.byte 0		;@ High
 suzSCBNext:						;@ 0x10 Sprite Control Block Next

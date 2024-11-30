@@ -71,21 +71,6 @@ class CSystem;
 
 #define LINE_END		0x80
 
-//
-// Define Lynx button values
-//
-
-#define BUTTON_A		0x0001
-#define BUTTON_B		0x0002
-#define BUTTON_OPT2		0x0004
-#define BUTTON_OPT1		0x0008
-#define BUTTON_LEFT		0x0010
-#define BUTTON_RIGHT	0x0020
-#define BUTTON_UP		0x0040
-#define BUTTON_DOWN		0x0080
-#define BUTTON_PAUSE	0x0100
-
-
 enum {line_error=0,line_abs_literal,line_literal,line_packed};
 enum {math_finished=0,math_divide,math_multiply,math_init_divide,math_init_multiply};
 
@@ -97,60 +82,6 @@ enum {sprite_background_shadow=0,
 	  sprite_noncollide,
 	  sprite_xor_shadow,
 	  sprite_shadow};
-
-// Define register typdefs
-
-typedef struct
-{
-	union
-	{
-		struct
-		{
-#ifdef MSB_FIRST
-			UBYTE	Up:1;
-			UBYTE	Down:1;
-			UBYTE	Left:1;
-			UBYTE	Right:1;
-			UBYTE	Option1:1;
-			UBYTE	Option2:1;
-			UBYTE	Inside:1;
-			UBYTE	Outside:1;
-#else
-			UBYTE	Outside:1;
-			UBYTE	Inside:1;
-			UBYTE	Option2:1;
-			UBYTE	Option1:1;
-			UBYTE	Right:1;
-			UBYTE	Left:1;
-			UBYTE	Down:1;
-			UBYTE	Up:1;
-#endif
-		}Bits;
-		UBYTE	Byte;
-	};
-}TJOYSTICK;
-
-typedef struct
-{
-	union
-	{
-		struct
-		{
-#ifdef MSB_FIRST
-			UBYTE	spare:5;
-			UBYTE	Cart1IO:1;
-			UBYTE	Cart0IO:1;
-			UBYTE	Pause:1;
-#else
-			UBYTE	Pause:1;
-			UBYTE	Cart0IO:1;
-			UBYTE	Cart1IO:1;
-			UBYTE	spare:5;
-#endif
-		}Bits;
-		UBYTE	Byte;
-	};
-}TSWITCHES;
 
 class CSusie : public CLynxBase
 {
@@ -165,8 +96,6 @@ class CSusie : public CLynxBase
 //		ULONG	ReadCycle(void) {return 9;};
 //		ULONG	WriteCycle(void) {return 5;};
 
-//		void	SetButtonData(ULONG data) {mJOYSTICK.Byte=(UBYTE)data;mSWITCHES.Byte=(UBYTE)(data>>8);};
-
 		ULONG	PaintSprites(void);
 
 	private:
@@ -176,10 +105,6 @@ class CSusie : public CLynxBase
 		int			mSPRSYS_UnsafeAccess;
 		int			mSPRSYS_LastCarry;
 		int			mSPRSYS_MathInProgress;
-
-		// Joystick switches
-//		TJOYSTICK	mJOYSTICK;
-//		TSWITCHES	mSWITCHES;
 };
 
 #endif

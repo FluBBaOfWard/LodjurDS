@@ -26,6 +26,7 @@
 	.global suzyRead
 	.global suzyWrite
 	.global suzySetButtonData
+	.global suzFetchSpriteData
 	.global suzLineRender
 	.global suzLineStart
 
@@ -80,6 +81,20 @@ suzyReset:		;@ r0=ram, r12=suzptr
 	mov r0,#0x7F
 	strh r0,[suzptr,#suzHSizOff]
 	strh r0,[suzptr,#suzVSizOff]
+
+	;@ Must be initialised to this due to
+	;@ Stun Runner math initialisation bug
+	mov r0,#-1
+	strh r0,[suzptr,#suzMathAB]
+	strh r0,[suzptr,#suzMathCD]
+	str r0,[suzptr,#suzMathEFGH]
+	str r0,[suzptr,#suzMathJKLM]
+	strh r0,[suzptr,#suzMathNP]
+
+	mov r0,#1
+	str r0,[suzptr,#mathAB_sign]
+	str r0,[suzptr,#mathCD_sign]
+	str r0,[suzptr,#mathEFGH_sign]
 
 	ldmfd sp!,{r0,lr}
 
@@ -334,7 +349,7 @@ io_read_tbl:
 	.long suUnmappedR			;@ 0xFCAD
 	.long suUnmappedR			;@ 0xFCAE
 	.long suUnmappedR			;@ 0xFCAF
-	.long suJoystickR				;@ 0xFCB0 JOYSTICK
+	.long suJoystickR			;@ 0xFCB0 JOYSTICK
 	.long suRegR				;@ 0xFCB1 SWITCHES
 	.long susiePeek				;@ 0xFCB2 RCART0
 	.long susiePeek				;@ 0xFCB3 RCART1
@@ -760,6 +775,75 @@ suzySetButtonData:			;@ r0=buttons & switches, r12=suzptr.
 	bx lr
 
 ;@----------------------------------------------------------------------------
+suzFetchSpriteData:
+	.type	suzFetchSpriteData STT_FUNC
+;@----------------------------------------------------------------------------
+	ldr suzptr,=suzy_0
+	stmfd sp!,{r4-r11,lr}
+	ldr r1,[suzptr,#suzyRAM]
+	ldrh r0,[suzptr,#suzTmpAdr]
+	ldr r9,[suzptr,#suzyCyclesUsed]
+	add r0,r0,r1
+
+	ldrb r2,[r0],#1
+	ldrb r3,[r0],#1
+	orr r2,r2,r3,lsl#8
+	strh r2,[suzptr,#suzSprDLine]
+
+	ldrb r2,[r0],#1
+	ldrb r3,[r0],#1
+	orr r2,r2,r3,lsl#8
+	strh r2,[suzptr,#suzHPosStrt]
+
+	ldrb r2,[r0],#1
+	ldrb r3,[r0],#1
+	orr r2,r2,r3,lsl#8
+	strh r2,[suzptr,#suzVPosStrt]
+
+	add r9,r9,#6*3				;@ 6 * SPR_RDWR_CYC
+
+	ldrb r4,[suzptr,#suzSprCtl1]
+	ands r4,r4,#0x30			;@ ReloadDepth
+	beq endSpriteFetch
+
+	ldrb r2,[r0],#1
+	ldrb r3,[r0],#1
+	orr r2,r2,r3,lsl#8
+	strh r2,[suzptr,#suzSprHSiz]
+
+	ldrb r2,[r0],#1
+	ldrb r3,[r0],#1
+	orr r2,r2,r3,lsl#8
+	strh r2,[suzptr,#suzSprVSiz]
+
+	add r9,r9,#4*3				;@ 4 * SPR_RDWR_CYC
+
+	cmp r4,#0x20
+	bcc endSpriteFetch
+
+	ldrb r2,[r0],#1
+	ldrb r3,[r0],#1
+	orr r2,r2,r3,lsl#8
+	strh r2,[suzptr,#suzStretch]
+
+	add r9,r9,#2*3				;@ 2 * SPR_RDWR_CYC
+
+	beq endSpriteFetch
+
+	ldrb r2,[r0],#1
+	ldrb r3,[r0],#1
+	orr r2,r2,r3,lsl#8
+	strh r2,[suzptr,#suzTilt]
+
+	add r9,r9,#2*3				;@ 2 * SPR_RDWR_CYC
+
+endSpriteFetch:
+	sub r0,r0,r1
+	strh r0,[suzptr,#suzTmpAdr]
+	str r9,[suzptr,#suzyCyclesUsed]
+	ldmfd sp!,{r4-r11,lr}
+	bx lr
+;@----------------------------------------------------------------------------
 suzLineStart:				;@ Out = SPRDOFF.
 	.type	suzLineStart STT_FUNC
 ;@----------------------------------------------------------------------------
@@ -987,11 +1071,8 @@ exitLineEnd:
 	mov r0,#LINE_END
 	ldmfd sp!,{pc}
 ;@----------------------------------------------------------------------------
-suzProcessPixel:			;@ In r0=hoff, r1=pixel, r2=sprType.
+;@ suzProcessPixel:			;@ In r0=hoff, r1=pixel
 ;@----------------------------------------------------------------------------
-	and r2,r2,#7
-	ldr pc,[pc,r2,lsl#2]
-	nop
 sprTypeTbl:
 	.long sprBgrShdw, sprBgrNoColl, sprBoundShdw, sprBound
 	.long sprNormal,  sprNoColl,    sprXorShdw,   sprShadow

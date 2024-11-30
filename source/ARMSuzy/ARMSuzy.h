@@ -98,7 +98,7 @@ typedef struct {
 	U16_ST vidBas;		// 0x08 Base Address of Video Build Buffer
 	U16_ST collBas;		// 0x0A Base Address of Collision Build Buffer
 	U16_ST vidAdr;		// 0x0C Current Video Build Address
-	U16_ST collAdr;		// 0x0C Current Collision Build Address
+	U16_ST collAdr;		// 0x0E Current Collision Build Address
 	U16_ST SCBNext;		// 0x10 Sprite Control Block Next
 	U16_ST sprDLine;	// 0x12 Start of Sprite Data Line Address
 	U16_ST hPosStrt;	// 0x14 Starting Hpos
@@ -220,6 +220,7 @@ int suzyGetStateSize(void);
 
 void suzDoDivide(void);
 u32 suzLineStart(void);
+void suzFetchSpriteData(void);
 bool suzLineRender(int hsign, int hQuadOff, int voff);
 
 #ifdef __cplusplus

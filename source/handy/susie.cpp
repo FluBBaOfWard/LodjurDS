@@ -81,11 +81,6 @@
 #define mVSIZACUM suzy_0.vSizAcum
 #define mVSIZOFF suzy_0.vSizOff
 #define mSCBADR suzy_0.SCBAdr
-#define mMATHAB suzy_0.mathAB
-#define mMATHCD suzy_0.mathCD
-#define mMATHEFGH suzy_0.mathEFGH
-#define mMATHJKLM suzy_0.mathJKLM
-#define mMATHNP suzy_0.mathNP
 #define mSPRCTL0 suzy_0.sprCtl0
 #define mSPRCTL1 suzy_0.sprCtl1
 #define mSPRCOLL suzy_0.sprColl
@@ -98,9 +93,6 @@
 
 #define mPenIndex suzy_0.penIndex
 
-#define mMATHAB_sign suzy_0.mathAB_sign
-#define mMATHCD_sign suzy_0.mathCD_sign
-#define mMATHEFGH_sign suzy_0.mathEFGH_sign
 #define mSPRSYS_Mathbit suzy_0.sprSys_Mathbit
 
 // SprCtl0
@@ -144,26 +136,10 @@ void CSusie::Reset(void)
 
 	// Reset ALL variables
 
-	// Must be initialised to this due to
-	// Stun Runner math initialisation bug
-	// see whatsnew for 0.7
-	mMATHAB.AB = 0xffff;
-	mMATHCD.CD = 0xffff;
-	mMATHEFGH.Long = 0xffffffff;
-	mMATHJKLM.Long = 0xffffffff;
-	mMATHNP.NP = 0xffff;
-
-	mMATHAB_sign = 1;
-	mMATHCD_sign = 1;
-	mMATHEFGH_sign = 1;
-
 	mSPRSYS_UnsafeAccess = 0;
 	mSPRSYS_Busy = 0;
 	mSPRSYS_LastCarry = 0;
 	mSPRSYS_MathInProgress = 0;
-
-//	mJOYSTICK.Byte = 0;
-//	mSWITCHES.Byte = 0;
 }
 
 ULONG CSusie::PaintSprites(void)
@@ -243,7 +219,8 @@ ULONG CSusie::PaintSprites(void)
 //			}
 			mCollision = 0;
 
-			mSPRDLINE.Word = RAM_PEEKW(mTMPADR.Word);	// Sprite pack data
+			suzFetchSpriteData();
+/*			mSPRDLINE.Word = RAM_PEEKW(mTMPADR.Word);	// Sprite pack data
 			TRACE_SUSIE1("PaintSprites() SPRDLINE $%04x",mSPRDLINE.Word);
 			mTMPADR.Word += 2;
 
@@ -258,8 +235,6 @@ ULONG CSusie::PaintSprites(void)
 			cycles_used += 6 * SPR_RDWR_CYC;
 
 			// bool enable_sizing = FALSE; // unused
-			bool enable_stretch = FALSE;
-			bool enable_tilt = FALSE;
 
 			// Optional section defined by reload type in Control 1
 
@@ -283,7 +258,6 @@ ULONG CSusie::PaintSprites(void)
 					TRACE_SUSIE0("PaintSprites() Sizing Enabled");
 					TRACE_SUSIE0("PaintSprites() Stretch Enabled");
 					// enable_sizing = TRUE; // unused
-					enable_stretch = TRUE;
 
 					mSPRHSIZ.Word = RAM_PEEKW(mTMPADR.Word);	// Sprite Horizontal size
 					mTMPADR.Word += 2;
@@ -302,8 +276,6 @@ ULONG CSusie::PaintSprites(void)
 					TRACE_SUSIE0("PaintSprites() Stretch Enabled");
 					TRACE_SUSIE0("PaintSprites() Tilt Enabled");
 					// enable_sizing = TRUE;  // unused
-					enable_stretch = TRUE;
-					enable_tilt = TRUE;
 
 					mSPRHSIZ.Word = RAM_PEEKW(mTMPADR.Word);	// Sprite Horizontal size
 					mTMPADR.Word += 2;
@@ -322,7 +294,7 @@ ULONG CSusie::PaintSprites(void)
 
 				default:
 					break;
-			}
+			}*/
 
 			TRACE_SUSIE1("PaintSprites() SPRHSIZ $%04x", mSPRHSIZ.Word);
 			TRACE_SUSIE1("PaintSprites() SPRVSIZ $%04x", mSPRVSIZ.Word);
@@ -375,7 +347,7 @@ ULONG CSusie::PaintSprites(void)
 							  || (SWORD)mVPOSSTRT.Word < screen_v_start
 							  || (SWORD)mVPOSSTRT.Word >= screen_v_end);
 
-			TRACE_SUSIE1("PaintSprites() Superclip=%d",superclip);
+			TRACE_SUSIE1("PaintSprites() Superclip=%d", superclip);
 
 
 			// Quadrant mapping is:	SE	NE	NW	SW
@@ -389,34 +361,39 @@ ULONG CSusie::PaintSprites(void)
 			//      3 | 0
 			//
 
-			int hQuadOff, vQuadOff;
+			int hSign = (mSPRCTL1 & StartLeft) ? -1 : 1;
+			int vSign = (mSPRCTL1 & StartUp) ? -1 : 1;
+
+			// Use h/v flip to invert h/vSign
+			if (mSPRCTL0 & Vflip) vSign = -vSign;
+			if (mSPRCTL0 & Hflip) hSign = -hSign;
+			int vQuadOff = vSign;
+			int hQuadOff = hSign;
+
+			int sprite_v = mVPOSSTRT.Word;
+			int sprite_h = mHPOSSTRT.Word;
 
 			// Loop for 4 quadrants
 			for (int loop=0;loop<4;loop++)
 			{
 				TRACE_SUSIE1("PaintSprites() -------- Rendering Quadrant %03d --------", quadrant);
 
-				int sprite_v = mVPOSSTRT.Word;
-				int sprite_h = mHPOSSTRT.Word;
-
 				bool render = FALSE;
 
-				// Set quadrand multipliers
-				int hSign = (quadrant == 0 || quadrant == 1) ? 1 : -1;
-				int vSign = (quadrant == 0 || quadrant == 3) ? 1 : -1;
+				if (loop != 0) {
+					// Set quadrand multipliers
+					hSign = (quadrant == 0 || quadrant == 1) ? 1 : -1;
+					vSign = (quadrant == 0 || quadrant == 3) ? 1 : -1;
 
-// Preflip		TRACE_SUSIE2("PaintSprites() hSign=%d vSign=%d",hSign,vSign);
+// Preflip			TRACE_SUSIE2("PaintSprites() hSign=%d vSign=%d",hSign,vSign);
 
-				// Use h/v flip to invert h/vSign
-				if (mSPRCTL0 & Vflip) vSign = -vSign;
-				if (mSPRCTL0 & Hflip) hSign = -hSign;
-				if (loop == 0) {
-					vQuadOff = vSign;
-					hQuadOff = hSign;
+					// Use h/v flip to invert h/vSign
+					if (mSPRCTL0 & Vflip) vSign = -vSign;
+					if (mSPRCTL0 & Hflip) hSign = -hSign;
 				}
 				TRACE_SUSIE2("PaintSprites() Hflip=%d Vflip=%d", mSPRCTL0 & Hflip, mSPRCTL0 & Vflip);
 				TRACE_SUSIE2("PaintSprites() Hsign=%d   Vsign=%d", hSign, vSign);
-				TRACE_SUSIE2("PaintSprites() Hpos =%04x Vpos =%04x", mHPOSSTRT.Word, mVPOSSTRT.Word);
+				TRACE_SUSIE2("PaintSprites() Hpos =%04x Vpos =%04x", sprite_h, sprite_v);
 				TRACE_SUSIE2("PaintSprites() Hsizoff =%04x Vsizoff =%04x", mHSIZOFF.Word, mVSIZOFF.Word);
 
 				// Two different rendering algorithms used, on-screen & superclip
@@ -522,11 +499,11 @@ ULONG CSusie::PaintSprites(void)
 							voff += vSign;
 
 							// For every destination line we can modify SPRHSIZ & SPRVSIZ & TILTACUM
-							if (enable_stretch) {
+							if (mSPRCTL1 & 0x20) {
 								mSPRHSIZ.Word += mSTRETCH.Word;
 //								if (mSPRSYS & VStretch) mSPRVSIZ.Word += mSTRETCH.Word;
 							}
-							if (enable_tilt) {
+							if ((mSPRCTL1 & ReloadDepth) == 0x30) {
 								// Manipulate the tilt stuff
 								mTILTACUM.Word += mTILT.Word;
 							}
@@ -676,23 +653,6 @@ UBYTE CSusie::Peek(ULONG addr)
 			retval |= (mSPRSYS_MathInProgress) ? 0x0080 : 0x0000;
 			TRACE_SUSIE2("Peek(SPRSYS)=$%02x at PC=$%04x", retval, mSystem.mCpu->GetPC());
 			return retval;
-
-//		case (JOYSTICK & 0xff):
-//			if (mSPRSYS & LeftHand) {
-//				return mJOYSTICK.Byte;
-//			}
-//			else {
-//				TJOYSTICK Modified = mJOYSTICK;
-//				Modified.Bits.Left = mJOYSTICK.Bits.Right;
-//				Modified.Bits.Right = mJOYSTICK.Bits.Left;
-//				Modified.Bits.Down = mJOYSTICK.Bits.Up;
-//				Modified.Bits.Up = mJOYSTICK.Bits.Down;
-//				retval = Modified.Byte;
-//			}
-//			return retval;
-//
-//		case (SWITCHES & 0xff):
-//			return mSWITCHES.Byte;
 
 // Cartridge reading ports
 		case (RCART0 & 0xff):
