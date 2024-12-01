@@ -574,7 +574,7 @@ io_write_tbl:
 	.long suUnmappedW			;@ 0xFC8F
 	.long suBusEnW				;@ 0xFC90 SUZYBUSEN
 	.long suRegW				;@ 0xFC91 SPRGO
-	.long susiePoke				;@ 0xFC92 SPRSYS
+	.long suSprSysW				;@ 0xFC92 SPRSYS
 	.long suUnmappedW			;@ 0xFC93
 	.long suUnmappedW			;@ 0xFC94
 	.long suUnmappedW			;@ 0xFC95
@@ -726,10 +726,8 @@ suMathEW:					;@ 0x63 Math E Register
 ;@----------------------------------------------------------------------------
 	strb r1,[suzptr,#suzMathE]
 ;@----------------------------------------------------------------------------
-suzDoDivide:				;@
-	.type	suzDoDivide STT_FUNC
+;@ suzDoDivide:				;@
 ;@----------------------------------------------------------------------------
-	ldr suzptr,=suzy_0
 	ldrh r1,[suzptr,#suzMathNP]
 	cmp r1,#0
 	mov r2,#0
@@ -748,7 +746,7 @@ zeroDvide:
 	strh r0,[suzptr,#suzMathCD]
 	bx lr
 ;@----------------------------------------------------------------------------
-suSprCtl0W:					;@ 0x80 Sprite Coontrol 0
+suSprCtl0W:					;@ 0x80 Sprite Control 0
 ;@----------------------------------------------------------------------------
 	strb r1,[suzptr,#suzSprCtl0]
 	mov r1,r1,lsr#6
@@ -767,6 +765,15 @@ suBusEnW:					;@ 0x90 Suzy Bus Enable
 	and r1,r1,#0x01
 	strb r1,[suzptr,#suzSuzyBusEn]
 	bx lr
+;@----------------------------------------------------------------------------
+suSprSysW:					;@ 0x92 Sprite Sys
+;@----------------------------------------------------------------------------
+	tst r1,#0x04				;@ Clear UnsafeAccess bit?
+	ldrbne r0,[suzptr,#suzSprSysStat]
+	bicne r0,r0,#0x04
+	strbne r0,[suzptr,#suzSprSysStat]
+	strb r1,[suzptr,#suzSprSys]
+	bx lr
 
 ;@----------------------------------------------------------------------------
 suzySetButtonData:			;@ r0=buttons & switches, r12=suzptr.
@@ -779,7 +786,7 @@ suzFetchSpriteData:
 	.type	suzFetchSpriteData STT_FUNC
 ;@----------------------------------------------------------------------------
 	ldr suzptr,=suzy_0
-	stmfd sp!,{r4-r9,lr}
+	stmfd sp!,{r4-r6,r9,lr}
 	ldr r5,[suzptr,#suzyRAM]
 	ldr r9,[suzptr,#suzyCyclesUsed]
 	ldrh r4,[suzptr,#suzSCBNext]
@@ -794,8 +801,8 @@ suzFetchSpriteData:
 	strb r6,[suzptr,#suzSprCtl1]
 
 	ldrb r0,[r4],#1
-	and r0,r0,#0x2F
 	ldrb r1,[suzptr,#suzSprSys]
+	and r0,r0,#0x2F
 	and r1,r1,#0x20
 	orr r0,r0,r1
 	strb r0,[suzptr,#suzSprColl]
@@ -807,7 +814,7 @@ suzFetchSpriteData:
 
 	add r9,r9,#5*3				;@ 5 * SPR_RDWR_CYC
 
-	tst r6,#0x04				;@ SkipSprite
+	tst r6,#0x04				;@ sprCtl1 - SkipSprite
 	bne skipPalette
 
 	mov r0,#0
@@ -865,7 +872,7 @@ suzFetchSpriteData:
 	add r9,r9,#2*3				;@ 2 * SPR_RDWR_CYC
 
 endSpriteFetch:
-	tst r6,#0x08				;@ !ReloadPalette
+	tst r6,#0x08				;@ sprCtl1 - !ReloadPalette
 	bne skipPalette
 	add r0,suzptr,#suzPenIndex
 	mov r1,#8
@@ -882,7 +889,7 @@ skipPalette:
 	sub r4,r4,r5
 	strh r4,[suzptr,#suzTmpAdr]
 	str r9,[suzptr,#suzyCyclesUsed]
-	ldmfd sp!,{r4-r9,lr}
+	ldmfd sp!,{r4-r6,r9,lr}
 	bx lr
 ;@----------------------------------------------------------------------------
 suzLineStart:				;@ Out = SPRDOFF.

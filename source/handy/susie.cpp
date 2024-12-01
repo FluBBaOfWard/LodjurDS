@@ -61,10 +61,8 @@
 // going through the system object, much faster
 //
 #define RAM_PEEK(m)				(suzy_0.suzyRAM[(m)])
-#define RAM_PEEKW(m)			(suzy_0.suzyRAM[(m)]+(suzy_0.suzyRAM[(m)+1]<<8))
 #define RAM_POKE(m1,m2)			{suzy_0.suzyRAM[(m1)]=(m2);}
 
-#define mTMPADR suzy_0.tmpAdr
 #define mHOFF suzy_0.hOff
 #define mVOFF suzy_0.vOff
 #define mTILTACUM suzy_0.tiltAcum
@@ -91,9 +89,11 @@
 #define mCollision suzy_0.collision
 #define cycles_used suzy_0.cyclesUsed
 
-#define mPenIndex suzy_0.penIndex
-
+#define mSPRSYS_Busy suzy_0.sprSys_Busy
+#define mSPRSYS_UnsafeAccess suzy_0.sprSys_UnsafeAccess
+#define mSPRSYS_LastCarry suzy_0.sprSys_LastCarry
 #define mSPRSYS_Mathbit suzy_0.sprSys_Mathbit
+#define mSPRSYS_MathInProgress suzy_0.sprSys_MathInProgress
 
 // SprCtl0
 #define Type  (0x07)
@@ -136,10 +136,10 @@ void CSusie::Reset(void)
 
 	// Reset ALL variables
 
-	mSPRSYS_UnsafeAccess = 0;
-	mSPRSYS_Busy = 0;
-	mSPRSYS_LastCarry = 0;
-	mSPRSYS_MathInProgress = 0;
+//	mSPRSYS_UnsafeAccess = 0;
+//	mSPRSYS_Busy = 0;
+//	mSPRSYS_LastCarry = 0;
+//	mSPRSYS_MathInProgress = 0;
 }
 
 ULONG CSusie::PaintSprites(void)
@@ -183,31 +183,7 @@ ULONG CSusie::PaintSprites(void)
 		}
 
 		suzFetchSpriteData();
-/*		mTMPADR.Word = mSCBNEXT.Word;	// Copy SCB pointer
-		mSCBADR.Word = mSCBNEXT.Word;	// Copy SCB pointer
-		TRACE_SUSIE1("PaintSprites() SCBADDR $%04x", mSCBADR.Word);
 
-		int data = RAM_PEEK(mTMPADR.Word);			// Fetch control 0
-		TRACE_SUSIE1("PaintSprites() SPRCTL0 $%02x", data);
-		lnxSuzyWrite(0xFC80, data);
-		mTMPADR.Word += 1;
-
-		data = RAM_PEEK(mTMPADR.Word);			// Fetch control 1
-		TRACE_SUSIE1("PaintSprites() SPRCTL1 $%02x", data);
-		mSPRCTL1 = data;
-		mTMPADR.Word += 1;
-
-		data = RAM_PEEK(mTMPADR.Word);			// Collision num
-		TRACE_SUSIE1("PaintSprites() SPRCOLL $%02x", data);
-		mSPRCOLL = (data & 0x2f) | (mSPRSYS & NoCollide);
-		mTMPADR.Word += 1;
-
-		mSCBNEXT.Word = RAM_PEEKW(mTMPADR.Word);	// Next SCB
-		TRACE_SUSIE1("PaintSprites() SCBNEXT $%04x", mSCBNEXT.Word);
-		mTMPADR.Word += 2;
-
-		cycles_used += 5 * SPR_RDWR_CYC;
-*/
 		// Check if this is a skip sprite
 		if (!(mSPRCTL1 & SkipSprite)) {
 			// Initialise the collision depositary
@@ -217,19 +193,7 @@ ULONG CSusie::PaintSprites(void)
 //			{
 //				mCollision = RAM_PEEK((mSCBADR.Word+mCOLLOFF.Word) & 0xffff) & 0x0f;
 //			}
-/*			mCollision = 0;
-
-			// Optional Palette reload
-			if (!(mSPRCTL1 & ReloadPalette)) {
-				TRACE_SUSIE0("PaintSprites() Palette reloaded");
-				for (int loop=0;loop<8;loop++) {
-					UBYTE pen = RAM_PEEK(mTMPADR.Word++);
-					mPenIndex[loop*2] = (pen>>4) & 0x0f;
-					mPenIndex[(loop*2)+1] = pen & 0x0f;
-				}
-				// Increment cycle count for the reads
-				cycles_used += 8 * SPR_RDWR_CYC;
-			}*/
+//			mCollision = 0;
 
 			TRACE_SUSIE1("PaintSprites() SPRHSIZ $%04x", mSPRHSIZ.Word);
 			TRACE_SUSIE1("PaintSprites() SPRVSIZ $%04x", mSPRVSIZ.Word);
@@ -242,7 +206,6 @@ ULONG CSusie::PaintSprites(void)
 			// start quadrant is given by sprite_control1:0 & 1
 
 			// Setup screen start end variables
-
 			int screen_h_start = (SWORD)mHOFF.Word;
 			int screen_h_end = screen_h_start + LYNX_SCREEN_WIDTH;
 			int screen_v_start = (SWORD)mVOFF.Word;
@@ -407,7 +370,7 @@ ULONG CSusie::PaintSprites(void)
 							break;
 						}
 
-						// Draw one horizontal line of the sprite
+						// Draw one horizontal source line of the sprite
 						for (int vloop=0;vloop<pixel_height;vloop++) {
 							// Early bailout if the sprite has moved off screen, terminate quad
 							if (vSign == 1 && voff >= LYNX_SCREEN_HEIGHT) break;
@@ -533,11 +496,11 @@ void CSusie::Poke(ULONG addr, UBYTE data)
 {
 	switch(addr & 0xff)
 	{
-		case (SPRSYS & 0xff):
-			if (data & UnsafeAccess) mSPRSYS_UnsafeAccess = 0;
-			mSPRSYS = data;
-			TRACE_SUSIE2("Poke(SPRSYS,%02x) at PC=$%04x", data, mSystem.mCpu->GetPC());
-			break;
+//		case (SPRSYS & 0xff):
+//			if (data & UnsafeAccess) mSPRSYS_UnsafeAccess = 0;
+//			mSPRSYS = data;
+//			TRACE_SUSIE2("Poke(SPRSYS,%02x) at PC=$%04x", data, mSystem.mCpu->GetPC());
+//			break;
 
 // Cartridge writing ports
 		case (RCART0 & 0xff):
@@ -547,11 +510,6 @@ void CSusie::Poke(ULONG addr, UBYTE data)
 		case (RCART1 & 0xff):
 			mSystem.Poke_CARTB1(data);
 			TRACE_SUSIE2("Poke(RCART1,%02x) at PC=$%04x", data, mSystem.mCpu->GetPC());
-			break;
-
-// Errors on illegal location accesses
-		default:
-			TRACE_SUSIE3("Poke(%04x,%02x) - Poke to illegal location at PC=%04x", addr, data, mSystem.mCpu->GetPC());
 			break;
 	}
 }
@@ -580,10 +538,6 @@ UBYTE CSusie::Peek(ULONG addr)
 			return mSystem.Peek_CARTB0();
 		case (RCART1 & 0xff):
 			return mSystem.Peek_CARTB1();
-
-// Errors on illegal location accesses
-		default:
-			TRACE_SUSIE2("Peek(%04x) - Peek from illegal location at PC=$%04x", addr, mSystem.mCpu->GetPC());
 	}
 
 	return 0xff;

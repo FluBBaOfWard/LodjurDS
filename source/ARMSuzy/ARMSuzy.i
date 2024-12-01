@@ -157,23 +157,27 @@ suzLineType:		.byte 0	;@
 suzLinePixel:		.byte 0	;@
 suzPadding2:		.skip 2
 
-suzLineRepeatCount:		.long 0	;@
+suzLineRepeatCount:	.long 0	;@
 suzLinePacketBitsLeft:	.long 0	;@
 suzLineShiftRegCount:	.long 0	;@
-suzLineShiftReg:		.long 0	;@
+suzLineShiftReg:	.long 0	;@
 
 suzPenIndex:		.space 16	;@
-
-suzLineBaseAddress:	.long 0		;@ Current dest line adr.
-suzLineCollisionAddress:	.long 0		;@ Current collision dest line adr.
-suzyCyclesUsed:		.long 0		;@ Cycles used to paint sprites.
-suzyStateEnd:
 
 mathAB_sign:		.long 0
 mathCD_sign:		.long 0
 mathEFGH_sign:		.long 0
 
+sprSys_Busy:		.long 0
+sprSys_UnsafeAccess:	.long 0
+sprSys_LastCarry:	.long 0
 sprSys_Mathbit:		.long 0
+sprSys_MathInProgress:	.long 0
+
+suzLineBaseAddress:	.long 0		;@ Current dest line adr.
+suzLineCollisionAddress:	.long 0		;@ Current collision dest line adr.
+suzyCyclesUsed:		.long 0		;@ Cycles used to paint sprites.
+suzyStateEnd:
 
 dirtyTiles:			.space 4
 suzyRAM:			.long 0		;@ 0x10000

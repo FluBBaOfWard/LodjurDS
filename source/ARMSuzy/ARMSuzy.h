@@ -179,15 +179,19 @@ typedef struct {
 
 	u8 penIndex[16];
 
-	u32 lineBaseAddress;
-	u32 lineCollisionAddress;
-	u32 cyclesUsed;				// Cycles used to paint sprites.
-
 	int mathAB_sign;
 	int mathCD_sign;
 	int mathEFGH_sign;
 
+	int sprSys_Busy;
+	int sprSys_UnsafeAccess;
+	int sprSys_LastCarry;
 	int sprSys_Mathbit;
+	int sprSys_MathInProgress;
+
+	u32 lineBaseAddress;
+	u32 lineCollisionAddress;
+	u32 cyclesUsed;				// Cycles used to paint sprites.
 
 	u8 dirtyTiles[4];
 	u8 *suzyRAM;

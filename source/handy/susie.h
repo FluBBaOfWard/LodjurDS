@@ -101,10 +101,10 @@ class CSusie : public CLynxBase
 	private:
 		CSystem&	mSystem;
 
-		int			mSPRSYS_Busy;
-		int			mSPRSYS_UnsafeAccess;
-		int			mSPRSYS_LastCarry;
-		int			mSPRSYS_MathInProgress;
+//		int			mSPRSYS_Busy;
+//		int			mSPRSYS_UnsafeAccess;
+//		int			mSPRSYS_LastCarry;
+//		int			mSPRSYS_MathInProgress;
 };
 
 #endif
