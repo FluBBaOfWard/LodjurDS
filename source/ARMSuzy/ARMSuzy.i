@@ -166,11 +166,11 @@ suzPenIndex:		.space 16	;@
 
 mathAB_sign:		.long 0
 mathCD_sign:		.long 0
-mathEFGH_sign:		.long 0
+//mathEFGH_sign:		.long 0
 
 sprSys_Busy:		.long 0
 sprSys_UnsafeAccess:	.long 0
-sprSys_LastCarry:	.long 0
+//sprSys_LastCarry:	.long 0
 sprSys_Mathbit:		.long 0
 sprSys_MathInProgress:	.long 0
 

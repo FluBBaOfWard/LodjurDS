@@ -94,7 +94,6 @@ suzyReset:		;@ r0=ram, r12=suzptr
 	mov r0,#1
 	str r0,[suzptr,#mathAB_sign]
 	str r0,[suzptr,#mathCD_sign]
-	str r0,[suzptr,#mathEFGH_sign]
 
 	ldmfd sp!,{r0,lr}
 
@@ -319,7 +318,7 @@ io_read_tbl:
 	.long suUnmappedR			;@ 0xFC8F
 	.long suWriteOnlyR			;@ 0xFC90 SUZYBUSEN
 	.long suWriteOnlyR			;@ 0xFC91 SPRGO
-	.long susiePeek				;@ 0xFC92 SPRSYS
+	.long suSprSysR				;@ 0xFC92 SPRSYS
 	.long suUnmappedR			;@ 0xFC93
 	.long suUnmappedR			;@ 0xFC94
 	.long suUnmappedR			;@ 0xFC95
@@ -404,6 +403,15 @@ suRegR:
 suHRevR:					;@ Suzy HW Revision (0xFC88)
 ;@----------------------------------------------------------------------------
 	mov r0,#1					;@ Revision 1
+	bx lr
+;@----------------------------------------------------------------------------
+suSprSysR:					;@ Sprite Sys (0xFC92)
+;@----------------------------------------------------------------------------
+	ldrb r0,[suzptr,#suzSprSys]
+	and r0,r0,#0x1A						;@ StopOnCurrent, LeftHand & VStretch
+	ldrb r1,[suzptr,#suzSprSysStat]
+	bic r1,r1,#0x1A
+	orr r0,r0,r1
 	bx lr
 ;@----------------------------------------------------------------------------
 suJoystickR:				;@ Suzy Joystick (0xFCB0)
@@ -657,12 +665,12 @@ suRegLW:
 	bx lr
 
 ;@----------------------------------------------------------------------------
-suMathDW:					;@ 0x52 Math D Register
+suMathDW:					;@ Math D Register (0xFC52)
 ;@----------------------------------------------------------------------------
 	strb r1,[suzptr,#suzMathD]
 	mov r1,#0				;@ Set Math C to zero.
 ;@----------------------------------------------------------------------------
-suMathCW:					;@ 0x53 Math C Register
+suMathCW:					;@ Math C Register (0xFC53)
 ;@----------------------------------------------------------------------------
 	ldrb r0,[suzptr,#suzMathD]
 	orr r0,r0,r1,lsl#8
@@ -680,7 +688,7 @@ noSignedCD:
 	strh r0,[suzptr,#suzMathCD]
 	bx lr
 ;@----------------------------------------------------------------------------
-suMathAW:					;@ 0x55 Math A Register
+suMathAW:					;@ Math A Register (0xFC55)
 ;@----------------------------------------------------------------------------
 	ldrb r0,[suzptr,#suzMathB]
 	orr r0,r0,r1,lsl#8
@@ -709,7 +717,6 @@ noSignedAB:
 	ldrd r0,r1,[suzptr,#mathAB_sign]	;@ r1=mathCD_sign
 //	ldr r1,[suzptr,#mathCD_sign]
 	adds r0,r0,r1
-	str r0,[suzptr,#mathEFGH_sign]
 	rsbeq r3,r3,#0
 noSignedMult:
 	str r3,[suzptr,#suzMathEFGH]
@@ -722,7 +729,7 @@ noSignedMult:
 	bx lr
 
 ;@----------------------------------------------------------------------------
-suMathEW:					;@ 0x63 Math E Register
+suMathEW:					;@ Math E Register (0xFC63)
 ;@----------------------------------------------------------------------------
 	strb r1,[suzptr,#suzMathE]
 ;@----------------------------------------------------------------------------
@@ -746,7 +753,7 @@ zeroDvide:
 	strh r0,[suzptr,#suzMathCD]
 	bx lr
 ;@----------------------------------------------------------------------------
-suSprCtl0W:					;@ 0x80 Sprite Control 0
+suSprCtl0W:					;@ Sprite Control 0 (0xFC80)
 ;@----------------------------------------------------------------------------
 	strb r1,[suzptr,#suzSprCtl0]
 	mov r1,r1,lsr#6
@@ -754,19 +761,19 @@ suSprCtl0W:					;@ 0x80 Sprite Control 0
 	strb r1,[suzptr,#suzSprCtl0_PixelBits]
 	bx lr
 ;@----------------------------------------------------------------------------
-suSprCollW:					;@ 0x82 Sprite Collision Number
+suSprCollW:					;@ Sprite Collision Number (0xFC82)
 ;@----------------------------------------------------------------------------
 	and r1,r1,#0x2F
 	strb r1,[suzptr,#suzSprColl]
 	bx lr
 ;@----------------------------------------------------------------------------
-suBusEnW:					;@ 0x90 Suzy Bus Enable
+suBusEnW:					;@ Suzy Bus Enable (0xFC90)
 ;@----------------------------------------------------------------------------
 	and r1,r1,#0x01
 	strb r1,[suzptr,#suzSuzyBusEn]
 	bx lr
 ;@----------------------------------------------------------------------------
-suSprSysW:					;@ 0x92 Sprite Sys
+suSprSysW:					;@ Sprite Sys (0xFC92)
 ;@----------------------------------------------------------------------------
 	tst r1,#0x04				;@ Clear UnsafeAccess bit?
 	ldrbne r0,[suzptr,#suzSprSysStat]

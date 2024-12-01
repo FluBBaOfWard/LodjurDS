@@ -52,7 +52,7 @@
 #include "system.h"
 #include "susie.h"
 #include "lynxdef.h"
-#include "../Cpu.h"
+//#include "../Cpu.h"
 #include "../Gfx.h"
 
 //
@@ -90,10 +90,10 @@
 #define cycles_used suzy_0.cyclesUsed
 
 #define mSPRSYS_Busy suzy_0.sprSys_Busy
-#define mSPRSYS_UnsafeAccess suzy_0.sprSys_UnsafeAccess
-#define mSPRSYS_LastCarry suzy_0.sprSys_LastCarry
-#define mSPRSYS_Mathbit suzy_0.sprSys_Mathbit
-#define mSPRSYS_MathInProgress suzy_0.sprSys_MathInProgress
+//#define mSPRSYS_UnsafeAccess suzy_0.sprSys_UnsafeAccess
+//#define mSPRSYS_LastCarry suzy_0.sprSys_LastCarry
+//#define mSPRSYS_Mathbit suzy_0.sprSys_Mathbit
+//#define mSPRSYS_MathInProgress suzy_0.sprSys_MathInProgress
 
 // SprCtl0
 #define Type  (0x07)
@@ -133,13 +133,6 @@ CSusie::~CSusie()
 void CSusie::Reset(void)
 {
 	TRACE_SUSIE0("Reset()");
-
-	// Reset ALL variables
-
-//	mSPRSYS_UnsafeAccess = 0;
-//	mSPRSYS_Busy = 0;
-//	mSPRSYS_LastCarry = 0;
-//	mSPRSYS_MathInProgress = 0;
 }
 
 ULONG CSusie::PaintSprites(void)
@@ -202,9 +195,6 @@ ULONG CSusie::PaintSprites(void)
 
 			// Now we can start painting
 
-			// Quadrant drawing order is: SE,NE,NW,SW
-			// start quadrant is given by sprite_control1:0 & 1
-
 			// Setup screen start end variables
 			int screen_h_start = (SWORD)mHOFF.Word;
 			int screen_h_end = screen_h_start + LYNX_SCREEN_WIDTH;
@@ -218,8 +208,9 @@ ULONG CSusie::PaintSprites(void)
 			TRACE_SUSIE2("PaintSprites() screen_v_start $%04x screen_v_end $%04x", screen_v_start, screen_v_end);
 			TRACE_SUSIE2("PaintSprites() world_h_mid    $%04x world_v_mid  $%04x", world_h_mid, world_v_mid);
 
+			// Quadrant drawing order is: SE,NE,NW,SW
+			// start quadrant is given by sprite_control1:0 & 1
 			int quadrant = 0;
-
 			if (mSPRCTL1 & StartLeft) quadrant = 3;
 			if (mSPRCTL1 & StartUp) quadrant ^= 1;
 
@@ -496,12 +487,6 @@ void CSusie::Poke(ULONG addr, UBYTE data)
 {
 	switch(addr & 0xff)
 	{
-//		case (SPRSYS & 0xff):
-//			if (data & UnsafeAccess) mSPRSYS_UnsafeAccess = 0;
-//			mSPRSYS = data;
-//			TRACE_SUSIE2("Poke(SPRSYS,%02x) at PC=$%04x", data, mSystem.mCpu->GetPC());
-//			break;
-
 // Cartridge writing ports
 		case (RCART0 & 0xff):
 			mSystem.Poke_CARTB0(data);
@@ -516,22 +501,22 @@ void CSusie::Poke(ULONG addr, UBYTE data)
 
 UBYTE CSusie::Peek(ULONG addr)
 {
-	UBYTE retval = 0;
+//	UBYTE retval = 0;
 	switch(addr & 0xff)
 	{
-		case (SPRSYS & 0xff):
-			retval = 0x0000;
-			//	retval |= (mSPRSYS_Busy) ? 0x0001 : 0x0000;
-			retval |= (mikey_0.suzieDoneTime) ? 0x0001 : 0x0000;
-			retval |= (mSPRSYS & StopOnCurrent);
-			retval |= (mSPRSYS_UnsafeAccess) ? 0x0004 : 0x0000;
-			retval |= (mSPRSYS & LeftHand);
-			retval |= (mSPRSYS & VStretch);
-			retval |= (mSPRSYS_LastCarry) ? 0x0020 : 0x0000;
-			retval |= (mSPRSYS_Mathbit) ? 0x0040 : 0x0000;
-			retval |= (mSPRSYS_MathInProgress) ? 0x0080 : 0x0000;
-			TRACE_SUSIE2("Peek(SPRSYS)=$%02x at PC=$%04x", retval, mSystem.mCpu->GetPC());
-			return retval;
+//		case (SPRSYS & 0xff):
+//			retval = 0x0000;
+//			//	retval |= (mSPRSYS_Busy) ? 0x0001 : 0x0000;
+//			retval |= (mikey_0.suzieDoneTime) ? 0x0001 : 0x0000;
+//			retval |= (mSPRSYS & StopOnCurrent);
+//			retval |= (mSPRSYS_UnsafeAccess) ? 0x0004 : 0x0000;
+//			retval |= (mSPRSYS & LeftHand);
+//			retval |= (mSPRSYS & VStretch);
+//			retval |= (mSPRSYS_LastCarry) ? 0x0020 : 0x0000;
+//			retval |= (mSPRSYS_Mathbit) ? 0x0040 : 0x0000;
+//			retval |= (mSPRSYS_MathInProgress) ? 0x0080 : 0x0000;
+//			TRACE_SUSIE2("Peek(SPRSYS)=$%02x at PC=$%04x", retval, mSystem.mCpu->GetPC());
+//			return retval;
 
 // Cartridge reading ports
 		case (RCART0 & 0xff):

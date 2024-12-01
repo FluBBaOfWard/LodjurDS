@@ -63,16 +63,8 @@
 
 class CSystem;
 
-#define SUSIE_START		0xfc00
-#define SUSIE_SIZE		0x100
-
 #define LYNX_SCREEN_WIDTH	160
 #define LYNX_SCREEN_HEIGHT	102
-
-#define LINE_END		0x80
-
-enum {line_error=0,line_abs_literal,line_literal,line_packed};
-enum {math_finished=0,math_divide,math_multiply,math_init_divide,math_init_multiply};
 
 enum {sprite_background_shadow=0,
 	  sprite_background_noncollide,
@@ -100,11 +92,6 @@ class CSusie : public CLynxBase
 
 	private:
 		CSystem&	mSystem;
-
-//		int			mSPRSYS_Busy;
-//		int			mSPRSYS_UnsafeAccess;
-//		int			mSPRSYS_LastCarry;
-//		int			mSPRSYS_MathInProgress;
 };
 
 #endif

@@ -181,11 +181,11 @@ typedef struct {
 
 	int mathAB_sign;
 	int mathCD_sign;
-	int mathEFGH_sign;
+//	int mathEFGH_sign;
 
 	int sprSys_Busy;
 	int sprSys_UnsafeAccess;
-	int sprSys_LastCarry;
+//	int sprSys_LastCarry;
 	int sprSys_Mathbit;
 	int sprSys_MathInProgress;
 
