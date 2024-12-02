@@ -89,6 +89,7 @@
 #define cycles_used suzy_0.cyclesUsed
 
 #define mSPRSYS_Busy suzy_0.sprSys_Busy
+#define everonscreen suzy_0.everOnScreen
 
 // SprCtl0
 #define Type  (0x07)
@@ -145,7 +146,7 @@ ULONG CSusie::PaintSprites(void)
 
 	cycles_used = 0;
 	int	sprcount = 0;
-	int everonscreen = 0;
+	everonscreen = 0;
 
 	mSPRSYS_Busy = 1;
 	do {
@@ -202,9 +203,10 @@ ULONG CSusie::PaintSprites(void)
 			// Use h/v flip to invert h/vSign
 			if (mSPRCTL0 & Vflip) vSign = -vSign;
 			if (mSPRCTL0 & Hflip) hSign = -hSign;
-			int vQuadOff = vSign;
-			int hQuadOff = hSign;
-
+//			int vQuadOff = vSign;
+//			int hQuadOff = hSign;
+			suzRenderQuads(hSign, vSign, quadrant);
+/*
 			// Loop for 4 quadrants
 			for (int loop=0;loop<4;loop++) {
 				// Set the vertical position & offset
@@ -247,21 +249,19 @@ ULONG CSusie::PaintSprites(void)
 						if (vSign == -1 && voff < 0) break;
 
 						// Now render an individual destination line
-						if (suzLineRender(hSign, hQuadOff, voff)) {
-							everonscreen = TRUE;
-						}
+						suzLineRender(hSign, hQuadOff, voff);
 						voff += vSign;
 
 						// For every destination line we can modify SPRHSIZ & SPRVSIZ & TILTACUM
 						if (mSPRCTL1 & 0x20) {
+							if (mSPRCTL1 & 0x10) {
+								// Manipulate the tilt stuff
+								mTILTACUM.Word += mTILT.Word;
+							}
 							mSPRHSIZ.Word += mSTRETCH.Word;
 							// According to the docs this increments per dest line
 							// but only gets set when the source line is read
 							if (mSPRSYS & VStretch) mSPRVSIZ.Word += mSTRETCH.Word;
-						}
-						if ((mSPRCTL1 & ReloadDepth) == 0x30) {
-							// Manipulate the tilt stuff
-							mTILTACUM.Word += mTILT.Word;
 						}
 					}
 
@@ -274,10 +274,14 @@ ULONG CSusie::PaintSprites(void)
 				quadrant &= 0x03;
 				if (loop != 3) {
 					// Check new quadrant to h/v flip
-					if (quadrant == 0 || quadrant == 2) hSign = -hSign;
-					if (quadrant == 1 || quadrant == 3) vSign = -vSign;
+					if (quadrant & 1) {
+						vSign = -vSign;
+					}
+					else {
+						hSign = -hSign;
+					}
 				}
-			}
+			}*/
 
 			// Write the collision depositary if required
 			if (mSPRCOLL < 0x10) {

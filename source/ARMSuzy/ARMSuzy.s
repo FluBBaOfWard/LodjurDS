@@ -27,6 +27,7 @@
 	.global suzyWrite
 	.global suzySetButtonData
 	.global suzFetchSpriteData
+	.global suzRenderQuads
 	.global suzLineRender
 	.global suzLineStart
 
@@ -899,6 +900,110 @@ skipPalette:
 	ldmfd sp!,{r4-r6,r9,lr}
 	bx lr
 ;@----------------------------------------------------------------------------
+suzRenderQuads:				;@ In r0=hSign, r1=vSign, r2=quadrant.
+	.type	suzRenderQuads STT_FUNC
+;@----------------------------------------------------------------------------
+	ldr suzptr,=suzy_0
+	stmfd sp!,{r4-r11,lr}
+	mov r4,r0					;@ r4=hSign
+	mov r5,r1					;@ r5=vSign
+	mov r6,r0					;@ r6=hQuadOff
+	mov r7,r1					;@ r7=vQuadOff
+	mov r10,r2					;@ start Quadrant
+	mov r8,#4					;@ Quad count
+quadLoop:
+	ldrsh r9,[suzptr,#suzVPosStrt]
+	ldrsh r0,[suzptr,#suzVOff]
+	sub r9,r9,r0				;@ r9=vOff
+	;@ Take the sign of the first quad (0) as the basic
+	;@ sign, all other quads drawing in the other direction
+	;@ get offset by 1 pixel in the other direction, this
+	;@ fixes the squashed look on the multi-quad sprites.
+	cmp r5,r7
+	addne r9,r9,r5
+
+	;@ Zero the stretch, tilt & acum values
+	mov r0,#0
+	strh r0,[suzptr,#suzTiltAcum]
+
+	;@ Perform the SIZOFF
+	cmp r5,#1
+	ldrheq r0,[suzptr,#suzVSizOff]
+	strh r0,[suzptr,#suzVSizAcum]
+
+verticalLoop:
+	bl suzLineStart
+	strh r0,[suzptr,#suzSprDOff]
+	cmp r0,#1
+	ldrheq r1,[suzptr,#suzSprDLine]
+	addeq r1,r1,r0
+	strheq r1,[suzptr,#suzSprDLine]
+	beq exitQuad
+	bcc exitQuadLoop
+
+	;@ Vertical scaling is done here
+	ldrh r11,[suzptr,#suzVSizAcum]
+	ldrh r0,[suzptr,#suzSprVSiz]
+	add r11,r11,r0
+	and r1,r11,#0xFF
+	strh r1,[suzptr,#suzVSizAcum]
+	movs r11,r11,lsr#8
+	beq breakV2Loop
+v2Loop:
+	cmp r9,#GAME_HEIGHT
+	bcc keepRendering
+	cmpmi r5,#0
+	bmi breakV2Loop
+//	cmppl r5,#0
+//	bpl exitQuad
+keepRendering:
+	mov r0,r4				;@ hSign
+	mov r1,r6				;@ hQuadOff
+	mov r2,r9				;@ vOff
+	bl suzLineRender
+	add r9,r9,r5
+	ldrb r0,[suzptr,#suzSprCtl1]
+	movs r0,r0,lsl#27		;@ Check ReloadDepth
+	bcc noStretchTilt
+	bpl noTilt
+	ldrh r0,[suzptr,#suzTilt]
+	ldrh r1,[suzptr,#suzTiltAcum]
+	add r1,r1,r0
+	strh r1,[suzptr,#suzTiltAcum]
+noTilt:
+	ldrh r0,[suzptr,#suzStretch]
+	ldrh r1,[suzptr,#suzSprHSiz]
+	add r1,r1,r0
+	strh r1,[suzptr,#suzSprHSiz]
+	ldrb r2,[suzptr,#suzSprSys]
+	tst r2,#0x10			;@ Check VStretch
+	ldrhne r1,[suzptr,#suzSprVSiz]
+	addne r1,r1,r0
+	strhne r1,[suzptr,#suzSprVSiz]
+noStretchTilt:
+	subs r11,r11,#1
+	bne v2Loop
+breakV2Loop:
+	ldrh r0,[suzptr,#suzSprDOff]
+	ldrh r1,[suzptr,#suzSprDLine]
+	add r1,r1,r0
+	strh r1,[suzptr,#suzSprDLine]
+	b verticalLoop
+exitQuad:
+	;@ Increment quadrant and mask to 2 bit value (0-3)
+	add r10,r10,#1
+	and r10,r10,#3
+	tst r10,#1
+	rsbeq r4,r4,#0			;@ hSign = -hSign
+	rsbne r5,r5,#0			;@ vSign = -vSign
+
+	subs r8,r8,#1
+	bne quadLoop
+
+exitQuadLoop:
+	ldmfd sp!,{r4-r11,lr}
+	bx lr
+;@----------------------------------------------------------------------------
 suzLineStart:				;@ Out = SPRDOFF.
 	.type	suzLineStart STT_FUNC
 ;@----------------------------------------------------------------------------
@@ -1012,7 +1117,8 @@ checkBail:
 	tst r10,#1
 	beq continueRend
 exitRender:
-	and r0,r10,#1				;@ onScreen
+	ands r0,r10,#1				;@ onScreen
+	strne r0,[suzptr,#everOnScreen]
 	str r9,[suzptr,#suzyCyclesUsed]
 	ldmfd sp!,{r4-r11,lr}
 	bx lr

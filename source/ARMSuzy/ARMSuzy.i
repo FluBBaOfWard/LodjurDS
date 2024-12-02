@@ -171,6 +171,7 @@ sprSys_Busy:		.long 0
 sprSys_UnsafeAccess:	.long 0
 sprSys_Mathbit:		.long 0
 sprSys_MathInProgress:	.long 0
+everOnScreen:		.long 0
 
 suzLineBaseAddress:	.long 0		;@ Current dest line adr.
 suzLineCollisionAddress:	.long 0		;@ Current collision dest line adr.

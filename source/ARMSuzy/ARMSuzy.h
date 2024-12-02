@@ -160,6 +160,7 @@ typedef struct {
 	int sprSys_UnsafeAccess;
 	int sprSys_Mathbit;
 	int sprSys_MathInProgress;
+	int everOnScreen;
 
 	u32 lineBaseAddress;
 	u32 lineCollisionAddress;
@@ -194,9 +195,10 @@ int suzyLoadState(SUZY *chip, const void *source);
  */
 int suzyGetStateSize(void);
 
+void suzRenderQuads(int hSign, int vSign, int quadrant);
 u32 suzLineStart(void);
 void suzFetchSpriteData(void);
-bool suzLineRender(int hsign, int hQuadOff, int voff);
+bool suzLineRender(int hSign, int hQuadOff, int vOff);
 
 #ifdef __cplusplus
 } // extern "C"
