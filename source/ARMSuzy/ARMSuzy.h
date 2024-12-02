@@ -36,19 +36,21 @@ typedef	union {
 
 typedef union {
 	struct {
-		u8	B;
-		u8	A;
-	};
-	u16	AB;
-} MATH_AB;
-
-typedef union {
-	struct {
 		u8	D;
 		u8	C;
 	};
+	struct {
+		u8	B;
+		u8	A;
+	};
+	struct {
+		u8	P;
+		u8	N;
+	};
 	u16	CD;
-} MATH_CD;
+	u16	AB;
+	u16	NP;
+} MATH_U16;
 
 typedef union {
 	struct {
@@ -58,35 +60,21 @@ typedef union {
 		u8	E;
 	};
 	struct {
-		u16	GH;
-		u16	EF;
-	};
-	u32	Long;
-} MATH_EFGH;
-
-typedef union {
-	struct {
 		u8	M;
 		u8	L;
 		u8	K;
 		u8	J;
 	};
 	struct {
+		u16	GH;
+		u16	EF;
+	};
+	struct {
 		u16	LM;
 		u16	JK;
 	};
 	u32	Long;
-} MATH_JKLM;
-
-typedef union {
-	struct {
-		u8	N;
-		u8	P;
-	} Bytes;
-	struct {
-		u16	NP;
-	};
-} MATH_NP;
+} MATH_U32;
 
 typedef struct {
 //suzState:
@@ -116,27 +104,13 @@ typedef struct {
 	U16_ST SCBAdr;		// 0x2C Address of Current SCB
 	U16_ST procAdr;		// 0x2E Current Spr Data Proc Address
 	u8 reserved0[0x22];	// 0x30-0x51 Reserved
-	MATH_CD mathCD;		// 0x52 Math D & C
-//	u8 mathD;			// 0x52 Math D
-//	u8 mathC;			// 0x53 Math C
-	MATH_AB mathAB;		// 0x54 Math B & A
-//	u8 mathB;			// 0x54 Math B
-//	u8 mathA;			// 0x55 Math A
-	MATH_NP mathNP;		// 0x56 Math P & N
-//	u8 mathP;			// 0x56 Math P
-//	u8 mathN;			// 0x57 Math N
+	MATH_U16 mathCD;	// 0x52 Math D & C
+	MATH_U16 mathAB;	// 0x54 Math B & A
+	MATH_U16 mathNP;	// 0x56 Math P & N
 	u8 reserved1[0x08];	// 0x58-0x5F Reserved
-	MATH_EFGH mathEFGH;	// 0x60 Math H, G, F & E
-//	u8 mathH;			// 0x60 Math H
-//	u8 mathG;			// 0x61 Math G
-//	u8 mathF;			// 0x62 Math F
-//	u8 mathE;			// 0x63 Math E
+	MATH_U32 mathEFGH;	// 0x60 Math H, G, F & E
 	u8 reserved2[0x08];	// 0x64-0x6B Reserved
-	MATH_JKLM mathJKLM;	// 0x6C Math M, L, K & J
-//	u8 mathM;			// 0x6C Math M
-//	u8 mathL;			// 0x6D Math L
-//	u8 mathK;			// 0x6E Math K
-//	u8 mathJ;			// 0x6F Math J
+	MATH_U32 mathJKLM;	// 0x6C Math M, L, K & J
 	u8 reserved3[0x10];	// 0x70-0x7F Reserved
 	u8 sprCtl0;			// 0x80 Sprite Control 0
 	u8 sprCtl1;			// 0x81 Sprite Control 1
@@ -181,11 +155,9 @@ typedef struct {
 
 	int mathAB_sign;
 	int mathCD_sign;
-//	int mathEFGH_sign;
 
 	int sprSys_Busy;
 	int sprSys_UnsafeAccess;
-//	int sprSys_LastCarry;
 	int sprSys_Mathbit;
 	int sprSys_MathInProgress;
 
@@ -222,7 +194,6 @@ int suzyLoadState(SUZY *chip, const void *source);
  */
 int suzyGetStateSize(void);
 
-void suzDoDivide(void);
 u32 suzLineStart(void);
 void suzFetchSpriteData(void);
 bool suzLineRender(int hsign, int hQuadOff, int voff);

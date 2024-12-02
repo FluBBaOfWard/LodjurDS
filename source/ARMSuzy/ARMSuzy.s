@@ -350,8 +350,8 @@ io_read_tbl:
 	.long suUnmappedR			;@ 0xFCAF
 	.long suJoystickR			;@ 0xFCB0 JOYSTICK
 	.long suRegR				;@ 0xFCB1 SWITCHES
-	.long susiePeek				;@ 0xFCB2 RCART0
-	.long susiePeek				;@ 0xFCB3 RCART1
+	.long cartPeek				;@ 0xFCB2 RCART0
+	.long cartPeek				;@ 0xFCB3 RCART1
 	.long suUnmappedR			;@ 0xFCB4
 	.long suUnmappedR			;@ 0xFCB5
 	.long suUnmappedR			;@ 0xFCB6
@@ -614,8 +614,8 @@ io_write_tbl:
 	.long suUnmappedW			;@ 0xFCAF
 	.long suReadOnlyW			;@ 0xFCB0 JOYSTICK
 	.long suReadOnlyW			;@ 0xFCB1 SWITCHES
-	.long susiePoke				;@ 0xFCB2 RCART0
-	.long susiePoke				;@ 0xFCB3 RCART1
+	.long cartPoke				;@ 0xFCB2 RCART0
+	.long cartPoke				;@ 0xFCB3 RCART1
 	.long suUnmappedW			;@ 0xFCB4
 	.long suUnmappedW			;@ 0xFCB5
 	.long suUnmappedW			;@ 0xFCB6

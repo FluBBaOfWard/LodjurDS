@@ -52,7 +52,6 @@
 #include "system.h"
 #include "susie.h"
 #include "lynxdef.h"
-//#include "../Cpu.h"
 #include "../Gfx.h"
 
 //
@@ -90,10 +89,6 @@
 #define cycles_used suzy_0.cyclesUsed
 
 #define mSPRSYS_Busy suzy_0.sprSys_Busy
-//#define mSPRSYS_UnsafeAccess suzy_0.sprSys_UnsafeAccess
-//#define mSPRSYS_LastCarry suzy_0.sprSys_LastCarry
-//#define mSPRSYS_Mathbit suzy_0.sprSys_Mathbit
-//#define mSPRSYS_MathInProgress suzy_0.sprSys_MathInProgress
 
 // SprCtl0
 #define Type  (0x07)
@@ -137,13 +132,7 @@ void CSusie::Reset(void)
 
 ULONG CSusie::PaintSprites(void)
 {
-	TRACE_SUSIE0("                                                              ");
-	TRACE_SUSIE0("                                                              ");
-	TRACE_SUSIE0("                                                              ");
-	TRACE_SUSIE0("**************************************************************");
 	TRACE_SUSIE0("********************** PaintSprites **************************");
-	TRACE_SUSIE0("**************************************************************");
-	TRACE_SUSIE0("                                                              ");
 
 	TRACE_SUSIE1("PaintSprites() VIDBAS  $%04x", mVIDBAS.Word);
 	TRACE_SUSIE1("PaintSprites() COLLBAS $%04x", mCOLLBAS.Word);
@@ -158,21 +147,16 @@ ULONG CSusie::PaintSprites(void)
 	int	sprcount = 0;
 	int everonscreen = 0;
 
+	mSPRSYS_Busy = 1;
 	do {
-		TRACE_SUSIE1("PaintSprites() ************ Rendering Sprite %03d ************", sprcount);
-
 		// Step 1 load up the SCB params into Susie
 
 		// And thus it is documented that only the top byte of SCBNEXT is used.
 		// Its mentioned under the bits that are broke section in the bluebook
 		if (!(mSCBNEXT.Word & 0xff00)) {
-			TRACE_SUSIE0("PaintSprites() mSCBNEXT==0 - FINISHED");
 			mSPRSYS_Busy = 0;	// Engine has finished
 			mSPRGO &= ~0x01;
 			break;
-		}
-		else {
-			mSPRSYS_Busy = 1;
 		}
 
 		suzFetchSpriteData();
@@ -188,42 +172,21 @@ ULONG CSusie::PaintSprites(void)
 //			}
 //			mCollision = 0;
 
-			TRACE_SUSIE1("PaintSprites() SPRHSIZ $%04x", mSPRHSIZ.Word);
-			TRACE_SUSIE1("PaintSprites() SPRVSIZ $%04x", mSPRVSIZ.Word);
-			TRACE_SUSIE1("PaintSprites() STRETCH $%04x", mSTRETCH.Word);
-			TRACE_SUSIE1("PaintSprites() TILT    $%04x", mTILT.Word);
-
 			// Now we can start painting
-
-			// Setup screen start end variables
-			int screen_h_start = (SWORD)mHOFF.Word;
-			int screen_h_end = screen_h_start + LYNX_SCREEN_WIDTH;
-			int screen_v_start = (SWORD)mVOFF.Word;
-			int screen_v_end = screen_v_start + LYNX_SCREEN_HEIGHT;
-
-			int world_h_mid = screen_h_start + 0x8000 + (LYNX_SCREEN_WIDTH / 2);
-			int world_v_mid = screen_v_start + 0x8000 + (LYNX_SCREEN_HEIGHT / 2);
-
-			TRACE_SUSIE2("PaintSprites() screen_h_start $%04x screen_h_end $%04x", screen_h_start, screen_h_end);
-			TRACE_SUSIE2("PaintSprites() screen_v_start $%04x screen_v_end $%04x", screen_v_start, screen_v_end);
-			TRACE_SUSIE2("PaintSprites() world_h_mid    $%04x world_v_mid  $%04x", world_h_mid, world_v_mid);
 
 			// Quadrant drawing order is: SE,NE,NW,SW
 			// start quadrant is given by sprite_control1:0 & 1
 			int quadrant = 0;
-			if (mSPRCTL1 & StartLeft) quadrant = 3;
-			if (mSPRCTL1 & StartUp) quadrant ^= 1;
-
-			TRACE_SUSIE1("PaintSprites() Quadrant=%d", quadrant);
-
-			// Check ref is inside screen area. !! This is commented out in Mednafen!!
-			bool superclip = ((SWORD)mHPOSSTRT.Word < screen_h_start
-							  || (SWORD)mHPOSSTRT.Word >= screen_h_end
-							  || (SWORD)mVPOSSTRT.Word < screen_v_start
-							  || (SWORD)mVPOSSTRT.Word >= screen_v_end);
-
-			TRACE_SUSIE1("PaintSprites() Superclip=%d", superclip);
-
+			int hSign = 1;
+			int vSign = 1;
+			if (mSPRCTL1 & StartLeft) {
+				quadrant = 3;
+				hSign = -1;
+			}
+			if (mSPRCTL1 & StartUp) {
+				quadrant ^= 1;
+				vSign = -1;
+			}
 
 			// Quadrant mapping is:	SE	NE	NW	SW
 			//						0	1	2	3
@@ -236,181 +199,84 @@ ULONG CSusie::PaintSprites(void)
 			//      3 | 0
 			//
 
-			int hSign = (mSPRCTL1 & StartLeft) ? -1 : 1;
-			int vSign = (mSPRCTL1 & StartUp) ? -1 : 1;
-
 			// Use h/v flip to invert h/vSign
 			if (mSPRCTL0 & Vflip) vSign = -vSign;
 			if (mSPRCTL0 & Hflip) hSign = -hSign;
 			int vQuadOff = vSign;
 			int hQuadOff = hSign;
 
-			int sprite_v = mVPOSSTRT.Word;
-			int sprite_h = mHPOSSTRT.Word;
-
 			// Loop for 4 quadrants
-			for (int loop=0;loop<4;loop++)
-			{
-				TRACE_SUSIE1("PaintSprites() -------- Rendering Quadrant %03d --------", quadrant);
+			for (int loop=0;loop<4;loop++) {
+				// Set the vertical position & offset
+				int voff = (SWORD)mVPOSSTRT.Word-(SWORD)mVOFF.Word;
 
-				bool render = FALSE;
+				// Take the sign of the first quad (0) as the basic
+				// sign, all other quads drawing in the other direction
+				// get offset by 1 pixel in the other direction, this
+				// fixes the squashed look on the multi-quad sprites.
+				if (vSign != vQuadOff) voff += vSign;
 
-				if (loop != 0) {
-					// Set quadrand multipliers
-					hSign = (quadrant == 0 || quadrant == 1) ? 1 : -1;
-					vSign = (quadrant == 0 || quadrant == 3) ? 1 : -1;
+				// Zero the stretch,tilt & acum values
+				mTILTACUM.Word = 0;
 
-// Preflip			TRACE_SUSIE2("PaintSprites() hSign=%d vSign=%d",hSign,vSign);
+				// Perform the SIZOFF
+				mVSIZACUM.Word = (vSign == 1) ? mVSIZOFF.Word : 0;
 
-					// Use h/v flip to invert h/vSign
-					if (mSPRCTL0 & Vflip) vSign = -vSign;
-					if (mSPRCTL0 & Hflip) hSign = -hSign;
-				}
-				TRACE_SUSIE2("PaintSprites() Hflip=%d Vflip=%d", mSPRCTL0 & Hflip, mSPRCTL0 & Vflip);
-				TRACE_SUSIE2("PaintSprites() Hsign=%d   Vsign=%d", hSign, vSign);
-				TRACE_SUSIE2("PaintSprites() Hpos =%04x Vpos =%04x", sprite_h, sprite_v);
-				TRACE_SUSIE2("PaintSprites() Hsizoff =%04x Vsizoff =%04x", mHSIZOFF.Word, mVSIZOFF.Word);
-
-				// Two different rendering algorithms used, on-screen & superclip
-				// when on screen we draw in x until off screen then skip to next
-				// line, BUT on superclip we draw all the way to the end of any
-				// given line checking each pixel is on screen.
-
-				if (superclip) {
-					// Check on the basis of each quad, we only render the quad
-					// IF the screen is in the quad, relative to the centre of
-					// the screen which is calculated below.
-
-					// Quadrant mapping is:	SE	NE	NW	SW
-					//						0	1	2	3
-					// hSign				+1	+1	-1	-1
-					// vSign				+1	-1	-1	+1
-					//
-					//
-					//		2 | 1
-					//     -------
-					//      3 | 0
-					//
-					// Quadrant mapping for superclipping must also take into account
-					// the hflip, vflip bits & negative tilt to be able to work correctly
-					//
-					int	modquad = quadrant;
-
-					if (mSPRCTL0 & Vflip) modquad ^= 1;
-					if (mSPRCTL0 & Hflip) modquad ^= 3;
-
-					// This is causing Eurosoccer to fail!!
-					//if (enable_tilt && mTILT.Word & 0x8000) modquad = hquadflip[modquad];
-					//if (quadrant == 0 && sprite_v == 219 && sprite_h == 890)
-					//printf("%d:%d %d %d\n", quadrant, modquad, sprite_h, sprite_v);
-
-					switch(modquad)
-					{
-						case 3:
-							if ((sprite_h >= screen_h_start || sprite_h < world_h_mid) && (sprite_v < screen_v_end   || sprite_v > world_v_mid)) render = TRUE;
-							break;
-						case 2:
-							if ((sprite_h >= screen_h_start || sprite_h < world_h_mid) && (sprite_v >= screen_v_start || sprite_v < world_v_mid)) render = TRUE;
-							break;
-						case 1:
-							if ((sprite_h < screen_h_end   || sprite_h > world_h_mid) && (sprite_v >= screen_v_start || sprite_v < world_v_mid)) render = TRUE;
-							break;
-						default:
-							if ((sprite_h < screen_h_end   || sprite_h > world_h_mid) && (sprite_v < screen_v_end   || sprite_v > world_v_mid)) render = TRUE;
-							break;
-					}
-				}
-				else {
-					render = TRUE;
-				}
-
-				// Is this quad to be rendered ??
-				TRACE_SUSIE1("PaintSprites() Render status %d", render);
-				if (render) {
-					// Set the vertical position & offset
-					int voff = (SWORD)mVPOSSTRT.Word-screen_v_start;
-
-					// Zero the stretch,tilt & acum values
-					mTILTACUM.Word = 0;
-
-					// Perform the SIZOFF
-					if (vSign == 1) mVSIZACUM.Word = mVSIZOFF.Word;
-					else mVSIZACUM.Word = 0;
-
-					// Take the sign of the first quad (0) as the basic
-					// sign, all other quads drawing in the other direction
-					// get offset by 1 pixel in the other direction, this
-					// fixes the squashed look on the multi-quad sprites.
-					if (vSign != vQuadOff) voff += vSign;
-
-					for (;;) {
-						// Vertical scaling is done here
-						mVSIZACUM.Word += mSPRVSIZ.Word;
-						int pixel_height = mVSIZACUM.Byte.High;
-						mVSIZACUM.Byte.High = 0;
-
-						// Update the next data line pointer and initialise our line
-						mSPRDOFF.Word = (UWORD)suzLineStart();
-						// If 1 == next quad, ==0 end of sprite, anyways its END OF LINE
-						if (mSPRDOFF.Word == 1) {		// End of quad
-							mSPRDLINE.Word += mSPRDOFF.Word;
-							break;
-						}
-						if (mSPRDOFF.Word == 0) {		// End of sprite
-							loop = 4;		// Halt the quad loop
-							break;
-						}
-
-						// Draw one horizontal source line of the sprite
-						for (int vloop=0;vloop<pixel_height;vloop++) {
-							// Early bailout if the sprite has moved off screen, terminate quad
-							if (vSign == 1 && voff >= LYNX_SCREEN_HEIGHT) break;
-							if (vSign == -1 && voff < 0) break;
-
-							// Now render an individual destination line
-							if (suzLineRender(hSign, hQuadOff, voff)) {
-								everonscreen = TRUE;
-							}
-							voff += vSign;
-
-							// For every destination line we can modify SPRHSIZ & SPRVSIZ & TILTACUM
-							if (mSPRCTL1 & 0x20) {
-								mSPRHSIZ.Word += mSTRETCH.Word;
-//								if (mSPRSYS & VStretch) mSPRVSIZ.Word += mSTRETCH.Word;
-							}
-							if ((mSPRCTL1 & ReloadDepth) == 0x30) {
-								// Manipulate the tilt stuff
-								mTILTACUM.Word += mTILT.Word;
-							}
-						}
-						// According to the docs this increments per dest line
-						// but only gets set when the source line is read
-						if (mSPRSYS & VStretch) mSPRVSIZ.Word += mSTRETCH.Word*pixel_height;
-
-						// Update the line start for our next run thru the loop
+				for (;;) {
+					// Update the next data line pointer and initialise our line
+					mSPRDOFF.Word = (UWORD)suzLineStart();
+					// If 1 == next quad, ==0 end of sprite, anyways its END OF LINE
+					if (mSPRDOFF.Word == 1) {		// End of quad
 						mSPRDLINE.Word += mSPRDOFF.Word;
+						break;
 					}
-				}
-				else {
-					// Skip thru data to next quad
-					for(;;) {
-						// Read the start of line offset
-						mSPRDOFF.Word = (UWORD)suzLineStart();
-						mSPRDLINE.Word += mSPRDOFF.Word;
-						// If 1 == next quad, ==0 end of sprite, anyways its END OF LINE
-						if (mSPRDOFF.Word == 1) {		// End of quad
-							break;
+					if (mSPRDOFF.Word == 0) {		// End of sprite
+						loop = 4;		// Halt the quad loop
+						break;
+					}
+
+					// Vertical scaling is done here
+					mVSIZACUM.Word += mSPRVSIZ.Word;
+					int pixel_height = mVSIZACUM.Byte.High;
+					mVSIZACUM.Byte.High = 0;
+
+					// Draw one horizontal source line of the sprite
+					for (;pixel_height>0;pixel_height--) {
+						// Early bailout if the sprite has moved off screen, terminate quad
+						if (vSign == 1 && voff >= LYNX_SCREEN_HEIGHT) break;
+						if (vSign == -1 && voff < 0) break;
+
+						// Now render an individual destination line
+						if (suzLineRender(hSign, hQuadOff, voff)) {
+							everonscreen = TRUE;
 						}
-						if (mSPRDOFF.Word == 0) {		// End of sprite
-							loop = 4;		// Halt the quad loop
-							break;
+						voff += vSign;
+
+						// For every destination line we can modify SPRHSIZ & SPRVSIZ & TILTACUM
+						if (mSPRCTL1 & 0x20) {
+							mSPRHSIZ.Word += mSTRETCH.Word;
+							// According to the docs this increments per dest line
+							// but only gets set when the source line is read
+							if (mSPRSYS & VStretch) mSPRVSIZ.Word += mSTRETCH.Word;
+						}
+						if ((mSPRCTL1 & ReloadDepth) == 0x30) {
+							// Manipulate the tilt stuff
+							mTILTACUM.Word += mTILT.Word;
 						}
 					}
+
+					// Update the line start for our next run thru the loop
+					mSPRDLINE.Word += mSPRDOFF.Word;
 				}
 
 				// Increment quadrant and mask to 2 bit value (0-3)
 				quadrant++;
 				quadrant &= 0x03;
+				if (loop != 3) {
+					// Check new quadrant to h/v flip
+					if (quadrant == 0 || quadrant == 2) hSign = -hSign;
+					if (quadrant == 1 || quadrant == 3) vSign = -vSign;
+				}
 			}
 
 			// Write the collision depositary if required
@@ -485,45 +351,29 @@ ULONG CSusie::PaintSprites(void)
 
 void CSusie::Poke(ULONG addr, UBYTE data)
 {
-	switch(addr & 0xff)
-	{
-// Cartridge writing ports
-		case (RCART0 & 0xff):
-			mSystem.Poke_CARTB0(data);
-			TRACE_SUSIE2("Poke(RCART0,%02x) at PC=$%04x", data, mSystem.mCpu->GetPC());
-			break;
-		case (RCART1 & 0xff):
-			mSystem.Poke_CARTB1(data);
-			TRACE_SUSIE2("Poke(RCART1,%02x) at PC=$%04x", data, mSystem.mCpu->GetPC());
-			break;
-	}
+//	switch(addr & 0xff)
+//	{
+//// Cartridge writing ports
+//		case (RCART0 & 0xff):
+//			mSystem.Poke_CARTB0(data);
+//			TRACE_SUSIE2("Poke(RCART0,%02x) at PC=$%04x", data, mSystem.mCpu->GetPC());
+//			break;
+//		case (RCART1 & 0xff):
+//			mSystem.Poke_CARTB1(data);
+//			TRACE_SUSIE2("Poke(RCART1,%02x) at PC=$%04x", data, mSystem.mCpu->GetPC());
+//			break;
+//	}
 }
 
 UBYTE CSusie::Peek(ULONG addr)
 {
-//	UBYTE retval = 0;
-	switch(addr & 0xff)
-	{
-//		case (SPRSYS & 0xff):
-//			retval = 0x0000;
-//			//	retval |= (mSPRSYS_Busy) ? 0x0001 : 0x0000;
-//			retval |= (mikey_0.suzieDoneTime) ? 0x0001 : 0x0000;
-//			retval |= (mSPRSYS & StopOnCurrent);
-//			retval |= (mSPRSYS_UnsafeAccess) ? 0x0004 : 0x0000;
-//			retval |= (mSPRSYS & LeftHand);
-//			retval |= (mSPRSYS & VStretch);
-//			retval |= (mSPRSYS_LastCarry) ? 0x0020 : 0x0000;
-//			retval |= (mSPRSYS_Mathbit) ? 0x0040 : 0x0000;
-//			retval |= (mSPRSYS_MathInProgress) ? 0x0080 : 0x0000;
-//			TRACE_SUSIE2("Peek(SPRSYS)=$%02x at PC=$%04x", retval, mSystem.mCpu->GetPC());
-//			return retval;
-
-// Cartridge reading ports
-		case (RCART0 & 0xff):
-			return mSystem.Peek_CARTB0();
-		case (RCART1 & 0xff):
-			return mSystem.Peek_CARTB1();
-	}
-
+//	switch(addr & 0xff)
+//	{
+//// Cartridge reading ports
+//		case (RCART0 & 0xff):
+//			return mSystem.Peek_CARTB0();
+//		case (RCART1 & 0xff):
+//			return mSystem.Peek_CARTB1();
+//	}
 	return 0xff;
 }

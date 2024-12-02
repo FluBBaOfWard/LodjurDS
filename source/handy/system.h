@@ -39,8 +39,6 @@
 #define HANDY_FILETYPE_SNAPSHOT	2
 #define HANDY_FILETYPE_ILLEGAL	3
 
-#define HANDY_SCREEN_WIDTH	160
-#define HANDY_SCREEN_HEIGHT	102
 //
 // Define the global variable list
 //
@@ -119,10 +117,6 @@ class CSystem : public CSystemBase
 // Suzy system interfacing
 
 		ULONG	PaintSprites(void) {return mSusie->PaintSprites();};
-
-// Miscellaneous
-
-//		void	SetButtonData(ULONG data) {mSusie->SetButtonData(data);};
 
 	public:
 		CCart			*mCart;
