@@ -28,8 +28,6 @@
 	.global suzySetButtonData
 	.global suzFetchSpriteData
 	.global suzRenderQuads
-	.global suzLineRender
-	.global suzLineStart
 
 	.syntax unified
 	.arm
@@ -1005,9 +1003,7 @@ exitQuadLoop:
 	bx lr
 ;@----------------------------------------------------------------------------
 suzLineStart:				;@ Out = SPRDOFF.
-	.type	suzLineStart STT_FUNC
 ;@----------------------------------------------------------------------------
-	ldr suzptr,=suzy_0
 	ldrh r1,[suzptr,#suzSprDLine]
 	ldr r2,[suzptr,#suzyRAM]
 	ldrb r0,[r2,r1]
@@ -1019,15 +1015,11 @@ suzLineStart:				;@ Out = SPRDOFF.
 	bx lr
 ;@----------------------------------------------------------------------------
 suzLineRender:				;@ In r0=hSign, r1=hQuadOff, r2=vOff.
-							;@ Out = true if pixels rendered.
-	.type	suzLineRender STT_FUNC
 ;@----------------------------------------------------------------------------
 	cmp r2,#GAME_HEIGHT
-	movcs r0,#0
 	bxcs lr
 
 	stmfd sp!,{r4-r11,lr}
-	ldr suzptr,=suzy_0
 	ldr r9,[suzptr,#suzyCyclesUsed]
 
 	ldr r6,[suzptr,#suzVidBas]	;@ Also suzCollBas
@@ -1063,7 +1055,6 @@ suzLineRender:				;@ In r0=hSign, r1=hQuadOff, r2=vOff.
 
 ;@----------------------------------------------------------------------------
 suzRenderLine:				;@ In r0=hSign, r1=hQuadOff.
-							;@ Out = if pixels rendered.
 ;@----------------------------------------------------------------------------
 
 	;@ Work out the horizontal pixel start position, start + tilt
@@ -1093,19 +1084,16 @@ suzRenderLine:				;@ In r0=hSign, r1=hQuadOff.
 	ldrhne r0,[suzptr,#suzHSizOff]	;@ If hSign == 1
 	orr r6,r6,r0,lsl#16
 rendWhile:
-	bl suzLineGetPixel
-	cmp r0,#0x80
+	bl suzLineGetPixel			;@ Returns pixel in r5.
+	cmp r5,#0x80
 	beq exitRender
 	add r6,r6,r6,lsl#16			;@ HSIZACUM.Word += SPRHSIZ.Word
 	movs r7,r6,lsr#24			;@ pixel_width = HSIZACUM.Byte.High
 	beq rendWhile
 	bic r6,r6,#0xFF000000		;@ HSIZACUM.Byte.High = 0
-	mov r5,r0
 rendLoop:
 	cmp r4,#GAME_WIDTH
 	bcs checkBail
-	mov r0,r4
-	mov r1,r5
 	blx r11						;@ ProcessPixel(hOff, pix)
 	orr r10,r10,#1				;@ onScreen = TRUE
 continueRend:
@@ -1169,7 +1157,7 @@ fetchNewBits:
 	b extractBits
 
 ;@----------------------------------------------------------------------------
-suzLineGetPixel:			;@ Out r0=pixel
+suzLineGetPixel:			;@ Out r5=pixel
 ;@----------------------------------------------------------------------------
 	stmfd sp!,{lr}
 	ldr r1,[suzptr,#suzLineRepeatCount]
@@ -1186,10 +1174,10 @@ checkMoreLineType:
 	bcc fetchPacked				;@ line_packed?
 	bl suzGetPixelBits
 	add r1,suzptr,#suzPenIndex
-	ldrb r0,[r1,r0]
+	ldrb r5,[r1,r0]
 	ldmfd sp!,{pc}
 fetchPacked:
-	ldrb r0,[suzptr,#suzLinePixel]
+	ldrb r5,[suzptr,#suzLinePixel]
 	ldmfd sp!,{pc}
 doLiteralLine:
 	stmfd sp!,{r4}				;@ line_abs_literal
@@ -1200,9 +1188,9 @@ doLiteralLine:
 	str r4,[suzptr,#suzLineRepeatCount]
 	bl suzLineGetBits
 	orrs r4,r4,r0
-	moveq r0,#LINE_END
+	moveq r5,#LINE_END
 	addne r1,suzptr,#suzPenIndex
-	ldrbne r0,[r1,r0]
+	ldrbne r5,[r1,r0]
 	ldmfd sp!,{r4,pc}
 
 fetchPacket:
@@ -1218,21 +1206,21 @@ fetchPacket:
 	bpl packedPix
 	bl suzGetPixelBits
 	add r1,suzptr,#suzPenIndex
-	ldrb r0,[r1,r0]
+	ldrb r5,[r1,r0]
 	ldmfd sp!,{pc}
 packedPix:
 	beq exitLineEnd
 	bl suzGetPixelBits
 	add r1,suzptr,#suzPenIndex
-	ldrb r0,[r1,r0]
-	strb r0,[suzptr,#suzLinePixel]
+	ldrb r5,[r1,r0]
+	strb r5,[suzptr,#suzLinePixel]
 	ldmfd sp!,{pc}
 
 exitLineEnd:
-	mov r0,#LINE_END
+	mov r5,#LINE_END
 	ldmfd sp!,{pc}
 ;@----------------------------------------------------------------------------
-;@ suzProcessPixel:			;@ In r0=hoff, r1=pixel
+;@ suzProcessPixel:			;@ In r4=hoff, r5=pixel
 ;@----------------------------------------------------------------------------
 sprTypeTbl:
 	.long sprBgrShdw, sprBgrNoColl, sprBoundShdw, sprBound
@@ -1246,7 +1234,7 @@ sprTypeTbl:
 // 1   allow coll. buffer access
 // 0   exclusive-or the data
 sprBgrShdw:
-	cmp r1,#0xE
+	cmp r5,#0xE
 	beq suzWritePixel
 	stmfd sp!,{lr}
 	bl suzWritePixel			;@ r0 is not modified
@@ -1260,10 +1248,10 @@ sprBgrShdw:
 // 1   allow coll. buffer access
 // 0   exclusive-or the data
 sprBoundShdw:
-	cmp r1,#0
-	cmpne r1,#0xE				;@ This seems weird
+	cmp r5,#0
+	cmpne r5,#0xE				;@ This seems weird
 	bxeq lr
-	cmp r1,#0xF
+	cmp r5,#0xF
 	beq suzTestCollision		;@ Only collision
 	stmfd sp!,{lr}
 	bl suzWritePixel			;@ r0 is not modified
@@ -1277,9 +1265,9 @@ sprBoundShdw:
 // 1   allow coll. buffer access
 // 0   exclusive-or the data
 sprBound:
-	cmp r1,#0
+	cmp r5,#0
 	bxeq lr
-	cmp r1,#0xF
+	cmp r5,#0xF
 	beq suzTestCollision		;@ Only collision
 	stmfd sp!,{lr}
 	bl suzWritePixel			;@ r0 is not modified
@@ -1293,7 +1281,7 @@ sprBound:
 // 1   allow coll. buffer access
 // 0   exclusive-or the data
 sprNormal:
-	cmp r1,#0
+	cmp r5,#0
 	bxeq lr
 	stmfd sp!,{lr}
 	bl suzWritePixel			;@ r0 is not modified
@@ -1307,9 +1295,9 @@ sprNormal:
 // 1   allow coll. buffer access
 // 1   exclusive-or the data
 sprXorShdw:
-	cmp r1,#0
+	cmp r5,#0
 	bxeq lr
-	cmp r1,#0xE
+	cmp r5,#0xE
 	beq suzXorPixel
 	stmfd sp!,{lr}
 	bl suzXorPixel				;@ r0 is not modified
@@ -1323,9 +1311,9 @@ sprXorShdw:
 // 1   allow coll. buffer access
 // 0   exclusive-or the data
 sprShadow:
-	cmp r1,#0
+	cmp r5,#0
 	bxeq lr
-	cmp r1,#0xE
+	cmp r5,#0xE
 	beq suzWritePixel
 	stmfd sp!,{lr}
 	bl suzWritePixel			;@ r0 is not modified
@@ -1340,7 +1328,7 @@ sprShadow:
 // 0   allow coll. buffer access
 // 0   exclusive-or the data
 sprNoColl:
-	cmp r1,#0
+	cmp r5,#0
 	bxeq lr
 ;@----------------------------------------------------------------------------
 // BACKGROUND NOCOLLIDE
@@ -1352,67 +1340,67 @@ sprNoColl:
 // 0   exclusive-or the data
 sprBgrNoColl:
 ;@----------------------------------------------------------------------------
-suzWritePixel:				;@ In r0=hoff, r1=pixel.
+suzWritePixel:				;@ In r4=hoff, r5=pixel.
 ;@----------------------------------------------------------------------------
 	ldr r2,[suzptr,#suzLineBaseAddress]
-	tst r0,#1
-	ldrb r3,[r2,r0,lsr#1]
+	tst r4,#1
+	ldrb r3,[r2,r4,lsr#1]
 	andeq r3,r3,#0x0F
-	orreq r3,r3,r1,lsl#4
+	orreq r3,r3,r5,lsl#4
 	andne r3,r3,#0xF0
-	orrne r3,r3,r1
-	strb r3,[r2,r0,lsr#1]
+	orrne r3,r3,r5
+	strb r3,[r2,r4,lsr#1]
 
 	add r9,r9,#2*3				;@ 2*SPR_RDWR_CYC
 
 	bx lr
 ;@----------------------------------------------------------------------------
-suzXorPixel:				;@ In r0=hoff, r1=pixel.
+suzXorPixel:				;@ In r4=hoff, r5=pixel.
 ;@----------------------------------------------------------------------------
 	ldr r2,[suzptr,#suzLineBaseAddress]
-	tst r0,#1
-	ldrb r3,[r2,r0,lsr#1]
-	eoreq r3,r3,r1,lsl#4
-	eorne r3,r3,r1
-	strb r3,[r2,r0,lsr#1]
+	tst r4,#1
+	ldrb r3,[r2,r4,lsr#1]
+	eoreq r3,r3,r5,lsl#4
+	eorne r3,r3,r5
+	strb r3,[r2,r4,lsr#1]
 
 	add r9,r9,#3*3				;@ 3*SPR_RDWR_CYC
 
 	bx lr
 ;@----------------------------------------------------------------------------
-suzWriteCollision:			;@ In r0=hoff.
+suzWriteCollision:			;@ In r4=hoff.
 ;@----------------------------------------------------------------------------
 	ldrb r1,[suzptr,#suzSprColl]
 	cmp r1,#0x10
 	bxpl lr
 	ldr r2,[suzptr,#suzLineCollisionAddress]
-	tst r0,#1
-	ldrb r3,[r2,r0,lsr#1]
+	tst r4,#1
+	ldrb r3,[r2,r4,lsr#1]
 	andeq r3,r3,#0x0F
 	orreq r3,r3,r1,lsl#4
 	andne r3,r3,#0xF0
 	orrne r3,r3,r1
-	strb r3,[r2,r0,lsr#1]
+	strb r3,[r2,r4,lsr#1]
 
 	add r9,r9,#2*3				;@ 2*SPR_RDWR_CYC
 
 	bx lr
 ;@----------------------------------------------------------------------------
-suzTestCollision:			;@ In r0=hoff. Out r0=collision
+suzTestCollision:			;@ In r4=hoff. Out r0=collision
 ;@----------------------------------------------------------------------------
 	ldrb r1,[suzptr,#suzSprColl]
 	cmp r1,#0x10
 	bxpl lr
 	ldr r2,[suzptr,#suzLineCollisionAddress]
-	tst r0,#1
-	ldrb r3,[r2,r0,lsr#1]!
+	tst r4,#1
+	ldrb r3,[r2,r4,lsr#1]
 	moveq r0,r3,lsr#4
 	andeq r3,r3,#0x0F
 	orreq r3,r3,r1,lsl#4
 	andne r0,r3,#0x0F
 	andne r3,r3,#0xF0
 	orrne r3,r3,r1
-	strb r3,[r2]
+	strb r3,[r2,r4,lsr#1]
 
 	ldrb r2,[suzptr,#suzCollision]
 	cmp r2,r0

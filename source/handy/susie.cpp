@@ -62,28 +62,15 @@
 #define RAM_PEEK(m)				(suzy_0.suzyRAM[(m)])
 #define RAM_POKE(m1,m2)			{suzy_0.suzyRAM[(m1)]=(m2);}
 
-#define mHOFF suzy_0.hOff
-#define mVOFF suzy_0.vOff
-#define mTILTACUM suzy_0.tiltAcum
 #define mSCBNEXT suzy_0.SCBNext
-#define mSPRDLINE suzy_0.sprDLine
-#define mHPOSSTRT suzy_0.hPosStrt
-#define mVPOSSTRT suzy_0.vPosStrt
-#define mSPRHSIZ suzy_0.sprHSiz
-#define mSPRVSIZ suzy_0.sprVSiz
-#define mSTRETCH suzy_0.stretch
-#define mTILT suzy_0.tilt
-#define mSPRDOFF suzy_0.sprDOff
 #define mCOLLOFF suzy_0.collOff
-#define mVSIZACUM suzy_0.vSizAcum
-#define mVSIZOFF suzy_0.vSizOff
 #define mSCBADR suzy_0.SCBAdr
 #define mSPRCTL0 suzy_0.sprCtl0
 #define mSPRCTL1 suzy_0.sprCtl1
 #define mSPRCOLL suzy_0.sprColl
 #define mSUZYBUSEN suzy_0.suzyBusEn
 #define mSPRGO suzy_0.sprGo
-#define mSPRSYS suzy_0.sprSys
+//#define mSPRSYS suzy_0.sprSys
 
 #define mCollision suzy_0.collision
 #define cycles_used suzy_0.cyclesUsed
@@ -203,85 +190,7 @@ ULONG CSusie::PaintSprites(void)
 			// Use h/v flip to invert h/vSign
 			if (mSPRCTL0 & Vflip) vSign = -vSign;
 			if (mSPRCTL0 & Hflip) hSign = -hSign;
-//			int vQuadOff = vSign;
-//			int hQuadOff = hSign;
 			suzRenderQuads(hSign, vSign, quadrant);
-/*
-			// Loop for 4 quadrants
-			for (int loop=0;loop<4;loop++) {
-				// Set the vertical position & offset
-				int voff = (SWORD)mVPOSSTRT.Word-(SWORD)mVOFF.Word;
-
-				// Take the sign of the first quad (0) as the basic
-				// sign, all other quads drawing in the other direction
-				// get offset by 1 pixel in the other direction, this
-				// fixes the squashed look on the multi-quad sprites.
-				if (vSign != vQuadOff) voff += vSign;
-
-				// Zero the stretch,tilt & acum values
-				mTILTACUM.Word = 0;
-
-				// Perform the SIZOFF
-				mVSIZACUM.Word = (vSign == 1) ? mVSIZOFF.Word : 0;
-
-				for (;;) {
-					// Update the next data line pointer and initialise our line
-					mSPRDOFF.Word = (UWORD)suzLineStart();
-					// If 1 == next quad, ==0 end of sprite, anyways its END OF LINE
-					if (mSPRDOFF.Word == 1) {		// End of quad
-						mSPRDLINE.Word += mSPRDOFF.Word;
-						break;
-					}
-					if (mSPRDOFF.Word == 0) {		// End of sprite
-						loop = 4;		// Halt the quad loop
-						break;
-					}
-
-					// Vertical scaling is done here
-					mVSIZACUM.Word += mSPRVSIZ.Word;
-					int pixel_height = mVSIZACUM.Byte.High;
-					mVSIZACUM.Byte.High = 0;
-
-					// Draw one horizontal source line of the sprite
-					for (;pixel_height>0;pixel_height--) {
-						// Early bailout if the sprite has moved off screen, terminate quad
-						if (vSign == 1 && voff >= LYNX_SCREEN_HEIGHT) break;
-						if (vSign == -1 && voff < 0) break;
-
-						// Now render an individual destination line
-						suzLineRender(hSign, hQuadOff, voff);
-						voff += vSign;
-
-						// For every destination line we can modify SPRHSIZ & SPRVSIZ & TILTACUM
-						if (mSPRCTL1 & 0x20) {
-							if (mSPRCTL1 & 0x10) {
-								// Manipulate the tilt stuff
-								mTILTACUM.Word += mTILT.Word;
-							}
-							mSPRHSIZ.Word += mSTRETCH.Word;
-							// According to the docs this increments per dest line
-							// but only gets set when the source line is read
-							if (mSPRSYS & VStretch) mSPRVSIZ.Word += mSTRETCH.Word;
-						}
-					}
-
-					// Update the line start for our next run thru the loop
-					mSPRDLINE.Word += mSPRDOFF.Word;
-				}
-
-				// Increment quadrant and mask to 2 bit value (0-3)
-				quadrant++;
-				quadrant &= 0x03;
-				if (loop != 3) {
-					// Check new quadrant to h/v flip
-					if (quadrant & 1) {
-						vSign = -vSign;
-					}
-					else {
-						hSign = -hSign;
-					}
-				}
-			}*/
 
 			// Write the collision depositary if required
 			if (mSPRCOLL < 0x10) {
@@ -355,29 +264,9 @@ ULONG CSusie::PaintSprites(void)
 
 void CSusie::Poke(ULONG addr, UBYTE data)
 {
-//	switch(addr & 0xff)
-//	{
-//// Cartridge writing ports
-//		case (RCART0 & 0xff):
-//			mSystem.Poke_CARTB0(data);
-//			TRACE_SUSIE2("Poke(RCART0,%02x) at PC=$%04x", data, mSystem.mCpu->GetPC());
-//			break;
-//		case (RCART1 & 0xff):
-//			mSystem.Poke_CARTB1(data);
-//			TRACE_SUSIE2("Poke(RCART1,%02x) at PC=$%04x", data, mSystem.mCpu->GetPC());
-//			break;
-//	}
 }
 
 UBYTE CSusie::Peek(ULONG addr)
 {
-//	switch(addr & 0xff)
-//	{
-//// Cartridge reading ports
-//		case (RCART0 & 0xff):
-//			return mSystem.Peek_CARTB0();
-//		case (RCART1 & 0xff):
-//			return mSystem.Peek_CARTB1();
-//	}
 	return 0xff;
 }
