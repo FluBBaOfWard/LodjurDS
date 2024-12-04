@@ -70,7 +70,6 @@
 #define mSPRCOLL suzy_0.sprColl
 #define mSUZYBUSEN suzy_0.suzyBusEn
 #define mSPRGO suzy_0.sprGo
-//#define mSPRSYS suzy_0.sprSys
 
 #define mCollision suzy_0.collision
 #define cycles_used suzy_0.cyclesUsed
@@ -120,12 +119,6 @@ void CSusie::Reset(void)
 
 ULONG CSusie::PaintSprites(void)
 {
-	TRACE_SUSIE0("********************** PaintSprites **************************");
-
-	TRACE_SUSIE1("PaintSprites() VIDBAS  $%04x", mVIDBAS.Word);
-	TRACE_SUSIE1("PaintSprites() COLLBAS $%04x", mCOLLBAS.Word);
-	TRACE_SUSIE1("PaintSprites() SPRSYS  $%02x", Peek(SPRSYS));
-
 	if (!mSUZYBUSEN || !(mSPRGO & 0x01)) {
 		TRACE_SUSIE0("PaintSprites() Returned !mSUZYBUSEN || !mSPRGO");
 		return 0;
@@ -162,35 +155,6 @@ ULONG CSusie::PaintSprites(void)
 
 			// Now we can start painting
 
-			// Quadrant drawing order is: SE,NE,NW,SW
-			// start quadrant is given by sprite_control1:0 & 1
-/*			int quadrant = 0;
-			int hSign = 1;
-			int vSign = 1;
-			if (mSPRCTL1 & StartLeft) {
-				quadrant = 3;
-				hSign = -1;
-			}
-			if (mSPRCTL1 & StartUp) {
-				quadrant ^= 1;
-				vSign = -1;
-			}
-
-			// Quadrant mapping is:	SE	NE	NW	SW
-			//						0	1	2	3
-			// hSign				+1	+1	-1	-1
-			// vSign				+1	-1	-1	+1
-			//
-			//
-			//		2 | 1
-			//     -------
-			//      3 | 0
-			//
-
-			// Use h/v flip to invert h/vSign
-			if (mSPRCTL0 & Vflip) vSign = -vSign;
-			if (mSPRCTL0 & Hflip) hSign = -hSign;
-			suzRenderQuads(hSign, vSign, quadrant);*/
 			suzRenderQuads();
 
 			// Write the collision depositary if required
@@ -229,7 +193,7 @@ ULONG CSusie::PaintSprites(void)
 
 		// Check if we abort after this sprite is complete
 //		if (mSPRSYS.Read.StopOnCurrent) {
-//			mSPRSYS.Read.Busy = 0; // Engine has finished
+//			mSPRSYS_Busy = 0;	// Engine has finished
 //			mSPRGO &= ~0x01;
 //			break;
 //		}

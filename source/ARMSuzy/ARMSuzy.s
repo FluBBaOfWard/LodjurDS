@@ -908,40 +908,44 @@ suzRenderQuads:				;@
 	;@ start quadrant is given by sprite_control1:0 & 1
 
 	mov r10,#1					;@ r10=hSign
-	mov r5,#1					;@ r5=vSign
+	mov r1,#0x10000				;@ r1=vSign
 	ldrh r0,[suzptr,#suzSprCtl0]	;@ SprCtl0 & SprCtl1
 	ands r4,r0,#0x0100			;@ StartLeft, r4=start Quadrant
-	movne r4,#3
-	movne r10,#-1
+	movne r4,#1
+	rsbne r10,r10,#0
 	tst r0,#0x0200				;@ StartUp
 	eorne r4,r4,#1
-	movne r5,#-1
-	movs r1,r0,lsl#27			;@ Check VFlip & HFlip
-	rsbmi r5,r5,#0
+	rsbne r1,r1,#0
+	teq r0,r0,lsl#27			;@ Check VFlip & HFlip
+	rsbmi r1,r1,#0
 	rsbcs r10,r10,#0
 
 	mov r6,r10					;@ r6=hQuadOff
-	mov r7,r5					;@ r7=vQuadOff
+	mov r7,r1					;@ r7=vQuadOff
 	mov r9,#4					;@ Quad count
 quadLoop:
-	ldrsh r8,[suzptr,#suzVPosStrt]
-	ldrsh r0,[suzptr,#suzVOff]
-	sub r8,r8,r0				;@ r8=vOff
+	ldrh r8,[suzptr,#suzVPosStrt]
+	ldrh r0,[suzptr,#suzVOff]
+	mov r8,r8,lsl#16
+	sub r8,r8,r0,lsl#16			;@ r8=vOff
+	orr r8,r8,r1,lsr#16			;@ Add vSign to bottom
 	;@ Take the sign of the first quad (0) as the basic
 	;@ sign, all other quads drawing in the other direction
 	;@ get offset by 1 pixel in the other direction, this
 	;@ fixes the squashed look on the multi-quad sprites.
-	cmp r5,r7
-	addne r8,r8,r5
+	cmp r7,r8,lsl#16
+	addne r8,r8,r8,lsl#16
 
 	;@ Zero the stretch, tilt & acum values
 	mov r0,#0
 	strh r0,[suzptr,#suzTiltAcum]
 
+	ldrh r11,[suzptr,#suzSprVSiz]
 	;@ Perform the SIZOFF
-	cmp r5,#1
-	ldrheq r0,[suzptr,#suzVSizOff]
-	strh r0,[suzptr,#suzVSizAcum]
+	cmp r1,#0x10000
+	ldrheq r0,[suzptr,#suzVSizOff]		;@ Start value of VSizAcum
+//	strh r0,[suzptr,#suzVSizAcum]
+	orr r11,r11,r0,lsl#16
 
 verticalLoop:
 	bl suzLineStart
@@ -953,27 +957,22 @@ verticalLoop:
 	beq exitQuad
 	bcc exitQuadLoop
 
-	;@ Vertical scaling is done here
-	ldrh r11,[suzptr,#suzVSizAcum]
-	ldrh r0,[suzptr,#suzSprVSiz]
-	add r11,r11,r0
-	and r1,r11,#0xFF
-	strh r1,[suzptr,#suzVSizAcum]
-	movs r11,r11,lsr#8
+//	ldrh r11,[suzptr,#suzVSizAcum]
+	add r11,r11,r11,lsl#16
+//	and r1,r11,#0xFF
+//	strh r1,[suzptr,#suzVSizAcum]
+	movs r5,r11,lsr#24
 	beq breakV2Loop
+	bic r11,r11,#0xFF000000
 v2Loop:
-	cmp r8,#GAME_HEIGHT
-	bcc keepRendering
-	cmpmi r5,#0
-	bmi breakV2Loop
-//	cmppl r5,#0
-//	bpl breakV2Loop
-keepRendering:
+	cmp r8,#GAME_HEIGHT<<16
+	bcs checkVBail
 	mov r0,r10				;@ hSign
 	mov r1,r6				;@ hQuadOff
 //	mov r8,r8				;@ vOff
 	bl suzLineRender
-	add r8,r8,r5
+keepRendering:
+	add r8,r8,r8,lsl#16
 	ldrb r0,[suzptr,#suzSprCtl1]
 	movs r0,r0,lsl#27		;@ Check ReloadDepth
 	bcc noStretchTilt
@@ -993,7 +992,7 @@ noTilt:
 	addne r1,r1,r0
 	strhne r1,[suzptr,#suzSprVSiz]
 noStretchTilt:
-	subs r11,r11,#1
+	subs r5,r5,#1
 	bne v2Loop
 breakV2Loop:
 	ldrh r0,[suzptr,#suzSprDOff]
@@ -1002,19 +1001,26 @@ breakV2Loop:
 	strh r1,[suzptr,#suzSprDLine]
 	b verticalLoop
 exitQuad:
-	;@ Increment quadrant and mask to 2 bit value (0-3)
-	add r4,r4,#1
-	and r4,r4,#3
-	tst r4,#1
+	mov r1,r8,lsl#16
+	;@ Flip quadrant bit value (0-1)
+	eors r4,r4,#1
 	rsbeq r10,r10,#0		;@ hSign = -hSign
-	rsbne r5,r5,#0			;@ vSign = -vSign
+	rsbne r1,r1,#0			;@ vSign = -vSign
 
 	subs r9,r9,#1
 	bne quadLoop
 
 exitQuadLoop:
+//	mov r11,r11,lsr#16
+//	strh r11,[suzptr,#suzVSizAcum]
 	ldmfd sp!,{r4-r11,lr}
 	bx lr
+checkVBail:
+	movsmi r1,r8,lsl#16
+	bmi breakV2Loop
+//	cmppl r1,#0
+//	bpl breakV2Loop
+	b keepRendering
 ;@----------------------------------------------------------------------------
 suzLineStart:				;@ Out = SPRDOFF.
 ;@----------------------------------------------------------------------------
@@ -1028,22 +1034,23 @@ suzLineStart:				;@ Out = SPRDOFF.
 
 	bx lr
 ;@----------------------------------------------------------------------------
-suzLineRender:				;@ In r0=hSign, r1=hQuadOff, r8=vOff.
+suzLineRender:				;@ In r0=hSign, r1=hQuadOff, r8=vOff<<16.
 ;@----------------------------------------------------------------------------
-	cmp r8,#GAME_HEIGHT
-	bxcs lr
+//	cmp r8,#GAME_HEIGHT<<16
+//	bxcs lr
 
+	mov r2,r8,lsr#16
 	stmfd sp!,{r4-r11,lr}
 	ldr r9,[suzptr,#suzyCyclesUsed]
 
 	ldr r6,[suzptr,#suzVidBas]	;@ Also suzCollBas
 	mov r5,r6,lsl#16
 	ldr r7,[suzptr,#suzyRAM]
-	add r8,r8,r8,lsl#2			;@ *5
-	add r5,r5,r8,lsl#4+16		;@ *16
+	add r2,r2,r2,lsl#2			;@ *5
+	add r5,r5,r2,lsl#4+16		;@ *16
 	add r5,r7,r5,lsr#16
 	str r5,[suzptr,#suzLineBaseAddress]
-	add r6,r6,r8,lsl#4+16		;@ *16
+	add r6,r6,r2,lsl#4+16		;@ *16
 	add r6,r7,r6,lsr#16
 	str r6,[suzptr,#suzLineCollisionAddress]
 
@@ -1097,13 +1104,13 @@ suzRenderLine:				;@ In r0=hSign, r1=hQuadOff.
 	adds r0,r0,#1
 	ldrhne r0,[suzptr,#suzHSizOff]	;@ If hSign == 1
 	orr r6,r6,r0,lsl#16
-rendWhile:
+horizontalLoop:
 	bl suzLineGetPixel			;@ Returns pixel in r5.
 	cmp r5,#0x80
 	beq exitRender
 	add r6,r6,r6,lsl#16			;@ HSIZACUM.Word += SPRHSIZ.Word
 	movs r7,r6,lsr#24			;@ pixel_width = HSIZACUM.Byte.High
-	beq rendWhile
+	beq horizontalLoop
 	bic r6,r6,#0xFF000000		;@ HSIZACUM.Byte.High = 0
 rendLoop:
 	cmp r4,#GAME_WIDTH
@@ -1114,7 +1121,7 @@ continueRend:
 	add r4,r4,r10,asr#16		;@ hOff += hSign
 	subs r7,r7,#1
 	bne rendLoop
-	b rendWhile
+	b horizontalLoop
 checkBail:
 	tst r10,#1
 	beq continueRend
