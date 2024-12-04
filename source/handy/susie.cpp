@@ -80,26 +80,26 @@
 
 // SprCtl0
 #define Type  (0x07)
-#define Vflip (0x10)
-#define Hflip (0x20)
+//#define Vflip (0x10)
+//#define Hflip (0x20)
 
 // SPRCTL1
-#define StartLeft (0x01)
-#define StartUp (0x02)
+//#define StartLeft (0x01)
+//#define StartUp (0x02)
 #define SkipSprite (0x04)
-#define ReloadPalette (0x08)
-#define ReloadDepth (0x30)
+//#define ReloadPalette (0x08)
+//#define ReloadDepth (0x30)
 //#define Sizing (0x40)
 //#define Literal (0x80)
 
 // SPRSYS
 #define StopOnCurrent (0x02)
-#define UnsafeAccess (0x04)
-#define LeftHand (0x08)
-#define VStretch (0x10)
-#define NoCollide (0x20)
-#define Accumulate (0x40)
-#define SignedMath (0x80)
+//#define UnsafeAccess (0x04)
+//#define LeftHand (0x08)
+//#define VStretch (0x10)
+//#define NoCollide (0x20)
+//#define Accumulate (0x40)
+//#define SignedMath (0x80)
 
 CSusie::CSusie(CSystem& parent)
 	:mSystem(parent)
@@ -164,7 +164,7 @@ ULONG CSusie::PaintSprites(void)
 
 			// Quadrant drawing order is: SE,NE,NW,SW
 			// start quadrant is given by sprite_control1:0 & 1
-			int quadrant = 0;
+/*			int quadrant = 0;
 			int hSign = 1;
 			int vSign = 1;
 			if (mSPRCTL1 & StartLeft) {
@@ -190,7 +190,8 @@ ULONG CSusie::PaintSprites(void)
 			// Use h/v flip to invert h/vSign
 			if (mSPRCTL0 & Vflip) vSign = -vSign;
 			if (mSPRCTL0 & Hflip) hSign = -hSign;
-			suzRenderQuads(hSign, vSign, quadrant);
+			suzRenderQuads(hSign, vSign, quadrant);*/
+			suzRenderQuads();
 
 			// Write the collision depositary if required
 			if (mSPRCOLL < 0x10) {
@@ -221,16 +222,6 @@ ULONG CSusie::PaintSprites(void)
 				TRACE_SUSIE0("PaintSprites() EVERON IS ACTIVE");
 				TRACE_SUSIE2("PaintSprites() Wrote $%02x to SCB collision depositary at $%04x", coldat, coldep);
 			}
-
-			// Perform Sprite debugging if required, single step on sprite draw
-			if (gSingleStepModeSprites) {
-				char message[256];
-				sprintf(message, "CSusie:PaintSprites() - Rendered Sprite %03d", sprcount);
-				//if (!gError->Warning(message)) gSingleStepModeSprites = 0;
-			}
-		}
-		else {
-			TRACE_SUSIE0("PaintSprites() mSPRCTL1.Bits.SkipSprite==TRUE");
 		}
 
 		// Increase sprite number

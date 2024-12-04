@@ -196,7 +196,7 @@ int suzyLoadState(SUZY *chip, const void *source);
 int suzyGetStateSize(void);
 
 void suzFetchSpriteData(void);
-void suzRenderQuads(int hSign, int vSign, int quadrant);
+void suzRenderQuads(void);
 
 #ifdef __cplusplus
 } // extern "C"

@@ -45,7 +45,6 @@
 #define gAudioLastUpdateCycle mikey_0.audioLastUpdateCycle
 #ifdef SYSTEM_CPP
 	ULONG	gCPUBootAddress = 0;
-	ULONG	gSingleStepModeSprites = FALSE;
 	BOOL	gSystemHalt = FALSE;
 
 	ULONG	gAudioEnabled = FALSE;
@@ -57,7 +56,6 @@
 #else
 
 	extern ULONG	gCPUBootAddress;
-	extern ULONG	gSingleStepModeSprites;
 	extern BOOL		gSystemHalt;
 
 	extern ULONG	gAudioEnabled;
