@@ -45,22 +45,6 @@
 #ifndef SUSIE_H
 #define SUSIE_H
 
-#ifdef TRACE_SUSIE
-
-#define TRACE_SUSIE0(msg)					_RPT1(_CRT_WARN,"CSusie::"msg" (Time=%012d)\n",gSystemCycleCount)
-#define TRACE_SUSIE1(msg,arg1)				_RPT2(_CRT_WARN,"CSusie::"msg" (Time=%012d)\n",arg1,gSystemCycleCount)
-#define TRACE_SUSIE2(msg,arg1,arg2)			_RPT3(_CRT_WARN,"CSusie::"msg" (Time=%012d)\n",arg1,arg2,gSystemCycleCount)
-#define TRACE_SUSIE3(msg,arg1,arg2,arg3)	_RPT4(_CRT_WARN,"CSusie::"msg" (Time=%012d)\n",arg1,arg2,arg3,gSystemCycleCount)
-
-#else
-
-#define TRACE_SUSIE0(msg)
-#define TRACE_SUSIE1(msg,arg1)
-#define TRACE_SUSIE2(msg,arg1,arg2)
-#define TRACE_SUSIE3(msg,arg1,arg2,arg3)
-
-#endif
-
 class CSystem;
 
 #define LYNX_SCREEN_WIDTH	160

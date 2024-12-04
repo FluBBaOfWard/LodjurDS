@@ -907,7 +907,7 @@ suzRenderQuads:				;@
 	;@ Quadrant drawing order is: SE,NE,NW,SW
 	;@ start quadrant is given by sprite_control1:0 & 1
 
-	mov r10,#1					;@ r10=hSign
+	mov r10,#0x10000			;@ r10=hSign
 	mov r1,#0x10000				;@ r1=vSign
 	ldrh r0,[suzptr,#suzSprCtl0]	;@ SprCtl0 & SprCtl1
 	ands r4,r0,#0x0100			;@ StartLeft, r4=start Quadrant
@@ -944,7 +944,6 @@ quadLoop:
 	;@ Perform the SIZOFF
 	cmp r1,#0x10000
 	ldrheq r0,[suzptr,#suzVSizOff]		;@ Start value of VSizAcum
-//	strh r0,[suzptr,#suzVSizAcum]
 	orr r11,r11,r0,lsl#16
 
 verticalLoop:
@@ -957,22 +956,19 @@ verticalLoop:
 	beq exitQuad
 	bcc exitQuadLoop
 
-//	ldrh r11,[suzptr,#suzVSizAcum]
 	add r11,r11,r11,lsl#16
-//	and r1,r11,#0xFF
-//	strh r1,[suzptr,#suzVSizAcum]
-	movs r5,r11,lsr#24
+	movs r0,r11,lsr#24
 	beq breakV2Loop
-	bic r11,r11,#0xFF000000
+	sub r11,r11,r0,lsl#25
 v2Loop:
 	cmp r8,#GAME_HEIGHT<<16
 	bcs checkVBail
-	mov r0,r10				;@ hSign
+//	mov r0,r10				;@ hSign
 	mov r1,r6				;@ hQuadOff
-//	mov r8,r8				;@ vOff
+	mov r2,r8,lsr#16		;@ vOff
 	bl suzLineRender
 keepRendering:
-	add r8,r8,r8,lsl#16
+	add r8,r8,r8,lsl#16		;@ vOff += vSign
 	ldrb r0,[suzptr,#suzSprCtl1]
 	movs r0,r0,lsl#27		;@ Check ReloadDepth
 	bcc noStretchTilt
@@ -992,8 +988,8 @@ noTilt:
 	addne r1,r1,r0
 	strhne r1,[suzptr,#suzSprVSiz]
 noStretchTilt:
-	subs r5,r5,#1
-	bne v2Loop
+	adds r11,r11,#0x01000000
+	bcc v2Loop
 breakV2Loop:
 	ldrh r0,[suzptr,#suzSprDOff]
 	ldrh r1,[suzptr,#suzSprDLine]
@@ -1034,12 +1030,8 @@ suzLineStart:				;@ Out = SPRDOFF.
 
 	bx lr
 ;@----------------------------------------------------------------------------
-suzLineRender:				;@ In r0=hSign, r1=hQuadOff, r8=vOff<<16.
+suzLineRender:				;@ In r10=hSign, r1=hQuadOff, r2=vOff.
 ;@----------------------------------------------------------------------------
-//	cmp r8,#GAME_HEIGHT<<16
-//	bxcs lr
-
-	mov r2,r8,lsr#16
 	stmfd sp!,{r4-r11,lr}
 	ldr r9,[suzptr,#suzyCyclesUsed]
 
@@ -1048,8 +1040,8 @@ suzLineRender:				;@ In r0=hSign, r1=hQuadOff, r8=vOff<<16.
 	ldr r7,[suzptr,#suzyRAM]
 	add r2,r2,r2,lsl#2			;@ *5
 	add r5,r5,r2,lsl#4+16		;@ *16
-	add r5,r7,r5,lsr#16
-	str r5,[suzptr,#suzLineBaseAddress]
+	add r8,r7,r5,lsr#16
+//	str r8,[suzptr,#suzLineBaseAddress]
 	add r6,r6,r2,lsl#4+16		;@ *16
 	add r6,r7,r6,lsr#16
 	str r6,[suzptr,#suzLineCollisionAddress]
@@ -1087,40 +1079,42 @@ suzRenderLine:				;@ In r0=hSign, r1=hQuadOff.
 	strh r3,[suzptr,#suzHPosStrt]
 	strb r4,[suzptr,#suzTiltAcumH]
 	sub r4,r3,r2				;@ r4=hOff
+	mov r4,r4,lsl#16
+	orr r4,r4,r10,lsr#16
 	;@ Take the sign of the first quad (0) as the basic
 	;@ sign, all other quads drawing in the other direction
 	;@ get offset by 1 pixel in the other direction, this
 	;@ fixes the squashed look on the multi-quad sprites.
-	cmp r0,r1
-	addne r4,r4,r0
+	cmp r1,r4,lsl#16
+	addne r4,r4,r4,lsl#16
 
 	ldrb r2,[suzptr,#suzSprCtl0]
 	adr r3,sprTypeTbl
 	and r2,r2,#7
 	ldr r11,[r3,r2,lsl#2]
-	mov r10,r0,lsl#16			;@ Bottom part is "onScreen"
 	ldrh r6,[suzptr,#suzSprHSiz]
 	;@ Zero/Force the horizontal scaling accumulator
-	adds r0,r0,#1
-	ldrhne r0,[suzptr,#suzHSizOff]	;@ If hSign == 1
+	adds r0,r10,#0x10000
+	ldrhcc r0,[suzptr,#suzHSizOff]	;@ If hSign == 1
 	orr r6,r6,r0,lsl#16
+	mov r10,#0					;@ Bottom part is "onScreen"
 horizontalLoop:
 	bl suzLineGetPixel			;@ Returns pixel in r5.
 	cmp r5,#0x80
 	beq exitRender
 	add r6,r6,r6,lsl#16			;@ HSIZACUM.Word += SPRHSIZ.Word
-	movs r7,r6,lsr#24			;@ pixel_width = HSIZACUM.Byte.High
+	movs r0,r6,lsr#24			;@ pixel_width = HSIZACUM.Byte.High
 	beq horizontalLoop
-	bic r6,r6,#0xFF000000		;@ HSIZACUM.Byte.High = 0
+	sub r6,r6,r0,lsl#25			;@ HSIZACUM.Byte.High = 0
 rendLoop:
-	cmp r4,#GAME_WIDTH
+	cmp r4,#GAME_WIDTH<<16
 	bcs checkBail
 	blx r11						;@ ProcessPixel(hOff, pix)
 	orr r10,r10,#1				;@ onScreen = TRUE
 continueRend:
-	add r4,r4,r10,asr#16		;@ hOff += hSign
-	subs r7,r7,#1
-	bne rendLoop
+	add r4,r4,r4,lsl#16			;@ hOff += hSign
+	adds r6,r6,#0x01000000
+	bcc rendLoop
 	b horizontalLoop
 checkBail:
 	tst r10,#1
@@ -1183,15 +1177,14 @@ suzLineGetPixel:			;@ Out r5=pixel
 	stmfd sp!,{lr}
 	ldr r1,[suzptr,#suzLineRepeatCount]
 	ldrb r2,[suzptr,#suzLineType]
-	cmp r1,#0
-	beq fetchPacket
+	subs r0,r1,#1
+	bmi fetchPacket
 
 fetchPixel:
 	movs r2,r2,lsr#1			;@ Check bit #0 & #7
 	bne doLiteralLine
 checkMoreLineType:
-	sub r1,r1,#1
-	str r1,[suzptr,#suzLineRepeatCount]
+	str r0,[suzptr,#suzLineRepeatCount]
 	bcc fetchPacked				;@ line_packed?
 	bl suzGetPixelBits
 	add r1,suzptr,#suzPenIndex
@@ -1356,14 +1349,14 @@ sprBgrNoColl:
 ;@----------------------------------------------------------------------------
 suzWritePixel:				;@ In r4=hoff, r5=pixel.
 ;@----------------------------------------------------------------------------
-	ldr r2,[suzptr,#suzLineBaseAddress]
-	tst r4,#1
-	ldrb r3,[r2,r4,lsr#1]
+//	ldr r2,[suzptr,#suzLineBaseAddress]
+	ldrb r3,[r8,r4,lsr#17]
+	tst r4,#0x10000
 	andeq r3,r3,#0x0F
 	orreq r3,r3,r5,lsl#4
 	andne r3,r3,#0xF0
 	orrne r3,r3,r5
-	strb r3,[r2,r4,lsr#1]
+	strb r3,[r8,r4,lsr#17]
 
 	add r9,r9,#2*3				;@ 2*SPR_RDWR_CYC
 
@@ -1371,12 +1364,12 @@ suzWritePixel:				;@ In r4=hoff, r5=pixel.
 ;@----------------------------------------------------------------------------
 suzXorPixel:				;@ In r4=hoff, r5=pixel.
 ;@----------------------------------------------------------------------------
-	ldr r2,[suzptr,#suzLineBaseAddress]
-	tst r4,#1
-	ldrb r3,[r2,r4,lsr#1]
+//	ldr r2,[suzptr,#suzLineBaseAddress]
+	ldrb r3,[r8,r4,lsr#17]
+	tst r4,#0x10000
 	eoreq r3,r3,r5,lsl#4
 	eorne r3,r3,r5
-	strb r3,[r2,r4,lsr#1]
+	strb r3,[r8,r4,lsr#17]
 
 	add r9,r9,#3*3				;@ 3*SPR_RDWR_CYC
 
@@ -1388,13 +1381,13 @@ suzWriteCollision:			;@ In r4=hoff.
 	cmp r1,#0x10
 	bxpl lr
 	ldr r2,[suzptr,#suzLineCollisionAddress]
-	tst r4,#1
-	ldrb r3,[r2,r4,lsr#1]
+	tst r4,#0x10000
+	ldrb r3,[r2,r4,lsr#17]
 	andeq r3,r3,#0x0F
 	orreq r3,r3,r1,lsl#4
 	andne r3,r3,#0xF0
 	orrne r3,r3,r1
-	strb r3,[r2,r4,lsr#1]
+	strb r3,[r2,r4,lsr#17]
 
 	add r9,r9,#2*3				;@ 2*SPR_RDWR_CYC
 
@@ -1406,15 +1399,15 @@ suzTestCollision:			;@ In r4=hoff. Out r0=collision
 	cmp r1,#0x10
 	bxpl lr
 	ldr r2,[suzptr,#suzLineCollisionAddress]
-	tst r4,#1
-	ldrb r3,[r2,r4,lsr#1]
+	tst r4,#0x10000
+	ldrb r3,[r2,r4,lsr#17]
 	moveq r0,r3,lsr#4
 	andeq r3,r3,#0x0F
 	orreq r3,r3,r1,lsl#4
 	andne r0,r3,#0x0F
 	andne r3,r3,#0xF0
 	orrne r3,r3,r1
-	strb r3,[r2,r4,lsr#1]
+	strb r3,[r2,r4,lsr#17]
 
 	ldrb r2,[suzptr,#suzCollision]
 	cmp r2,r0

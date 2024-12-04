@@ -46,9 +46,6 @@
 
 #define SUSIE_CPP
 
-//#include <crtdbg.h>
-//#define TRACE_SUSIE
-
 #include "system.h"
 #include "susie.h"
 #include "lynxdef.h"
@@ -103,24 +100,20 @@
 CSusie::CSusie(CSystem& parent)
 	:mSystem(parent)
 {
-	TRACE_SUSIE0("CSusie()");
 	Reset();
 }
 
 CSusie::~CSusie()
 {
-	TRACE_SUSIE0("~CSusie()");
 }
 
 void CSusie::Reset(void)
 {
-	TRACE_SUSIE0("Reset()");
 }
 
 ULONG CSusie::PaintSprites(void)
 {
 	if (!mSUZYBUSEN || !(mSPRGO & 0x01)) {
-		TRACE_SUSIE0("PaintSprites() Returned !mSUZYBUSEN || !mSPRGO");
 		return 0;
 	}
 
@@ -169,8 +162,6 @@ ULONG CSusie::PaintSprites(void)
 						{
 							UWORD coldep = mSCBADR.Word+mCOLLOFF.Word;
 							RAM_POKE(coldep, mCollision);
-							TRACE_SUSIE2("PaintSprites() COLLOFF=$%04x SCBADR=$%04x", mCOLLOFF.Word, mSCBADR.Word);
-							TRACE_SUSIE2("PaintSprites() Wrote $%02x to SCB collision depositary at $%04x", mCollision, coldep);
 						}
 						break;
 					default:
@@ -183,8 +174,6 @@ ULONG CSusie::PaintSprites(void)
 				UBYTE coldat = RAM_PEEK(coldep);
 				if (!everonscreen) coldat |= 0x80; else coldat &= 0x7f;
 				RAM_POKE(coldep, coldat);
-				TRACE_SUSIE0("PaintSprites() EVERON IS ACTIVE");
-				TRACE_SUSIE2("PaintSprites() Wrote $%02x to SCB collision depositary at $%04x", coldat, coldep);
 			}
 		}
 
