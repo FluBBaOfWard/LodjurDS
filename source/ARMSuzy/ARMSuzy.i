@@ -173,6 +173,7 @@ sprSys_Mathbit:		.long 0
 sprSys_MathInProgress:	.long 0
 everOnScreen:		.long 0
 
+suzSprTypeFunc:		.long 0
 suzLineBaseAddress:	.long 0		;@ Current dest line adr.
 suzLineCollisionAddress:	.long 0		;@ Current collision dest line adr.
 suzyCyclesUsed:		.long 0		;@ Cycles used to paint sprites.

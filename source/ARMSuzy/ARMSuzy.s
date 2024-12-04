@@ -39,7 +39,7 @@
 #endif
 	.align 2
 ;@----------------------------------------------------------------------------
-suzyInit:				;@ Only need to be called once
+suzyInit:					;@ Only need to be called once
 ;@----------------------------------------------------------------------------
 	mov r1,#0xffffff00			;@ Build chr decode tbl
 	ldr r3,=CHR_DECODE			;@ 0x200
@@ -69,7 +69,7 @@ bgrLoop:
 
 	bx lr
 ;@----------------------------------------------------------------------------
-suzyReset:		;@ r0=ram, r12=suzptr
+suzyReset:					;@ r0=ram, r12=suzptr
 ;@----------------------------------------------------------------------------
 	stmfd sp!,{r0,lr}
 
@@ -407,7 +407,7 @@ suHRevR:					;@ Suzy HW Revision (0xFC88)
 suSprSysR:					;@ Sprite Sys (0xFC92)
 ;@----------------------------------------------------------------------------
 	ldrb r0,[suzptr,#suzSprSys]
-	and r0,r0,#0x1A						;@ StopOnCurrent, LeftHand & VStretch
+	and r0,r0,#0x1A				;@ StopOnCurrent, LeftHand & VStretch
 	ldrb r1,[suzptr,#suzSprSysStat]
 	bic r1,r1,#0x1A
 	orr r0,r0,r1
@@ -416,11 +416,11 @@ suSprSysR:					;@ Sprite Sys (0xFC92)
 suJoystickR:				;@ Suzy Joystick (0xFCB0)
 ;@----------------------------------------------------------------------------
 	ldrb r0,[suzptr,#suzSprSys]
-	tst r0,#0x08						;@ LeftHand
+	tst r0,#0x08				;@ LeftHand
 	ldrb r0,[suzptr,#suzJoystick]
 	bxne lr
 	adr r1,joyFlipTbl
-	and r2,r0,#0xF						;@ Keep buttons
+	and r2,r0,#0xF				;@ Keep buttons
 	ldrb r0,[r1,r0,lsr#4]
 	orr r0,r2,r0,lsl#4
 	bx lr
@@ -674,12 +674,12 @@ suMathCW:					;@ Math C Register (0xFC53)
 	ldrb r0,[suzptr,#suzMathD]
 	orr r0,r0,r1,lsl#8
 	ldrb r2,[suzptr,#suzSprSys]
-	tst r2,#0x80						;@ SignedMath
+	tst r2,#0x80				;@ SignedMath
 	beq noSignedCD
 	;@ Account for the math bug that 0x8000 is +ve & 0x0000 is -ve by subracting 1
 	sub r1,r0,#1
 	tst r1,#0x8000
-	rsbne r0,r0,#0						;@ Negate CD
+	rsbne r0,r0,#0				;@ Negate CD
 	mov r1,#1
 	movne r1,#-1
 	str r1,[suzptr,#mathCD_sign]
@@ -692,26 +692,26 @@ suMathAW:					;@ Math A Register (0xFC55)
 	ldrb r0,[suzptr,#suzMathB]
 	orr r0,r0,r1,lsl#8
 	ldrb r2,[suzptr,#suzSprSys]
-	tst r2,#0x80						;@ SignedMath
+	tst r2,#0x80				;@ SignedMath
 	beq noSignedAB
 	;@ Account for the math bug that 0x8000 is +ve & 0x0000 is -ve by subracting 1
 	sub r1,r0,#1
 	tst r1,#0x8000
-	rsbne r0,r0,#0						;@ Negate AB
+	rsbne r0,r0,#0				;@ Negate AB
 	mov r1,#1
 	movne r1,#-1
 	str r1,[suzptr,#mathAB_sign]
 noSignedAB:
 	strh r0,[suzptr,#suzMathAB]
 ;@----------------------------------------------------------------------------
-;@ suzDoMultiply:				;@
+;@ suzDoMultiply:			;@
 ;@----------------------------------------------------------------------------
 	mov r1,#0
 	str r1,[suzptr,#sprSys_Mathbit]
 	ldrh r0,[suzptr,#suzMathAB]
 	ldrh r1,[suzptr,#suzMathCD]
 	mul r3,r1,r0
-	tst r2,#0x80						;@ SignedMath
+	tst r2,#0x80				;@ SignedMath
 	beq noSignedMult
 	ldrd r0,r1,[suzptr,#mathAB_sign]	;@ r1=mathCD_sign
 //	ldr r1,[suzptr,#mathCD_sign]
@@ -720,7 +720,7 @@ noSignedAB:
 noSignedMult:
 	str r3,[suzptr,#suzMathEFGH]
 
-	tst r2,#0x40						;@ Accumulate
+	tst r2,#0x40				;@ Accumulate
 	ldrne r0,[suzptr,#suzMathJKLM]
 	addne r0,r0,r3
 	strne r0,[suzptr,#suzMathJKLM]
@@ -801,6 +801,10 @@ suzFetchSpriteData:
 	add r4,r4,r5
 
 	ldrb r1,[r4],#1
+	ldr r2,=sprTypeTbl
+	and r0,r1,#7
+	ldr r3,[r2,r0,lsl#2]
+	str r3,[suzptr,#suzSprTypeFunc]
 	bl suSprCtl0W
 
 	ldrb r6,[r4],#1
@@ -903,6 +907,7 @@ suzRenderQuads:				;@
 ;@----------------------------------------------------------------------------
 	ldr suzptr,=suzy_0
 	stmfd sp!,{r4-r11,lr}
+	ldr r9,[suzptr,#suzyCyclesUsed]
 
 	;@ Quadrant drawing order is: SE,NE,NW,SW
 	;@ start quadrant is given by sprite_control1:0 & 1
@@ -922,7 +927,7 @@ suzRenderQuads:				;@
 
 	mov r6,r10					;@ r6=hQuadOff
 	mov r7,r1					;@ r7=vQuadOff
-	mov r9,#4					;@ Quad count
+	mov r5,#4					;@ Quad count
 quadLoop:
 	ldrh r8,[suzptr,#suzVPosStrt]
 	ldrh r0,[suzptr,#suzVOff]
@@ -947,10 +952,17 @@ quadLoop:
 	orr r11,r11,r0,lsl#16
 
 verticalLoop:
-	bl suzLineStart
+;@------------------------------------
+suzLineStart:
+;@------------------------------------
+	ldrh r1,[suzptr,#suzSprDLine]
+	ldr r2,[suzptr,#suzyRAM]
+	ldrb r0,[r2,r1]
+	add r9,r9,#3				;@ SPR_RDWR_CYC
+
 	strh r0,[suzptr,#suzSprDOff]
 	cmp r0,#1
-	ldrheq r1,[suzptr,#suzSprDLine]
+//	ldrheq r1,[suzptr,#suzSprDLine]
 	addeq r1,r1,r0
 	strheq r1,[suzptr,#suzSprDLine]
 	beq exitQuad
@@ -963,14 +975,14 @@ verticalLoop:
 v2Loop:
 	cmp r8,#GAME_HEIGHT<<16
 	bcs checkVBail
-//	mov r0,r10				;@ hSign
-	mov r1,r6				;@ hQuadOff
-	mov r2,r8,lsr#16		;@ vOff
+//	mov r0,r10					;@ hSign
+	mov r1,r6					;@ hQuadOff
+	mov r2,r8,lsr#16			;@ vOff
 	bl suzLineRender
 keepRendering:
-	add r8,r8,r8,lsl#16		;@ vOff += vSign
+	add r8,r8,r8,lsl#16			;@ vOff += vSign
 	ldrb r0,[suzptr,#suzSprCtl1]
-	movs r0,r0,lsl#27		;@ Check ReloadDepth
+	movs r0,r0,lsl#27			;@ Check ReloadDepth
 	bcc noStretchTilt
 	bpl noTilt
 	ldrh r0,[suzptr,#suzTilt]
@@ -983,7 +995,7 @@ noTilt:
 	add r1,r1,r0
 	strh r1,[suzptr,#suzSprHSiz]
 	ldrb r2,[suzptr,#suzSprSys]
-	tst r2,#0x10			;@ Check VStretch
+	tst r2,#0x10				;@ Check VStretch
 	ldrhne r1,[suzptr,#suzSprVSiz]
 	addne r1,r1,r0
 	strhne r1,[suzptr,#suzSprVSiz]
@@ -1000,15 +1012,16 @@ exitQuad:
 	mov r1,r8,lsl#16
 	;@ Flip quadrant bit value (0-1)
 	eors r4,r4,#1
-	rsbeq r10,r10,#0		;@ hSign = -hSign
-	rsbne r1,r1,#0			;@ vSign = -vSign
+	rsbeq r10,r10,#0			;@ hSign = -hSign
+	rsbne r1,r1,#0				;@ vSign = -vSign
 
-	subs r9,r9,#1
+	subs r5,r5,#1
 	bne quadLoop
 
 exitQuadLoop:
 //	mov r11,r11,lsr#16
 //	strh r11,[suzptr,#suzVSizAcum]
+	str r9,[suzptr,#suzyCyclesUsed]
 	ldmfd sp!,{r4-r11,lr}
 	bx lr
 checkVBail:
@@ -1018,22 +1031,9 @@ checkVBail:
 //	bpl breakV2Loop
 	b keepRendering
 ;@----------------------------------------------------------------------------
-suzLineStart:				;@ Out = SPRDOFF.
-;@----------------------------------------------------------------------------
-	ldrh r1,[suzptr,#suzSprDLine]
-	ldr r2,[suzptr,#suzyRAM]
-	ldrb r0,[r2,r1]
-
-	ldr r1,[suzptr,#suzyCyclesUsed]
-	add r1,r1,#3				;@ SPR_RDWR_CYC
-	str r1,[suzptr,#suzyCyclesUsed]
-
-	bx lr
-;@----------------------------------------------------------------------------
 suzLineRender:				;@ In r10=hSign, r1=hQuadOff, r2=vOff.
 ;@----------------------------------------------------------------------------
-	stmfd sp!,{r4-r11,lr}
-	ldr r9,[suzptr,#suzyCyclesUsed]
+	stmfd sp!,{r4-r8,r10,r11,lr}
 
 	ldr r6,[suzptr,#suzVidBas]	;@ Also suzCollBas
 	mov r5,r6,lsl#16
@@ -1047,7 +1047,7 @@ suzLineRender:				;@ In r10=hSign, r1=hQuadOff, r2=vOff.
 	str r6,[suzptr,#suzLineCollisionAddress]
 
 	ldrh r5,[suzptr,#suzSprDLine]
-	ldrb r2,[r7,r5]
+	ldrb r2,[suzptr,#suzSprDOff]
 	add r5,r5,#1
 	strh r5,[suzptr,#suzTmpAdr]
 	sub r5,r2,#1
@@ -1058,7 +1058,7 @@ suzLineRender:				;@ In r10=hSign, r1=hQuadOff, r2=vOff.
 
 	mov r6,#0
 	str r6,[suzptr,#suzLineShiftRegCount]
-	str r6,[suzptr,#suzLineShiftReg]
+//	str r6,[suzptr,#suzLineShiftReg]
 
 	ldrb r7,[suzptr,#suzSprCtl1]
 	ands r7,r7,#0x80			;@ Literal -> line_abs_literal
@@ -1067,7 +1067,7 @@ suzLineRender:				;@ In r10=hSign, r1=hQuadOff, r2=vOff.
 	str r6,[suzptr,#suzLineRepeatCount]
 
 ;@----------------------------------------------------------------------------
-suzRenderLine:				;@ In r0=hSign, r1=hQuadOff.
+suzRenderLine:				;@ In r10=hSign, r1=hQuadOff.
 ;@----------------------------------------------------------------------------
 
 	;@ Work out the horizontal pixel start position, start + tilt
@@ -1088,10 +1088,7 @@ suzRenderLine:				;@ In r0=hSign, r1=hQuadOff.
 	cmp r1,r4,lsl#16
 	addne r4,r4,r4,lsl#16
 
-	ldrb r2,[suzptr,#suzSprCtl0]
-	adr r3,sprTypeTbl
-	and r2,r2,#7
-	ldr r11,[r3,r2,lsl#2]
+	ldr r11,[suzptr,#suzSprTypeFunc]
 	ldrh r6,[suzptr,#suzSprHSiz]
 	;@ Zero/Force the horizontal scaling accumulator
 	adds r0,r10,#0x10000
@@ -1122,8 +1119,7 @@ checkBail:
 exitRender:
 	ands r0,r10,#1				;@ onScreen
 	strne r0,[suzptr,#everOnScreen]
-	str r9,[suzptr,#suzyCyclesUsed]
-	ldmfd sp!,{r4-r11,lr}
+	ldmfd sp!,{r4-r8,r10,r11,lr}
 	bx lr
 
 ;@----------------------------------------------------------------------------
@@ -1349,7 +1345,6 @@ sprBgrNoColl:
 ;@----------------------------------------------------------------------------
 suzWritePixel:				;@ In r4=hoff, r5=pixel.
 ;@----------------------------------------------------------------------------
-//	ldr r2,[suzptr,#suzLineBaseAddress]
 	ldrb r3,[r8,r4,lsr#17]
 	tst r4,#0x10000
 	andeq r3,r3,#0x0F
@@ -1364,7 +1359,6 @@ suzWritePixel:				;@ In r4=hoff, r5=pixel.
 ;@----------------------------------------------------------------------------
 suzXorPixel:				;@ In r4=hoff, r5=pixel.
 ;@----------------------------------------------------------------------------
-//	ldr r2,[suzptr,#suzLineBaseAddress]
 	ldrb r3,[r8,r4,lsr#17]
 	tst r4,#0x10000
 	eoreq r3,r3,r5,lsl#4

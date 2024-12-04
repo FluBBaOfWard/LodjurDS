@@ -162,6 +162,7 @@ typedef struct {
 	int sprSys_MathInProgress;
 	int everOnScreen;
 
+	void (*sprTypeFunc)(void);
 	u32 lineBaseAddress;
 	u32 lineCollisionAddress;
 	u32 cyclesUsed;				// Cycles used to paint sprites.
