@@ -144,7 +144,7 @@ ULONG CSusie::PaintSprites(void)
 //			{
 //				mCollision = RAM_PEEK((mSCBADR.Word+mCOLLOFF.Word) & 0xffff) & 0x0f;
 //			}
-//			mCollision = 0;
+			mCollision = 0;
 
 			// Now we can start painting
 

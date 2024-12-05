@@ -25,6 +25,7 @@
 	.global suzyGetStateSize
 	.global suzyRead
 	.global suzyWrite
+	.global suzPaintSprites
 	.global suzySetButtonData
 	.global suzFetchSpriteData
 	.global suzRenderQuads
@@ -787,6 +788,89 @@ suzySetButtonData:			;@ r0=buttons & switches, r12=suzptr.
 	strh r0,[suzptr,#suzJoystick]
 	bx lr
 
+;@----------------------------------------------------------------------------
+suzPaintSprites:			;@ Out r0=cycles used
+	.type	suzPaintSprites STT_FUNC
+;@----------------------------------------------------------------------------
+	ldr suzptr,=suzy_0
+	ldrh r0,[suzptr,#suzSuzyBusEn]
+	and r0,r0,r0,lsr#8
+	ands r0,r0,#1					;@ Is BusEnable & SprGo set?
+	bxeq lr
+
+	stmfd sp!,{r4-r6,r9,lr}
+	mov r9,#0
+	str r9,[suzptr,#suzyCyclesUsed]
+	str r9,[suzptr,#everOnScreen]
+	mov r4,#0
+	mov r0,#1
+	str r0,[suzptr,#sprSys_Busy]
+spriteLoop:
+	ldrb r0,[suzptr,#suzSCBNextH]
+	cmp r0,#0
+	beq exitPaintSprite
+
+	bl suzFetchSpriteData
+
+	ldrb r0,[suzptr,#suzSprCtl1]
+	ands r0,r0,#0x04				;@ Skip sprite?
+	bne skipSprite
+	strb r0,[suzptr,#suzCollision]
+
+	bl suzRenderQuads
+
+	ldrb r0,[suzptr,#suzSprColl]
+	cmp r0,#0x10
+	bcs noSprCollWrite
+	ldrb r0,[suzptr,#suzSprCtl0]
+	ands r0,r0,#0x07				;@ Sprite Type, sprite_background_shadow
+	cmpne r0,#1						;@ sprite_background_noncollide
+	cmpne r0,#5						;@ sprite_noncollide
+	beq noSprCollWrite
+	ldrh r0,[suzptr,#suzSCBAdr]
+	ldrh r1,[suzptr,#suzCollOff]
+	ldr r2,[suzptr,#suzyRAM]
+	add r0,r0,r1
+	mov r0,r0,lsl#16
+	ldrb r1,[suzptr,#suzCollision]
+	strb r1,[r2,r0,lsr#16]
+noSprCollWrite:
+
+	ldrb r0,[suzptr,#suzSprGo]
+	tst r0,#0x04					;@ Everon?
+	beq skipSprite
+	ldrh r0,[suzptr,#suzSCBAdr]
+	ldrh r1,[suzptr,#suzCollOff]
+	ldr r2,[suzptr,#suzyRAM]
+	add r0,r0,r1
+	mov r0,r0,lsl#16
+	ldrb r1,[r2,r0,lsr#16]
+	ldr r3,[suzptr,#everOnScreen]
+	cmp r3,#0
+	orreq r1,r1,#0x80
+	bicne r1,r1,#0x80
+	strb r1,[r2,r0,lsr#16]
+
+skipSprite:
+	ldrb r0,[suzptr,#suzSprSys]
+	tst r0,#0x02					;@ Stop on Current?
+	bne exitPaintSprite
+	add r4,r4,#1
+	cmp r4,#0x1000
+	bmi spriteLoop
+	;@ Something fishy going on...
+
+exitPaintSprite:
+	mov r0,#0
+	str r0,[suzptr,#sprSys_Busy]
+	ldrb r0,[suzptr,#suzSprGo]
+	bic r0,r0,#1
+	strb r0,[suzptr,#suzSprGo]
+
+	ldr r9,[suzptr,#suzyCyclesUsed]
+	mov r0,r9
+	ldmfd sp!,{r4-r6,r9,lr}
+	bx lr
 ;@----------------------------------------------------------------------------
 suzFetchSpriteData:
 	.type	suzFetchSpriteData STT_FUNC
