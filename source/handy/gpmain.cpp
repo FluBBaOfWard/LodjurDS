@@ -12,7 +12,6 @@
 #include "../ARMMikey/ARMMikey.h"
 
 extern "C" {
-u32 paintSprites(void);
 void runTimer4(u32 sysCount);
 void cartPoke(u32 addr, u8 data);
 void mikiePoke(u32 addr, u8 data);
@@ -27,9 +26,6 @@ bool gScreenUpdateRequired = false;
 
 CSystem *newsystem = NULL;
 
-u32 paintSprites() {
-	return newsystem->mSusie->PaintSprites();
-}
 void runTimer4(u32 sysCount) {
 	newsystem->mMikie->UpdateTimer4(sysCount);
 }

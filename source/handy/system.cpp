@@ -34,8 +34,7 @@
 
 CSystem::CSystem(UBYTE *gamefile, int size, ULONG filetype, const char *romfile)
 	:mCart(NULL),
-	mMikie(NULL),
-	mSusie(NULL)
+	mMikie(NULL)
 {
 	mFileType = filetype;
 
@@ -65,7 +64,6 @@ CSystem::CSystem(UBYTE *gamefile, int size, ULONG filetype, const char *romfile)
 
 	// These can generate exceptions
 	mMikie = new CMikie(*this);
-	mSusie = new CSusie(*this);
 
 // Now init is complete do a reset, this will cause many things to be reset twice
 // but what the hell, who cares, I don't.....
@@ -79,7 +77,6 @@ CSystem::~CSystem()
 
 	if (mCart != NULL) delete mCart;
 	if (mMikie != NULL) delete mMikie;
-	if (mSusie != NULL) delete mSusie;
 }
 
 void CSystem::Reset(void)
@@ -99,5 +96,4 @@ void CSystem::Reset(void)
 
 	mCart->Reset();
 	mMikie->Reset();
-	mSusie->Reset();
 }

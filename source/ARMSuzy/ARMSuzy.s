@@ -25,10 +25,8 @@
 	.global suzyGetStateSize
 	.global suzyRead
 	.global suzyWrite
-	.global suzPaintSprites
 	.global suzySetButtonData
-	.global suzFetchSpriteData
-	.global suzRenderQuads
+	.global suzPaintSprites
 
 	.syntax unified
 	.arm
@@ -799,8 +797,7 @@ suzPaintSprites:			;@ Out r0=cycles used
 	bxeq lr
 
 	stmfd sp!,{r4-r6,r9,lr}
-	mov r9,#0
-	str r9,[suzptr,#suzyCyclesUsed]
+	mov r9,#0						;@ CyclesUsed
 	str r9,[suzptr,#everOnScreen]
 	mov r4,#0
 	mov r0,#1
@@ -867,18 +864,14 @@ exitPaintSprite:
 	bic r0,r0,#1
 	strb r0,[suzptr,#suzSprGo]
 
-	ldr r9,[suzptr,#suzyCyclesUsed]
 	mov r0,r9
 	ldmfd sp!,{r4-r6,r9,lr}
 	bx lr
 ;@----------------------------------------------------------------------------
-suzFetchSpriteData:
-	.type	suzFetchSpriteData STT_FUNC
+suzFetchSpriteData:			;@ In/Out r9=cyclesUsed
 ;@----------------------------------------------------------------------------
-	ldr suzptr,=suzy_0
-	stmfd sp!,{r4-r6,r9,lr}
+	stmfd sp!,{r4-r6,lr}
 	ldr r5,[suzptr,#suzyRAM]
-	ldr r9,[suzptr,#suzyCyclesUsed]
 	ldrh r4,[suzptr,#suzSCBNext]
 	strh r4,[suzptr,#suzSCBAdr]
 //	strh r4,[suzptr,#suzTmpAdr]
@@ -982,16 +975,12 @@ penLoop:
 skipPalette:
 	sub r4,r4,r5
 	strh r4,[suzptr,#suzTmpAdr]
-	str r9,[suzptr,#suzyCyclesUsed]
-	ldmfd sp!,{r4-r6,r9,lr}
+	ldmfd sp!,{r4-r6,lr}
 	bx lr
 ;@----------------------------------------------------------------------------
-suzRenderQuads:				;@
-	.type	suzRenderQuads STT_FUNC
+suzRenderQuads:				;@ In/Out r9=cyclesUsed
 ;@----------------------------------------------------------------------------
-	ldr suzptr,=suzy_0
-	stmfd sp!,{r4-r11,lr}
-	ldr r9,[suzptr,#suzyCyclesUsed]
+	stmfd sp!,{r4-r8,r10,r11,lr}
 
 	;@ Quadrant drawing order is: SE,NE,NW,SW
 	;@ start quadrant is given by sprite_control1:0 & 1
@@ -1104,8 +1093,7 @@ exitQuad:
 exitQuadLoop:
 //	mov r11,r11,lsr#16
 //	strh r11,[suzptr,#suzVSizAcum]
-	str r9,[suzptr,#suzyCyclesUsed]
-	ldmfd sp!,{r4-r11,lr}
+	ldmfd sp!,{r4-r8,r10,r11,lr}
 	bx lr
 checkVBail:
 	movsmi r1,r8,lsl#16

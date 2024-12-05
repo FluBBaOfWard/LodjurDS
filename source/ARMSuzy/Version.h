@@ -1,1 +1,1 @@
-#define ARMSUZYVERSION "V0.0.2"
+#define ARMSUZYVERSION "V0.1.0"

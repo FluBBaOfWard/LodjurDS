@@ -1,5 +1,5 @@
 ARMSuzy To do
 -------------------------------
 
-	Add check for dirty tiles in tilemap renderer.
+	Make faster skip when quad becomes out of bounds (vertical).
 

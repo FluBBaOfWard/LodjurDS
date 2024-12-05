@@ -72,7 +72,6 @@ class CSystem;
 #include "sysbase.h"
 #include "lynxbase.h"
 #include "lynxcart.h"
-#include "susie.h"
 #include "mikie.h"
 
 #define RAM_SIZE				0x10000
@@ -112,14 +111,9 @@ class CSystem : public CSystemBase
 		void	ComLynxRxData(int data)  { mMikie->ComLynxRxData(data); };
 		void	ComLynxTxCallback(void (*function)(int data, ULONG objref), ULONG objref) { mMikie->ComLynxTxCallback(function, objref); };
 
-// Suzy system interfacing
-
-		ULONG	PaintSprites(void) {return mSusie->PaintSprites();};
-
 	public:
 		CCart			*mCart;
 		CMikie			*mMikie;
-		CSusie			*mSusie;
 
 		ULONG			mFileType;
 };
