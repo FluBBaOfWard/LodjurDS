@@ -962,7 +962,6 @@ suzLineStart:
 
 	strh r0,[suzptr,#suzSprDOff]
 	cmp r0,#1
-//	ldrheq r1,[suzptr,#suzSprDLine]
 	addeq r1,r1,r0
 	strheq r1,[suzptr,#suzSprDLine]
 	beq exitQuad
@@ -1036,8 +1035,8 @@ suzLineRender:				;@ In r10=hSign, r1=hQuadOff, r2=vOff.
 	stmfd sp!,{r4-r8,r10,r11,lr}
 
 	ldr r6,[suzptr,#suzVidBas]	;@ Also suzCollBas
-	mov r5,r6,lsl#16
 	ldr r7,[suzptr,#suzyRAM]
+	mov r5,r6,lsl#16
 	add r2,r2,r2,lsl#2			;@ *5
 	add r5,r5,r2,lsl#4+16		;@ *16
 	add r8,r7,r5,lsr#16
@@ -1056,15 +1055,14 @@ suzLineRender:				;@ In r10=hSign, r1=hQuadOff, r2=vOff.
 
 	add r9,r9,#3				;@ SPR_RDWR_CYC
 
-	mov r6,#0
-	str r6,[suzptr,#suzLineShiftRegCount]
-//	str r6,[suzptr,#suzLineShiftReg]
+	mov r7,#0
+	str r7,[suzptr,#suzLineShiftRegCount]
 
-	ldrb r7,[suzptr,#suzSprCtl1]
-	ands r7,r7,#0x80			;@ Literal -> line_abs_literal
-	movne r6,r5					;@ LineRepeatCount = LinePacketBitsLeft
-	strb r7,[suzptr,#suzLineType]
-	str r6,[suzptr,#suzLineRepeatCount]
+	ldrb r6,[suzptr,#suzSprCtl1]
+	ands r6,r6,#0x80			;@ Literal -> line_abs_literal
+	moveq r5,r7					;@ LineRepeatCount = LinePacketBitsLeft
+	strb r6,[suzptr,#suzLineType]
+	str r5,[suzptr,#suzLineRepeatCount]
 
 ;@----------------------------------------------------------------------------
 suzRenderLine:				;@ In r10=hSign, r1=hQuadOff.
@@ -1075,9 +1073,8 @@ suzRenderLine:				;@ In r10=hSign, r1=hQuadOff.
 	ldrsb r4,[suzptr,#suzTiltAcumH]
 	ldrsh r2,[suzptr,#suzHOff]
 	add r3,r3,r4
-	mov r4,#0
 	strh r3,[suzptr,#suzHPosStrt]
-	strb r4,[suzptr,#suzTiltAcumH]
+	strb r7,[suzptr,#suzTiltAcumH]	;@ Zero TiltAcumH
 	sub r4,r3,r2				;@ r4=hOff
 	mov r4,r4,lsl#16
 	orr r4,r4,r10,lsr#16
@@ -1094,7 +1091,7 @@ suzRenderLine:				;@ In r10=hSign, r1=hQuadOff.
 	adds r0,r10,#0x10000
 	ldrhcc r0,[suzptr,#suzHSizOff]	;@ If hSign == 1
 	orr r6,r6,r0,lsl#16
-	mov r10,#0					;@ Bottom part is "onScreen"
+//	mov r7,#0					;@ Bottom part is "onScreen"
 horizontalLoop:
 	bl suzLineGetPixel			;@ Returns pixel in r5.
 	cmp r5,#0x80
@@ -1107,18 +1104,18 @@ rendLoop:
 	cmp r4,#GAME_WIDTH<<16
 	bcs checkBail
 	blx r11						;@ ProcessPixel(hOff, pix)
-	orr r10,r10,#1				;@ onScreen = TRUE
+	orr r7,r7,#1				;@ onScreen = TRUE
 continueRend:
 	add r4,r4,r4,lsl#16			;@ hOff += hSign
 	adds r6,r6,#0x01000000
 	bcc rendLoop
 	b horizontalLoop
 checkBail:
-	tst r10,#1
+	tst r7,#1
 	beq continueRend
 exitRender:
-	ands r0,r10,#1				;@ onScreen
-	strne r0,[suzptr,#everOnScreen]
+	ands r7,r7,#1				;@ onScreen
+	strne r7,[suzptr,#everOnScreen]
 	ldmfd sp!,{r4-r8,r10,r11,lr}
 	bx lr
 
