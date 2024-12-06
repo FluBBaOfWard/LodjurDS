@@ -166,9 +166,6 @@ lodjurFrameCallback:		;@ (void)
 	add r0,r0,#(((256-GAME_HEIGHT)/2) * SCREEN_WIDTH * 2)
 	add r0,r0,#SCREEN_WIDTH-GAME_WIDTH
 	str r0,currentDest
-	ldr r1,=gScreenUpdateRequired
-	mov r0,#1
-	strb r0,[r1]
 	bx lr
 
 ;@----------------------------------------------------------------------------

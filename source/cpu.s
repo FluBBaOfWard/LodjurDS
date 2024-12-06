@@ -48,13 +48,14 @@ runStart:
 
 	bl refreshEMUjoypads
 
-	ldr m6502ptr,=m6502_0
-	add r1,m6502ptr,#m6502Regs
-	ldmia r1,{m6502nz-m6502pc,m6502zpage}	;@ Restore M6502 state
-
+//	ldr m6502ptr,=m6502_0
+//	add r1,m6502ptr,#m6502Regs
+//	ldmia r1,{m6502nz-m6502pc,m6502zpage}	;@ Restore M6502 state
+//	ldr mikptr,=mikey_0
+	bl mikSysUpdate
 ;@----------------------------------------------------------------------------
-	add r0,m6502ptr,#m6502Regs
-	stmia r0,{m6502nz-m6502pc}	;@ Save M6502 state
+//	add r0,m6502ptr,#m6502Regs
+//	stmia r0,{m6502nz-m6502pc}	;@ Save M6502 state
 
 	ldrh r0,waitCountOut
 	add r0,r0,#1
@@ -94,12 +95,14 @@ stepFrame:					;@ Return after 1 frame
 	.type stepFrame STT_FUNC
 ;@----------------------------------------------------------------------------
 	stmfd sp!,{r4-r11,lr}
-	ldr m6502ptr,=m6502_0
-	add r1,m6502ptr,#m6502Regs
-	ldmia r1,{m6502nz-m6502pc,m6502zpage}	;@ Restore M6502 state
+//	ldr m6502ptr,=m6502_0
+//	add r1,m6502ptr,#m6502Regs
+//	ldmia r1,{m6502nz-m6502pc,m6502zpage}	;@ Restore M6502 state
+//	ldr mikptr,=mikey_0
+	bl mikSysUpdate
 ;@----------------------------------------------------------------------------
-	add r0,m6502ptr,#m6502Regs
-	stmia r0,{m6502nz-m6502pc}	;@ Save M6502 state
+//	add r0,m6502ptr,#m6502Regs
+//	stmia r0,{m6502nz-m6502pc}	;@ Save M6502 state
 
 	ldmfd sp!,{r4-r11,lr}
 	bx lr

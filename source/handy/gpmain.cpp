@@ -22,8 +22,6 @@ void GpDelete(void);
 void GpMain(void);
 }
 
-bool gScreenUpdateRequired = false;
-
 CSystem *newsystem = NULL;
 
 void runTimer4(u32 sysCount) {
@@ -71,14 +69,8 @@ void GpDelete() {
 }
 
 void GpMain() {
-	while (newsystem != NULL) {
-
+	if (newsystem != NULL) {
 		lnxSuzySetButtonData( joy0_R() );
 		mikSysUpdate();
-
-		if (gScreenUpdateRequired) {
-			gScreenUpdateRequired = FALSE;
-			return;
-		}
 	}
 }

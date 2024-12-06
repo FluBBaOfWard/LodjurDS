@@ -89,9 +89,10 @@ int main(int argc, char **argv) {
 		checkTimeOut();
 		guiRunLoop();
 		if (!pauseEmulation) {
-			GpMain();
+			lnxSuzySetButtonData( joy0_R() );
+			run();
+//			GpMain();
 			fpsValue += 1;
-//			run();
 		}
 	}
 	free(memPtr);

@@ -4,3 +4,6 @@
 [submodule "source/ARMMikey"]
 	path = source/ARMMikey
 	url = https://github.com/FluBBaOfWard/ARMMikey.git
+[submodule "source/ARMSuzy"]
+	path = source/ARMSuzy
+	url = https://github.com/FluBBaOfWard/ARMSuzy.git
