@@ -4,8 +4,6 @@
 #include "ARMMikey/ARMMikey.i"
 #include "ARMSuzy/ARMSuzy.i"
 
-	.global pokeCPU
-	.global peekCPU
 	.global empty_R
 	.global empty_W
 	.global empty_IO_R
@@ -57,13 +55,8 @@ rom_W:						;@ Write ROM address (error)
 	.align 2
 
 ;@----------------------------------------------------------------------------
-pokeCPU:
+pokeCPU:					;@ Mem/IO write ($FC00-$FFFF). In r0=adr, r1=val
 ;@----------------------------------------------------------------------------
-	cmp r0,#0xFC00
-	bpl checkIOW
-	strb r1,[m6502zpage,r0]
-	bx lr
-checkIOW:
 	ldrb r3,[mikptr,#memSelector]
 	and r2,r0,#0x300
 	ldr pc,[pc,r2,lsr#6]
@@ -84,7 +77,7 @@ checkVectorW:
 	bmi checkRomW
 	beq ramPoke
 	add r2,r2,#1
-	cmp r0,r2			;@ 0xFFF9
+	cmp r0,r2					;@ 0xFFF9
 	andeq r1,r1,#0xF
 	strbeq r1,[mikptr,#memSelector]
 	bxeq lr
@@ -101,14 +94,8 @@ ramPoke:
 	bx lr
 
 ;@----------------------------------------------------------------------------
-peekCPU:
+peekCPU:					;@ Mem/IO read ($FC00-$FFFF). In r0=adr. Out r0=val
 ;@----------------------------------------------------------------------------
-	cmp r0,#0xFC00
-	bpl checkIOR
-	mov r1,m6502zpage
-	ldrb r0,[r1,r0]!
-	bx lr
-checkIOR:
 	ldrb r3,[mikptr,#memSelector]
 	and r2,r0,#0x300
 	ldr pc,[pc,r2,lsr#6]
@@ -129,8 +116,8 @@ checkVectorR:
 	bmi checkRomR
 	beq ramPeek
 	add r2,r2,#1
-	cmp r0,r2			;@ 0xFFF9
-	moveq r0,r3			;@ MemSelector
+	cmp r0,r2					;@ 0xFFF9
+	moveq r0,r3					;@ MemSelector
 	bxeq lr
 	tst r3,#8
 	beq romPeek
@@ -165,6 +152,9 @@ ram6502R:					;@ Ram read ($0000-$DFFF)
 ;@----------------------------------------------------------------------------
 mem6502W7:					;@ Mem read ($E000-$FFFF)
 ;@----------------------------------------------------------------------------
+	cmp addy,#0xFC00
+	strbmi r1,[m6502zpage,addy]
+	bxmi lr
 	stmfd sp!,{r3,addy,lr}
 	mov r1,r0
 	mov r0,addy
@@ -173,6 +163,10 @@ mem6502W7:					;@ Mem read ($E000-$FFFF)
 ;@----------------------------------------------------------------------------
 mem6502R7:					;@ Mem read ($E000-$FFFF)
 ;@----------------------------------------------------------------------------
+	cmp addy,#0xFC00
+	movmi r1,m6502zpage
+	ldrbmi r0,[r1,addy]!
+	bxmi lr
 	stmfd sp!,{r3,addy,lr}
 	mov r0,addy
 	bl peekCPU

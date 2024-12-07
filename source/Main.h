@@ -20,7 +20,7 @@ void pausVBlank(int count);
 void setEmuSpeed(int speed);
 void setupMenuPalette(void);
 
-void GpInit(const unsigned char *gamerom, int size);
+void GpInit(u8 *gamerom, u32 size);
 void GpDelete(void);
 void GpMain(void);
 

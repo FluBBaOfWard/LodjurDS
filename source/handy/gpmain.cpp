@@ -1,8 +1,4 @@
 #include <nds.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <ctype.h>
 
 #include "system.h"
 #include "lynxdef.h"
@@ -17,7 +13,7 @@ void cartPoke(u32 addr, u8 data);
 void mikiePoke(u32 addr, u8 data);
 u8 cartPeek(u32 addr);
 u8 mikiePeek(u32 addr);
-void GpInit(unsigned char *gamerom, int size);
+void GpInit(u8 *gamerom, u32 size);
 void GpDelete(void);
 void GpMain(void);
 }
@@ -27,7 +23,7 @@ CSystem *newsystem = NULL;
 void runTimer4(u32 sysCount) {
 	newsystem->mMikie->UpdateTimer4(sysCount);
 }
-void cartPoke(ULONG addr, UBYTE data) {
+void cartPoke(u32 addr, u8 data) {
 	switch(addr & 0xff)
 	{
 // Cartridge writing ports
@@ -39,10 +35,10 @@ void cartPoke(ULONG addr, UBYTE data) {
 			break;
 	}
 }
-void mikiePoke(ULONG addr, UBYTE data) {
+void mikiePoke(u32 addr, u8 data) {
 	newsystem->mMikie->Poke(addr,data);
 }
-UBYTE cartPeek(ULONG addr) {
+UBYTE cartPeek(u32 addr) {
 	switch(addr & 0xff)
 	{
 // Cartridge reading ports
@@ -53,12 +49,12 @@ UBYTE cartPeek(ULONG addr) {
 	}
 	return 0xff;
 }
-UBYTE mikiePeek(ULONG addr) {
+UBYTE mikiePeek(u32 addr) {
 	return newsystem->mMikie->Peek(addr);
 }
 
-void GpInit(unsigned char *gamerom, int size) {
-	newsystem = new CSystem(gamerom, size, HANDY_FILETYPE_LNX, NULL);
+void GpInit(u8 *gamerom, u32 size) {
+	newsystem = new CSystem(gamerom, size);
 }
 
 void GpDelete() {

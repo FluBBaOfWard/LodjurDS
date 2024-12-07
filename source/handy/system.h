@@ -34,19 +34,11 @@
 #define HANDY_AUDIO_BUFFER_SIZE					(HANDY_AUDIO_SAMPLE_FREQ/HANDY_AUDIO_BUFFER_FREQ)
 #define HANDY_AUDIO_WAVESHAPER_TABLE_LENGTH		0x200000
 
-#define HANDY_FILETYPE_LNX		0
-#define HANDY_FILETYPE_HOMEBREW	1
-#define HANDY_FILETYPE_SNAPSHOT	2
-#define HANDY_FILETYPE_ILLEGAL	3
-
 //
 // Define the global variable list
 //
 #define gAudioLastUpdateCycle mikey_0.audioLastUpdateCycle
 #ifdef SYSTEM_CPP
-	ULONG	gCPUBootAddress = 0;
-	BOOL	gSystemHalt = FALSE;
-
 	ULONG	gAudioEnabled = FALSE;
 	UBYTE	*gAudioBuffer0; // UBYTE	gAudioBuffer0[HANDY_AUDIO_BUFFER_SIZE];
 	UBYTE	*gAudioBuffer1; // UBYTE	gAudioBuffer1[HANDY_AUDIO_BUFFER_SIZE];
@@ -54,10 +46,6 @@
 	UBYTE	*gAudioBuffer3; // UBYTE	gAudioBuffer3[HANDY_AUDIO_BUFFER_SIZE];
 	ULONG	gAudioBufferPointer = 0;
 #else
-
-	extern ULONG	gCPUBootAddress;
-	extern BOOL		gSystemHalt;
-
 	extern ULONG	gAudioEnabled;
 	extern UBYTE	*gAudioBuffer0; // extern UBYTE	gAudioBuffer0[HANDY_AUDIO_BUFFER_SIZE];
 	extern UBYTE	*gAudioBuffer1; // extern UBYTE	gAudioBuffer1[HANDY_AUDIO_BUFFER_SIZE];
@@ -80,21 +68,11 @@ class CSystem;
 class CSystem : public CSystemBase
 {
 	public:
-		CSystem(UBYTE *gamefile, int size, ULONG filetype, const char *romfile);
+		CSystem(UBYTE *gamefile, int size);
 		~CSystem();
 
 	public:
 		void	Reset(void);
-
-// High level cart access for debug etc
-
-		inline void  Poke_CART(ULONG addr, UBYTE data) {mCart->Poke(addr,data);};
-		inline UBYTE Peek_CART(ULONG addr) {return mCart->Peek(addr);};
-		inline void  CartBank(EMMODE bank) {mCart->BankSelect(bank);};
-		inline ULONG CartSize(void) {return mCart->ObjectSize();};
-		inline const char *CartGetName(void) { return mCart->CartGetName();};
-		inline const char *CartGetManufacturer(void) { return mCart->CartGetManufacturer();};
-		inline ULONG CartGetRotate(void) {return mCart->CartGetRotate();};
 
 // Low level cart access for Suzy, Mikey
 
@@ -114,8 +92,6 @@ class CSystem : public CSystemBase
 	public:
 		CCart			*mCart;
 		CMikie			*mMikie;
-
-		ULONG			mFileType;
 };
 
 

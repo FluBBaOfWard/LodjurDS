@@ -285,7 +285,6 @@ void CMikie::Poke(ULONG addr, UBYTE data)
 			if (!(data & 0x02)) {
 				TRACE_MIKIE1("CMikie::Poke(SYSCTL1) - Lynx power down occured at PC=$%04x.\n",mSystem.mCpu->GetPC());
 				mSystem.Reset();
-				gSystemHalt = TRUE;
 			}
 			mSystem.CartAddressStrobe((data & 0x01) ? TRUE : FALSE);
 			break;

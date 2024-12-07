@@ -80,13 +80,12 @@ class CCart : public CLynxBase
 		UBYTE	Peek(ULONG addr);
 		ULONG	ReadCycle(void) {return 15;};
 		ULONG	WriteCycle(void) {return 15;};
-		void	BankSelect(EMMODE newbank) {mBank = newbank;}
 		ULONG	ObjectSize(void) {return (mBank == bank0)?mMaskBank0+1:mMaskBank1+1;};
 
-		const char *CartGetName(void) { return mName;};
-		const char *CartGetManufacturer(void) { return mManufacturer; };
-		ULONG	CartGetRotate(void) { return mRotation;};
-		BOOL	CartHeaderLess(void) { return mHeaderLess;};
+//		const char *CartGetName(void) { return mName;};
+//		const char *CartGetManufacturer(void) { return mManufacturer; };
+//		ULONG	CartGetRotate(void) { return mRotation;};
+//		BOOL	CartHeaderLess(void) { return mHeaderLess;};
 
 // Access for the lynx itself, it has no idea of address etc as this is done by the
 // cartridge emulation hardware 

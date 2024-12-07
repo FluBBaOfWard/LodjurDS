@@ -61,7 +61,6 @@ CCart::CCart(UBYTE *gameData, ULONG gameSize)
 			mRotation = CART_NO_ROTATE;
 		}
 		else {
-
 			// Setup name & manufacturer
 			strlcpy(mName, (char *)&header.cartname, sizeof(mName));
 			strlcpy(mManufacturer, (char *)&header.manufname, sizeof(mManufacturer));
@@ -188,9 +187,6 @@ CCart::CCart(UBYTE *gameData, ULONG gameSize)
 
 	// Copy the cart banks from the image
 	if (gameSize) {
-		// As this is a cartridge boot unset the boot address
-
-		gCPUBootAddress = 0;
 
 		//
 		// Check if this is a headerless cart
@@ -253,24 +249,20 @@ inline UBYTE CCart::Peek(ULONG addr)
 
 void CCart::CartAddressStrobe(BOOL strobe)
 {
-	static BOOL last_strobe = 0;
-
-	mStrobe = strobe;
-
-	if (mStrobe) mCounter = 0;
+	if (strobe) mCounter = 0;
 
 	//
 	// Either of the two below seem to work OK.
 	//
-	// if(!strobe && last_strobe)
+	// if(!strobe && mStrobe)
 	//
-	if (mStrobe && !last_strobe) {
+	if (strobe && !mStrobe) {
 		// Clock a bit into the shifter
 		mShifter = mShifter<<1;
 		mShifter += mAddrData?1:0;
 		mShifter &= 0xff;
 	}
-	last_strobe = mStrobe;
+	mStrobe = strobe;
 }
 
 void CCart::CartAddressData(BOOL data)

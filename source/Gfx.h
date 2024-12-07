@@ -25,7 +25,6 @@ void paletteInit(u8 gammaVal);
 void updateLCDRefresh(void);
 void gfxRefresh(void);
 void lnxSuzySetButtonData(u16 value);
-void lnxSuzyWrite(u16 adr, u8 value);
 
 #ifdef __cplusplus
 } // extern "C"

@@ -32,41 +32,14 @@
 #include <stdlib.h>
 #include "system.h"
 
-CSystem::CSystem(UBYTE *gamefile, int size, ULONG filetype, const char *romfile)
+CSystem::CSystem(UBYTE *gamefile, int size)
 	:mCart(NULL),
 	mMikie(NULL)
 {
-	mFileType = filetype;
-
-	// Create the system objects that we'll use
-
 	// Attempt to load the cartridge
+	mCart = new CCart(gamefile, size);
 
-	if (mFileType == HANDY_FILETYPE_LNX) {
-		mCart = new CCart(gamefile, size);
-		if (mCart->CartHeaderLess()) {
-			char drive[3];
-			char dir[256];
-			char cartgo[256];
-			mFileType = HANDY_FILETYPE_HOMEBREW;
-//			_splitpath(romfile,drive,dir,NULL,NULL);
-			strcpy(cartgo,drive);
-			strcat(cartgo,dir);
-			strcat(cartgo,"howard.o");
-		}
-	}
-	else if (mFileType == HANDY_FILETYPE_HOMEBREW) {
-		mCart = new CCart(NULL, 0);
-	}
-	else {
-		mCart = new CCart(NULL, 0);
-	}
-
-	// These can generate exceptions
 	mMikie = new CMikie(*this);
-
-// Now init is complete do a reset, this will cause many things to be reset twice
-// but what the hell, who cares, I don't.....
 
 	Reset();
 }
@@ -81,18 +54,11 @@ CSystem::~CSystem()
 
 void CSystem::Reset(void)
 {
-	gCPUBootAddress = 0;
-	gSystemHalt = FALSE;
-
 	gAudioBufferPointer = 0;
 //	memset(gAudioBuffer0, 128, HANDY_AUDIO_BUFFER_SIZE);
 //	memset(gAudioBuffer1, 128, HANDY_AUDIO_BUFFER_SIZE);
 //	memset(gAudioBuffer2, 128, HANDY_AUDIO_BUFFER_SIZE);
 //	memset(gAudioBuffer3, 128, HANDY_AUDIO_BUFFER_SIZE);
-
-#ifdef _LYNXDBG
-	gSystemHalt = TRUE;
-#endif
 
 	mCart->Reset();
 	mMikie->Reset();
