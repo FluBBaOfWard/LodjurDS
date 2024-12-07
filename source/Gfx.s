@@ -22,6 +22,7 @@
 	.global gfxEndFrame
 	.global vblIrqHandler
 	.global lnxSuzySetButtonData
+	.global lnxSuzyPaintSprites
 	.global updateLCDRefresh
 	.global setScreenRefresh
 
@@ -396,6 +397,11 @@ lnxSuzySetButtonData:
 ;@----------------------------------------------------------------------------
 	adr suzptr,suzy_0
 	b suzySetButtonData
+;@----------------------------------------------------------------------------
+lnxSuzyPaintSprites:
+;@----------------------------------------------------------------------------
+	adr suzptr,suzy_0
+	b suzPaintSprites
 
 ;@----------------------------------------------------------------------------
 suzy_0:

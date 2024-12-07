@@ -185,19 +185,6 @@ CCart::CCart(UBYTE *gameData, ULONG gameSize)
 	memset(mCartBank0 + bank0size, DEFAULT_CART_CONTENTS, mMaskBank0+1 - bank0size);
 //	memset(mCartBank1 + bank1size, DEFAULT_CART_CONTENTS, mMaskBank1+1 - bank1size);
 
-	// Copy the cart banks from the image
-	if (gameSize) {
-
-		//
-		// Check if this is a headerless cart
-		//
-		mHeaderLess = TRUE;
-		for (int loop=0;loop<32;loop++) {
-			if (mCartBank0[loop & mMaskBank0] != 0x00) mHeaderLess = FALSE;
-		}
-		TRACE_CART1("CCart() - mHeaderLess=%d", mHeaderLess);
-	}
-
 	// Dont allow an empty Bank1 - Use it for shadow SRAM/EEPROM
 	if (banktype1 == UNUSED) {
 		// Delete the single byte allocated  earlier
@@ -246,7 +233,6 @@ inline UBYTE CCart::Peek(ULONG addr)
 	}
 }
 
-
 void CCart::CartAddressStrobe(BOOL strobe)
 {
 	if (strobe) mCounter = 0;
@@ -269,7 +255,6 @@ void CCart::CartAddressData(BOOL data)
 {
 	mAddrData = data;
 }
-
 
 void CCart::Poke0(UBYTE data)
 {
@@ -294,7 +279,6 @@ void CCart::Poke1(UBYTE data)
 		mCounter &= 0x07ff;
 	}
 }
-
 
 UBYTE CCart::Peek0(void)
 {
@@ -321,4 +305,3 @@ UBYTE CCart::Peek1(void)
 
 	return data;
 }
-
