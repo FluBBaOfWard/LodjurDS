@@ -58,12 +58,7 @@
 class CSystem;
 
 #include "sysbase.h"
-#include "lynxbase.h"
-#include "lynxcart2.h"
 #include "mikie.h"
-
-#define RAM_SIZE				0x10000
-#define DEFAULT_RAM_CONTENTS	0xff
 
 class CSystem : public CSystemBase
 {
@@ -74,15 +69,6 @@ class CSystem : public CSystemBase
 	public:
 		void	Reset(void);
 
-// Low level cart access for Suzy, Mikey
-
-		inline void  Poke_CARTB0(UBYTE data) {mCart->Poke0(data);};
-		inline void  Poke_CARTB1(UBYTE data) {mCart->Poke1(data);};
-		inline UBYTE Peek_CARTB0(void) {return mCart->Peek0();}
-		inline UBYTE Peek_CARTB1(void) {return mCart->Peek1();}
-		inline void  CartAddressStrobe(BOOL strobe) {mCart->CartAddressStrobe(strobe);};
-		inline void  CartAddressData(BOOL data) {mCart->CartAddressData(data);};
-
 // Mikey system interfacing
 
 		void	ComLynxCable(int status) { mMikie->ComLynxCable(status); };
@@ -90,7 +76,6 @@ class CSystem : public CSystemBase
 		void	ComLynxTxCallback(void (*function)(int data, ULONG objref), ULONG objref) { mMikie->ComLynxTxCallback(function, objref); };
 
 	public:
-		CCart			*mCart;
 		CMikie			*mMikie;
 };
 

@@ -288,18 +288,15 @@ void CMikie::Poke(ULONG addr, UBYTE data)
 				TRACE_MIKIE1("CMikie::Poke(SYSCTL1) - Lynx power down occured at PC=$%04x.\n",mSystem.mCpu->GetPC());
 				mSystem.Reset();
 			}
-			mSystem.CartAddressStrobe((data & 0x01) ? TRUE : FALSE);
-//			cartAddressStrobe(&cart_0, (data & 0x01) ? TRUE : FALSE);
+			cartAddressStrobe(&cart_0, (data & 0x01) ? TRUE : FALSE);
 			break;
 
 		case (IODAT & 0xff):
 			TRACE_MIKIE2("Poke(IODAT   ,%02x) at PC=%04x", data, mSystem.mCpu->GetPC());
 			mikey_0.ioDat = data;
-			mSystem.CartAddressData((data & 0x02) ? TRUE : FALSE);
-//			cartAddressData(&cart_0, (data & 0x02) ? TRUE : FALSE);
+			cartAddressData(&cart_0, (data & 0x02) ? TRUE : FALSE);
 			// Enable cart writes to BANK1 on AUDIN if AUDIN is set to output
-			if (mikey_0.ioDir & 0x10) mSystem.mCart->mWriteEnableBank1 = (data & 0x10) ? TRUE : FALSE;
-//			if (mikey_0.ioDir & 0x10) cart_0.cartWriteEnable1 = (data & 0x10) ? TRUE : FALSE;
+			if (mikey_0.ioDir & 0x10) cart_0.cartWriteEnable1 = (data & 0x10) ? TRUE : FALSE;
 			break;
 
 		case (SERCTL & 0xff):

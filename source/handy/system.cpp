@@ -33,11 +33,9 @@
 #include "system.h"
 
 CSystem::CSystem(UBYTE *gamefile, int size)
-	:mCart(NULL),
-	mMikie(NULL)
+	:mMikie(NULL)
 {
 	// Attempt to load the cartridge
-	mCart = new CCart(gamefile, size);
 
 	mMikie = new CMikie(*this);
 
@@ -48,7 +46,6 @@ CSystem::~CSystem()
 {
 	// Cleanup all our objects
 
-	if (mCart != NULL) delete mCart;
 	if (mMikie != NULL) delete mMikie;
 }
 
@@ -60,6 +57,5 @@ void CSystem::Reset(void)
 //	memset(gAudioBuffer2, 128, HANDY_AUDIO_BUFFER_SIZE);
 //	memset(gAudioBuffer3, 128, HANDY_AUDIO_BUFFER_SIZE);
 
-	mCart->Reset();
 	mMikie->Reset();
 }

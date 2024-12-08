@@ -24,8 +24,6 @@
 		9C41C6BC2C9F6DA50026DE6C /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
 		9C41C6BE2C9F6DA50026DE6C /* ARMSuzy.s */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.asm; path = ARMSuzy.s; sourceTree = "<group>"; };
 		9C41C6BF2C9F6DA50026DE6C /* Version.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Version.h; sourceTree = "<group>"; };
-		9C41C6C42CA32F7A0026DE6C /* lynxcart2.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = lynxcart2.h; sourceTree = "<group>"; };
-		9C41C6C52CA32F7A0026DE6C /* lynxcart2.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = lynxcart2.cpp; sourceTree = "<group>"; };
 		9C41C6CA2CA32F7A0026DE6C /* gpmain.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = gpmain.cpp; sourceTree = "<group>"; };
 		9C41C6CB2CA32F7A0026DE6C /* lynxdef.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = lynxdef.h; sourceTree = "<group>"; };
 		9C41C6CC2CA32F7A0026DE6C /* machine.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = machine.h; sourceTree = "<group>"; };
@@ -193,8 +191,6 @@
 				9C41C6CB2CA32F7A0026DE6C /* lynxdef.h */,
 				9C41C6CC2CA32F7A0026DE6C /* machine.h */,
 				9C41C6DF2CA84DBF0026DE6C /* lynxbase.h */,
-				9C41C6C42CA32F7A0026DE6C /* lynxcart2.h */,
-				9C41C6C52CA32F7A0026DE6C /* lynxcart2.cpp */,
 				9C41C6D22CA32F7A0026DE6C /* mikie.h */,
 				9C41C6D32CA32F7A0026DE6C /* mikie.cpp */,
 				9C41C6DB2CA32F7A0026DE6C /* sysbase.h */,

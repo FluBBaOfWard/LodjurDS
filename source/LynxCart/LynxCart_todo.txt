@@ -1,5 +1,5 @@
 LynxCart To do
 -------------------------------
 
-	Make faster...
+	Not sure how masking of cartCounter is made.
 
