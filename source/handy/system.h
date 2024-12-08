@@ -59,7 +59,7 @@ class CSystem;
 
 #include "sysbase.h"
 #include "lynxbase.h"
-#include "lynxcart.h"
+#include "lynxcart2.h"
 #include "mikie.h"
 
 #define RAM_SIZE				0x10000

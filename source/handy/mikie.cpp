@@ -39,6 +39,8 @@
 #include "lynxdef.h"
 #include "nds.h"
 #include "../Cpu.h"
+#include "../Cart.h"
+#include "../LynxCart/LynxCart.h"
 
 #define mTIM_4 mikey_0.timer4
 #define mAUDIO_0 mikey_0.audio0
@@ -287,14 +289,17 @@ void CMikie::Poke(ULONG addr, UBYTE data)
 				mSystem.Reset();
 			}
 			mSystem.CartAddressStrobe((data & 0x01) ? TRUE : FALSE);
+//			cartAddressStrobe(&cart_0, (data & 0x01) ? TRUE : FALSE);
 			break;
 
 		case (IODAT & 0xff):
 			TRACE_MIKIE2("Poke(IODAT   ,%02x) at PC=%04x", data, mSystem.mCpu->GetPC());
 			mikey_0.ioDat = data;
 			mSystem.CartAddressData((data & 0x02) ? TRUE : FALSE);
+//			cartAddressData(&cart_0, (data & 0x02) ? TRUE : FALSE);
 			// Enable cart writes to BANK1 on AUDIN if AUDIN is set to output
 			if (mikey_0.ioDir & 0x10) mSystem.mCart->mWriteEnableBank1 = (data & 0x10) ? TRUE : FALSE;
+//			if (mikey_0.ioDir & 0x10) cart_0.cartWriteEnable1 = (data & 0x10) ? TRUE : FALSE;
 			break;
 
 		case (SERCTL & 0xff):

@@ -24,8 +24,8 @@
 		9C41C6BC2C9F6DA50026DE6C /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
 		9C41C6BE2C9F6DA50026DE6C /* ARMSuzy.s */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.asm; path = ARMSuzy.s; sourceTree = "<group>"; };
 		9C41C6BF2C9F6DA50026DE6C /* Version.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Version.h; sourceTree = "<group>"; };
-		9C41C6C42CA32F7A0026DE6C /* lynxcart.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = lynxcart.h; sourceTree = "<group>"; };
-		9C41C6C52CA32F7A0026DE6C /* lynxcart.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = lynxcart.cpp; sourceTree = "<group>"; };
+		9C41C6C42CA32F7A0026DE6C /* lynxcart2.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = lynxcart2.h; sourceTree = "<group>"; };
+		9C41C6C52CA32F7A0026DE6C /* lynxcart2.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = lynxcart2.cpp; sourceTree = "<group>"; };
 		9C41C6CA2CA32F7A0026DE6C /* gpmain.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = gpmain.cpp; sourceTree = "<group>"; };
 		9C41C6CB2CA32F7A0026DE6C /* lynxdef.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = lynxdef.h; sourceTree = "<group>"; };
 		9C41C6CC2CA32F7A0026DE6C /* machine.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = machine.h; sourceTree = "<group>"; };
@@ -92,6 +92,13 @@
 		9C9B0E5B2C5A47B1004AE287 /* LynxBorder.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = LynxBorder.png; sourceTree = "<group>"; };
 		9C9B0E5C2C5A47C3004AE287 /* LynxLogo.bmp */ = {isa = PBXFileReference; lastKnownFileType = image.bmp; path = LynxLogo.bmp; sourceTree = "<group>"; };
 		9CB421802CF8CE8D00FF4F8A /* udiv32.s */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.asm; path = udiv32.s; sourceTree = "<group>"; };
+		9CB421842D05BBFF00FF4F8A /* History.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = History.txt; sourceTree = "<group>"; };
+		9CB421852D05BBFF00FF4F8A /* LynxCart.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = LynxCart.h; sourceTree = "<group>"; };
+		9CB421862D05BBFF00FF4F8A /* LynxCart.i */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c.preprocessed; path = LynxCart.i; sourceTree = "<group>"; };
+		9CB421872D05BBFF00FF4F8A /* LynxCart.s */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.asm; path = LynxCart.s; sourceTree = "<group>"; };
+		9CB421882D05BBFF00FF4F8A /* LynxCart_todo.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = LynxCart_todo.txt; sourceTree = "<group>"; };
+		9CB421892D05BBFF00FF4F8A /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
+		9CB4218A2D05BBFF00FF4F8A /* Version.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Version.h; sourceTree = "<group>"; };
 		9CBC0C8E26DD7C2A0039D17E /* README.md */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
 		9CC013FC2668FDD9005714F7 /* Emubase.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Emubase.h; sourceTree = "<group>"; };
 		9CEE818F2CBD76A300A7B738 /* ARMMikey.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ARMMikey.h; sourceTree = "<group>"; };
@@ -186,8 +193,8 @@
 				9C41C6CB2CA32F7A0026DE6C /* lynxdef.h */,
 				9C41C6CC2CA32F7A0026DE6C /* machine.h */,
 				9C41C6DF2CA84DBF0026DE6C /* lynxbase.h */,
-				9C41C6C42CA32F7A0026DE6C /* lynxcart.h */,
-				9C41C6C52CA32F7A0026DE6C /* lynxcart.cpp */,
+				9C41C6C42CA32F7A0026DE6C /* lynxcart2.h */,
+				9C41C6C52CA32F7A0026DE6C /* lynxcart2.cpp */,
 				9C41C6D22CA32F7A0026DE6C /* mikie.h */,
 				9C41C6D32CA32F7A0026DE6C /* mikie.cpp */,
 				9C41C6DB2CA32F7A0026DE6C /* sysbase.h */,
@@ -238,6 +245,20 @@
 				9C9B0E572C5A4208004AE287 /* lynx6.html */,
 			);
 			path = lynx_html;
+			sourceTree = "<group>";
+		};
+		9CB4218B2D05BBFF00FF4F8A /* LynxCart */ = {
+			isa = PBXGroup;
+			children = (
+				9CB421882D05BBFF00FF4F8A /* LynxCart_todo.txt */,
+				9CB421892D05BBFF00FF4F8A /* README.md */,
+				9CB421842D05BBFF00FF4F8A /* History.txt */,
+				9CB4218A2D05BBFF00FF4F8A /* Version.h */,
+				9CB421852D05BBFF00FF4F8A /* LynxCart.h */,
+				9CB421862D05BBFF00FF4F8A /* LynxCart.i */,
+				9CB421872D05BBFF00FF4F8A /* LynxCart.s */,
+			);
+			path = LynxCart;
 			sourceTree = "<group>";
 		};
 		9CEE81972CBD76A300A7B738 /* ARMMikey */ = {
@@ -310,6 +331,7 @@
 			children = (
 				9CEE81972CBD76A300A7B738 /* ARMMikey */,
 				9C41C6C02C9F6DA50026DE6C /* ARMSuzy */,
+				9CB4218B2D05BBFF00FF4F8A /* LynxCart */,
 				A47F092A20863AF5004E1DA6 /* Shared */,
 				9C41C6DE2CA32F7A0026DE6C /* handy */,
 				9CC013FC2668FDD9005714F7 /* Emubase.h */,

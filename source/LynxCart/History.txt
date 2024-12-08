@@ -1,0 +1,8 @@
+ARMSuzy revision history
+-=-=-=-=-=-=-=-=-=-=-=-=-
+
+V0.1.0 - 2024-12-05 (FluBBa)
+	Initial release (NDS).
+
+V0.0.1 - 2024-09-22 (FluBBa)
+	Started Coding.

@@ -1,5 +1,6 @@
 LodjurDS Todo
 
+	Create LynxCart in asm. First recreate lynx file handling.
 	Find speed hacks.
 
 GFX:

@@ -44,7 +44,6 @@ gfxInit:					;@ Called from machineInit
 ;@----------------------------------------------------------------------------
 	stmfd sp!,{lr}
 
-	bl suzyInit
 	bl gfxWinInit
 
 	ldmfd sp!,{pc}
@@ -68,7 +67,7 @@ gfxReset:					;@ Called with CPU reset
 	ldr r2,=lynxRAM
 	ldr r3,=gSOC
 	ldrb r3,[r3]
-	bl miVideoReset
+	bl mikeyReset
 
 	ldr r0,=lynxRAM
 	bl suzyReset0

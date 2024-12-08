@@ -4,6 +4,7 @@
 
 #include "ARMSuzy/ARMSuzy.i"
 #include "ARMMikey/ARMMikey.i"
+#include "LynxCart/LynxCart.i"
 
 	.global cartFlags
 	.global romSpacePtr
@@ -21,10 +22,13 @@
 	.global gSOC
 	.global gLang
 	.global gPaletteBank
+	.global cart_0
 
 	.global machineInit
 	.global loadCart
 	.global clearDirtyTiles
+	.global lnxCartRead
+	.global lnxCartWrite
 
 	.syntax unified
 	.arm
@@ -84,9 +88,16 @@ loadCart: 					;@ Called from C
 	ldr mikptr,=mikey_0
 
 	ldr r0,romSize
-	movs r1,r0,lsr#14			;@ 16kB blocks.
-	subne r1,r1,#1
+	movs r2,r0,lsr#14			;@ 16kB blocks.
+	subne r1,r2,#1
 	str r1,romMask				;@ romMask=romBlocks-1
+
+	ldr r0,=cart_0
+	ldr r1,romSpacePtr
+	add r1,r1,#64
+	mov r2,r2,lsl#14
+	mov r3,#0x10000
+	bl cartReset
 
 	ldrb r5,gMachine
 	cmp r5,#HW_LYNX_II
@@ -154,6 +165,26 @@ memoryMapInit:
 
 	bx lr
 ;@----------------------------------------------------------------------------
+lnxCartRead:				;@ r0=adr
+;@----------------------------------------------------------------------------
+	and r2,r0,#0xFF
+	cmp r2,#0xB2
+	ldr r0,=cart_0
+	beq cartRead0
+	cmp r2,#0xB3
+	beq cartRead1
+	bx lr
+;@----------------------------------------------------------------------------
+lnxCartWrite:				;@ r0=adr, r1=data
+;@----------------------------------------------------------------------------
+	and r2,r0,#0xFF
+	cmp r2,#0xB2
+	ldr r0,=cart_0
+	beq cartWrite0
+	cmp r2,#0xB3
+	beq cartWrite1
+	bx lr
+;@----------------------------------------------------------------------------
 
 romNum:
 	.long 0						;@ romnumber
@@ -205,6 +236,8 @@ DIRTYTILES:
 	.space 0x200
 biosSpace:
 	.space 0x200
+cart_0:
+	.space cartSize
 ;@----------------------------------------------------------------------------
 	.end
 #endif // #ifdef __arm__

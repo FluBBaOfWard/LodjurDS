@@ -24,7 +24,7 @@
 
 #include <stdlib.h>
 #include "system.h"
-#include "lynxcart.h"
+#include "lynxcart2.h"
 
 CCart::CCart(UBYTE *gameData, ULONG gameSize)
 {
@@ -245,7 +245,7 @@ void CCart::CartAddressStrobe(BOOL strobe)
 	if (strobe && !mStrobe) {
 		// Clock a bit into the shifter
 		mShifter = mShifter<<1;
-		mShifter += mAddrData?1:0;
+		mShifter |= mAddrData?1:0;
 		mShifter &= 0xff;
 	}
 	mStrobe = strobe;
@@ -283,25 +283,23 @@ void CCart::Poke1(UBYTE data)
 UBYTE CCart::Peek0(void)
 {
 	ULONG address = (mShifter<<mShiftCount0)+(mCounter & mCountMask0);
-	UBYTE data = mCartBank0[address & mMaskBank0];
 
 	if (!mStrobe) {
 		mCounter++;
 		mCounter &= 0x07ff;
 	}
 
-	return data;
+	return mCartBank0[address & mMaskBank0];
 }
 
 UBYTE CCart::Peek1(void)
 {
 	ULONG address = (mShifter<<mShiftCount1)+(mCounter & mCountMask1);
-	UBYTE data = mCartBank1[address & mMaskBank1];
 
 	if (!mStrobe) {
 		mCounter++;
 		mCounter &= 0x07ff;
 	}
 
-	return data;
+	return mCartBank1[address & mMaskBank1];
 }

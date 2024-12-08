@@ -8,30 +8,35 @@
 #include "Gfx.h"
 #include "cpu.h"
 #include "ARMMikey/ARM6502/M6502.h"
+#include "ARMMikey/ARMMikey.h"
+#include "ARMSuzy/ARMSuzy.h"
 
 
 int packState(void *statePtr) {
 	int size = 0;
-//	memcpy(statePtr+size, lynxRAM, sizeof(lynxRAM));
-//	size += sizeof(lynxRAM);
-//	size += sphinxSaveState(statePtr+size, &sphinx0);
+	memcpy(statePtr+size, lynxRAM, sizeof(lynxRAM));
+	size += sizeof(lynxRAM);
 	size += m6502SaveState(statePtr+size, &m6502_0);
+	size += mikeySaveState(statePtr+size, &mikey_0);
+	size += suzySaveState(statePtr+size, &suzy_0);
 	return size;
 }
 
 void unpackState(const void *statePtr) {
 	int size = 0;
-//	memcpy(lynxRAM, statePtr+size, sizeof(lynxRAM));
-//	size += sizeof(lynxRAM);
-//	size += sphinxLoadState(&sphinx0, statePtr+size);
+	memcpy(lynxRAM, statePtr+size, sizeof(lynxRAM));
+	size += sizeof(lynxRAM);
 	size += m6502LoadState(&m6502_0, statePtr+size);
+	size += mikeyLoadState(&mikey_0, statePtr+size);
+	size += suzyLoadState(&suzy_0, statePtr+size);
 }
 
 int getStateSize() {
 	int size = 0;
-//	size += sizeof(lynxRAM);
-//	size += sphinxGetStateSize();
+	size += sizeof(lynxRAM);
 	size += m6502GetStateSize();
+	size += mikeyGetStateSize();
+	size += suzyGetStateSize();
 	return size;
 }
 

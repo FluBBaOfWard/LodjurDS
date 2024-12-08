@@ -5,6 +5,8 @@
 extern "C" {
 #endif
 
+#include "LynxCart/LynxCart.h"
+
 extern u32 gRomSize;
 extern u32 maxRomSize;
 extern u8 gConfig;
@@ -18,6 +20,8 @@ extern u8 gGameID;
 extern u8 lynxRAM[0x10000];
 extern u8 biosSpace[0x200];
 extern u8 *romSpacePtr;
+
+extern CART cart_0;
 
 void machineInit(void);
 void loadCart(void);
