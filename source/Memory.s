@@ -150,10 +150,10 @@ ram6502R:					;@ Ram read ($0000-$DFFF)
 	add r1,m6502zpage,addy
 	bx lr
 ;@----------------------------------------------------------------------------
-mem6502W7:					;@ Mem read ($E000-$FFFF)
+mem6502W7:					;@ Mem write ($E000-$FFFF)
 ;@----------------------------------------------------------------------------
 	cmp addy,#0xFC00
-	strbmi r1,[m6502zpage,addy]
+	strbmi r0,[m6502zpage,addy]
 	bxmi lr
 	stmfd sp!,{r3,addy,lr}
 	mov r1,r0
