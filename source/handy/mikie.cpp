@@ -282,22 +282,22 @@ void CMikie::Poke(ULONG addr, UBYTE data)
 			TRACE_MIKIE2("Poke(AUD3TBACK,%02x) at PC=%04x", data, mSystem.mCpu->GetPC());
 			break;
 
-		case (SYSCTL1 & 0xff):
-			TRACE_MIKIE2("Poke(SYSCTL1 ,%02x) at PC=%04x", data, mSystem.mCpu->GetPC());
-			if (!(data & 0x02)) {
-				TRACE_MIKIE1("CMikie::Poke(SYSCTL1) - Lynx power down occured at PC=$%04x.\n",mSystem.mCpu->GetPC());
-				mSystem.Reset();
-			}
-			cartAddressStrobe(&cart_0, (data & 0x01) ? TRUE : FALSE);
-			break;
+//		case (SYSCTL1 & 0xff):
+//			TRACE_MIKIE2("Poke(SYSCTL1 ,%02x) at PC=%04x", data, mSystem.mCpu->GetPC());
+//			if (!(data & 0x02)) {
+//				TRACE_MIKIE1("CMikie::Poke(SYSCTL1) - Lynx power down occured at PC=$%04x.\n",mSystem.mCpu->GetPC());
+//				mSystem.Reset();
+//			}
+//			cartAddressStrobe(&cart_0, (data & 0x01) ? TRUE : FALSE);
+//			break;
 
-		case (IODAT & 0xff):
-			TRACE_MIKIE2("Poke(IODAT   ,%02x) at PC=%04x", data, mSystem.mCpu->GetPC());
-			mikey_0.ioDat = data;
-			cartAddressData(&cart_0, (data & 0x02) ? TRUE : FALSE);
-			// Enable cart writes to BANK1 on AUDIN if AUDIN is set to output
-			if (mikey_0.ioDir & 0x10) cart_0.cartWriteEnable1 = (data & 0x10) ? TRUE : FALSE;
-			break;
+//		case (IODAT & 0xff):
+//			TRACE_MIKIE2("Poke(IODAT   ,%02x) at PC=%04x", data, mSystem.mCpu->GetPC());
+//			mikey_0.ioDat = data;
+//			cartAddressData(&cart_0, (data & 0x02) ? TRUE : FALSE);
+//			// Enable cart writes to BANK1 on AUDIN if AUDIN is set to output
+//			if (mikey_0.ioDir & 0x10) cart_0.cartWriteEnable1 = (data & 0x10) ? TRUE : FALSE;
+//			break;
 
 		case (SERCTL & 0xff):
 			TRACE_MIKIE2("Poke(SERCTL  ,%02x) at PC=%04x", data, mSystem.mCpu->GetPC());
@@ -352,9 +352,7 @@ void CMikie::Poke(ULONG addr, UBYTE data)
 
 UBYTE CMikie::Peek(ULONG addr)
 {
-	switch(addr & 0xff)
-	{
-// Miscellaneous registers
+	switch(addr & 0xff) {
 		case (SERCTL & 0xff):
 			{
 				ULONG retval = 0;
@@ -367,18 +365,13 @@ UBYTE CMikie::Peek(ULONG addr)
 				TRACE_MIKIE2("Peek(SERCTL  ,%02x) at PC=%04x", retval, mSystem.mCpu->GetPC());
 				return (UBYTE)retval;
 			}
-			break;
-
 		case (SERDAT & 0xff):
 			mUART_RX_READY = 0;
 			TRACE_MIKIE2("Peek(SERDAT  ,%02x) at PC=%04x", (UBYTE)mUART_RX_DATA, mSystem.mCpu->GetPC());
 			return (UBYTE)(mUART_RX_DATA & 0xff);
-
 		default:
 			return 0xFF;
-			break;
 	}
-	return 0xFF;
 }
 
 void CMikie::UpdateTimer4(u32 sysCycCount) {

@@ -14,6 +14,7 @@
 	.global EMUPALBUFF
 	.global MAPPED_RGB
 	.global frameTotal
+	.global suzy_0
 
 	.global gfxInit
 	.global gfxReset
@@ -25,9 +26,6 @@
 	.global lnxSuzyPaintSprites
 	.global updateLCDRefresh
 	.global setScreenRefresh
-
-
-	.global suzy_0
 
 
 	.syntax unified
@@ -168,11 +166,13 @@ lodjurFrameCallback:		;@ (void)
 	bx lr
 
 ;@----------------------------------------------------------------------------
-lodjurRenderCallback:		;@ (UBYTE *ram, ULONG *palette, bool flip)
+lodjurRenderCallback:		;@ (UBYTE *ram, ULONG *palette, bool flip, bool palChg)
 ;@----------------------------------------------------------------------------
 	stmfd sp!,{r4-r6,lr}
-	ldr r4,=MAPPED_RGB
 	ldr r5,=PAL_CACHE
+	cmp r3,#0
+	beq palCacheOk
+	ldr r4,=MAPPED_RGB
 	mov r6,#16
 palCacheLoop:
 	subs r6,r6,#1
@@ -182,24 +182,12 @@ palCacheLoop:
 	str r3,[r5,r6,lsl#2]
 	bne palCacheLoop
 
+palCacheOk:
 	ldr r1,currentDest
 
 	mov r4,#GAME_WIDTH/2
 	cmp r2,#0
-	beq rendLoop
-rendLoopFlip:
-	ldrb r2,[r0],#-1
-	and r3,r2,#0x0F
-	and r2,r2,#0xF0
-	ldr r3,[r5,r3,lsl#2]
-	ldr r2,[r5,r2,lsr#2]
-	orr r3,r3,r2,lsl#16
-	str r3,[r1],#4
-	subs r4,r4,#1
 	bne rendLoopFlip
-	add r1,r1,#(SCREEN_WIDTH-GAME_WIDTH)*2
-	str r1,currentDest
-	ldmfd sp!,{r4-r6,pc}
 rendLoop:
 	ldrb r2,[r0],#1
 	and r3,r2,#0x0F
@@ -210,6 +198,19 @@ rendLoop:
 	str r3,[r1],#4
 	subs r4,r4,#1
 	bne rendLoop
+	add r1,r1,#(SCREEN_WIDTH-GAME_WIDTH)*2
+	str r1,currentDest
+	ldmfd sp!,{r4-r6,pc}
+rendLoopFlip:
+	ldrb r2,[r0],#-1
+	and r3,r2,#0x0F
+	and r2,r2,#0xF0
+	ldr r3,[r5,r3,lsl#2]
+	ldr r2,[r5,r2,lsr#2]
+	orr r3,r3,r2,lsl#16
+	str r3,[r1],#4
+	subs r4,r4,#1
+	bne rendLoopFlip
 	add r1,r1,#(SCREEN_WIDTH-GAME_WIDTH)*2
 	str r1,currentDest
 	ldmfd sp!,{r4-r6,pc}

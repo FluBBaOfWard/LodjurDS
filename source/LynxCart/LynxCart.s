@@ -149,7 +149,8 @@ cartAddressStrobe:				;@ In r0=crtptr, r1=strobe
 	bne exitStrobe
 	ldrb r2,[r0,#cartShifter]
 	ldrb r3,[r0,#cartDataBit]
-	orr r2,r3,r2,lsl#1
+	cmp r3,#1
+	adc r2,r2,r2
 	strb r2,[r0,#cartShifter]
 exitStrobe:
 	strb r1,[r0,#cartStrobe]
@@ -158,7 +159,6 @@ exitStrobe:
 cartAddressData:				;@ In r0=crtptr, r1=data
 	.type	cartAddressData STT_FUNC
 ;@----------------------------------------------------------------------------
-	and r1,r1,#1
 	strb r1,[r0,#cartDataBit]
 	bx lr
 ;@----------------------------------------------------------------------------
