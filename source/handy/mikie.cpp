@@ -39,8 +39,6 @@
 #include "lynxdef.h"
 #include "nds.h"
 #include "../Cpu.h"
-#include "../Cart.h"
-#include "../LynxCart/LynxCart.h"
 
 #define mTIM_4 mikey_0.timer4
 #define mAUDIO_0 mikey_0.audio0
@@ -281,23 +279,6 @@ void CMikie::Poke(ULONG addr, UBYTE data)
 			mAUDIO_3.BKUP = data;
 			TRACE_MIKIE2("Poke(AUD3TBACK,%02x) at PC=%04x", data, mSystem.mCpu->GetPC());
 			break;
-
-//		case (SYSCTL1 & 0xff):
-//			TRACE_MIKIE2("Poke(SYSCTL1 ,%02x) at PC=%04x", data, mSystem.mCpu->GetPC());
-//			if (!(data & 0x02)) {
-//				TRACE_MIKIE1("CMikie::Poke(SYSCTL1) - Lynx power down occured at PC=$%04x.\n",mSystem.mCpu->GetPC());
-//				mSystem.Reset();
-//			}
-//			cartAddressStrobe(&cart_0, (data & 0x01) ? TRUE : FALSE);
-//			break;
-
-//		case (IODAT & 0xff):
-//			TRACE_MIKIE2("Poke(IODAT   ,%02x) at PC=%04x", data, mSystem.mCpu->GetPC());
-//			mikey_0.ioDat = data;
-//			cartAddressData(&cart_0, (data & 0x02) ? TRUE : FALSE);
-//			// Enable cart writes to BANK1 on AUDIN if AUDIN is set to output
-//			if (mikey_0.ioDir & 0x10) cart_0.cartWriteEnable1 = (data & 0x10) ? TRUE : FALSE;
-//			break;
 
 		case (SERCTL & 0xff):
 			TRACE_MIKIE2("Poke(SERCTL  ,%02x) at PC=%04x", data, mSystem.mCpu->GetPC());

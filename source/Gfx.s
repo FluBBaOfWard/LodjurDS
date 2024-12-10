@@ -23,7 +23,6 @@
 	.global gfxEndFrame
 	.global vblIrqHandler
 	.global lnxSuzySetButtonData
-	.global lnxSuzyPaintSprites
 	.global updateLCDRefresh
 	.global setScreenRefresh
 
@@ -283,7 +282,7 @@ vblIrqHandler:
 	orr r4,r4,#0x100			;@ 256 words (1024 bytes)
 	stmia r1,{r2-r4}			;@ DMA3 go
 
-	adr suzptr,suzy_0
+	ldr suzptr,=suzy_0
 	ldr r0,GFX_BG0CNT
 	str r0,[r6,#REG_BG0CNT]
 	ldr r0,GFX_DISPCNT
@@ -343,7 +342,7 @@ nothingNew:
 gfxRefresh:					;@ Called from C when changing scaling.
 	.type gfxRefresh STT_FUNC
 ;@----------------------------------------------------------------------------
-	adr suzptr,suzy_0
+	ldr suzptr,=suzy_0
 ;@----------------------------------------------------------------------------
 gfxEndFrame:				;@ Called just before screen end (~line 101)	(r0-r3 safe to use)
 ;@----------------------------------------------------------------------------
@@ -389,23 +388,15 @@ frameDone:		.byte 0
 ;@----------------------------------------------------------------------------
 suzyReset0:		;@ r0=ram+LUTs
 ;@----------------------------------------------------------------------------
-	adr suzptr,suzy_0
+	ldr suzptr,=suzy_0
 	b suzyReset
 ;@----------------------------------------------------------------------------
 lnxSuzySetButtonData:
 	.type lnxSuzySetButtonData STT_FUNC
 ;@----------------------------------------------------------------------------
-	adr suzptr,suzy_0
+	ldr suzptr,=suzy_0
 	b suzySetButtonData
-;@----------------------------------------------------------------------------
-lnxSuzyPaintSprites:
-;@----------------------------------------------------------------------------
-	adr suzptr,suzy_0
-	b suzPaintSprites
 
-;@----------------------------------------------------------------------------
-suzy_0:
-	.space suzySize
 ;@----------------------------------------------------------------------------
 
 gfxState:
@@ -440,6 +431,14 @@ EMUPALBUFF:
 PAL_CACHE:
 	.space 0x40					;@ 16*4
 
+#ifdef NDS
+	.section .dtcm, "ax", %progbits			;@ For the NDS
+#elif GBA
+	.section .iwram, "ax", %progbits		;@ For the GBA
+#endif
+;@----------------------------------------------------------------------------
+suzy_0:
+	.space suzySize
 ;@----------------------------------------------------------------------------
 	.end
 #endif // #ifdef __arm__

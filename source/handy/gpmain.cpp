@@ -1,8 +1,6 @@
 #include <nds.h>
 
 #include "system.h"
-#include "lynxdef.h"
-#include "../Shared/FileHelper.h"
 #include "../io.h"
 #include "../Gfx.h"
 #include "../ARMMikey/ARMMikey.h"

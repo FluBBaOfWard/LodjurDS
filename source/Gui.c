@@ -13,7 +13,7 @@
 #include "ARMMikey/Version.h"
 #include "ARMSuzy/Version.h"
 
-#define EMUVERSION "V0.0.4 2024-12-09"
+#define EMUVERSION "V0.0.4 2024-12-10"
 
 static void gammaChange(void);
 static void paletteChange(void);
