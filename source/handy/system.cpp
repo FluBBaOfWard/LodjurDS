@@ -32,11 +32,9 @@
 #include <stdlib.h>
 #include "system.h"
 
-CSystem::CSystem(UBYTE *gamefile, int size)
+CSystem::CSystem(void)
 	:mMikie(NULL)
 {
-	// Attempt to load the cartridge
-
 	mMikie = new CMikie(*this);
 
 	Reset();

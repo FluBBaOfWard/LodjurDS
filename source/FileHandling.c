@@ -164,7 +164,7 @@ bool loadGame(const char *gameName) {
 		gRomSize = loadROM(romSpacePtr, gameName, maxRomSize);
 		if (gRomSize) {
 			GpDelete();
-			GpInit(romSpacePtr, gRomSize);
+			GpInit();
 //			checkMachine();
 //			setEmuSpeed(0);
 			loadCart();

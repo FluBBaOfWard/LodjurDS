@@ -105,19 +105,17 @@ ULONG CMikie::GetLfsrNext(ULONG current)
 	// If the index is a combination of Current LFSR+Feedback the
 	// table will give the next value.
 
-	static ULONG switches,lfsr,next,swloop,result;
 	static const ULONG switchbits[9]={7,0,1,2,3,4,5,10,11};
 
-	switches = current >> 12;
-	lfsr = current & 0xfff;
-	result = 0;
-	for (swloop=0;swloop<9;swloop++) {
+	u32 switches = current >> 12;
+	u32 lfsr = current & 0xfff;
+	u32 result = 0;
+	for (int swloop=0;swloop<9;swloop++) {
 		if ((switches >> swloop) & 0x001)
 			result ^= (lfsr >> switchbits[swloop]) & 0x001;
 	}
 	result = (result) ? 0 : 1;
-	next = (switches << 12) | ((lfsr << 1) & 0xffe) | result;
-	return next;
+	return (switches << 12) | ((lfsr << 1) & 0xffe) | result;
 }
 
 void CMikie::PresetForHomebrew(void)
@@ -192,16 +190,16 @@ void CMikie::Poke(ULONG addr, UBYTE data)
 {
 	switch(addr & 0xff)
 	{
-		case (AUD0VOL & 0xff):
-			// Counter is disabled when volume is zero for optimisation
-			// reasons, we must update the last use position to stop problems
-			if (!mikey_0.aud0Vol && data) {
-				mAUDIO_0.LAST_COUNT = gSystemCycleCount;
-				gNextTimerEvent = gSystemCycleCount;
-			}
-			mikey_0.aud0Vol = (SBYTE)data;
-			TRACE_MIKIE2("Poke(AUD0VOL,%02x) at PC=%04x", data, mSystem.mCpu->GetPC());
-			break;
+//		case (AUD0VOL & 0xff):
+//			// Counter is disabled when volume is zero for optimisation
+//			// reasons, we must update the last use position to stop problems
+//			if (!mikey_0.aud0Vol && data) {
+//				mAUDIO_0.LAST_COUNT = gSystemCycleCount;
+//				gNextTimerEvent = gSystemCycleCount;
+//			}
+//			mikey_0.aud0Vol = (SBYTE)data;
+//			TRACE_MIKIE2("Poke(AUD0VOL,%02x) at PC=%04x", data, mSystem.mCpu->GetPC());
+//			break;
 		case (AUD0TBACK & 0xff):
 			// Counter is disabled when backup is zero for optimisation
 			// due to the fact that the output frequency will be above audio
@@ -214,16 +212,16 @@ void CMikie::Poke(ULONG addr, UBYTE data)
 			TRACE_MIKIE2("Poke(AUD0TBACK,%02x) at PC=%04x", data, mSystem.mCpu->GetPC());
 			break;
 
-		case (AUD1VOL & 0xff):
-			// Counter is disabled when volume is zero for optimisation
-			// reasons, we must update the last use position to stop problems
-			if (!mikey_0.aud1Vol && data) {
-				mAUDIO_1.LAST_COUNT = gSystemCycleCount;
-				gNextTimerEvent = gSystemCycleCount;
-			}
-			mikey_0.aud1Vol = (SBYTE)data;
-			TRACE_MIKIE2("Poke(AUD1VOL,%02x) at PC=%04x", data, mSystem.mCpu->GetPC());
-			break;
+//		case (AUD1VOL & 0xff):
+//			// Counter is disabled when volume is zero for optimisation
+//			// reasons, we must update the last use position to stop problems
+//			if (!mikey_0.aud1Vol && data) {
+//				mAUDIO_1.LAST_COUNT = gSystemCycleCount;
+//				gNextTimerEvent = gSystemCycleCount;
+//			}
+//			mikey_0.aud1Vol = (SBYTE)data;
+//			TRACE_MIKIE2("Poke(AUD1VOL,%02x) at PC=%04x", data, mSystem.mCpu->GetPC());
+//			break;
 		case (AUD1TBACK & 0xff):
 			// Counter is disabled when backup is zero for optimisation
 			// due to the fact that the output frequency will be above audio
@@ -236,16 +234,16 @@ void CMikie::Poke(ULONG addr, UBYTE data)
 			TRACE_MIKIE2("Poke(AUD1TBACK,%02x) at PC=%04x", data, mSystem.mCpu->GetPC());
 			break;
 
-		case (AUD2VOL&0xff): 
-			// Counter is disabled when volume is zero for optimisation
-			// reasons, we must update the last use position to stop problems
-			if (!mikey_0.aud2Vol && data) {
-				mAUDIO_2.LAST_COUNT = gSystemCycleCount;
-				gNextTimerEvent = gSystemCycleCount;
-			}
-			mikey_0.aud2Vol = (SBYTE)data;
-			TRACE_MIKIE2("Poke(AUD2VOL,%02x) at PC=%04x", data, mSystem.mCpu->GetPC());
-			break;
+//		case (AUD2VOL&0xff): 
+//			// Counter is disabled when volume is zero for optimisation
+//			// reasons, we must update the last use position to stop problems
+//			if (!mikey_0.aud2Vol && data) {
+//				mAUDIO_2.LAST_COUNT = gSystemCycleCount;
+//				gNextTimerEvent = gSystemCycleCount;
+//			}
+//			mikey_0.aud2Vol = (SBYTE)data;
+//			TRACE_MIKIE2("Poke(AUD2VOL,%02x) at PC=%04x", data, mSystem.mCpu->GetPC());
+//			break;
 		case (AUD2TBACK & 0xff):
 			// Counter is disabled when backup is zero for optimisation
 			// due to the fact that the output frequency will be above audio
@@ -258,16 +256,16 @@ void CMikie::Poke(ULONG addr, UBYTE data)
 			TRACE_MIKIE2("Poke(AUD2TBACK,%02x) at PC=%04x", data, mSystem.mCpu->GetPC());
 			break;
 
-		case (AUD3VOL & 0xff):
-			// Counter is disabled when volume is zero for optimisation
-			// reasons, we must update the last use position to stop problems
-			if (!mikey_0.aud3Vol && data) {
-				mAUDIO_3.LAST_COUNT = gSystemCycleCount;
-				gNextTimerEvent = gSystemCycleCount;
-			}
-			mikey_0.aud3Vol = (SBYTE)data;
-			TRACE_MIKIE2("Poke(AUD3VOL,%02x) at PC=%04x", data, mSystem.mCpu->GetPC());
-			break;
+//		case (AUD3VOL & 0xff):
+//			// Counter is disabled when volume is zero for optimisation
+//			// reasons, we must update the last use position to stop problems
+//			if (!mikey_0.aud3Vol && data) {
+//				mAUDIO_3.LAST_COUNT = gSystemCycleCount;
+//				gNextTimerEvent = gSystemCycleCount;
+//			}
+//			mikey_0.aud3Vol = (SBYTE)data;
+//			TRACE_MIKIE2("Poke(AUD3VOL,%02x) at PC=%04x", data, mSystem.mCpu->GetPC());
+//			break;
 		case (AUD3TBACK & 0xff):
 			// Counter is disabled when backup is zero for optimisation
 			// due to the fact that the output frequency will be above audio

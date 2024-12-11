@@ -80,7 +80,7 @@ int main(int argc, char **argv) {
 		redrawUI();
 	}
 	else {
-		GpInit(romSpacePtr, gRomSize);
+		GpInit();
 		infoOutput("fatInitDefault() failure.");
 	}
 

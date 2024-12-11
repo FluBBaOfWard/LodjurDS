@@ -20,7 +20,7 @@ void pausVBlank(int count);
 void setEmuSpeed(int speed);
 void setupMenuPalette(void);
 
-void GpInit(u8 *gamerom, u32 size);
+void GpInit(void);
 void GpDelete(void);
 
 #ifdef __cplusplus

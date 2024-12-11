@@ -55,13 +55,12 @@
 
 class CSystem;
 
-#include "sysbase.h"
 #include "mikie.h"
 
-class CSystem : public CSystemBase
+class CSystem
 {
 	public:
-		CSystem(UBYTE *gamefile, int size);
+		CSystem(void);
 		~CSystem();
 
 	public:

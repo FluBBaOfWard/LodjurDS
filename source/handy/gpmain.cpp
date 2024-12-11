@@ -6,7 +6,7 @@ extern "C" {
 void runTimer4(u32 sysCount);
 void mikiePoke(u32 addr, u8 data);
 u8 mikiePeek(u32 addr);
-void GpInit(u8 *gamerom, u32 size);
+void GpInit(void);
 void GpDelete(void);
 }
 
@@ -22,8 +22,8 @@ UBYTE mikiePeek(u32 addr) {
 	return newsystem->mMikie->Peek(addr);
 }
 
-void GpInit(u8 *gamerom, u32 size) {
-	newsystem = new CSystem(gamerom, size);
+void GpInit(void) {
+	newsystem = new CSystem();
 }
 
 void GpDelete() {
