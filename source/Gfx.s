@@ -218,8 +218,8 @@ rendLoopFlip:
 updateLCDRefresh:
 	.type updateLCDRefresh STT_FUNC
 ;@----------------------------------------------------------------------------
-	ldr suzptr,=mikey_0
-	ldrb r1,[suzptr,#mikLCDVSize]
+	ldr mikptr,=mikey_0
+	ldrb r1,[mikptr,#mikLCDVSize]
 	b miRefW
 ;@----------------------------------------------------------------------------
 setScreenRefresh:			;@ r0 in = WS scan line count.

@@ -1,9 +1,6 @@
 #include <nds.h>
 
 #include "system.h"
-#include "../io.h"
-#include "../Gfx.h"
-#include "../ARMMikey/ARMMikey.h"
 
 extern "C" {
 void runTimer4(u32 sysCount);

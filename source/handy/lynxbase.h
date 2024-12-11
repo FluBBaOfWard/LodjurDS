@@ -27,14 +27,6 @@
 #ifndef LYNXBASE_H
 #define LYNXBASE_H
 
-//
-// bank0	- Cartridge bank 0
-// bank1	- Cartridge bank 1
-// ram		- all ram
-// cpu		- system memory as viewed by the cpu
-//
-enum EMMODE {bank0,bank1,ram,cpu};
-
 class CLynxBase
 {
 	// Function members
