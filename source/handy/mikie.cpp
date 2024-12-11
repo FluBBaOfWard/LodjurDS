@@ -190,93 +190,53 @@ void CMikie::Poke(ULONG addr, UBYTE data)
 {
 	switch(addr & 0xff)
 	{
-//		case (AUD0VOL & 0xff):
-//			// Counter is disabled when volume is zero for optimisation
-//			// reasons, we must update the last use position to stop problems
-//			if (!mikey_0.aud0Vol && data) {
+//		case (AUD0TBACK & 0xff):
+//			// Counter is disabled when backup is zero for optimisation
+//			// due to the fact that the output frequency will be above audio
+//			// range, we must update the last use position to stop problems
+//			if (!mAUDIO_0.BKUP && data) {
 //				mAUDIO_0.LAST_COUNT = gSystemCycleCount;
 //				gNextTimerEvent = gSystemCycleCount;
 //			}
-//			mikey_0.aud0Vol = (SBYTE)data;
-//			TRACE_MIKIE2("Poke(AUD0VOL,%02x) at PC=%04x", data, mSystem.mCpu->GetPC());
+//			mAUDIO_0.BKUP = data;
+//			TRACE_MIKIE2("Poke(AUD0TBACK,%02x) at PC=%04x", data, mSystem.mCpu->GetPC());
 //			break;
-		case (AUD0TBACK & 0xff):
-			// Counter is disabled when backup is zero for optimisation
-			// due to the fact that the output frequency will be above audio
-			// range, we must update the last use position to stop problems
-			if (!mAUDIO_0.BKUP && data) {
-				mAUDIO_0.LAST_COUNT = gSystemCycleCount;
-				gNextTimerEvent = gSystemCycleCount;
-			}
-			mAUDIO_0.BKUP = data;
-			TRACE_MIKIE2("Poke(AUD0TBACK,%02x) at PC=%04x", data, mSystem.mCpu->GetPC());
-			break;
-
-//		case (AUD1VOL & 0xff):
-//			// Counter is disabled when volume is zero for optimisation
-//			// reasons, we must update the last use position to stop problems
-//			if (!mikey_0.aud1Vol && data) {
+//
+//		case (AUD1TBACK & 0xff):
+//			// Counter is disabled when backup is zero for optimisation
+//			// due to the fact that the output frequency will be above audio
+//			// range, we must update the last use position to stop problems
+//			if (!mAUDIO_1.BKUP && data) {
 //				mAUDIO_1.LAST_COUNT = gSystemCycleCount;
 //				gNextTimerEvent = gSystemCycleCount;
 //			}
-//			mikey_0.aud1Vol = (SBYTE)data;
-//			TRACE_MIKIE2("Poke(AUD1VOL,%02x) at PC=%04x", data, mSystem.mCpu->GetPC());
+//			mAUDIO_1.BKUP = data;
+//			TRACE_MIKIE2("Poke(AUD1TBACK,%02x) at PC=%04x", data, mSystem.mCpu->GetPC());
 //			break;
-		case (AUD1TBACK & 0xff):
-			// Counter is disabled when backup is zero for optimisation
-			// due to the fact that the output frequency will be above audio
-			// range, we must update the last use position to stop problems
-			if (!mAUDIO_1.BKUP && data) {
-				mAUDIO_1.LAST_COUNT = gSystemCycleCount;
-				gNextTimerEvent = gSystemCycleCount;
-			}
-			mAUDIO_1.BKUP = data;
-			TRACE_MIKIE2("Poke(AUD1TBACK,%02x) at PC=%04x", data, mSystem.mCpu->GetPC());
-			break;
-
-//		case (AUD2VOL&0xff): 
-//			// Counter is disabled when volume is zero for optimisation
-//			// reasons, we must update the last use position to stop problems
-//			if (!mikey_0.aud2Vol && data) {
+//
+//		case (AUD2TBACK & 0xff):
+//			// Counter is disabled when backup is zero for optimisation
+//			// due to the fact that the output frequency will be above audio
+//			// range, we must update the last use position to stop problems
+//			if (!mAUDIO_2.BKUP && data) {
 //				mAUDIO_2.LAST_COUNT = gSystemCycleCount;
 //				gNextTimerEvent = gSystemCycleCount;
 //			}
-//			mikey_0.aud2Vol = (SBYTE)data;
-//			TRACE_MIKIE2("Poke(AUD2VOL,%02x) at PC=%04x", data, mSystem.mCpu->GetPC());
+//			mAUDIO_2.BKUP = data;
+//			TRACE_MIKIE2("Poke(AUD2TBACK,%02x) at PC=%04x", data, mSystem.mCpu->GetPC());
 //			break;
-		case (AUD2TBACK & 0xff):
-			// Counter is disabled when backup is zero for optimisation
-			// due to the fact that the output frequency will be above audio
-			// range, we must update the last use position to stop problems
-			if (!mAUDIO_2.BKUP && data) {
-				mAUDIO_2.LAST_COUNT = gSystemCycleCount;
-				gNextTimerEvent = gSystemCycleCount;
-			}
-			mAUDIO_2.BKUP = data;
-			TRACE_MIKIE2("Poke(AUD2TBACK,%02x) at PC=%04x", data, mSystem.mCpu->GetPC());
-			break;
-
-//		case (AUD3VOL & 0xff):
-//			// Counter is disabled when volume is zero for optimisation
-//			// reasons, we must update the last use position to stop problems
-//			if (!mikey_0.aud3Vol && data) {
+//
+//		case (AUD3TBACK & 0xff):
+//			// Counter is disabled when backup is zero for optimisation
+//			// due to the fact that the output frequency will be above audio
+//			// range, we must update the last use position to stop problems
+//			if (!mAUDIO_3.BKUP && data) {
 //				mAUDIO_3.LAST_COUNT = gSystemCycleCount;
 //				gNextTimerEvent = gSystemCycleCount;
 //			}
-//			mikey_0.aud3Vol = (SBYTE)data;
-//			TRACE_MIKIE2("Poke(AUD3VOL,%02x) at PC=%04x", data, mSystem.mCpu->GetPC());
+//			mAUDIO_3.BKUP = data;
+//			TRACE_MIKIE2("Poke(AUD3TBACK,%02x) at PC=%04x", data, mSystem.mCpu->GetPC());
 //			break;
-		case (AUD3TBACK & 0xff):
-			// Counter is disabled when backup is zero for optimisation
-			// due to the fact that the output frequency will be above audio
-			// range, we must update the last use position to stop problems
-			if (!mAUDIO_3.BKUP && data) {
-				mAUDIO_3.LAST_COUNT = gSystemCycleCount;
-				gNextTimerEvent = gSystemCycleCount;
-			}
-			mAUDIO_3.BKUP = data;
-			TRACE_MIKIE2("Poke(AUD3TBACK,%02x) at PC=%04x", data, mSystem.mCpu->GetPC());
-			break;
 
 		case (SERCTL & 0xff):
 			TRACE_MIKIE2("Poke(SERCTL  ,%02x) at PC=%04x", data, mSystem.mCpu->GetPC());
