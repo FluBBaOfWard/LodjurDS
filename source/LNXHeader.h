@@ -8,7 +8,7 @@ typedef enum {
 	EEPROM_93C66,
 	EEPROM_93C76,
 	EEPROM_93C86,
-} EEMPROM_TYPE
+} EEMPROM_TYPE;
 
 /// LnxHeader
 typedef struct

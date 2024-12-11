@@ -7,22 +7,11 @@ extern "C" {
 
 #include "Emubase.h"
 #include "Lynx.h"
+#include "LNXHeader.h"
 
 #define FILEEXTENSIONS ".lyx.lnx.bin"
 
 extern ConfigData cfg;
-
-typedef struct
-{
-   u8   magic[4];
-   u32   page_size_bank0;
-   u32   page_size_bank1;
-   u32   version;
-   char    cartname[32];
-   char    manufname[16];
-   u8   rotation;
-   u8   spare[5];
-} LYNX_HEADER2;
 
 int initSettings(void);
 int loadSettings(void);

@@ -11,7 +11,6 @@ void mikiePoke(u32 addr, u8 data);
 u8 mikiePeek(u32 addr);
 void GpInit(u8 *gamerom, u32 size);
 void GpDelete(void);
-void GpMain(void);
 }
 
 CSystem *newsystem = NULL;
@@ -34,12 +33,5 @@ void GpDelete() {
 	if ( newsystem != NULL) {
 		delete newsystem;
 		newsystem = NULL;
-	}
-}
-
-void GpMain() {
-	if (newsystem != NULL) {
-		lnxSuzySetButtonData( joy0_R() );
-		mikSysUpdate();
 	}
 }

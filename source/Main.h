@@ -22,7 +22,6 @@ void setupMenuPalette(void);
 
 void GpInit(u8 *gamerom, u32 size);
 void GpDelete(void);
-void GpMain(void);
 
 #ifdef __cplusplus
 } // extern "C"

@@ -13,11 +13,9 @@
 #include "ARMMikey/Version.h"
 #include "ARMSuzy/Version.h"
 
-#define EMUVERSION "V0.0.4 2024-12-10"
+#define EMUVERSION "V0.0.5 2024-12-11"
 
 static void gammaChange(void);
-static void paletteChange(void);
-static const char *getPaletteText(void);
 static void machineSet(void);
 static const char *getMachineText(void);
 //static void speedHackSet(void);
@@ -41,7 +39,6 @@ const MItem fileItems[] = {
 	{"Load State", loadState},
 	{"Save State", saveState},
 	{"Save Settings", saveSettings},
-	{"Eject Game", ejectGame},
 	{"Reset Console", resetGame},
 	{"Quit Emulator", ui9}
 };
@@ -61,7 +58,6 @@ const MItem displayItems[] = {
 	{"Screen:", screenModeSet, getScreenModeText},
 	{"Gamma:", gammaChange, getGammaText},
 	{"Contrast:", contrastSet, getContrastText},
-	{"B&W Palette:", paletteChange, getPaletteText},
 	{"Border:", borderSet, getBorderText},
 };
 const MItem machineItems[] = {
@@ -239,18 +235,6 @@ void screenModeSet() {
 }
 const char *getScreenModeText() {
 	return scrModeTxt[gScreenMode];
-}
-
-void paletteChange() {
-	gPaletteBank++;
-	if (gPaletteBank > 4) {
-		gPaletteBank = 0;
-	}
-	paletteInit(gGammaValue);
-	settingsChanged = true;
-}
-const char *getPaletteText() {
-	return palTxt[gPaletteBank];
 }
 
 void borderSet() {

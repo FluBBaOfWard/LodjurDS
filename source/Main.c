@@ -91,7 +91,6 @@ int main(int argc, char **argv) {
 		if (!pauseEmulation) {
 			lnxSuzySetButtonData( joy0_R() );
 			run();
-//			GpMain();
 			fpsValue += 1;
 		}
 	}
