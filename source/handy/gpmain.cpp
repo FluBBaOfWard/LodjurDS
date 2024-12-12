@@ -5,8 +5,8 @@
 extern "C" {
 void runTimer4(u32 sysCount);
 void mikieComLynxTxLoopback(int data);
-void mikiePoke(u32 addr, u8 data);
-u8 mikiePeek(u32 addr);
+//void mikiePoke(u32 addr, u8 data);
+//u8 mikiePeek(u32 addr);
 void GpInit(void);
 void GpDelete(void);
 }
@@ -19,12 +19,12 @@ void runTimer4(u32 sysCount) {
 void mikieComLynxTxLoopback(int data) {
 	newsystem->mMikie->ComLynxTxLoopback(data);
 }
-void mikiePoke(u32 addr, u8 data) {
-	newsystem->mMikie->Poke(addr,data);
-}
-u8 mikiePeek(u32 addr) {
-	return newsystem->mMikie->Peek(addr);
-}
+//void mikiePoke(u32 addr, u8 data) {
+//	newsystem->mMikie->Poke(addr,data);
+//}
+//u8 mikiePeek(u32 addr) {
+//	return newsystem->mMikie->Peek(addr);
+//}
 
 void GpInit(void) {
 	newsystem = new CSystem();

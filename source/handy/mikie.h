@@ -90,8 +90,8 @@ class CMikie : public CLynxBase
 		unsigned int mUART_Rx_input_ptr;
 		unsigned int mUART_Rx_output_ptr = 0;
 		int			mUART_Rx_waiting;
-		int			mUART_Rx_framing_error;
-		int			mUART_Rx_overun_error;
+//		int			mUART_Rx_framing_error;
+//		int			mUART_Rx_overun_error;
 
 };
 

@@ -57,6 +57,8 @@
 #define mUART_TX_DATA mikey_0.uart_TX_DATA
 #define mUART_RX_DATA mikey_0.uart_RX_DATA
 #define mUART_RX_READY mikey_0.uart_RX_READY
+#define mUART_Rx_framing_error mikey_0.uart_Rx_framing_error
+#define mUART_Rx_overun_error mikey_0.uart_Rx_overun_error
 
 CMikie::CMikie(CSystem& parent)
 	:mSystem(parent)
@@ -84,9 +86,8 @@ void CMikie::Reset(void)
 	mUART_Rx_input_ptr = 0;
 	mUART_Rx_output_ptr = 0;
 	mUART_Rx_waiting = 0;
-	mUART_Rx_framing_error = 0;
-	mUART_Rx_overun_error = 0;
-
+//	mUART_Rx_framing_error = 0;
+//	mUART_Rx_overun_error = 0;
 }
 
 u32 CMikie::GetLfsrNext(u32 current)
@@ -188,50 +189,27 @@ void CMikie::Poke(u32 addr, u8 data)
 {
 	switch(addr & 0xff)
 	{
-		case (SERCTL & 0xff):
-			mUART_TX_IRQ_ENABLE = (data & 0x80) ? true : false;
-			mUART_RX_IRQ_ENABLE = (data & 0x40) ? true : false;
-			mUART_PARITY_ENABLE = (data & 0x10) ? true : false;
-			mUART_SENDBREAK = data & 0x02;
-			mUART_PARITY_EVEN = data & 0x01;
-
-			// Reset all errors if required
-			if (data & 0x08) {
-				mUART_Rx_overun_error = 0;
-				mUART_Rx_framing_error = 0;
-			}
-
-			if (mUART_SENDBREAK) {
-				// Trigger send break, it will self sustain as long as sendbreak is set
-				mUART_TX_COUNTDOWN = UART_TX_TIME_PERIOD;
-				// Loop back what we transmitted
-				ComLynxTxLoopback(UART_BREAK_CODE);
-			}
-			break;
-
-//		case (SERDAT & 0xff):
-//			//
-//			// Fake transmission, set counter to be decremented by Timer 4
-//			//
-//			// ComLynx only has one output pin, hence Rx & Tx are shorted
-//			// therefore any transmitted data will loopback
-//			//
-//			mUART_TX_DATA = data;
-//			// Calculate Parity data
-//			if (mUART_PARITY_ENABLE) {
-//				// Calc parity value
-//				// Leave at zero !!
+//		case (SERCTL & 0xff):
+//			mUART_TX_IRQ_ENABLE = (data & 0x80) ? true : false;
+//			mUART_RX_IRQ_ENABLE = (data & 0x40) ? true : false;
+//			mUART_PARITY_ENABLE = (data & 0x10) ? true : false;
+//			mUART_SENDBREAK = data & 0x02;
+//			mUART_PARITY_EVEN = data & 0x01;
+//
+//			// Reset all errors if required
+//			if (data & 0x08) {
+//				mUART_Rx_overun_error = 0;
+//				mUART_Rx_framing_error = 0;
 //			}
-//			else {
-//				// If disabled then the PAREVEN bit is sent
-//				if (mUART_PARITY_EVEN) data |= 0x0100;
+//
+//			if (mUART_SENDBREAK) {
+//				// Trigger send break, it will self sustain as long as sendbreak is set
+//				mUART_TX_COUNTDOWN = UART_TX_TIME_PERIOD;
+//				// Loop back what we transmitted
+//				ComLynxTxLoopback(UART_BREAK_CODE);
 //			}
-//			// Set countdown to transmission
-//			mUART_TX_COUNTDOWN = UART_TX_TIME_PERIOD;
-//			// Loop back what we transmitted
-//			ComLynxTxLoopback(mUART_TX_DATA);
 //			break;
-
+//
 		default:
 			break;
 	}
@@ -240,20 +218,17 @@ void CMikie::Poke(u32 addr, u8 data)
 u8 CMikie::Peek(u32 addr)
 {
 	switch(addr & 0xff) {
-		case (SERCTL & 0xff):
-			{
-				u32 retval = 0;
-				retval |= (mUART_TX_COUNTDOWN & UART_TX_INACTIVE) ? 0xA0 : 0x00;	// Indicate TxDone & TxAllDone
-				retval |= (mUART_RX_READY) ? 0x40 : 0x00;						// Indicate Rx data ready
-				retval |= (mUART_Rx_overun_error) ? 0x08 : 0x0;					// Framing error
-				retval |= (mUART_Rx_framing_error) ? 0x04 : 0x00;				// Rx overrun
-				retval |= (mUART_RX_DATA&UART_BREAK_CODE) ? 0x02 : 0x00;		// Indicate break received
-				retval |= (mUART_RX_DATA & 0x0100) ? 0x01 : 0x00;				// Add parity bit
-				return (u8)retval;
-			}
-//		case (SERDAT & 0xff):
-//			mUART_RX_READY = 0;
-//			return (u8)(mUART_RX_DATA & 0xff);
+//		case (SERCTL & 0xff):
+//			{
+//				u32 retval = 0;
+//				retval |= (mUART_TX_COUNTDOWN & UART_TX_INACTIVE) ? 0xA0 : 0x00;	// Indicate TxDone & TxAllDone
+//				retval |= (mUART_RX_READY) ? 0x40 : 0x00;						// Indicate Rx data ready
+//				retval |= (mUART_Rx_overun_error) ? 0x08 : 0x0;					// Framing error
+//				retval |= (mUART_Rx_framing_error) ? 0x04 : 0x00;				// Rx overrun
+//				retval |= (mUART_RX_DATA & UART_BREAK_CODE) ? 0x02 : 0x00;		// Indicate break received
+//				retval |= (mUART_RX_DATA & 0x0100) ? 0x01 : 0x00;				// Add parity bit
+//				return (u8)retval;
+//			}
 		default:
 			return 0xFF;
 	}
