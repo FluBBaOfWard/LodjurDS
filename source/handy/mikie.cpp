@@ -81,24 +81,11 @@ void CMikie::Reset(void)
 	//
 	// Initialise the UART variables
 	//
-//	mUART_RX_IRQ_ENABLE = 0;
-//	mUART_TX_IRQ_ENABLE = 0;
-//	mUART_PARITY_ENABLE = 0;
-//	mUART_PARITY_EVEN = 0;
-//	mUART_SENDBREAK = 0;
-
-//	mUART_TX_COUNTDOWN = UART_TX_INACTIVE;
-//	mUART_RX_COUNTDOWN = UART_RX_INACTIVE;
-
 	mUART_Rx_input_ptr = 0;
 	mUART_Rx_output_ptr = 0;
 	mUART_Rx_waiting = 0;
 	mUART_Rx_framing_error = 0;
 	mUART_Rx_overun_error = 0;
-
-//	mUART_TX_DATA = 0;
-//	mUART_RX_DATA = 0;
-//	mUART_RX_READY = 0;
 
 }
 
@@ -222,28 +209,28 @@ void CMikie::Poke(u32 addr, u8 data)
 			}
 			break;
 
-		case (SERDAT & 0xff):
-			//
-			// Fake transmission, set counter to be decremented by Timer 4
-			//
-			// ComLynx only has one output pin, hence Rx & Tx are shorted
-			// therefore any transmitted data will loopback
-			//
-			mUART_TX_DATA = data;
-			// Calculate Parity data
-			if (mUART_PARITY_ENABLE) {
-				// Calc parity value
-				// Leave at zero !!
-			}
-			else {
-				// If disabled then the PAREVEN bit is sent
-				if (mUART_PARITY_EVEN) data |= 0x0100;
-			}
-			// Set countdown to transmission
-			mUART_TX_COUNTDOWN = UART_TX_TIME_PERIOD;
-			// Loop back what we transmitted
-			ComLynxTxLoopback(mUART_TX_DATA);
-			break;
+//		case (SERDAT & 0xff):
+//			//
+//			// Fake transmission, set counter to be decremented by Timer 4
+//			//
+//			// ComLynx only has one output pin, hence Rx & Tx are shorted
+//			// therefore any transmitted data will loopback
+//			//
+//			mUART_TX_DATA = data;
+//			// Calculate Parity data
+//			if (mUART_PARITY_ENABLE) {
+//				// Calc parity value
+//				// Leave at zero !!
+//			}
+//			else {
+//				// If disabled then the PAREVEN bit is sent
+//				if (mUART_PARITY_EVEN) data |= 0x0100;
+//			}
+//			// Set countdown to transmission
+//			mUART_TX_COUNTDOWN = UART_TX_TIME_PERIOD;
+//			// Loop back what we transmitted
+//			ComLynxTxLoopback(mUART_TX_DATA);
+//			break;
 
 		default:
 			break;
@@ -256,7 +243,7 @@ u8 CMikie::Peek(u32 addr)
 		case (SERCTL & 0xff):
 			{
 				u32 retval = 0;
-				retval |= (mUART_TX_COUNTDOWN&UART_TX_INACTIVE) ? 0xA0 : 0x00;	// Indicate TxDone & TxAllDone
+				retval |= (mUART_TX_COUNTDOWN & UART_TX_INACTIVE) ? 0xA0 : 0x00;	// Indicate TxDone & TxAllDone
 				retval |= (mUART_RX_READY) ? 0x40 : 0x00;						// Indicate Rx data ready
 				retval |= (mUART_Rx_overun_error) ? 0x08 : 0x0;					// Framing error
 				retval |= (mUART_Rx_framing_error) ? 0x04 : 0x00;				// Rx overrun
@@ -264,9 +251,9 @@ u8 CMikie::Peek(u32 addr)
 				retval |= (mUART_RX_DATA & 0x0100) ? 0x01 : 0x00;				// Add parity bit
 				return (u8)retval;
 			}
-		case (SERDAT & 0xff):
-			mUART_RX_READY = 0;
-			return (u8)(mUART_RX_DATA & 0xff);
+//		case (SERDAT & 0xff):
+//			mUART_RX_READY = 0;
+//			return (u8)(mUART_RX_DATA & 0xff);
 		default:
 			return 0xFF;
 	}

@@ -81,18 +81,6 @@ class CMikie : public CLynxBase
 		//
 		// Serial related variables
 		//
-//		ULONG		mUART_RX_IRQ_ENABLE;
-//		ULONG		mUART_TX_IRQ_ENABLE;
-//		ULONG		mUART_PARITY_ENABLE;
-//		ULONG		mUART_PARITY_EVEN;
-//		ULONG		mUART_SENDBREAK;
-
-//		ULONG		mUART_RX_COUNTDOWN;
-//		ULONG		mUART_TX_COUNTDOWN;
-
-//		ULONG		mUART_TX_DATA;
-//		ULONG		mUART_RX_DATA;
-//		ULONG		mUART_RX_READY;
 
 
 		void		(*mpUART_TX_CALLBACK)(int data,ULONG objref);
