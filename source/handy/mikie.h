@@ -34,23 +34,10 @@
 #ifndef MIKIE_H
 #define MIKIE_H
 
-//#define	TRACE_MIKIE
-
-#ifdef TRACE_MIKIE
-
-#define TRACE_MIKIE0(msg)					_RPT1(_CRT_WARN,"CMikie::"msg" (Time=%012d)\n",gSystemCycleCount)
-#define TRACE_MIKIE1(msg,arg1)				_RPT2(_CRT_WARN,"CMikie::"msg" (Time=%012d)\n",arg1,gSystemCycleCount)
-#define TRACE_MIKIE2(msg,arg1,arg2)			_RPT3(_CRT_WARN,"CMikie::"msg" (Time=%012d)\n",arg1,arg2,gSystemCycleCount)
-#define TRACE_MIKIE3(msg,arg1,arg2,arg3)	_RPT4(_CRT_WARN,"CMikie::"msg" (Time=%012d)\n",arg1,arg2,arg3,gSystemCycleCount)
-
-#else
-
 #define TRACE_MIKIE0(msg)
 #define TRACE_MIKIE1(msg,arg1)
 #define TRACE_MIKIE2(msg,arg1,arg2)
 #define TRACE_MIKIE3(msg,arg1,arg2,arg3)
-
-#endif
 
 #include "nds.h"
 
@@ -94,19 +81,19 @@ class CMikie : public CLynxBase
 		//
 		// Serial related variables
 		//
-		ULONG		mUART_RX_IRQ_ENABLE;
-		ULONG		mUART_TX_IRQ_ENABLE;
+//		ULONG		mUART_RX_IRQ_ENABLE;
+//		ULONG		mUART_TX_IRQ_ENABLE;
+//		ULONG		mUART_PARITY_ENABLE;
+//		ULONG		mUART_PARITY_EVEN;
+//		ULONG		mUART_SENDBREAK;
 
-		ULONG		mUART_RX_COUNTDOWN;
-		ULONG		mUART_TX_COUNTDOWN;
+//		ULONG		mUART_RX_COUNTDOWN;
+//		ULONG		mUART_TX_COUNTDOWN;
 
-		ULONG		mUART_SENDBREAK;
-		ULONG		mUART_TX_DATA;
-		ULONG		mUART_RX_DATA;
-		ULONG		mUART_RX_READY;
+//		ULONG		mUART_TX_DATA;
+//		ULONG		mUART_RX_DATA;
+//		ULONG		mUART_RX_READY;
 
-		ULONG		mUART_PARITY_ENABLE;
-		ULONG		mUART_PARITY_EVEN;
 
 		void		(*mpUART_TX_CALLBACK)(int data,ULONG objref);
 		ULONG		mUART_TX_CALLBACK_OBJECT;

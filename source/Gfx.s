@@ -165,7 +165,7 @@ lodjurFrameCallback:		;@ (void)
 	bx lr
 
 ;@----------------------------------------------------------------------------
-lodjurRenderCallback:		;@ (UBYTE *ram, ULONG *palette, bool flip, bool palChg)
+lodjurRenderCallback:		;@ (u8 *ram, u32 *palette, bool flip, bool palChg)
 ;@----------------------------------------------------------------------------
 	stmfd sp!,{r4-r6,lr}
 	ldr r5,=PAL_CACHE

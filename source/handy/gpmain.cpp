@@ -18,7 +18,7 @@ void runTimer4(u32 sysCount) {
 void mikiePoke(u32 addr, u8 data) {
 	newsystem->mMikie->Poke(addr,data);
 }
-UBYTE mikiePeek(u32 addr) {
+u8 mikiePeek(u32 addr) {
 	return newsystem->mMikie->Peek(addr);
 }
 

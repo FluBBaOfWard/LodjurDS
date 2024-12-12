@@ -29,28 +29,13 @@
 #include <stdlib.h>
 #include <string.h>
 
-#ifndef BOOL
-#define BOOL int
-#endif
-
-#ifndef TRUE
-#define TRUE 1
-#endif
-
-#ifndef FALSE
-#define FALSE 0
-#endif
-
 // Bytes should be 8-bits wide
-typedef signed char SBYTE;
 typedef unsigned char UBYTE;
 
 // Words should be 16-bits wide
-typedef signed short SWORD;
 typedef unsigned short UWORD;
 
 // Longs should be 32-bits wide
-typedef signed long SLONG;
 typedef unsigned long ULONG;
 
 // Read/Write Cycle definitions

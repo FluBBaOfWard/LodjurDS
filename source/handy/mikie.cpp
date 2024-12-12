@@ -47,12 +47,23 @@
 #define mAUDIO_3 mikey_0.audio3
 #define mSTEREO mikey_0.stereo
 
+#define mUART_RX_IRQ_ENABLE mikey_0.uart_RX_IRQ_ENABLE
+#define mUART_TX_IRQ_ENABLE mikey_0.uart_TX_IRQ_ENABLE
+#define mUART_PARITY_ENABLE mikey_0.uart_PARITY_ENABLE
+#define mUART_PARITY_EVEN mikey_0.uart_PARITY_EVEN
+#define mUART_SENDBREAK mikey_0.uart_SENDBREAK
+#define mUART_RX_COUNTDOWN mikey_0.uart_RX_COUNTDOWN
+#define mUART_TX_COUNTDOWN mikey_0.uart_TX_COUNTDOWN
+#define mUART_TX_DATA mikey_0.uart_TX_DATA
+#define mUART_RX_DATA mikey_0.uart_RX_DATA
+#define mUART_RX_READY mikey_0.uart_RX_READY
+
 CMikie::CMikie(CSystem& parent)
 	:mSystem(parent)
 {
 	TRACE_MIKIE0("CMikie()");
 
-	mikey_0.serCablePresent = FALSE;
+	mikey_0.serCablePresent = false;
 	mpUART_TX_CALLBACK = NULL;
 
 	Reset();
@@ -70,11 +81,14 @@ void CMikie::Reset(void)
 	//
 	// Initialise the UART variables
 	//
-	mUART_RX_IRQ_ENABLE = 0;
-	mUART_TX_IRQ_ENABLE = 0;
+//	mUART_RX_IRQ_ENABLE = 0;
+//	mUART_TX_IRQ_ENABLE = 0;
+//	mUART_PARITY_ENABLE = 0;
+//	mUART_PARITY_EVEN = 0;
+//	mUART_SENDBREAK = 0;
 
-	mUART_TX_COUNTDOWN = UART_TX_INACTIVE;
-	mUART_RX_COUNTDOWN = UART_RX_INACTIVE;
+//	mUART_TX_COUNTDOWN = UART_TX_INACTIVE;
+//	mUART_RX_COUNTDOWN = UART_RX_INACTIVE;
 
 	mUART_Rx_input_ptr = 0;
 	mUART_Rx_output_ptr = 0;
@@ -82,16 +96,13 @@ void CMikie::Reset(void)
 	mUART_Rx_framing_error = 0;
 	mUART_Rx_overun_error = 0;
 
-	mUART_SENDBREAK = 0;
-	mUART_TX_DATA = 0;
-	mUART_RX_DATA = 0;
-	mUART_RX_READY = 0;
+//	mUART_TX_DATA = 0;
+//	mUART_RX_DATA = 0;
+//	mUART_RX_READY = 0;
 
-	mUART_PARITY_ENABLE = 0;
-	mUART_PARITY_EVEN = 0;
 }
 
-ULONG CMikie::GetLfsrNext(ULONG current)
+u32 CMikie::GetLfsrNext(u32 current)
 {
 	// The table is built thus:
 	//	Bits 0-11  LFSR					(12 Bits)
@@ -105,7 +116,7 @@ ULONG CMikie::GetLfsrNext(ULONG current)
 	// If the index is a combination of Current LFSR+Feedback the
 	// table will give the next value.
 
-	static const ULONG switchbits[9]={7,0,1,2,3,4,5,10,11};
+	static const u32 switchbits[9]={7,0,1,2,3,4,5,10,11};
 
 	u32 switches = current >> 12;
 	u32 lfsr = current & 0xfff;
@@ -178,7 +189,7 @@ void CMikie::ComLynxTxLoopback(int data)
 	}
 }
 
-void CMikie::ComLynxTxCallback(void (*function)(int data, ULONG objref), ULONG objref)
+void CMikie::ComLynxTxCallback(void (*function)(int data, u32 objref), u32 objref)
 {
 	mpUART_TX_CALLBACK = function;
 	mUART_TX_CALLBACK_OBJECT = objref;
@@ -186,60 +197,11 @@ void CMikie::ComLynxTxCallback(void (*function)(int data, ULONG objref), ULONG o
 
 // Peek/Poke memory handlers
 
-void CMikie::Poke(ULONG addr, UBYTE data)
+void CMikie::Poke(u32 addr, u8 data)
 {
 	switch(addr & 0xff)
 	{
-//		case (AUD0TBACK & 0xff):
-//			// Counter is disabled when backup is zero for optimisation
-//			// due to the fact that the output frequency will be above audio
-//			// range, we must update the last use position to stop problems
-//			if (!mAUDIO_0.BKUP && data) {
-//				mAUDIO_0.LAST_COUNT = gSystemCycleCount;
-//				gNextTimerEvent = gSystemCycleCount;
-//			}
-//			mAUDIO_0.BKUP = data;
-//			TRACE_MIKIE2("Poke(AUD0TBACK,%02x) at PC=%04x", data, mSystem.mCpu->GetPC());
-//			break;
-//
-//		case (AUD1TBACK & 0xff):
-//			// Counter is disabled when backup is zero for optimisation
-//			// due to the fact that the output frequency will be above audio
-//			// range, we must update the last use position to stop problems
-//			if (!mAUDIO_1.BKUP && data) {
-//				mAUDIO_1.LAST_COUNT = gSystemCycleCount;
-//				gNextTimerEvent = gSystemCycleCount;
-//			}
-//			mAUDIO_1.BKUP = data;
-//			TRACE_MIKIE2("Poke(AUD1TBACK,%02x) at PC=%04x", data, mSystem.mCpu->GetPC());
-//			break;
-//
-//		case (AUD2TBACK & 0xff):
-//			// Counter is disabled when backup is zero for optimisation
-//			// due to the fact that the output frequency will be above audio
-//			// range, we must update the last use position to stop problems
-//			if (!mAUDIO_2.BKUP && data) {
-//				mAUDIO_2.LAST_COUNT = gSystemCycleCount;
-//				gNextTimerEvent = gSystemCycleCount;
-//			}
-//			mAUDIO_2.BKUP = data;
-//			TRACE_MIKIE2("Poke(AUD2TBACK,%02x) at PC=%04x", data, mSystem.mCpu->GetPC());
-//			break;
-//
-//		case (AUD3TBACK & 0xff):
-//			// Counter is disabled when backup is zero for optimisation
-//			// due to the fact that the output frequency will be above audio
-//			// range, we must update the last use position to stop problems
-//			if (!mAUDIO_3.BKUP && data) {
-//				mAUDIO_3.LAST_COUNT = gSystemCycleCount;
-//				gNextTimerEvent = gSystemCycleCount;
-//			}
-//			mAUDIO_3.BKUP = data;
-//			TRACE_MIKIE2("Poke(AUD3TBACK,%02x) at PC=%04x", data, mSystem.mCpu->GetPC());
-//			break;
-
 		case (SERCTL & 0xff):
-			TRACE_MIKIE2("Poke(SERCTL  ,%02x) at PC=%04x", data, mSystem.mCpu->GetPC());
 			mUART_TX_IRQ_ENABLE = (data & 0x80) ? true : false;
 			mUART_RX_IRQ_ENABLE = (data & 0x40) ? true : false;
 			mUART_PARITY_ENABLE = (data & 0x10) ? true : false;
@@ -261,7 +223,6 @@ void CMikie::Poke(ULONG addr, UBYTE data)
 			break;
 
 		case (SERDAT & 0xff):
-			TRACE_MIKIE2("Poke(SERDAT ,%04x) at PC=%04x", data, mSystem.mCpu->GetPC());
 			//
 			// Fake transmission, set counter to be decremented by Timer 4
 			//
@@ -289,25 +250,23 @@ void CMikie::Poke(ULONG addr, UBYTE data)
 	}
 }
 
-UBYTE CMikie::Peek(ULONG addr)
+u8 CMikie::Peek(u32 addr)
 {
 	switch(addr & 0xff) {
 		case (SERCTL & 0xff):
 			{
-				ULONG retval = 0;
+				u32 retval = 0;
 				retval |= (mUART_TX_COUNTDOWN&UART_TX_INACTIVE) ? 0xA0 : 0x00;	// Indicate TxDone & TxAllDone
 				retval |= (mUART_RX_READY) ? 0x40 : 0x00;						// Indicate Rx data ready
 				retval |= (mUART_Rx_overun_error) ? 0x08 : 0x0;					// Framing error
 				retval |= (mUART_Rx_framing_error) ? 0x04 : 0x00;				// Rx overrun
 				retval |= (mUART_RX_DATA&UART_BREAK_CODE) ? 0x02 : 0x00;		// Indicate break received
 				retval |= (mUART_RX_DATA & 0x0100) ? 0x01 : 0x00;				// Add parity bit
-				TRACE_MIKIE2("Peek(SERCTL  ,%02x) at PC=%04x", retval, mSystem.mCpu->GetPC());
-				return (UBYTE)retval;
+				return (u8)retval;
 			}
 		case (SERDAT & 0xff):
 			mUART_RX_READY = 0;
-			TRACE_MIKIE2("Peek(SERDAT  ,%02x) at PC=%04x", (UBYTE)mUART_RX_DATA, mSystem.mCpu->GetPC());
-			return (UBYTE)(mUART_RX_DATA & 0xff);
+			return (u8)(mUART_RX_DATA & 0xff);
 		default:
 			return 0xFF;
 	}
@@ -316,7 +275,7 @@ UBYTE CMikie::Peek(ULONG addr)
 void CMikie::UpdateTimer4(u32 sysCycCount) {
 	int divide = 0;
 	int decval = 0;
-	ULONG tmp;
+	u32 tmp;
 	//
 	// Timer 4 of Group A
 	//
@@ -484,10 +443,10 @@ void CMikie::UpdateTimer4(u32 sysCycCount) {
 void CMikie::UpdateSound(void) {
 	int divide = 0;
 	int decval = 0;
-	ULONG tmp;
+	u32 tmp;
 
-//	static SLONG sample = 0;
-	// ULONG mix = 0; // unused
+//	static s32 sample = 0;
+	// u32 mix = 0; // unused
 
 	//
 	// Catch audio buffer up to current time
@@ -519,7 +478,7 @@ void CMikie::UpdateSound(void) {
 
 	for (;gAudioLastUpdateCycle+HANDY_AUDIO_SAMPLE_PERIOD < gSystemCycleCount;gAudioLastUpdateCycle += HANDY_AUDIO_SAMPLE_PERIOD) {
 		// Output audio sample
-//		gAudioBuffer[gAudioBufferPointer++] = (UBYTE)sample;
+//		gAudioBuffer[gAudioBufferPointer++] = (u8)sample;
 		gAudioBuffer0[gAudioBufferPointer] = (mSTEREO & 0x11) ? mikey_0.aud0OutVal : 0;
 		gAudioBuffer1[gAudioBufferPointer] = (mSTEREO & 0x22) ? mikey_0.aud1OutVal : 0;
 		gAudioBuffer2[gAudioBufferPointer] = (mSTEREO & 0x33) ? mikey_0.aud2OutVal : 0;
@@ -577,14 +536,16 @@ void CMikie::UpdateSound(void) {
 				mAUDIO_0.WAVESHAPER = GetLfsrNext(mAUDIO_0.WAVESHAPER);
 
 				if (mikey_0.aud0Ctl & INTEGRATE) {
-					SLONG temp = mikey_0.aud0OutVal;
-					if (mAUDIO_0.WAVESHAPER & 0x0001) temp += mikey_0.aud0Vol; else temp -= mikey_0.aud0Vol;
+					s32 temp = mikey_0.aud0OutVal;
+					if (mAUDIO_0.WAVESHAPER & 0x0001) temp += mikey_0.aud0Vol;
+					else temp -= mikey_0.aud0Vol;
 					if (temp > 127) temp = 127;
 					if (temp < -128) temp = -128;
-					mikey_0.aud0OutVal = (SBYTE)temp;
+					mikey_0.aud0OutVal = (s8)temp;
 				}
 				else {
-					if (mAUDIO_0.WAVESHAPER & 0x0001) mikey_0.aud0OutVal = mikey_0.aud0Vol; else mikey_0.aud0OutVal = -mikey_0.aud0Vol;
+					if (mAUDIO_0.WAVESHAPER & 0x0001) mikey_0.aud0OutVal = mikey_0.aud0Vol;
+					else mikey_0.aud0OutVal = -mikey_0.aud0Vol;
 				}
 			}
 			else {
@@ -655,14 +616,16 @@ void CMikie::UpdateSound(void) {
 				mAUDIO_1.WAVESHAPER = GetLfsrNext(mAUDIO_1.WAVESHAPER);
 
 				if (mikey_0.aud1Ctl & INTEGRATE) {
-					SLONG temp = mikey_0.aud1OutVal;
-					if (mAUDIO_1.WAVESHAPER & 0x0001) temp += mikey_0.aud1Vol; else temp -= mikey_0.aud1Vol;
+					s32 temp = mikey_0.aud1OutVal;
+					if (mAUDIO_1.WAVESHAPER & 0x0001) temp += mikey_0.aud1Vol;
+					else temp -= mikey_0.aud1Vol;
 					if (temp > 127) temp = 127;
 					if (temp < -128) temp = -128;
-					mikey_0.aud1OutVal = (SBYTE)temp;
+					mikey_0.aud1OutVal = (s8)temp;
 				}
 				else {
-					if (mAUDIO_1.WAVESHAPER & 0x0001) mikey_0.aud1OutVal = mikey_0.aud1Vol; else mikey_0.aud1OutVal = -mikey_0.aud1Vol;
+					if (mAUDIO_1.WAVESHAPER & 0x0001) mikey_0.aud1OutVal = mikey_0.aud1Vol;
+					else mikey_0.aud1OutVal = -mikey_0.aud1Vol;
 				}
 			}
 			else {
@@ -733,14 +696,16 @@ void CMikie::UpdateSound(void) {
 				mAUDIO_2.WAVESHAPER = GetLfsrNext(mAUDIO_2.WAVESHAPER);
 
 				if (mikey_0.aud2Ctl & INTEGRATE) {
-					SLONG temp = mikey_0.aud2OutVal;
-					if (mAUDIO_2.WAVESHAPER&0x0001) temp += mikey_0.aud2Vol; else temp -= mikey_0.aud2Vol;
+					s32 temp = mikey_0.aud2OutVal;
+					if (mAUDIO_2.WAVESHAPER&0x0001) temp += mikey_0.aud2Vol;
+					else temp -= mikey_0.aud2Vol;
 					if (temp > 127) temp = 127;
 					if (temp < -128) temp = -128;
-					mikey_0.aud2OutVal = (SBYTE)temp;
+					mikey_0.aud2OutVal = (s8)temp;
 				}
 				else {
-					if (mAUDIO_2.WAVESHAPER & 0x0001) mikey_0.aud2OutVal = mikey_0.aud2Vol; else mikey_0.aud2OutVal = -mikey_0.aud2Vol;
+					if (mAUDIO_2.WAVESHAPER & 0x0001) mikey_0.aud2OutVal = mikey_0.aud2Vol;
+					else mikey_0.aud2OutVal = -mikey_0.aud2Vol;
 				}
 			}
 			else {
@@ -811,14 +776,16 @@ void CMikie::UpdateSound(void) {
 				mAUDIO_3.WAVESHAPER = GetLfsrNext(mAUDIO_3.WAVESHAPER);
 
 				if (mikey_0.aud3Ctl & INTEGRATE) {
-					SLONG temp = mikey_0.aud3OutVal;
-					if (mAUDIO_3.WAVESHAPER & 0x0001) temp += mikey_0.aud3Vol; else temp -= mikey_0.aud3Vol;
+					s32 temp = mikey_0.aud3OutVal;
+					if (mAUDIO_3.WAVESHAPER & 0x0001) temp += mikey_0.aud3Vol;
+					else temp -= mikey_0.aud3Vol;
 					if (temp > 127) temp = 127;
 					if (temp < -128) temp = -128;
-					mikey_0.aud3OutVal = (SBYTE)temp;
+					mikey_0.aud3OutVal = (s8)temp;
 				}
 				else {
-					if (mAUDIO_3.WAVESHAPER & 0x0001) mikey_0.aud3OutVal = mikey_0.aud3Vol; else mikey_0.aud3OutVal = -mikey_0.aud3Vol;
+					if (mAUDIO_3.WAVESHAPER & 0x0001) mikey_0.aud3OutVal = mikey_0.aud3Vol;
+					else mikey_0.aud3OutVal = -mikey_0.aud3Vol;
 				}
 			}
 			else {

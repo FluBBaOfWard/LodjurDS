@@ -37,7 +37,7 @@
 //
 #define gAudioLastUpdateCycle mikey_0.audioLastUpdateCycle
 #ifdef SYSTEM_CPP
-	ULONG	gAudioEnabled = FALSE;
+	ULONG	gAudioEnabled = false;
 	UBYTE	*gAudioBuffer0; // UBYTE	gAudioBuffer0[HANDY_AUDIO_BUFFER_SIZE];
 	UBYTE	*gAudioBuffer1; // UBYTE	gAudioBuffer1[HANDY_AUDIO_BUFFER_SIZE];
 	UBYTE	*gAudioBuffer2; // UBYTE	gAudioBuffer2[HANDY_AUDIO_BUFFER_SIZE];
