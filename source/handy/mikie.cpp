@@ -46,18 +46,12 @@
 #define mAUDIO_3 mikey_0.audio3
 #define mSTEREO mikey_0.stereo
 
-#define mUART_RX_IRQ_ENABLE mikey_0.uart_RX_IRQ_ENABLE
-#define mUART_TX_IRQ_ENABLE mikey_0.uart_TX_IRQ_ENABLE
-#define mUART_SENDBREAK mikey_0.uart_SENDBREAK
 #define mUART_RX_COUNTDOWN mikey_0.uart_RX_COUNTDOWN
 #define mUART_TX_COUNTDOWN mikey_0.uart_TX_COUNTDOWN
 #define mUART_TX_DATA mikey_0.uart_TX_DATA
-#define mUART_RX_DATA mikey_0.uart_RX_DATA
 #define mUART_RX_READY mikey_0.uart_RX_READY
-#define mUART_Rx_overun_error mikey_0.uart_Rx_overun_error
 
 #define mpUART_TX_CALLBACK mikey_0.txFunction
-#define mUART_TX_CALLBACK_OBJECT mikey_0.txCallbackObj
 #define mUART_Rx_input_queue mikey_0.uart_Rx_input_queue
 #define mUART_Rx_input_ptr mikey_0.uart_Rx_input_ptr
 #define mUART_Rx_output_ptr mikey_0.uart_Rx_input_ptr
@@ -81,13 +75,6 @@ CMikie::~CMikie()
 void CMikie::Reset(void)
 {
 	TRACE_MIKIE0("Reset()");
-
-	//
-	// Initialise the UART variables
-	//
-//	mUART_Rx_input_ptr = 0;
-//	mUART_Rx_output_ptr = 0;
-//	mUART_Rx_waiting = 0;
 }
 
 u32 CMikie::GetLfsrNext(u32 current)
@@ -131,12 +118,7 @@ void CMikie::PresetForHomebrew(void)
 	mikey_0.tim2Bkup = 0x68;
 	mikey_0.tim2CtlA = (LINKING | ENABLE_COUNT | ENABLE_RELOAD);
 }
-
-//void CMikie::ComLynxCable(int status)
-//{
-//	mikey_0.serCablePresent = status;
-//}
-
+/*
 void CMikie::ComLynxRxData(int data)
 {
 	TRACE_MIKIE1("ComLynxRxData() - Received %04x", data);
@@ -175,13 +157,7 @@ void CMikie::ComLynxTxLoopback(int data)
 	else {
 		TRACE_MIKIE0("ComLynxTxLoopback() - UART RX Overun");
 	}
-}
-
-//void CMikie::ComLynxTxCallback(void (*function)(int data, u32 objref), u32 objref)
-//{
-//	mpUART_TX_CALLBACK = function;
-//	mUART_TX_CALLBACK_OBJECT = objref;
-//}
+}*/
 
 void CMikie::UpdateTimer4(u32 sysCycCount) {
 	int divide = 0;
@@ -232,7 +208,7 @@ void CMikie::UpdateTimer4(u32 sysCycCount) {
 				if (!mUART_RX_COUNTDOWN) {
 					// Fetch a byte from the input queue
 					if (mUART_Rx_waiting > 0) {
-						mUART_RX_DATA = mUART_Rx_input_queue[mUART_Rx_output_ptr];
+						mikey_0.uart_RX_DATA = mUART_Rx_input_queue[mUART_Rx_output_ptr];
 						mUART_Rx_output_ptr = (mUART_Rx_output_ptr + 1) % UART_MAX_RX_QUEUE;
 						mUART_Rx_waiting--;
 						TRACE_MIKIE2("Update() - RX Byte output ptr=%02d waiting=%02d", mUART_Rx_output_ptr, mUART_Rx_waiting);
@@ -253,7 +229,7 @@ void CMikie::UpdateTimer4(u32 sysCycCount) {
 
 					// If RX_READY already set then we have an overrun
 					// as previous byte hasnt been read
-					if (mUART_RX_READY) mUART_Rx_overun_error = 1;
+					if (mUART_RX_READY) mikey_0.uart_Rx_overun_error = 1;
 
 					// Flag byte as being recvd
 					mUART_RX_READY = 1;
@@ -263,12 +239,12 @@ void CMikie::UpdateTimer4(u32 sysCycCount) {
 				}
 
 				if (!mUART_TX_COUNTDOWN) {
-					if (mUART_SENDBREAK) {
+					if (mikey_0.uart_SENDBREAK) {
 						mUART_TX_DATA = UART_BREAK_CODE;
 						// Auto-Respawn new transmit
 						mUART_TX_COUNTDOWN = UART_TX_TIME_PERIOD;
 						// Loop back what we transmitted
-						ComLynxTxLoopback(mUART_TX_DATA);
+						ComLynxTxLoopback(&mikey_0, mUART_TX_DATA);
 					}
 					else {
 						// Serial activity finished
@@ -278,7 +254,7 @@ void CMikie::UpdateTimer4(u32 sysCycCount) {
 					// If a networking object is attached then use its callback to send the data byte.
 					if (mpUART_TX_CALLBACK) {
 						TRACE_MIKIE0("Update() - UART_TX_CALLBACK");
-						(*mpUART_TX_CALLBACK)(mUART_TX_DATA, mUART_TX_CALLBACK_OBJECT);
+						(*mpUART_TX_CALLBACK)(mUART_TX_DATA, mikey_0.txCallbackObj);
 					}
 
 				}
@@ -339,13 +315,13 @@ void CMikie::UpdateTimer4(u32 sysCycCount) {
 
 	// If Tx is inactive i.e ready for a byte to eat and the
 	// IRQ is enabled then generate it always
-	if ((mUART_TX_COUNTDOWN & UART_TX_INACTIVE) && mUART_TX_IRQ_ENABLE) {
+	if ((mUART_TX_COUNTDOWN & UART_TX_INACTIVE) && mikey_0.uart_TX_IRQ_ENABLE) {
 		TRACE_MIKIE0("Update() - UART TX IRQ Triggered");
 		mikey_0.timerStatusFlags |= 0x10;
 	}
 	// Is data waiting and the interrupt enabled, if so then
 	// what are we waiting for....
-	if (mUART_RX_READY && mUART_RX_IRQ_ENABLE) {
+	if (mUART_RX_READY && mikey_0.uart_RX_IRQ_ENABLE) {
 		TRACE_MIKIE0("Update() - UART RX IRQ Triggered");
 		mikey_0.timerStatusFlags |= 0x10;
 	}

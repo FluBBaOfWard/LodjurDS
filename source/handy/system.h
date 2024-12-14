@@ -66,12 +66,6 @@ class CSystem
 	public:
 		void	Reset(void);
 
-// Mikey system interfacing
-
-//		void	ComLynxCable(int status) { mMikie->ComLynxCable(status); };
-//		void	ComLynxRxData(int data)  { mMikie->ComLynxRxData(data); };
-//		void	ComLynxTxCallback(void (*function)(int data, ULONG objref), ULONG objref) { mMikie->ComLynxTxCallback(function, objref); };
-
 	public:
 		CMikie			*mMikie;
 };

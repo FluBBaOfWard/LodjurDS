@@ -65,29 +65,14 @@ class CMikie : public CLynxBase
 		void	PresetForHomebrew(void);
 		u32	GetLfsrNext(u32 current);
 
-//		void	ComLynxCable(int status);
-		void	ComLynxRxData(int data);
-		void	ComLynxTxLoopback(int data);
-//		void	ComLynxTxCallback(void (*function)(int data, u32 objref), u32 objref);
+//		void	ComLynxRxData(int data);
+//		void	ComLynxTxLoopback(int data);
 
 		void	UpdateTimer4(u32 sysCycCount);
 		void	UpdateSound(void);
 
 	private:
 		CSystem		&mSystem;
-
-		//
-		// Serial related variables
-		//
-
-
-//		void		(*mpUART_TX_CALLBACK)(int data, u32 objref);
-//		u32		mUART_TX_CALLBACK_OBJECT;
-
-//		int			mUART_Rx_input_queue[UART_MAX_RX_QUEUE];
-//		unsigned int mUART_Rx_input_ptr;
-//		unsigned int mUART_Rx_output_ptr = 0;
-//		int			mUART_Rx_waiting;
 
 };
 
