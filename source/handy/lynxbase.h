@@ -37,9 +37,6 @@ class CLynxBase
 	public:
 		virtual void	Reset(void) {};
 
-		virtual void	Poke(ULONG addr,UBYTE data)=0;
-		virtual UBYTE	Peek(ULONG addr)=0;
-		virtual UWORD	PeekW(ULONG addr) {return 0;};
 		virtual ULONG	ObjectSize(void) {return 1;};
 
 };

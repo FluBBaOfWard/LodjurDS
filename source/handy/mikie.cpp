@@ -36,7 +36,6 @@
 #include <stdlib.h>
 #include "system.h"
 #include "mikie.h"
-#include "lynxdef.h"
 #include "nds.h"
 #include "../Cpu.h"
 
@@ -49,23 +48,26 @@
 
 #define mUART_RX_IRQ_ENABLE mikey_0.uart_RX_IRQ_ENABLE
 #define mUART_TX_IRQ_ENABLE mikey_0.uart_TX_IRQ_ENABLE
-#define mUART_PARITY_ENABLE mikey_0.uart_PARITY_ENABLE
-#define mUART_PARITY_EVEN mikey_0.uart_PARITY_EVEN
 #define mUART_SENDBREAK mikey_0.uart_SENDBREAK
 #define mUART_RX_COUNTDOWN mikey_0.uart_RX_COUNTDOWN
 #define mUART_TX_COUNTDOWN mikey_0.uart_TX_COUNTDOWN
 #define mUART_TX_DATA mikey_0.uart_TX_DATA
 #define mUART_RX_DATA mikey_0.uart_RX_DATA
 #define mUART_RX_READY mikey_0.uart_RX_READY
-#define mUART_Rx_framing_error mikey_0.uart_Rx_framing_error
 #define mUART_Rx_overun_error mikey_0.uart_Rx_overun_error
+
+#define mpUART_TX_CALLBACK mikey_0.txFunction
+#define mUART_TX_CALLBACK_OBJECT mikey_0.txCallbackObj
+#define mUART_Rx_input_queue mikey_0.uart_Rx_input_queue
+#define mUART_Rx_input_ptr mikey_0.uart_Rx_input_ptr
+#define mUART_Rx_output_ptr mikey_0.uart_Rx_input_ptr
+#define mUART_Rx_waiting mikey_0.uart_Rx_input_ptr
 
 CMikie::CMikie(CSystem& parent)
 	:mSystem(parent)
 {
 	TRACE_MIKIE0("CMikie()");
 
-	mikey_0.serCablePresent = false;
 	mpUART_TX_CALLBACK = NULL;
 
 	Reset();
@@ -83,11 +85,9 @@ void CMikie::Reset(void)
 	//
 	// Initialise the UART variables
 	//
-	mUART_Rx_input_ptr = 0;
-	mUART_Rx_output_ptr = 0;
-	mUART_Rx_waiting = 0;
-//	mUART_Rx_framing_error = 0;
-//	mUART_Rx_overun_error = 0;
+//	mUART_Rx_input_ptr = 0;
+//	mUART_Rx_output_ptr = 0;
+//	mUART_Rx_waiting = 0;
 }
 
 u32 CMikie::GetLfsrNext(u32 current)
@@ -132,10 +132,10 @@ void CMikie::PresetForHomebrew(void)
 	mikey_0.tim2CtlA = (LINKING | ENABLE_COUNT | ENABLE_RELOAD);
 }
 
-void CMikie::ComLynxCable(int status)
-{
-	mikey_0.serCablePresent = status;
-}
+//void CMikie::ComLynxCable(int status)
+//{
+//	mikey_0.serCablePresent = status;
+//}
 
 void CMikie::ComLynxRxData(int data)
 {
@@ -170,69 +170,18 @@ void CMikie::ComLynxTxLoopback(int data)
 		mUART_Rx_output_ptr = (mUART_Rx_output_ptr - 1) % UART_MAX_RX_QUEUE;
 		mUART_Rx_input_queue[mUART_Rx_output_ptr] = data;
 		mUART_Rx_waiting++;
-		TRACE_MIKIE2("ComLynxTxLoopback() - input ptr=%02d waiting=%02d", mUART_Rx_input_ptr, mUART_Rx_waiting);
+		TRACE_MIKIE2("ComLynxTxLoopback() - output ptr=%02d waiting=%02d", mUART_Rx_output_ptr, mUART_Rx_waiting);
 	}
 	else {
 		TRACE_MIKIE0("ComLynxTxLoopback() - UART RX Overun");
 	}
 }
 
-void CMikie::ComLynxTxCallback(void (*function)(int data, u32 objref), u32 objref)
-{
-	mpUART_TX_CALLBACK = function;
-	mUART_TX_CALLBACK_OBJECT = objref;
-}
-
-// Peek/Poke memory handlers
-
-void CMikie::Poke(u32 addr, u8 data)
-{
-	switch(addr & 0xff)
-	{
-//		case (SERCTL & 0xff):
-//			mUART_TX_IRQ_ENABLE = (data & 0x80) ? true : false;
-//			mUART_RX_IRQ_ENABLE = (data & 0x40) ? true : false;
-//			mUART_PARITY_ENABLE = (data & 0x10) ? true : false;
-//			mUART_SENDBREAK = data & 0x02;
-//			mUART_PARITY_EVEN = data & 0x01;
-//
-//			// Reset all errors if required
-//			if (data & 0x08) {
-//				mUART_Rx_overun_error = 0;
-//				mUART_Rx_framing_error = 0;
-//			}
-//
-//			if (mUART_SENDBREAK) {
-//				// Trigger send break, it will self sustain as long as sendbreak is set
-//				mUART_TX_COUNTDOWN = UART_TX_TIME_PERIOD;
-//				// Loop back what we transmitted
-//				ComLynxTxLoopback(UART_BREAK_CODE);
-//			}
-//			break;
-//
-		default:
-			break;
-	}
-}
-
-u8 CMikie::Peek(u32 addr)
-{
-	switch(addr & 0xff) {
-//		case (SERCTL & 0xff):
-//			{
-//				u32 retval = 0;
-//				retval |= (mUART_TX_COUNTDOWN & UART_TX_INACTIVE) ? 0xA0 : 0x00;	// Indicate TxDone & TxAllDone
-//				retval |= (mUART_RX_READY) ? 0x40 : 0x00;						// Indicate Rx data ready
-//				retval |= (mUART_Rx_overun_error) ? 0x08 : 0x0;					// Framing error
-//				retval |= (mUART_Rx_framing_error) ? 0x04 : 0x00;				// Rx overrun
-//				retval |= (mUART_RX_DATA & UART_BREAK_CODE) ? 0x02 : 0x00;		// Indicate break received
-//				retval |= (mUART_RX_DATA & 0x0100) ? 0x01 : 0x00;				// Add parity bit
-//				return (u8)retval;
-//			}
-		default:
-			return 0xFF;
-	}
-}
+//void CMikie::ComLynxTxCallback(void (*function)(int data, u32 objref), u32 objref)
+//{
+//	mpUART_TX_CALLBACK = function;
+//	mUART_TX_CALLBACK_OBJECT = objref;
+//}
 
 void CMikie::UpdateTimer4(u32 sysCycCount) {
 	int divide = 0;

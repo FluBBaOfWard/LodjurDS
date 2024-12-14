@@ -62,15 +62,13 @@ class CMikie : public CLynxBase
 
 		void	Reset(void);
 
-		UBYTE	Peek(ULONG addr);
-		void	Poke(ULONG addr,UBYTE data);
 		void	PresetForHomebrew(void);
-		ULONG	GetLfsrNext(ULONG current);
+		u32	GetLfsrNext(u32 current);
 
-		void	ComLynxCable(int status);
+//		void	ComLynxCable(int status);
 		void	ComLynxRxData(int data);
 		void	ComLynxTxLoopback(int data);
-		void	ComLynxTxCallback(void (*function)(int data,ULONG objref),ULONG objref);
+//		void	ComLynxTxCallback(void (*function)(int data, u32 objref), u32 objref);
 
 		void	UpdateTimer4(u32 sysCycCount);
 		void	UpdateSound(void);
@@ -83,15 +81,13 @@ class CMikie : public CLynxBase
 		//
 
 
-		void		(*mpUART_TX_CALLBACK)(int data,ULONG objref);
-		ULONG		mUART_TX_CALLBACK_OBJECT;
+//		void		(*mpUART_TX_CALLBACK)(int data, u32 objref);
+//		u32		mUART_TX_CALLBACK_OBJECT;
 
-		int			mUART_Rx_input_queue[UART_MAX_RX_QUEUE];
-		unsigned int mUART_Rx_input_ptr;
-		unsigned int mUART_Rx_output_ptr = 0;
-		int			mUART_Rx_waiting;
-//		int			mUART_Rx_framing_error;
-//		int			mUART_Rx_overun_error;
+//		int			mUART_Rx_input_queue[UART_MAX_RX_QUEUE];
+//		unsigned int mUART_Rx_input_ptr;
+//		unsigned int mUART_Rx_output_ptr = 0;
+//		int			mUART_Rx_waiting;
 
 };
 

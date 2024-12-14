@@ -38,17 +38,17 @@
 #define gAudioLastUpdateCycle mikey_0.audioLastUpdateCycle
 #ifdef SYSTEM_CPP
 	ULONG	gAudioEnabled = false;
-	UBYTE	*gAudioBuffer0; // UBYTE	gAudioBuffer0[HANDY_AUDIO_BUFFER_SIZE];
-	UBYTE	*gAudioBuffer1; // UBYTE	gAudioBuffer1[HANDY_AUDIO_BUFFER_SIZE];
-	UBYTE	*gAudioBuffer2; // UBYTE	gAudioBuffer2[HANDY_AUDIO_BUFFER_SIZE];
-	UBYTE	*gAudioBuffer3; // UBYTE	gAudioBuffer3[HANDY_AUDIO_BUFFER_SIZE];
+	UBYTE	*gAudioBuffer0;
+	UBYTE	*gAudioBuffer1;
+	UBYTE	*gAudioBuffer2;
+	UBYTE	*gAudioBuffer3;
 	ULONG	gAudioBufferPointer = 0;
 #else
 	extern ULONG	gAudioEnabled;
-	extern UBYTE	*gAudioBuffer0; // extern UBYTE	gAudioBuffer0[HANDY_AUDIO_BUFFER_SIZE];
-	extern UBYTE	*gAudioBuffer1; // extern UBYTE	gAudioBuffer1[HANDY_AUDIO_BUFFER_SIZE];
-	extern UBYTE	*gAudioBuffer2; // extern UBYTE	gAudioBuffer2[HANDY_AUDIO_BUFFER_SIZE];
-	extern UBYTE	*gAudioBuffer3; // extern UBYTE	gAudioBuffer3[HANDY_AUDIO_BUFFER_SIZE];
+	extern UBYTE	*gAudioBuffer0;
+	extern UBYTE	*gAudioBuffer1;
+	extern UBYTE	*gAudioBuffer2;
+	extern UBYTE	*gAudioBuffer3;
 	extern ULONG	gAudioBufferPointer;
 #endif
 
@@ -68,9 +68,9 @@ class CSystem
 
 // Mikey system interfacing
 
-		void	ComLynxCable(int status) { mMikie->ComLynxCable(status); };
-		void	ComLynxRxData(int data)  { mMikie->ComLynxRxData(data); };
-		void	ComLynxTxCallback(void (*function)(int data, ULONG objref), ULONG objref) { mMikie->ComLynxTxCallback(function, objref); };
+//		void	ComLynxCable(int status) { mMikie->ComLynxCable(status); };
+//		void	ComLynxRxData(int data)  { mMikie->ComLynxRxData(data); };
+//		void	ComLynxTxCallback(void (*function)(int data, ULONG objref), ULONG objref) { mMikie->ComLynxTxCallback(function, objref); };
 
 	public:
 		CMikie			*mMikie;

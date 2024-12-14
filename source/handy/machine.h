@@ -32,9 +32,6 @@
 // Bytes should be 8-bits wide
 typedef unsigned char UBYTE;
 
-// Words should be 16-bits wide
-typedef unsigned short UWORD;
-
 // Longs should be 32-bits wide
 typedef unsigned long ULONG;
 
