@@ -24,7 +24,7 @@
 #ifndef SYSTEM_H
 #define SYSTEM_H
 
-#include "machine.h"
+#include "nds.h"
 
 #define HANDY_SYSTEM_FREQ						16000000
 #define HANDY_AUDIO_SAMPLE_FREQ					22050
@@ -32,24 +32,37 @@
 #define HANDY_AUDIO_BUFFER_FREQ					16
 #define HANDY_AUDIO_BUFFER_SIZE					(HANDY_AUDIO_SAMPLE_FREQ/HANDY_AUDIO_BUFFER_FREQ)
 
+// Read/Write Cycle definitions
+#define CPU_RDWR_CYC	5
+#define DMA_RDWR_CYC	4
+#define SPR_RDWR_CYC	3
+// Ammended to 2 on 28/04/00, 16Mhz = 62.5nS cycle
+//
+//    2 cycles is 125ns - PAGE MODE CYCLE
+//    4 cycles is 250ns - NORMAL MODE CYCLE
+//
+
+// Average length of a read/write cycle
+#define AVE_RDWR_CYC	5
+
 //
 // Define the global variable list
 //
 #define gAudioLastUpdateCycle mikey_0.audioLastUpdateCycle
 #ifdef SYSTEM_CPP
-	ULONG	gAudioEnabled = false;
-	UBYTE	*gAudioBuffer0;
-	UBYTE	*gAudioBuffer1;
-	UBYTE	*gAudioBuffer2;
-	UBYTE	*gAudioBuffer3;
-	ULONG	gAudioBufferPointer = 0;
+	u32	gAudioEnabled = false;
+	u8	*gAudioBuffer0;
+	u8	*gAudioBuffer1;
+	u8	*gAudioBuffer2;
+	u8	*gAudioBuffer3;
+	u32	gAudioBufferPointer = 0;
 #else
-	extern ULONG	gAudioEnabled;
-	extern UBYTE	*gAudioBuffer0;
-	extern UBYTE	*gAudioBuffer1;
-	extern UBYTE	*gAudioBuffer2;
-	extern UBYTE	*gAudioBuffer3;
-	extern ULONG	gAudioBufferPointer;
+	extern u32	gAudioEnabled;
+	extern u8	*gAudioBuffer0;
+	extern u8	*gAudioBuffer1;
+	extern u8	*gAudioBuffer2;
+	extern u8	*gAudioBuffer3;
+	extern u32	gAudioBufferPointer;
 #endif
 
 

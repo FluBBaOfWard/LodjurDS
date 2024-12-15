@@ -37,7 +37,6 @@
 #define TRACE_MIKIE0(msg)
 #define TRACE_MIKIE1(msg,arg1)
 #define TRACE_MIKIE2(msg,arg1,arg2)
-#define TRACE_MIKIE3(msg,arg1,arg2,arg3)
 
 #include "nds.h"
 
@@ -54,7 +53,7 @@ class CSystem;
 #define UART_RX_TIME_PERIOD	(11)
 #define UART_RX_NEXT_DELAY	(44)
 
-class CMikie : public CLynxBase
+class CMikie
 {
 	public:
 		CMikie(CSystem& parent);
@@ -62,18 +61,14 @@ class CMikie : public CLynxBase
 
 		void	Reset(void);
 
-		void	PresetForHomebrew(void);
-		u32	GetLfsrNext(u32 current);
-
-//		void	ComLynxRxData(int data);
-//		void	ComLynxTxLoopback(int data);
+//		void	PresetForHomebrew(void);
+		u32		GetLfsrNext(u32 current);
 
 		void	UpdateTimer4(u32 sysCycCount);
 		void	UpdateSound(void);
 
 	private:
 		CSystem		&mSystem;
-
 };
 
 

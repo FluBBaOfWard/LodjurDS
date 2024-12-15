@@ -29,7 +29,6 @@
 
 #define SYSTEM_CPP
 
-#include <stdlib.h>
 #include "system.h"
 
 CSystem::CSystem(void)

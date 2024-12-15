@@ -16,8 +16,6 @@ extern "C" {
 typedef struct {
 	u8 *cartBank0;		// Pointer to cart bank 0
 	u8 *cartBank1;		// Pointer to cart bank 1
-	u32 cartMaskBank0;	// Size mask, bank 0
-	u32 cartMaskBank1;	// Size mask, bank 1
 	u16 cartCountMask0;	//
 	u16 cartCountMask1;	//
 	u8 cartShiftCount0;	//

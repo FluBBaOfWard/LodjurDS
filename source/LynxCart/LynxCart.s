@@ -51,11 +51,8 @@ cartReset:					;@ r0=crtptr, r1=rom, r2=bank0 size, r3=bank1 size.
 	add r1,r1,r2
 	str r1,[r0,#cartBank1]
 
-	ldr r1,=0xFFFFF
-	mov r12,#12
-	cmp r2,#0x100000
-	movcc r1,r1,lsr#1
-	movcc r12,#11
+	ldr r1,=0x7FF
+	mov r12,#11
 	cmp r2,#0x80000
 	movcc r1,r1,lsr#1
 	movcc r12,#10
@@ -65,16 +62,11 @@ cartReset:					;@ r0=crtptr, r1=rom, r2=bank0 size, r3=bank1 size.
 	cmp r2,#0x20000
 	movcc r1,r1,lsr#1
 	movcc r12,#8
-	str r1,[r0,#cartMaskBank0]
-	mov r1,r1,lsr#8
 	strh r1,[r0,#cartCountMask0]
 	strb r12,[r0,#cartShiftCount0]
 
-	ldr r1,=0xFFFFF
-	mov r12,#12
-	cmp r3,#0x100000
-	movcc r1,r1,lsr#1
-	movcc r12,#11
+	ldr r1,=0x7FF
+	mov r12,#11
 	cmp r3,#0x80000
 	movcc r1,r1,lsr#1
 	movcc r12,#10
@@ -84,8 +76,6 @@ cartReset:					;@ r0=crtptr, r1=rom, r2=bank0 size, r3=bank1 size.
 	cmp r3,#0x20000
 	movcc r1,r1,lsr#1
 	movcc r12,#8
-	str r1,[r0,#cartMaskBank1]
-	mov r1,r1,lsr#8
 	strh r1,[r0,#cartCountMask1]
 	strb r12,[r0,#cartShiftCount1]
 
@@ -104,30 +94,25 @@ cartReset:					;@ r0=crtptr, r1=rom, r2=bank0 size, r3=bank1 size.
 cartSaveState:				;@ In r0=destination, r1=crtptr. Out r0=state size.
 	.type	cartSaveState STT_FUNC
 ;@----------------------------------------------------------------------------
-	stmfd sp!,{r4,r5,lr}
-	mov r4,r0					;@ Store destination
-	mov r5,r1					;@ Store crtptr (r1)
+	stmfd sp!,{lr}
 
-	add r1,r5,#cartState
+	add r1,r1,#cartState
 	mov r2,#cartStateEnd-cartState
 	bl memcpy
 
-	ldmfd sp!,{r4,r5,lr}
+	ldmfd sp!,{lr}
 	mov r0,#cartStateEnd-cartState
 	bx lr
 ;@----------------------------------------------------------------------------
 cartLoadState:				;@ In r0=crtptr, r1=source. Out r0=state size.
 	.type	cartLoadState STT_FUNC
 ;@----------------------------------------------------------------------------
-	stmfd sp!,{r4,r5,lr}
-	mov r5,r0					;@ Store crtptr (r0)
-	mov r4,r1					;@ Store source
-
-	add r0,r5,#cartState
+	stmfd sp!,{lr}
+	add r0,r0,#cartState
 	mov r2,#cartStateEnd-cartState
 	bl memcpy
 
-	ldmfd sp!,{r4,r5,lr}
+	ldmfd sp!,{lr}
 ;@----------------------------------------------------------------------------
 cartGetStateSize:			;@ Out r0=state size.
 	.type	cartGetStateSize STT_FUNC
@@ -147,8 +132,8 @@ cartAddressStrobe:				;@ In r0=crtptr, r1=strobe
 	ldrb r2,[r0,#cartStrobe]
 	cmp r2,#0
 	bne exitStrobe
-	ldrb r2,[r0,#cartShifter]
 	ldrb r3,[r0,#cartDataBit]
+	ldrb r2,[r0,#cartShifter]
 	cmp r3,#1
 	adc r2,r2,r2
 	strb r2,[r0,#cartShifter]
@@ -164,9 +149,9 @@ cartAddressData:				;@ In r0=crtptr, r1=data
 ;@----------------------------------------------------------------------------
 cartRead0:					;@ In r0=crtptr
 ;@----------------------------------------------------------------------------
+	ldrh r3,[r0,#cartCounter]
 	ldrb r12,[r0,#cartShifter]
 	ldrb r2,[r0,#cartShiftCount0]
-	ldrh r3,[r0,#cartCounter]
 	orr r12,r3,r12,lsl r2
 	ldrb r2,[r0,#cartStrobe]
 	cmp r2,#0
@@ -175,17 +160,15 @@ cartRead0:					;@ In r0=crtptr
 	andeq r3,r3,r2
 	strheq r3,[r0,#cartCounter]
 	ldr r2,[r0,#cartBank0]
-	ldr r3,[r0,#cartMaskBank0]
-	and r12,r12,r3
 	ldrb r0,[r2,r12]
 
 	bx lr
 ;@----------------------------------------------------------------------------
 cartRead1:					;@ In r0=crtptr
 ;@----------------------------------------------------------------------------
+	ldrh r3,[r0,#cartCounter]
 	ldrb r12,[r0,#cartShifter]
 	ldrb r2,[r0,#cartShiftCount1]
-	ldrh r3,[r0,#cartCounter]
 	orr r12,r3,r12,lsl r2
 	ldrb r2,[r0,#cartStrobe]
 	cmp r2,#0
@@ -194,17 +177,15 @@ cartRead1:					;@ In r0=crtptr
 	andeq r3,r3,r2
 	strheq r3,[r0,#cartCounter]
 	ldr r2,[r0,#cartBank0]
-	ldr r3,[r0,#cartMaskBank1]
-	and r12,r12,r3
 	ldrb r0,[r2,r12]
 
 	bx lr
 ;@----------------------------------------------------------------------------
 cartWrite0:					;@ In r0=crtptr, r1=data
 ;@----------------------------------------------------------------------------
+	ldrh r3,[r0,#cartCounter]
 	ldrb r12,[r0,#cartShifter]
 	ldrb r2,[r0,#cartShiftCount0]
-	ldrh r3,[r0,#cartCounter]
 	orr r12,r3,r12,lsl r2
 	ldrb r2,[r0,#cartStrobe]
 	cmp r2,#0
@@ -213,8 +194,6 @@ cartWrite0:					;@ In r0=crtptr, r1=data
 	andeq r3,r3,r2
 	strheq r3,[r0,#cartCounter]
 	ldr r2,[r0,#cartBank0]
-	ldr r3,[r0,#cartMaskBank0]
-	and r12,r12,r3
 	ldrb r3,[r0,#cartWriteEnable0]
 	cmp r3,#0
 	strbne r1,[r2,r12]
@@ -223,9 +202,9 @@ cartWrite0:					;@ In r0=crtptr, r1=data
 ;@----------------------------------------------------------------------------
 cartWrite1:					;@ In r0=crtptr, r1=data
 ;@----------------------------------------------------------------------------
+	ldrh r3,[r0,#cartCounter]
 	ldrb r12,[r0,#cartShifter]
 	ldrb r2,[r0,#cartShiftCount1]
-	ldrh r3,[r0,#cartCounter]
 	orr r12,r3,r12,lsl r2
 	ldrb r2,[r0,#cartStrobe]
 	cmp r2,#0
@@ -234,8 +213,6 @@ cartWrite1:					;@ In r0=crtptr, r1=data
 	andeq r3,r3,r2
 	strheq r3,[r0,#cartCounter]
 	ldr r2,[r0,#cartBank1]
-	ldr r3,[r0,#cartMaskBank1]
-	and r12,r12,r3
 	ldrb r3,[r0,#cartWriteEnable1]
 	cmp r3,#0
 	strbne r1,[r2,r12]

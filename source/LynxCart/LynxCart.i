@@ -12,8 +12,6 @@
 cartStruct:						;@
 cartBank0:			.long 0		;@ Pointer to cart bank 0
 cartBank1:			.long 0		;@ Pointer to cart bank 1
-cartMaskBank0:		.long 0		;@ Size mask, bank 0
-cartMaskBank1:		.long 0		;@ Size mask, bank 1
 cartCountMask0:		.short 0	;@
 cartCountMask1:		.short 0	;@
 cartShiftCount0:	.byte 0		;@
