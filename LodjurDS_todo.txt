@@ -1,6 +1,9 @@
 LodjurDS Todo
 
-	Create LynxCart in asm. First recreate lynx file handling.
+	Add auto rotate for vertical games.
+	Fix rotated controls.
+	Translate Timer4 to asm.
+	Translate audio code to asm.
 	Find speed hacks.
 
 GFX:
