@@ -99,21 +99,6 @@ u32 CMikie::GetLfsrNext(u32 current)
 	result = (result) ? 0 : 1;
 	return (switches << 12) | ((lfsr << 1) & 0xffe) | result;
 }
-/*
-void CMikie::PresetForHomebrew(void)
-{
-	TRACE_MIKIE0("PresetForHomebrew()");
-
-	//
-	// After all of that nice timer init we'll start timers running as some homebrew
-	// i.e LR.O doesn't bother to setup the timers
-
-	mikey_0.tim0Bkup = 0x9e;
-	mikey_0.tim0CtlA = (ENABLE_COUNT | ENABLE_RELOAD);
-
-	mikey_0.tim2Bkup = 0x68;
-	mikey_0.tim2CtlA = (LINKING | ENABLE_COUNT | ENABLE_RELOAD);
-}*/
 
 void CMikie::UpdateTimer4(u32 sysCycCount) {
 	int divide = 0;

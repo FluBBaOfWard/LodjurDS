@@ -61,7 +61,6 @@ class CMikie
 
 		void	Reset(void);
 
-//		void	PresetForHomebrew(void);
 		u32		GetLfsrNext(u32 current);
 
 		void	UpdateTimer4(u32 sysCycCount);
