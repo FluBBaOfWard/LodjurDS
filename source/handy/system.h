@@ -80,7 +80,7 @@ class CSystem
 		void	Reset(void);
 
 	public:
-		CMikie			*mMikie;
+		CMikie	*mMikie;
 };
 
 
