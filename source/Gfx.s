@@ -60,7 +60,7 @@ gfxReset:					;@ Called with CPU reset
 	bl gfxWinInit
 
 	ldr r0,=lodjurRenderCallback
-	ldr r1,=lodjurFrameCallback
+	ldr r1,=gfxEndFrame
 	ldr r2,=lynxRAM
 	ldr r3,=gSOC
 	ldrb r3,[r3]
@@ -153,15 +153,6 @@ gammaConvert:	;@ Takes value in r0(0-0xFF), gamma in r1(0-4),returns new value i
 	mla r0,r3,r0,r2
 	movs r0,r0,lsr#13
 
-	bx lr
-
-;@----------------------------------------------------------------------------
-lodjurFrameCallback:		;@ (void)
-;@----------------------------------------------------------------------------
-	mov r0,#0x06000000
-	add r0,r0,#(((256-GAME_HEIGHT)/2) * SCREEN_WIDTH * 2)
-	add r0,r0,#SCREEN_WIDTH-GAME_WIDTH
-	str r0,currentDest
 	bx lr
 
 ;@----------------------------------------------------------------------------
@@ -348,13 +339,10 @@ gfxEndFrame:				;@ Called just before screen end (~line 101)	(r0-r3 safe to use)
 ;@----------------------------------------------------------------------------
 	stmfd sp!,{r3,lr}
 
-//	ldr r0,tmpScroll			;@ Destination
-//	bl copyScrollValues
-
-	ldr r0,tmpScroll
-	ldr r1,dmaScroll
-	str r0,dmaScroll
-	str r1,tmpScroll
+	mov r0,#0x06000000
+	add r0,r0,#(((256-GAME_HEIGHT)/2) * SCREEN_WIDTH * 2)
+	add r0,r0,#SCREEN_WIDTH-GAME_WIDTH
+	str r0,currentDest
 
 	mov r0,#1
 	strb r0,frameDone
@@ -374,7 +362,6 @@ gfxEndFrame:				;@ Called just before screen end (~line 101)	(r0-r3 safe to use)
 ;@----------------------------------------------------------------------------
 frameTotal:			.long 0		;@ Let Gui.c see frame count for savestates
 
-tmpScroll:		.long SCROLLBUFF1
 dmaScroll:		.long SCROLLBUFF2
 
 

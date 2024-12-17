@@ -1,7 +1,6 @@
 LodjurDS Todo
 
 	Add auto rotate for vertical games.
-	Fix rotated controls.
 	Translate Timer4 to asm.
 	Translate audio code to asm.
 	Find speed hacks.
@@ -10,7 +9,6 @@ GFX:
 	See Suzy todo.
 
 GUI:
-	Fix rotated controls.
 
 Mem:
 
@@ -18,6 +16,7 @@ CPU:
 	See ARM6502 Todo.
 
 Suzy:
+	See Suzy todo.
 
 Mikey:
 	See Mikey todo.

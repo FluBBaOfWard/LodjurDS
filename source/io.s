@@ -9,8 +9,6 @@
 	.global ioLoadState
 	.global ioGetStateSize
 
-	.global joy0_R
-
 	.global joyCfg
 	.global EMUinput
 
@@ -64,10 +62,19 @@ convertInput:			;@ Convert from device keys to target r0=input/output
 ;@----------------------------------------------------------------------------
 refreshEMUjoypads:			;@ Call every frame
 ;@----------------------------------------------------------------------------
+	stmfd sp!,{r4,lr}
+		ldr r1,=frameTotal
+		ldr r1,[r1]
+		movs r1,r1,lsr#2		;@ C=frame&2 (autofire alternates every other frame)
 
-		ldr r0,=frameTotal
-		ldr r0,[r0]
-		movs r0,r0,lsr#2		;@ C=frame&2 (autofire alternates every other frame)
+	ldr r0,=gScreenMode
+	ldrb r0,[r0]
+	adr r1,rlud2rldu			;@ No rot
+	cmp r0,#1
+	adreq r1,rlud2durl			;@ Rot left
+	cmp r0,#2
+	adreq r1,rlud2udlr			;@ Rot right
+
 	ldr r4,EMUinput
 	mov r3,r4
 	and r0,r4,#0xf0
@@ -75,14 +82,13 @@ refreshEMUjoypads:			;@ Call every frame
 		andcs r3,r3,r2
 		tstcs r3,r3,lsr#10		;@ NDS L?
 		andcs r3,r3,r2,lsr#16
-	adr r1,rlud2rldu
 	ldrb r0,[r1,r0,lsr#4]
 
-	and r1,r4,#0x08				;@ NDS Start
+	and r1,r4,#KEY_START		;@ NDS Start
 	orr r0,r0,r1,lsl#5			;@ Lynx Start
-	tst r4,#0x400				;@ NDS X button
+	tst r4,#KEY_X				;@ NDS X button
 	orrne r0,r0,#0x08			;@ Lynx Option1
-	tst r4,#0x800				;@ NDS Y button
+	tst r4,#KEY_Y				;@ NDS Y button
 	orrne r0,r0,#0x04			;@ Lynx Option2
 
 	ands r1,r3,#3				;@ A/B buttons
@@ -93,7 +99,7 @@ refreshEMUjoypads:			;@ Call every frame
 	orr r0,r0,r1
 
 	str r0,joy0State
-	bx lr
+	ldmfd sp!,{r4,pc}
 ;@----------------------------------------------------------------------------
 joyCfg: .long 0x00ff01ff	;@ byte0=auto mask, byte1=(saves R), byte2=R auto mask
 							;@ bit 31=single/multi, 30,29=1P/2P, 27=(multi) link active, 24=reset signal received
@@ -101,20 +107,11 @@ playerCount:.long 0			;@ Number of players in multilink.
 joy0State:	.long 0
 abslst2baslst:	.byte 0x00,0x02,0x01,0x03, 0x04,0x06,0x05,0x07, 0x08,0x0A,0x09,0x0B, 0x0C,0x0E,0x0D,0x0F
 rlud2rldu:		.byte 0x00,0x20,0x10,0x30, 0x40,0x60,0x50,0x70, 0x80,0xA0,0x90,0xB0, 0xC0,0xE0,0xD0,0xF0
+rlud2udlr:		.byte 0x00,0x40,0x80,0xC0, 0x10,0x00,0x00,0x00, 0x20,0x00,0x00,0x00, 0x00,0x00,0x00,0xF0
+rlud2durl:		.byte 0x00,0x80,0x40,0x00, 0x20,0x00,0x00,0x00, 0x10,0x00,0x00,0x00, 0x00,0x00,0x00,0xF0
 
 EMUinput:			;@ This label here for main.c to use
 	.long 0			;@ EMUjoypad (this is what Emu sees)
-
-;@----------------------------------------------------------------------------
-joy0_R:			;@ 0x2000
-	.type joy0_R STT_FUNC
-;@----------------------------------------------------------------------------
-	stmfd sp!,{r4,lr}
-	bl refreshEMUjoypads
-	ldmfd sp!,{r4,lr}
-	ldr r0,joy0State
-
-	bx lr
 
 ;@----------------------------------------------------------------------------
 

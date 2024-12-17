@@ -35,11 +35,6 @@ int ioGetStateSize(void);
  */
 int convertInput(int input);
 
-/**
- * get the joystick value
- */
-int joy0_R(void);
-
 #ifdef __cplusplus
 } // extern "C"
 #endif

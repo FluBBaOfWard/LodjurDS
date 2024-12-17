@@ -47,6 +47,7 @@ runStart:
 	str r0,joyClick
 
 	bl refreshEMUjoypads
+	bl lnxSuzySetButtonData
 
 //	ldr m6502ptr,=m6502_0
 //	add r1,m6502ptr,#m6502Regs
