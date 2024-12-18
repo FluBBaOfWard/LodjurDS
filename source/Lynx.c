@@ -10,6 +10,7 @@
 #include "ARMMikey/ARM6502/M6502.h"
 #include "ARMMikey/ARMMikey.h"
 #include "ARMSuzy/ARMSuzy.h"
+#include "LynxCart/LynxCart.h"
 
 
 int packState(void *statePtr) {
@@ -19,6 +20,7 @@ int packState(void *statePtr) {
 	size += m6502SaveState(statePtr+size, &m6502_0);
 	size += mikeySaveState(statePtr+size, &mikey_0);
 	size += suzySaveState(statePtr+size, &suzy_0);
+	size += cartSaveState(statePtr+size, &cart_0);
 	return size;
 }
 
@@ -29,6 +31,7 @@ void unpackState(const void *statePtr) {
 	size += m6502LoadState(&m6502_0, statePtr+size);
 	size += mikeyLoadState(&mikey_0, statePtr+size);
 	size += suzyLoadState(&suzy_0, statePtr+size);
+	size += cartLoadState(&cart_0, statePtr+size);
 }
 
 int getStateSize() {
@@ -37,6 +40,7 @@ int getStateSize() {
 	size += m6502GetStateSize();
 	size += mikeyGetStateSize();
 	size += suzyGetStateSize();
+	size += cartGetStateSize();
 	return size;
 }
 

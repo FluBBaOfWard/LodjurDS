@@ -101,9 +101,6 @@ u32 CMikie::GetLfsrNext(u32 current)
 }
 
 void CMikie::UpdateTimer4(u32 sysCycCount) {
-	int divide = 0;
-	int decval = 0;
-	u32 tmp;
 	//
 	// Timer 4 of Group A
 	//
@@ -112,7 +109,8 @@ void CMikie::UpdateTimer4(u32 sysCycCount) {
 	// is commented out.
 	//
 	if (mikey_0.tim4CtlA & ENABLE_COUNT) {
-		decval = 0;
+		int divide = 0;
+		int decval = 0;
 
 //		if ((mikey_0.tim4CtlA & CLOCK_SEL) == LINKING) {
 //			if (mikey_0.tim4CtlB & BORROW_OUT) decval = 1;
@@ -197,7 +195,6 @@ void CMikie::UpdateTimer4(u32 sysCycCount) {
 						TRACE_MIKIE0("Update() - UART_TX_CALLBACK");
 						(*mpUART_TX_CALLBACK)(mUART_TX_DATA, mikey_0.txCallbackObj);
 					}
-
 				}
 				else if (!(mUART_TX_COUNTDOWN&UART_TX_INACTIVE)) {
 					mUART_TX_COUNTDOWN--;
@@ -241,6 +238,7 @@ void CMikie::UpdateTimer4(u32 sysCycCount) {
 			// Sometimes timeupdates can be >2x rollover in which case
 			// then CURRENT may still be negative and we can use it to
 			// calc the next timer value, we just want another update ASAP
+			u32 tmp;
 			tmp = (mTIM_4.CURRENT & 0x80000000) ? 1 : ((mTIM_4.CURRENT + 1) << divide);
 			tmp += sysCycCount;
 			if (tmp < gNextTimerEvent) {

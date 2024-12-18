@@ -55,6 +55,8 @@ gfxReset:					;@ Called with CPU reset
 	bl memclr_					;@ Clear GFX regs
 
 	mov r0,#0x06000000
+	add r0,r0,#(((256-GAME_HEIGHT)/2) * SCREEN_WIDTH * 2)
+	add r0,r0,#SCREEN_WIDTH-GAME_WIDTH
 	str r0,currentDest
 
 	bl gfxWinInit
