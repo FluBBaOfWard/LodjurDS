@@ -1,5 +1,6 @@
 LodjurDS Todo
 
+	Fix icon to not look like crap.
 	Translate audio code to asm.
 	Find speed hacks.
 
