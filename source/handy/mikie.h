@@ -63,7 +63,7 @@ class CMikie
 
 		u32		GetLfsrNext(u32 current);
 
-		void	UpdateTimer4(u32 sysCycCount);
+//		void	UpdateTimer4(u32 sysCycCount);
 		void	UpdateSound(void);
 
 	private:

@@ -99,7 +99,7 @@ u32 CMikie::GetLfsrNext(u32 current)
 	result = (result) ? 0 : 1;
 	return (switches << 12) | ((lfsr << 1) & 0xffe) | result;
 }
-
+/*
 void CMikie::UpdateTimer4(u32 sysCycCount) {
 	//
 	// Timer 4 of Group A
@@ -113,7 +113,7 @@ void CMikie::UpdateTimer4(u32 sysCycCount) {
 		int decval = 0;
 
 //		if ((mikey_0.tim4CtlA & CLOCK_SEL) == LINKING) {
-//			if (mikey_0.tim4CtlB & BORROW_OUT) decval = 1;
+//			if (mikey_0.tim2CtlB & BORROW_OUT) decval = 1;
 //		}
 //		else
 		{
@@ -196,7 +196,7 @@ void CMikie::UpdateTimer4(u32 sysCycCount) {
 						(*mpUART_TX_CALLBACK)(mUART_TX_DATA, mikey_0.txCallbackObj);
 					}
 				}
-				else if (!(mUART_TX_COUNTDOWN&UART_TX_INACTIVE)) {
+				else if (!(mUART_TX_COUNTDOWN & UART_TX_INACTIVE)) {
 					mUART_TX_COUNTDOWN--;
 				}
 
@@ -265,7 +265,7 @@ void CMikie::UpdateTimer4(u32 sysCycCount) {
 		mikey_0.timerStatusFlags |= 0x10;
 	}
 }
-
+*/
 void CMikie::UpdateSound(void) {
 	int divide = 0;
 	int decval = 0;
