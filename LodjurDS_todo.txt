@@ -1,7 +1,5 @@
 LodjurDS Todo
 
-	Check roms without header.
-	Fix Lynx II border.
 	Translate audio code to asm.
 	Find speed hacks.
 

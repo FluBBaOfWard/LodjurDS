@@ -77,7 +77,9 @@ Some dumb info about the game and emulator...
 
 ## Games
 
-* Some game.
+* Baseball Heroes. Doesn't start'
+* Gates of zendocon. Hangs if intro is not skipped.
+
 
 ## Credits
 

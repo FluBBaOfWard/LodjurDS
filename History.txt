@@ -1,8 +1,17 @@
 LodjurDS revision history
 -=-=-=-=-=-=-=-=-=-=-=-=-=-
 
-V0.0.3 - 2024-12-18 (FluBBa)
+V0.1.0 - 2025-01-21 (FluBBa)
 	First version released for NDS.
+
+V0.0.5 - 2024-12-21 (FluBBa)
+	Only sound left to implement.
+
+V0.0.3 - 2024-11-28 (FluBBa)
+	Implemented Suzy in asm.
+
+V0.0.2 - 2024-11-03 (FluBBa)
+	Implemented most of Mikey in asm.
 
 V0.0.1 - 2024-07-29 (FluBBa)
 	Started coding on NDS version.
