@@ -3,6 +3,7 @@
 #include "Lynx.h"
 #include "LynxBorder.h"
 #include "Lynx2Border.h"
+#include "Main.h"
 #include "Gui.h"
 #include "Cart.h"
 #include "Gfx.h"
@@ -56,6 +57,7 @@ static void setupBorderPalette(const unsigned short *palette, int len) {
 }
 
 void setScreenMode(int mode) {
+	swiIntrWait(1, IRQ_VBLANK);
 	switch (mode) {
 		case 1:
 			REG_BG2X = (((SCREEN_WIDTH+SCREEN_HEIGHT)/2)-1)<<8;

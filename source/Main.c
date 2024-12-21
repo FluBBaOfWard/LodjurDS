@@ -68,6 +68,7 @@ int main(int argc, char **argv) {
 	setupGUI();
 	getInput();
 	initSettings();
+	GpInit();
 	machineInit();
 	loadCart();
 	if (initFileHelper()) {
@@ -80,7 +81,6 @@ int main(int argc, char **argv) {
 		redrawUI();
 	}
 	else {
-		GpInit();
 		infoOutput("fatInitDefault() failure.");
 	}
 

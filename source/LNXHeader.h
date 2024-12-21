@@ -15,9 +15,9 @@ typedef struct
 {
 	/// 0x00 - 0x03, "LYNX" in Big endian
 	const char magic[4];
-	/// 0x04, 0x05, page size in something kiloBytes?
+	/// 0x04, 0x05, page size in something, kiloBytes?
 	const u16 bank0PageSize;
-	/// 0x06, 0x07, page size in something kiloBytes?
+	/// 0x06, 0x07, page size in something, kiloBytes?
 	const u16 bank1PageSize;
 	/// 0x08, 0x09, Version number of?
 	const u16 versionNumber;

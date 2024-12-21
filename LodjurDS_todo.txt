@@ -1,7 +1,7 @@
 LodjurDS Todo
 
-	Add auto rotate for vertical games.
-	Translate Timer4 to asm.
+	Check roms without header.
+	Fix Lynx II border.
 	Translate audio code to asm.
 	Find speed hacks.
 

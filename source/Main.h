@@ -21,7 +21,6 @@ void setEmuSpeed(int speed);
 void setupMenuPalette(void);
 
 void GpInit(void);
-void GpDelete(void);
 
 #ifdef __cplusplus
 } // extern "C"

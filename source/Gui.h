@@ -11,6 +11,7 @@ extern "C" {
 
 extern u8 gContrastValue;
 extern u8 gBorderEnable;
+extern u8 gScreenMode;
 
 void setupGUI(void);
 void enterGUI(void);

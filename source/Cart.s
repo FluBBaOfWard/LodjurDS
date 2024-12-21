@@ -14,7 +14,6 @@
 	.global DIRTYTILES
 	.global gRomSize
 	.global maxRomSize
-	.global romMask
 	.global gGameID
 	.global gConfig
 	.global gMachine
@@ -87,15 +86,11 @@ loadCart: 					;@ Called from C
 	stmfd sp!,{r4-r11,lr}
 	ldr mikptr,=mikey_0
 
-	ldr r0,romSize
-	movs r2,r0,lsr#14			;@ 16kB blocks.
-	subne r1,r2,#1
-	str r1,romMask				;@ romMask=romBlocks-1
-
-	ldr r0,=cart_0
+	ldr r2,romSize
+	and r0,r2,#0x40				;@ Header present?
 	ldr r1,romSpacePtr
-	add r1,r1,#64
-	mov r2,r2,lsl#14
+	add r1,r1,r0
+	ldr r0,=cart_0
 	mov r3,#0x10000
 	bl cartReset
 
@@ -220,8 +215,6 @@ gRomSize:
 romSize:
 	.long 0
 maxRomSize:
-	.long 0
-romMask:
 	.long 0
 
 #ifdef GBA
