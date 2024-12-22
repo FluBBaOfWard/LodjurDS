@@ -44,17 +44,6 @@
 #define mAUDIO_3 mikey_0.audio3
 #define mSTEREO mikey_0.stereo
 
-#define mUART_RX_COUNTDOWN mikey_0.uart_RX_COUNTDOWN
-#define mUART_TX_COUNTDOWN mikey_0.uart_TX_COUNTDOWN
-#define mUART_TX_DATA mikey_0.uart_TX_DATA
-#define mUART_RX_READY mikey_0.uart_RX_READY
-
-#define mpUART_TX_CALLBACK mikey_0.txFunction
-#define mUART_Rx_input_queue mikey_0.uart_Rx_input_queue
-#define mUART_Rx_input_ptr mikey_0.uart_Rx_input_ptr
-#define mUART_Rx_output_ptr mikey_0.uart_Rx_output_ptr
-#define mUART_Rx_waiting mikey_0.uart_Rx_waiting
-
 CMikie::CMikie(CSystem& parent)
 	:mSystem(parent)
 {

@@ -195,8 +195,8 @@ void debugIOUnmappedW(u16 port, u8 val) {
 void debugUndefinedInstruction() {
 	debugOutput("Undefined Instruction.");
 }
-void debugCrashInstruction() {
-	debugOutput("CPU Crash!");
+void debugPowerOff() {
+	debugOutput("Power Off!");
 }
 
 //---------------------------------------------------------------------------------

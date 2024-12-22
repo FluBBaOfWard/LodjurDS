@@ -38,12 +38,13 @@
 #ifdef EMBEDDED_ROM
 ROM_Space:
 //	.incbin "roms/A.P.B. - All Points Bulletin (1990).lnx"
+//	.incbin "roms/Baseball Heroes (USA).lyx"
 //	.incbin "roms/Batman Returns (1992).lnx"
-//	.incbin "roms/desert strike - return to the gulf (1993) (telegames).lnx"
+//	.incbin "roms/Desert Strike - Return to the Gulf (1993) (Telegames).lnx"
 //	.incbin "roms/Double Dragon (1993) (Telegames).lnx"
 //	.incbin "roms/Dracula - The Undead (1991).lnx"
-//	.incbin "roms/ninja gaiden (1990).lnx"
-//	.incbin "roms/ninja gaiden iii - the ancient ship of doom (1993).lnx"
+//	.incbin "roms/Ninja Gaiden (1990).lnx"
+//	.incbin "roms/Ninja Gaiden III - the Ancient Ship of Doom (1993).lnx"
 ROM_SpaceEnd:
 LYNX_BIOS_INTERNAL:
 	.incbin "roms/lynxboot.img"

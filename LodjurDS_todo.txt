@@ -1,7 +1,8 @@
 LodjurDS Todo
 
-	Fix icon to not look like crap.
+	Check to see if any games change the refresh rate (Toki)?
 	Translate audio code to asm.
+	Get rid of all Handy source code.
 	Find speed hacks.
 
 GFX:

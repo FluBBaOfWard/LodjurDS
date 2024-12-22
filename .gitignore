@@ -4,6 +4,7 @@ contents.xcworkspacedata
 build
 *.img
 *.lnx
+*.lyx
 *.elf
 *.nds
 *.zip
