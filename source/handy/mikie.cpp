@@ -94,56 +94,6 @@ void CMikie::UpdateSound(void) {
 	int decval = 0;
 	u32 tmp;
 
-//	static s32 sample = 0;
-	// u32 mix = 0; // unused
-
-	//
-	// Catch audio buffer up to current time
-	//
-
-	// Mix the sample
-
-	/*
-	sample = 0;
-	if (mSTEREO & 0x11) { sample += mikey_0.aud0OutVal; mix++; }
-	if (mSTEREO & 0x22) { sample += mikey_0.aud1OutVal; mix++; }
-	if (mSTEREO & 0x44) { sample += mikey_0.aud2OutVal; mix++; }
-	if (mSTEREO & 0x88) { sample += mikey_0.aud3OutVal; mix++; }
-	if (mix) {
-		sample += 128 * mix; // Correct for sign
-		sample /= mix;	// Keep the audio volume at max
-	}
-	else {
-		sample = 128;
-	}
-
-//	sample += (mSTEREO & 0x11) ? mikey_0.aud0OutVal : 0;
-//	sample += (mSTEREO & 0x22) ? mikey_0.aud1OutVal : 0;
-//	sample += (mSTEREO & 0x44) ? mikey_0.aud2OutVal : 0;
-//	sample += (mSTEREO & 0x88) ? mikey_0.aud3OutVal : 0;
-//	sample = sample >> 2;
-//	sample += 128;
-	*/
-
-	for (;gAudioLastUpdateCycle+HANDY_AUDIO_SAMPLE_PERIOD < gSystemCycleCount;gAudioLastUpdateCycle += HANDY_AUDIO_SAMPLE_PERIOD) {
-		// Output audio sample
-//		gAudioBuffer[gAudioBufferPointer++] = (u8)sample;
-		gAudioBuffer0[gAudioBufferPointer] = (mSTEREO & 0x11) ? mikey_0.aud0OutVal : 0;
-		gAudioBuffer1[gAudioBufferPointer] = (mSTEREO & 0x22) ? mikey_0.aud1OutVal : 0;
-		gAudioBuffer2[gAudioBufferPointer] = (mSTEREO & 0x33) ? mikey_0.aud2OutVal : 0;
-		gAudioBuffer3[gAudioBufferPointer++] = (mSTEREO & 0x44) ? mikey_0.aud3OutVal : 0;
-
-		// Check buffer overflow condition, stick at the endpoint
-		// teh audio output system will reset the input pointer
-		// when it reads out the data.
-
-		// We should NEVER overflow, this buffer holds 0.25 seconds
-		// of data if this happens the the multimedia system above
-		// has failed so the corruption of the buffer contents wont matter
-
-		gAudioBufferPointer %= HANDY_AUDIO_BUFFER_SIZE;
-	}
-
 	//
 	// Audio 0
 	//

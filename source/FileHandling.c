@@ -197,11 +197,11 @@ void checkLnxHeader() {
 	LnxHeader *rHead = (LnxHeader *)romSpacePtr;
 	int smRot = gScreenMode;
 	if (gRomSize & sizeof(LnxHeader)
-		&& rHead->magic[0] == 'L'
-		&& rHead->magic[1] == 'Y'
-		&& rHead->magic[2] == 'N'
-		&& rHead->magic[3] == 'X'
-		&& rHead->versionNumber == 1) {
+			&& rHead->magic[0] == 'L'
+			&& rHead->magic[1] == 'Y'
+			&& rHead->magic[2] == 'N'
+			&& rHead->magic[3] == 'X'
+			&& rHead->versionNumber == 1) {
 		memcpy(&header, rHead, sizeof(LnxHeader));
 		int headRot = header.rotation;
 		if (headRot == 1 || headRot == 2) {
@@ -211,6 +211,7 @@ void checkLnxHeader() {
 	else {
 		memset(&header, 0, sizeof(LnxHeader));
 	}
+	gRotation = smRot;
 	setScreenMode(smRot);
 }
 

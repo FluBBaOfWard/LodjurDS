@@ -13,7 +13,7 @@
 #include "ARMMikey/Version.h"
 #include "ARMSuzy/Version.h"
 
-#define EMUVERSION "V0.0.5 2024-12-21"
+#define EMUVERSION "V0.0.5 2024-12-30"
 
 static void gammaChange(void);
 static void machineSet(void);
@@ -100,6 +100,7 @@ const Menu *const menus[] = {&menu0, &menu1, &menu2, &menu3, &menu4, &menu5, &me
 u8 gContrastValue = 1;
 u8 gBorderEnable = 1;
 u8 gScreenMode = 0;
+u8 gRotation = 0;
 
 const char *const machTxt[]  = {"Auto", "Lynx", "LynxII", "Proto"};
 const char *const bordTxt[]  = {"Black", "Border Color", "None"};
@@ -230,6 +231,7 @@ const char *getContrastText() {
 void screenModeSet() {
 	gScreenMode++;
 	if (gScreenMode > 3) gScreenMode = 0;
+	gRotation = gScreenMode;
 	setScreenMode(gScreenMode);
 	settingsChanged = true;
 }

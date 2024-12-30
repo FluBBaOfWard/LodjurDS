@@ -67,7 +67,7 @@ refreshEMUjoypads:			;@ Call every frame
 		ldr r1,[r1]
 		movs r1,r1,lsr#2		;@ C=frame&2 (autofire alternates every other frame)
 
-	ldr r0,=gScreenMode
+	ldr r0,=gRotation
 	ldrb r0,[r0]
 	adr r1,rlud2rldu			;@ No rot
 	cmp r0,#1
