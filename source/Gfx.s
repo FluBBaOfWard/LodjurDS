@@ -212,15 +212,15 @@ updateLCDRefresh:
 	.type updateLCDRefresh STT_FUNC
 ;@----------------------------------------------------------------------------
 	ldr mikptr,=mikey_0
-	ldrb r1,[mikptr,#mikLCDVSize]
-	b miRefW
+	ldrb r1,[mikptr,#mikPBkup]
+	b miPBackupW
 ;@----------------------------------------------------------------------------
-setScreenRefresh:			;@ r0 in = WS scan line count.
+setScreenRefresh:			;@ r0 in = Lynx cycles per frame.
 	.type setScreenRefresh STT_FUNC
 ;@----------------------------------------------------------------------------
 	stmfd sp!,{r4-r6,lr}
 	mov r4,r0
-	ldr r6,=8130				;@ SV scanline frequency = 8130Hz
+	ldr r6,=16000000			;@ Lynx main frequency = 16MHz
 	mov r0,r6,lsl#1
 	mov r1,r4
 	swi 0x090000				;@ Division r0/r1, r0=result, r1=remainder.
@@ -230,20 +230,19 @@ setScreenRefresh:			;@ r0 in = WS scan line count.
 	bl setLCDFPS
 	ldr r0,=emuSettings
 	ldr r0,[r0]
-	ands r0,r0,#1<<19
+	ands r0,r0,#1<<19			;@ ALLOW_REFRESH_CHG
 	moveq r0,#59
 	subne r0,r5,#1
 	ldr r1,=fpsNominal
 	strb r0,[r1]
 
-	ldr r0,=15734				;@ DS scanline frequency = 15734.3Hz
-	mul r0,r4,r0				;@ DS scanline freq * WS scanlines
-	mov r1,r6					;@ / WS scanline freq = DS scanlines.
+	ldr r0,=263*60				;@ Total scanlines for 1s
+	mov r1,r5					;@ Lynx FPS.
 	swi 0x090000				;@ Division r0/r1, r0=result, r1=remainder.
 	ldr r1,=263
 	sub r0,r1,r0
 	cmp r0,#3
-	movmi r0,#0
+	movcc r0,#0
 	str r0,lcdSkip
 
 	ldmfd sp!,{r4-r6,lr}
@@ -300,16 +299,16 @@ vblIrqHandler:
 
 	ldr r0,=emuSettings
 	ldr r0,[r0]
-	ands r0,r0,#1<<19
-	beq exit75Hz
+	ands r0,r0,#1<<19			;@ ALLOW_REFRESH_CHG
+	beq exitHzChg
 	ldr r0,=pauseEmulation
 	ldrb r0,[r0]
 	cmp r0,#0
-	bne exit75Hz
+	bne exitHzChg
 	ldr r0,lcdSkip
 	cmp r0,#0
-	beq exit75Hz
-hz75Start:
+	beq exitHzChg
+	bmi hz50Loop
 hz75Loop:
 	ldrh r1,[r6,#REG_VCOUNT]
 	cmp r1,#202
@@ -318,7 +317,16 @@ hz75Loop:
 	cmp r1,#260
 	movpl r1,#260
 	strh r1,[r6,#REG_VCOUNT]
-exit75Hz:
+	b exitHzChg
+hz50Loop:
+	ldrh r1,[r6,#REG_VCOUNT]
+	cmp r1,#255
+	bmi hz50Loop
+	add r1,r1,r0
+	cmp r1,#202
+	movmi r1,#202
+	strh r1,[r6,#REG_VCOUNT]
+exitHzChg:
 
 	ldrb r0,frameDone
 	cmp r0,#0

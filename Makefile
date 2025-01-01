@@ -30,8 +30,7 @@ SOURCES		:=	source \
 				source/ARMMikey \
 				source/ARMMikey/ARM6502 \
 				source/ARMSuzy \
-				source/LynxCart \
-				source/handy
+				source/LynxCart
 DATA		:=	data
 INCLUDES	:=	include
 GRAPHICS	:=	source/Shared/graphics \

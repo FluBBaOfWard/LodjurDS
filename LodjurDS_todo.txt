@@ -1,6 +1,5 @@
 LodjurDS Todo
 
-	Check to see if any games change the refresh rate (Toki)?
 	Translate audio code to asm.
 	Get rid of all Handy source code.
 	Find speed hacks.
@@ -27,9 +26,29 @@ Sound:
 Misc:
 	Game, slow.
 
+Games with different refresh rate:
+	Aliens vs Predator (50Hz)
+	Batman Returns (75Hz)
+	California Games (60Hz/75Hz)
+	Checkered Flag (75Hz)
+	Conquest of ZOW (75Hz)
+	Desert Strike (75Hz)
+	Dinolympics (50Hz)
+	European Soccer Challenge (75Hz)
+	Ishido Way of the Stones (50Hz/75Hz)
+	Klax (75Hz)
+	Krazy Ace Miniature Golf (53Hz)
+	Lemmings (50Hz)
+	Ninja Gaiden (50Hz)
+	Rampart (75Hz)
+	Road Riot (50Hz)
+	Super Off Road (50Hz/53Hz)
+	Switch Blade II (75Hz)
+
 Games Not Working:
 	Baseball Heroes. (EEPROM?)
-	Gates of zendocon. Writes 0x40? Expects some sound thing?
+	Gates of zendocon.  Hangs in intro. Writes 0x40? Expects some sound thing?
+	Pit FIghter. Hangs in intro.
 
 Games Not Working Fixed:
 	Double Dragon requires Timer4.

@@ -31,36 +31,11 @@
 //                                                                             //
 /////////////////////////////////////////////////////////////////////////////////
 
-#define MIKIE_CPP
-
-#include "mikie.h"
-#include "system.h"
-#include "../Cpu.h"
-
-#define mTIM_4 mikey_0.timer4
 #define mAUDIO_0 mikey_0.audio0
 #define mAUDIO_1 mikey_0.audio1
 #define mAUDIO_2 mikey_0.audio2
 #define mAUDIO_3 mikey_0.audio3
 #define mSTEREO mikey_0.stereo
-
-CMikie::CMikie(CSystem& parent)
-	:mSystem(parent)
-{
-	TRACE_MIKIE0("CMikie()");
-
-	Reset();
-}
-
-CMikie::~CMikie()
-{
-	TRACE_MIKIE0("~CMikie()");
-}
-
-void CMikie::Reset(void)
-{
-	TRACE_MIKIE0("Reset()");
-}
 
 u32 CMikie::GetLfsrNext(u32 current)
 {

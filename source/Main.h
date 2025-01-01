@@ -20,8 +20,6 @@ void pausVBlank(int count);
 void setEmuSpeed(int speed);
 void setupMenuPalette(void);
 
-void GpInit(void);
-
 #ifdef __cplusplus
 } // extern "C"
 #endif
