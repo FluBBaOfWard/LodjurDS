@@ -25,7 +25,7 @@
 	.global lnxSuzySetButtonData
 	.global updateLCDRefresh
 	.global setScreenRefresh
-
+	.global lowerRefresh
 
 	.syntax unified
 	.arm
@@ -277,25 +277,6 @@ vblIrqHandler:
 	ldr suzptr,=suzy_0
 	ldr r0,GFX_BG0CNT
 	str r0,[r6,#REG_BG0CNT]
-	ldr r0,GFX_DISPCNT
-	ldrb r1,[suzptr,#wsvLatchedDispCtrl]
-//	tst r1,#0x01
-//	biceq r0,r0,#0x0100			;@ Turn off Bg
-	ldrb r2,gGfxMask
-	bic r0,r0,r2,lsl#8
-//	strh r0,[r6,#REG_DISPCNT]
-
-	mov r0,#0
-	strh r0,[r6,#REG_WIN0H]
-	mov r0,r0,lsr#16
-	strh r0,[r6,#REG_WIN0V]
-	ldr r0,=0x3333				;@ WinIN0/1, BG0, BG1, SPR & COL inside Win0
-	and r2,r1,#0x30
-	cmp r2,#0x20
-	biceq r0,r0,#0x0200
-	cmp r2,#0x30
-	biceq r0,r0,#0x0002
-	strh r0,[r6,#REG_WININ]
 
 	ldr r0,=emuSettings
 	ldr r0,[r0]
@@ -307,8 +288,8 @@ vblIrqHandler:
 	bne exitHzChg
 	ldr r0,lcdSkip
 	cmp r0,#0
-	beq exitHzChg
-	bmi hz50Loop
+	strbmi r0,doLowRefresh
+	ble exitHzChg
 hz75Loop:
 	ldrh r1,[r6,#REG_VCOUNT]
 	cmp r1,#202
@@ -316,15 +297,6 @@ hz75Loop:
 	add r1,r1,r0			;@ Skip 55(?) scan lines for 75Hz.
 	cmp r1,#260
 	movpl r1,#260
-	strh r1,[r6,#REG_VCOUNT]
-	b exitHzChg
-hz50Loop:
-	ldrh r1,[r6,#REG_VCOUNT]
-	cmp r1,#255
-	bmi hz50Loop
-	add r1,r1,r0
-	cmp r1,#202
-	movmi r1,#202
 	strh r1,[r6,#REG_VCOUNT]
 exitHzChg:
 
@@ -338,6 +310,24 @@ nothingNew:
 	blx scanKeys
 	ldmfd sp!,{r4-r8,pc}
 
+;@----------------------------------------------------------------------------
+lowerRefresh:
+;@----------------------------------------------------------------------------
+	ldrsb r0,doLowRefresh
+	cmp r0,#0
+	bxpl lr
+	adds r1,r0,#26
+	movpl r1,#0
+	strb r1,doLowRefresh
+	movmi r0,#-26
+
+	mov r2,#REG_BASE
+	ldrh r1,[r2,#REG_VCOUNT]
+	add r1,r1,r0
+	cmp r1,#202
+	movmi r1,#202
+	strh r1,[r2,#REG_VCOUNT]
+	bx lr
 
 ;@----------------------------------------------------------------------------
 gfxRefresh:					;@ Called from C when changing scaling.
@@ -381,7 +371,8 @@ gTwitch:		.byte 0
 
 gGfxMask:		.byte 0
 frameDone:		.byte 0
-				.byte 0,0
+doLowRefresh:	.byte 0
+				.byte 0
 ;@----------------------------------------------------------------------------
 suzyReset0:		;@ r0=ram+LUTs
 ;@----------------------------------------------------------------------------

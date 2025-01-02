@@ -65,6 +65,9 @@ int main(int argc, char **argv) {
 
 	setupStream();
 	irqSet(IRQ_VBLANK, myVblank);
+	SetYtrigger(230);
+	irqSet(IRQ_VCOUNT, lowerRefresh);
+	irqEnable(IRQ_VCOUNT);
 	setupGUI();
 	getInput();
 	initSettings();
@@ -168,8 +171,6 @@ static void setupGraphics() {
 	GFX_DISPCNT = MODE_5_2D
 //				 | DISPLAY_BG0_ACTIVE
 				 | DISPLAY_BG2_ACTIVE
-//				 | DISPLAY_WIN0_ON
-//				 | DISPLAY_WIN1_ON
 //				 | DISPLAY_BG_EXT_PALETTE
 				 ;
 	videoSetMode(GFX_DISPCNT);

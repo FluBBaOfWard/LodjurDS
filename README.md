@@ -2,7 +2,7 @@
 
 <img align="right" width="220" src="./logo.png" />
 
-A Lynx emulator for Nintendo DS(i)/3DS
+An Atari Lynx emulator for Nintendo DS(i)/3DS
 
 ## How to use
 

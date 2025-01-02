@@ -197,7 +197,7 @@ gConfig:
 gMachineSet:
 	.byte HW_AUTO
 gMachine:
-	.byte HW_LYNX
+	.byte HW_LYNX_II
 gSOC:
 	.byte SOC_HOWARD
 gLang:

@@ -27,7 +27,7 @@ LnxHeader header;
 int initSettings() {
 	cfg.palette = 0;
 	cfg.gammaValue = 0;
-	cfg.emuSettings = AUTOPAUSE_EMULATION | AUTOLOAD_NVRAM;
+	cfg.emuSettings = AUTOPAUSE_EMULATION | AUTOLOAD_NVRAM | AUTOSLEEP_OFF;
 	cfg.sleepTime = 60*60*5;
 	cfg.controller = 0;					// Don't swap A/B
 
@@ -219,7 +219,7 @@ void checkMachine() {
 	char fileExt[8];
 	if (gMachineSet == HW_AUTO) {
 		getFileExtension(fileExt, currentFilename);
-		gMachine = HW_LYNX;
+		gMachine = HW_LYNX_II;
 	}
 	else {
 		gMachine = gMachineSet;

@@ -48,11 +48,12 @@ Games with different refresh rate:
 Games Not Working:
 	Baseball Heroes. (EEPROM?)
 	Gates of zendocon.  Hangs in intro. Writes 0x40? Expects some sound thing?
-	Pit FIghter. Hangs in intro.
+	Rampage. Hangs on title screen after some time?
 
 Games Not Working Fixed:
 	Double Dragon requires Timer4.
 	Gauntlet - Expects Timer 1 to not run when enabled but without reload.
+	Pit FIghter. Hangs in demo mode after some time. UART TX needs to work.
 
 Games With Glitches:
 
