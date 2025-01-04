@@ -1,4 +1,4 @@
-ARMSuzy revision history
+LynxCart revision history
 -=-=-=-=-=-=-=-=-=-=-=-=-
 
 V0.1.0 - 2024-12-05 (FluBBa)

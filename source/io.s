@@ -2,15 +2,15 @@
 
 #include "Shared/EmuMenu.i"
 
+	.global joyCfg
+	.global EMUinput
+
 	.global ioReset
 	.global convertInput
 	.global refreshEMUjoypads
 	.global ioSaveState
 	.global ioLoadState
 	.global ioGetStateSize
-
-	.global joyCfg
-	.global EMUinput
 
 	.syntax unified
 	.arm

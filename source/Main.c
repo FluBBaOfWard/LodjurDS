@@ -15,12 +15,11 @@
 #include "io.h"
 #include "Sound.h"
 
-extern int fpsValue;
-
 static void checkTimeOut(void);
 static void setupGraphics(void);
 static void setupStream(void);
 
+bool powerIsOn = false;
 bool gameInserted = false;
 static int sleepTimer = 60*60*5;	// 5 min
 static bool vBlankOverflow = false;
@@ -90,7 +89,7 @@ int main(int argc, char **argv) {
 		waitVBlank();
 		checkTimeOut();
 		guiRunLoop();
-		if (!pauseEmulation) {
+		if (powerIsOn && !pauseEmulation) {
 			run();
 		}
 	}

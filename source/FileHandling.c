@@ -54,7 +54,6 @@ int loadSettings() {
 		return 1;
 	}
 
-	gPaletteBank   = cfg.palette;
 	gGammaValue    = cfg.gammaValue;
 	gContrastValue = cfg.contrastValue;
 	emuSettings    = cfg.emuSettings & ~EMUSPEED_MASK;	// Clear speed setting.
@@ -70,7 +69,6 @@ void saveSettings() {
 	FILE *file;
 
 	strcpy(cfg.magic,"cfg");
-	cfg.palette       = gPaletteBank;
 	cfg.gammaValue    = gGammaValue;
 	cfg.contrastValue = gContrastValue;
 	cfg.emuSettings   = emuSettings & ~EMUSPEED_MASK;		// Clear speed setting.
@@ -177,6 +175,7 @@ bool loadGame(const char *gameName) {
 			if (emuSettings & AUTOLOAD_STATE) {
 				loadState();
 			}
+			powerIsOn = true;
 			closeMenu();
 			return false;
 		}
@@ -216,9 +215,7 @@ void checkLnxHeader() {
 }
 
 void checkMachine() {
-	char fileExt[8];
 	if (gMachineSet == HW_AUTO) {
-		getFileExtension(fileExt, currentFilename);
 		gMachine = HW_LYNX_II;
 	}
 	else {

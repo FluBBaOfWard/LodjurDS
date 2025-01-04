@@ -4,7 +4,6 @@
 #include "ARMSuzy/ARMSuzy.i"
 #include "ARMMikey/ARMMikey.i"
 
-	.global gfxState
 	.global gFlicker
 	.global gTwitch
 	.global gGfxMask
@@ -274,7 +273,6 @@ vblIrqHandler:
 	orr r4,r4,#0x100			;@ 256 words (1024 bytes)
 	stmia r1,{r2-r4}			;@ DMA3 go
 
-	ldr suzptr,=suzy_0
 	ldr r0,GFX_BG0CNT
 	str r0,[r6,#REG_BG0CNT]
 

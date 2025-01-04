@@ -13,7 +13,7 @@
 #include "ARMMikey/Version.h"
 #include "ARMSuzy/Version.h"
 
-#define EMUVERSION "V0.1.0 2025-01-02"
+#define EMUVERSION "V0.1.0 2025-01-04"
 
 static void gammaChange(void);
 static void machineSet(void);
@@ -141,10 +141,11 @@ void uiAbout() {
 	drawMenuText("Y:          Lynx Option I", 6, 0);
 	drawMenuText("X:          Lynx Option II", 7, 0);
 	drawMenuText("Start:      Lynx Pause button", 8, 0);
+	drawMenuText("DPad:       Lynx d-pad", 9, 0);
 
 	drawMenuText("LodjurDS     " EMUVERSION, 20, 0);
-	drawMenuText("Suzy         " ARMSUZYVERSION, 21, 0);
-	drawMenuText("Mikey        " ARMMIKEYVERSION, 22, 0);
+	drawMenuText("ARMSuzy      " ARMSUZYVERSION, 21, 0);
+	drawMenuText("ARMMikey     " ARMMIKEYVERSION, 22, 0);
 	drawMenuText("ARM6502      " ARM6502VERSION, 23, 0);
 }
 
@@ -167,6 +168,7 @@ void ejectGame() {
 void resetGame() {
 	checkMachine();
 	loadCart();
+	powerIsOn = true;
 }
 
 //---------------------------------------------------------------------------------
@@ -212,7 +214,7 @@ const char *getSwapABText() {
 /// Change gamma (brightness)
 void gammaChange() {
 	gammaSet();
-	paletteInit(gGammaValue);
+	paletteInit(gGammaValue, gContrastValue);
 	setupMenuPalette();
 }
 
@@ -220,7 +222,7 @@ void gammaChange() {
 void contrastSet() {
 	gContrastValue++;
 	if (gContrastValue > 4) gContrastValue = 0;
-	paletteInit(gGammaValue);
+	paletteInit(gGammaValue, gContrastValue);
 	settingsChanged = true;
 }
 const char *getContrastText() {

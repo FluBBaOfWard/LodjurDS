@@ -14,13 +14,10 @@
 	.global DIRTYTILES
 	.global gRomSize
 	.global maxRomSize
-	.global gGameID
 	.global gConfig
-	.global gMachine
 	.global gMachineSet
+	.global gMachine
 	.global gSOC
-	.global gLang
-	.global gPaletteBank
 	.global cart_0
 
 	.global machineInit
@@ -182,8 +179,6 @@ lnxCartWrite:				;@ r0=adr, r1=data
 	bx lr
 ;@----------------------------------------------------------------------------
 
-romNum:
-	.long 0						;@ romnumber
 romInfo:						;@
 emuFlags:
 	.byte 0						;@ emuflags      (label this so Gui.c can take a peek) see EmuSettings.h for bitfields
@@ -200,15 +195,7 @@ gMachine:
 	.byte HW_LYNX_II
 gSOC:
 	.byte SOC_HOWARD
-gLang:
-	.byte 1						;@ language
-gPaletteBank:
-	.byte 0						;@ palettebank
-gGameID:
-	.byte 0						;@ Game ID
-	.byte 0
-	.byte 0
-	.space 2					;@ alignment.
+	.space 3					;@ alignment.
 
 romSpacePtr:
 	.long 0
@@ -217,7 +204,7 @@ romSize:
 	.long 0
 maxRomSize:
 	.long 0
-
+;@----------------------------------------------------------------------------
 #ifdef GBA
 	.section .sbss				;@ For the GBA
 #else

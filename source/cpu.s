@@ -3,8 +3,6 @@
 #include "ARMMikey/ARMMikey.i"
 #include "ARMSuzy/ARMSuzy.i"
 
-#define CYCLE_PSL (246*2)
-
 	.global waitMaskIn
 	.global waitMaskOut
 	.global m6502_0
@@ -67,7 +65,6 @@ runStart:
 	b runStart
 
 ;@----------------------------------------------------------------------------
-m6502CyclesPerScanline:	.long 0
 joyClick:			.long 0
 waitCountIn:		.byte 0
 waitMaskIn:			.byte 0
@@ -113,8 +110,6 @@ cpuInit:					;@ Called by machineInit
 ;@----------------------------------------------------------------------------
 	stmfd sp!,{lr}
 
-	mov r0,#CYCLE_PSL
-	str r0,m6502CyclesPerScanline
 	ldr r0,=m6502_0
 	bl m6502Init
 

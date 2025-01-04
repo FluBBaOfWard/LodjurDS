@@ -1,8 +1,8 @@
 # LodjurDS V0.1.0
 
-<img align="right" width="220" src="./logo.png" />
+<img align="right" width="220" src="./logo.png" alt="The Lynx logo"/>
 
-An Atari Lynx emulator for Nintendo DS(i)/3DS
+An Atari Lynx emulator for Nintendo DS(i)/3DS.
 
 ## How to use
 
@@ -74,14 +74,13 @@ Some dumb info about the game and emulator...
 * NDS B & A buttons are mapped to Lynx B & A.
 * NDS X is mapped to Lynx Option I.
 * NDS Y is mapped to Lynx Option II.
-* NDS d-pad is mapped to Lynx d-pad.
 * NDS Start is mapped to Lynx Pause.
+* NDS d-pad is mapped to Lynx d-pad.
 
 ## Games
 
 * Baseball Heroes. Doesn't start'
 * Gates of zendocon. Hangs if intro is not skipped.
-
 
 ## Credits
 
@@ -93,5 +92,7 @@ Keith Wilkins for Handy source and info.
 Fredrik Ahlström
 
 <https://bsky.app/profile/therealflubba.bsky.social>
+
 <https://www.github.com/FluBBaOfWard>
+
 X/Twitter @TheRealFluBBa
