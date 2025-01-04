@@ -2,12 +2,13 @@
 
 #include "ARMMikey/ARMMikey.i"
 
+	.extern pauseEmulation
+
 	.global soundInit
 	.global soundReset
 	.global VblSound2
 	.global setMuteSoundGUI
-
-	.extern pauseEmulation
+	.global setSoundChipEnable
 
 ;@----------------------------------------------------------------------------
 
@@ -43,6 +44,15 @@ setMuteSoundGUI:
 	strb r0,muteSoundGUI
 	bx lr
 ;@----------------------------------------------------------------------------
+setSoundChipEnable:			;@ In r0=mute/unmute
+	.type setSoundChipEnable STT_FUNC
+;@----------------------------------------------------------------------------
+	cmp r0,#0
+	movne r0,#0
+	moveq r0,#1
+	strb r0,muteSoundChip
+	bx lr
+;@----------------------------------------------------------------------------
 VblSound2:					;@ r0=length, r1=pointer
 ;@----------------------------------------------------------------------------
 	ldr r2,muteSound
@@ -57,7 +67,7 @@ VblSound2:					;@ r0=length, r1=pointer
 
 silenceMix:
 	mov r3,r0
-	ldr r2,=0x80008000
+	ldr r2,=0x00000000
 silenceLoop:
 	subs r3,r3,#1
 	strpl r2,[r1],#4

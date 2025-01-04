@@ -12,6 +12,7 @@
 #include "Cart.h"
 #include "cpu.h"
 #include "Gfx.h"
+#include "Sound.h"
 #include "io.h"
 #include "Memory.h"
 
@@ -60,6 +61,7 @@ int loadSettings() {
 	sleepTime      = cfg.sleepTime;
 	joyCfg         = (joyCfg & ~0x400)|((cfg.controller & 1)<<10);
 	strlcpy(currentDir, cfg.currentPath, sizeof(currentDir));
+	setSoundChipEnable(emuSettings & SOUND_ENABLE);
 
 	infoOutput("Settings loaded.");
 	return 0;

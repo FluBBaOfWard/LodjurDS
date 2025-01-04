@@ -9,6 +9,7 @@
 #include "Gfx.h"
 #include "io.h"
 #include "cpu.h"
+#include "Sound.h"
 #include "ARMMikey/ARM6502/Version.h"
 #include "ARMMikey/Version.h"
 #include "ARMSuzy/Version.h"
@@ -30,6 +31,8 @@ static void contrastSet(void);
 static const char *getContrastText(void);
 static void screenModeSet(void);
 static const char *getScreenModeText(void);
+static void soundEnableSet(void);
+static const char *getSoundEnableText(void);
 
 const MItem dummyItems[] = {
 	{"", uiDummy}
@@ -63,6 +66,7 @@ const MItem displayItems[] = {
 const MItem machineItems[] = {
 	{"Machine:", machineSet, getMachineText},
 	{"Select Bios", selectBios},
+	{"Emulate Sound:", soundEnableSet, getSoundEnableText},
 };
 const MItem setItems[] = {
 	{"Speed:", speedSet, getSpeedText},
@@ -257,6 +261,15 @@ void machineSet() {
 }
 const char *getMachineText() {
 	return machTxt[gMachineSet];
+}
+
+void soundEnableSet() {
+	emuSettings ^= SOUND_ENABLE;
+	setSoundChipEnable(emuSettings & SOUND_ENABLE);
+	settingsChanged = true;
+}
+const char *getSoundEnableText() {
+	return autoTxt[(emuSettings & SOUND_ENABLE)>>18];
 }
 
 void refreshChgSet() {

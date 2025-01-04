@@ -48,6 +48,7 @@ To select between the tabs use R & L or the touchscreen.
   * Machine: Select the emulated machine.
   * Cpu Speed Hacks: Allow speed hacks.
   * Select Bios: Load a Lynx Bios, needed.
+  * Sound: Enable/disable sound.
 * Settings:
   * Speed: Switch between speed modes.
     * Normal: Game runs at it's normal speed.

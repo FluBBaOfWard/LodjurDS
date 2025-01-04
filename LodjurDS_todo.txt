@@ -1,7 +1,5 @@
 LodjurDS Todo
 
-	Translate audio code to asm.
-	Get rid of all Handy source code.
 	Find speed hacks.
 
 GFX:
@@ -15,6 +13,7 @@ CPU:
 	See ARM6502 Todo.
 
 Suzy:
+	make different versions of lineRender.
 	See Suzy todo.
 
 Mikey:

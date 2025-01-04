@@ -37,6 +37,7 @@ ROM_Space:
 //	.incbin "roms/A.P.B. - All Points Bulletin (1990).lnx"
 //	.incbin "roms/Baseball Heroes (USA).lyx"
 //	.incbin "roms/Batman Returns (1992).lnx"
+//	.incbin "roms/Blue Lightning (1989).lnx"
 //	.incbin "roms/Desert Strike - Return to the Gulf (1993) (Telegames).lnx"
 //	.incbin "roms/Double Dragon (1993) (Telegames).lnx"
 //	.incbin "roms/Dracula - The Undead (1991).lnx"
