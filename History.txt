@@ -1,7 +1,7 @@
 LodjurDS revision history
 -=-=-=-=-=-=-=-=-=-=-=-=-=-
 
-V0.1.0 - 2025-01-04 (FluBBa)
+V0.1.0 - 2025-01-05 (FluBBa)
 	First real version.
 	Most things should work.
 

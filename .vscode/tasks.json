@@ -10,7 +10,7 @@
                 "command": "taskkill /im mGBA.exe /F"
             },
             "osx": {
-                "command": "killall desmume"
+                "command": "killall melonDS"
             }
         },
         {
@@ -51,11 +51,7 @@
                 "command": "C:/mGBA/mGBA.exe -g ${workspaceFolder}/${workspaceFolderBasename}.nds;sleep 5;echo debuggerReady"
             },
             "osx": {
-                "command": "/Applications/desmume.app/Contents/MacOS/desmume",
-                "args": [
-                    //"--arm9gdb=20000",
-                    "${workspaceFolder}/${workspaceFolderBasename}.nds"
-                ]
+                "command": "open /Applications/melonDS.app --args ${workspaceFolder}/${workspaceFolderBasename}.nds"
             },
             "presentation": {
                 "clear": true,
@@ -86,9 +82,11 @@
                 "make release"
             ],
             "isBackground": true,
-            "command": "C:/NO$GBA/NO$GBA.exe ${workspaceFolder}/${workspaceFolderBasename}.nds",
+            "windows": {
+                "command": "C:/NO$GBA/NO$GBA.exe ${workspaceFolder}/${workspaceFolderBasename}.nds",
+            },
             "osx": {
-                "command": "/Applications/desmume.app/Contents/MacOS/desmume ${workspaceFolder}/${workspaceFolderBasename}.nds",
+                "command": "open /Applications/melonDS.app --args ${workspaceFolder}/${workspaceFolderBasename}.nds",
             },
            "problemMatcher": []
         }
