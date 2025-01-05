@@ -13,7 +13,6 @@ CPU:
 	See ARM6502 Todo.
 
 Suzy:
-	make different versions of lineRender.
 	See Suzy todo.
 
 Mikey:
@@ -46,7 +45,7 @@ Games with different refresh rate:
 
 Games Not Working:
 	Baseball Heroes. (EEPROM?)
-	Gates of zendocon.  Hangs in intro. Writes 0x40? Expects some sound thing?
+	Gates of Zendocon - Intro hangs if Timer Done bit in Timer 5 is not correct.
 	Rampage. Hangs on title screen after some time?
 
 Games Not Working Fixed:

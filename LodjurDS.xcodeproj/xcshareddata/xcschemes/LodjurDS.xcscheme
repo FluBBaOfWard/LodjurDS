@@ -42,7 +42,6 @@
       allowLocationSimulation = "YES">
       <PathRunnable
          runnableDebuggingMode = "0"
-         BundleIdentifier = "org.desmume.DeSmuME"
          FilePath = "/Applications/DeSmuME.app">
       </PathRunnable>
       <MacroExpansion>
