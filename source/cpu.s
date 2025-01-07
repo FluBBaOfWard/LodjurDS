@@ -130,9 +130,9 @@ cpuReset:					;@ Called by loadCart/resetGame
 #ifdef NDS
 	.section .dtcm, "ax", %progbits			;@ For the NDS
 #elif GBA
-	.section .iwram, "ax", %progbits		;@ For the GBA
+	.section .bss				;@ This is IWRAM on GBA with devkitARM
 #else
-	.section .text
+	.section .bss
 #endif
 	.align 2
 ;@----------------------------------------------------------------------------

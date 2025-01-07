@@ -44,7 +44,7 @@ Games with different refresh rate:
 	Switch Blade II (75Hz)
 
 Games Not Working:
-	Baseball Heroes. (EEPROM?)
+	Baseball Heroes. Tries to execute code from Suzy registers?
 	Gates of Zendocon - Intro hangs if Timer Done bit in Timer 5 is not correct.
 	Rampage. Hangs on title screen after some time?
 

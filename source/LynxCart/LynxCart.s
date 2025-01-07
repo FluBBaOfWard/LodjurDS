@@ -3,7 +3,7 @@
 //  Atari Lynx Cartridge emulation for ARM32.
 //
 //  Created by Fredrik Ahlström on 2024-12-08.
-//  Copyright © 2024 Fredrik Ahlström. All rights reserved.
+//  Copyright © 2024-2025 Fredrik Ahlström. All rights reserved.
 //
 
 #ifdef __arm__
