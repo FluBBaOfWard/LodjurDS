@@ -43,6 +43,7 @@ ROM_Space:
 //	.incbin "roms/Ninja Gaiden (1990).lnx"
 //	.incbin "roms/Ninja Gaiden III - the Ancient Ship of Doom (1993).lnx"
 //	.incbin "roms/Shadow of the Beast (1992)[crc-2].lnx"
+//	.incbin "roms/twister.lnx"
 ROM_SpaceEnd:
 LYNX_BIOS_INTERNAL:
 	.incbin "roms/lynxboot.img"

@@ -91,10 +91,8 @@ gfxWinInit:
 	strh r0,[r1,#REG_WIN0V]
 	strh r0,[r1,#REG_WIN1V]
 
-	ldr r0,=0x3333				;@ WinIN0/1, BG0, BG1, SPR & COL inside Win0
-	strh r0,[r1,#REG_WININ]
-	mov r0,#0x002C				;@ WinOUT, Only BG2, BG3 & COL enabled outside Windows.
-	strh r0,[r1,#REG_WINOUT]
+	ldr r0,=0x002C3333			;@ WinIN0/1, BG0, BG1, SPR & COL inside Win0
+	str r0,[r1,#REG_WININ]		;@ WinOUT, Only BG2, BG3 & COL enabled outside Windows.
 	bx lr
 ;@----------------------------------------------------------------------------
 paletteInit:		;@ r0-r3 modified.
@@ -420,7 +418,7 @@ PAL_CACHE:
 #ifdef NDS
 	.section .dtcm, "ax", %progbits			;@ For the NDS
 #elif GBA
-	.section .iwram, "ax", %progbits		;@ For the GBA
+	.section .bss				;@ This is IWRAM on GBA with devkitARM
 #endif
 ;@----------------------------------------------------------------------------
 suzy_0:
