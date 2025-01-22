@@ -16,7 +16,7 @@
 #include "io.h"
 #include "Memory.h"
 
-static void checkLnxHeader(void);
+static bool checkLnxHeader(void);
 
 static const char *const folderName = "lodjurds";
 static const char *const settingName = "settings.cfg";
@@ -166,7 +166,9 @@ bool loadGame(const char *gameName) {
 		drawText("     Please wait, loading.", 11, 0);
 		gRomSize = loadROM(romSpacePtr, gameName, maxRomSize);
 		if (gRomSize) {
-			checkLnxHeader();
+			if ((gHasHeader = checkLnxHeader())) {
+				gRomSize = header.bank0PageSize << 8;
+			}
 			checkMachine();
 //			setEmuSpeed(0);
 			loadCart();
@@ -194,26 +196,28 @@ void selectGame() {
 	}
 }
 
-void checkLnxHeader() {
+bool checkLnxHeader() {
+	bool isLNX = false;
 	LnxHeader *rHead = (LnxHeader *)romSpacePtr;
-	int smRot = gScreenMode;
-	if (gRomSize & sizeof(LnxHeader)
-			&& rHead->magic[0] == 'L'
+	if (rHead->magic[0] == 'L'
 			&& rHead->magic[1] == 'Y'
 			&& rHead->magic[2] == 'N'
 			&& rHead->magic[3] == 'X'
 			&& rHead->versionNumber == 1) {
+		isLNX = true;
 		memcpy(&header, rHead, sizeof(LnxHeader));
-		int headRot = header.rotation;
-		if (headRot == 1 || headRot == 2) {
-			smRot = headRot;
-		}
 	}
 	else {
 		memset(&header, 0, sizeof(LnxHeader));
 	}
+	int smRot = gScreenMode;
+	int headRot = header.rotation;
+	if (headRot == 1 || headRot == 2) {
+		smRot = headRot;
+	}
 	gRotation = smRot;
 	setScreenMode(smRot);
+	return isLNX;
 }
 
 void checkMachine() {

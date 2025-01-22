@@ -17,6 +17,7 @@
 	.global gMachineSet
 	.global gMachine
 	.global gSOC
+	.global gHasHeader
 	.global cart_0
 
 	.global machineInit
@@ -87,9 +88,10 @@ loadCart: 					;@ Called from C
 	ldr mikptr,=mikey_0
 
 	ldr r2,romSize
-	and r0,r2,#0x40				;@ Header present?
 	ldr r1,romSpacePtr
-	add r1,r1,r0
+	ldrb r0,gHasHeader
+	cmp r0,#0			;@ Header present?
+	addne r1,r1,#0x40
 	ldr r0,=cart_0
 	mov r3,#0x10000
 	bl cartReset
@@ -197,7 +199,9 @@ gMachine:
 	.byte HW_LYNX_II
 gSOC:
 	.byte SOC_HOWARD
-	.space 3					;@ alignment.
+gHasHeader:
+	.byte 0
+	.space 2					;@ alignment.
 
 romSpacePtr:
 	.long 0
