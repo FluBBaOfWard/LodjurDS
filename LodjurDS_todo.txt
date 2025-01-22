@@ -1,5 +1,7 @@
 LodjurDS Todo
 
+	Add EEPROM support for homebrew.
+	Add support for object files (*.o)
 	Find speed hacks.
 
 GFX:
