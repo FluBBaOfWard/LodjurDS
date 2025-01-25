@@ -1,6 +1,10 @@
 LodjurDS revision history
 -=-=-=-=-=-=-=-=-=-=-=-=-=-
 
+V0.1.4 - 2025-01-25 (FluBBa)
+	Fixed loading of odd sized roms.
+	Fixed loading of bll (*.o) files.
+
 V0.1.2 - 2025-01-22 (FluBBa)
 	Fixed initial palette.
 	Fixed handling of CPU sleep/Suzy sprite paint.

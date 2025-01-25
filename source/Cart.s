@@ -19,6 +19,7 @@
 	.global gSOC
 	.global gHasHeader
 	.global cart_0
+	.global BLL_ENC
 
 	.global machineInit
 	.global loadCart
@@ -49,6 +50,8 @@ ROM_SpaceEnd:
 LYNX_BIOS_INTERNAL:
 	.incbin "roms/lynxboot.img"
 #endif
+BLL_ENC:
+	.incbin "bll.enc"			;@ Update cart.h if size changes
 
 	.align 2
 ;@----------------------------------------------------------------------------

@@ -1,4 +1,4 @@
-# LodjurDS V0.1.2
+# LodjurDS V0.1.4
 
 <img align="right" width="220" src="./logo.png" alt="The Lynx logo"/>
 
@@ -88,6 +88,7 @@ Some dumb info about the game and emulator...
 ```text
 Thanks to:
 Keith Wilkins for Handy source and info.
+42Bastian for bug reports and test files.
 ```
 
 Fredrik Ahlström

@@ -3,6 +3,8 @@
 #include <string.h>
 
 #include "FileHandling.h"
+#include "LNXHeader.h"
+#include "BLLHeader.h"
 #include "Shared/EmuMenu.h"
 #include "Shared/EmuSettings.h"
 #include "Shared/FileHelper.h"
@@ -16,13 +18,15 @@
 #include "io.h"
 #include "Memory.h"
 
-static bool checkLnxHeader(void);
+static bool checkLnxHeader(LnxHeader *headerPtr);
+static bool checkBllHeader(BllHeader *headerPtr);
 
 static const char *const folderName = "lodjurds";
 static const char *const settingName = "settings.cfg";
 
 ConfigData cfg;
-LnxHeader header;
+LnxHeader lnxHeader;
+BllHeader bllHeader;
 
 //---------------------------------------------------------------------------------
 int initSettings() {
@@ -166,8 +170,15 @@ bool loadGame(const char *gameName) {
 		drawText("     Please wait, loading.", 11, 0);
 		gRomSize = loadROM(romSpacePtr, gameName, maxRomSize);
 		if (gRomSize) {
-			if ((gHasHeader = checkLnxHeader())) {
-				gRomSize = header.bank0PageSize << 8;
+			if ((gHasHeader = checkLnxHeader((LnxHeader *)romSpacePtr))) {
+				gRomSize = lnxHeader.bank0PageSize << 8;
+			}
+			else if (checkBllHeader((BllHeader *)romSpacePtr)) {
+				int size = bllHeader.fileSizeLow | (bllHeader.fileSizeHigh << 8);
+				memcpy(lynxRAM, romSpacePtr, size);
+				memcpy(romSpacePtr, BLL_ENC, sizeof(BLL_ENC));
+				memcpy(romSpacePtr + sizeof(BLL_ENC), lynxRAM, size);
+				gRomSize = 0x40000;
 			}
 			checkMachine();
 //			setEmuSpeed(0);
@@ -196,28 +207,44 @@ void selectGame() {
 	}
 }
 
-bool checkLnxHeader() {
+bool checkLnxHeader(LnxHeader *rHead) {
 	bool isLNX = false;
-	LnxHeader *rHead = (LnxHeader *)romSpacePtr;
 	if (rHead->magic[0] == 'L'
 			&& rHead->magic[1] == 'Y'
 			&& rHead->magic[2] == 'N'
 			&& rHead->magic[3] == 'X'
 			&& rHead->versionNumber == 1) {
 		isLNX = true;
-		memcpy(&header, rHead, sizeof(LnxHeader));
+		memcpy(&lnxHeader, rHead, sizeof(LnxHeader));
 	}
 	else {
-		memset(&header, 0, sizeof(LnxHeader));
+		memset(&lnxHeader, 0, sizeof(LnxHeader));
 	}
 	int smRot = gScreenMode;
-	int headRot = header.rotation;
+	int headRot = lnxHeader.rotation;
 	if (headRot == 1 || headRot == 2) {
 		smRot = headRot;
 	}
 	gRotation = smRot;
 	setScreenMode(smRot);
 	return isLNX;
+}
+
+bool checkBllHeader(BllHeader *rHead) {
+	int adr = rHead->addressLow | (rHead->addressHigh << 8);
+	int size = rHead->fileSizeLow | (rHead->fileSizeHigh << 8);
+	if (rHead->data0 == -0x80
+			&& rHead->data1 == 0x08
+			&& rHead->magic[0] == 'B'
+			&& rHead->magic[1] == 'S'
+			&& rHead->magic[2] == '9'
+			&& rHead->magic[3] == '3'
+			&& (adr + size) < 0x10000) {
+		memcpy(&bllHeader, rHead, sizeof(BllHeader));
+		return true;
+	}
+	memset(&bllHeader, 0, sizeof(BllHeader));
+	return false;
 }
 
 void checkMachine() {

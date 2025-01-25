@@ -46,6 +46,7 @@
 		9C7BB94A25FCD73C00EA9C9C /* EmuFont.grit */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = EmuFont.grit; sourceTree = "<group>"; };
 		9C7BB94B25FCD73C00EA9C9C /* EmuFont.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = EmuFont.png; sourceTree = "<group>"; };
 		9C8F33EE248ACA2E00996E5A /* nds_asm.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = nds_asm.h; sourceTree = "<group>"; };
+		9C974B232D418C61004E8EE8 /* BLLHeader.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = BLLHeader.h; sourceTree = "<group>"; };
 		9C9B0E392C5A3FB8004AE287 /* LodjurDS_todo.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = LodjurDS_todo.txt; sourceTree = "<group>"; };
 		9C9B0E3D2C5A4208004AE287 /* lynx9.html */ = {isa = PBXFileReference; lastKnownFileType = text.html; path = lynx9.html; sourceTree = "<group>"; };
 		9C9B0E3E2C5A4208004AE287 /* lynx5.html */ = {isa = PBXFileReference; lastKnownFileType = text.html; path = lynx5.html; sourceTree = "<group>"; };
@@ -312,6 +313,7 @@
 				9C4EB1C5271CB16A0072D38E /* Lynx.h */,
 				9C4EB1C4271CB16A0072D38E /* Lynx.c */,
 				9C0A505A2C5E7D6D0027AEF9 /* LNXHeader.h */,
+				9C974B232D418C61004E8EE8 /* BLLHeader.h */,
 				9C50820525D45A9A00A8E1BA /* Cart.h */,
 				9C50820F25D45A9B00A8E1BA /* Cart.s */,
 				35E683AD1C66453300FCFE8A /* cpu.h */,

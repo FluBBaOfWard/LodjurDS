@@ -18,6 +18,7 @@ extern u8 gHasHeader;
 extern u8 lynxRAM[0x10000];
 extern u8 biosSpace[0x200];
 extern u8 *romSpacePtr;
+extern u8 BLL_ENC[246];
 
 extern CART cart_0;
 
