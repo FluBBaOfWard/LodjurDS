@@ -254,6 +254,7 @@ void checkMachine() {
 	else {
 		gMachine = gMachineSet;
 	}
+	cpuInit(gMachine);
 	setupEmuBackground();
 }
 

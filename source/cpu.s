@@ -106,14 +106,29 @@ stepFrame:					;@ Return after 1 frame
 	bx lr
 
 ;@----------------------------------------------------------------------------
-cpuInit:					;@ Called by machineInit
+cpuInit:					;@ Called by machineInit, sets M65C02 or R65C02
+	.type cpuInit STT_FUNC
 ;@----------------------------------------------------------------------------
-	stmfd sp!,{lr}
+	stmfd sp!,{r4,lr}
+	mov r4,r0
 
 	ldr r0,=m6502_0
 	bl m6502Init
 
-	ldmfd sp!,{lr}
+	cmp r4,#HW_LYNX
+	bne isRockwell
+
+	ldr r0,=m6502_0
+	ldr r2,=op1CycNop
+	mov r4,#0xFF
+m65C02Loop:
+	mov r1,r4
+	bl m6502PatchOpcode
+	subs r4,r4,#8
+	bpl m65C02Loop
+
+isRockwell:
+	ldmfd sp!,{r4,lr}
 	bx lr
 ;@----------------------------------------------------------------------------
 cpuReset:					;@ Called by loadCart/resetGame

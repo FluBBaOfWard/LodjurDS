@@ -17,6 +17,9 @@ void stepFrame(void);
 
 void cpuReset(void);
 
+/** 1 is Lynx (M65C02), 2 is Lynx II (R65C02) */
+void cpuInit(int lynxType);
+
 #ifdef __cplusplus
 } // extern "C"
 #endif

@@ -88,7 +88,7 @@ Some dumb info about the game and emulator...
 ```text
 Thanks to:
 Keith Wilkins for Handy source and info.
-42Bastian for bug reports and test files.
+42Bastian for bug reports, test files & bll.enc.
 ```
 
 Fredrik Ahlström

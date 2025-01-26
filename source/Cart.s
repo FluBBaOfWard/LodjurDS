@@ -76,6 +76,8 @@ machineInit: 				;@ Called from C
 	bl gfxInit
 //	bl ioInit
 	bl soundInit
+	ldr r0,=gMachine
+	ldrb r0,[r0]
 	bl cpuInit
 
 	ldmfd sp!,{r4-r11,lr}
