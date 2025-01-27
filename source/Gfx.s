@@ -47,7 +47,7 @@ gfxInit:					;@ Called from machineInit
 ;@----------------------------------------------------------------------------
 gfxReset:					;@ Called with CPU reset
 ;@----------------------------------------------------------------------------
-	stmfd sp!,{lr}
+	stmfd sp!,{r4,lr}
 
 	ldr r0,=gfxState
 	mov r1,#5					;@ 5*4
@@ -63,11 +63,12 @@ gfxReset:					;@ Called with CPU reset
 	ldr r0,=lodjurRenderCallback
 	ldr r1,=gfxEndFrame
 	ldr r2,=lynxRAM
-	ldr r3,=gSOC
-	ldrb r3,[r3]
+	ldr r4,=gSOC
+	ldrb r3,[r4]
 	bl mikeyReset
 
 	ldr r0,=lynxRAM
+	ldrb r1,[r4]
 	bl suzyReset0
 
 	ldr r0,=gGammaValue
@@ -76,7 +77,7 @@ gfxReset:					;@ Called with CPU reset
 	ldrb r1,[r1]
 	bl paletteInit				;@ Do palette mapping
 
-	ldmfd sp!,{pc}
+	ldmfd sp!,{r4,pc}
 
 ;@----------------------------------------------------------------------------
 gfxWinInit:

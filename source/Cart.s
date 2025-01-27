@@ -102,9 +102,9 @@ loadCart: 					;@ Called from C
 	bl cartReset
 
 	ldrb r5,gMachine
-	cmp r5,#HW_LYNX_II
-	moveq r4,#SOC_HOWARD2
-	movne r4,#SOC_HOWARD
+	cmp r5,#HW_LYNX
+	moveq r4,#SOC_HOWARD
+	movne r4,#SOC_HOWARD2
 	strb r4,gSOC
 
 
