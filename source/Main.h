@@ -5,7 +5,6 @@
 extern "C" {
 #endif
 
-extern bool powerIsOn;
 extern bool gameInserted;
 extern uint16 *map0sub;
 
@@ -19,6 +18,7 @@ void waitVBlank(void);
 void pausVBlank(int count);
 
 void setEmuSpeed(int speed);
+void setPowerIsOn(bool power);
 void setupMenuPalette(void);
 
 #ifdef __cplusplus

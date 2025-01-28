@@ -170,6 +170,7 @@ bool loadGame(const char *gameName) {
 		drawText("     Please wait, loading.", 11, 0);
 		gRomSize = loadROM(romSpacePtr, gameName, maxRomSize);
 		if (gRomSize) {
+			setPowerIsOn(false);
 			if ((gHasHeader = checkLnxHeader((LnxHeader *)romSpacePtr))) {
 				gRomSize = lnxHeader.bank0PageSize << 8;
 			}
@@ -190,7 +191,7 @@ bool loadGame(const char *gameName) {
 			if (emuSettings & AUTOLOAD_STATE) {
 				loadState();
 			}
-			powerIsOn = true;
+			setPowerIsOn(true);
 			closeMenu();
 			return false;
 		}

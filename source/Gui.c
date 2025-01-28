@@ -14,7 +14,7 @@
 #include "ARMMikey/Version.h"
 #include "ARMSuzy/Version.h"
 
-#define EMUVERSION "V0.1.4 2025-01-27"
+#define EMUVERSION "V0.1.4 2025-01-28"
 
 static void gammaChange(void);
 static void machineSet(void);
@@ -172,7 +172,7 @@ void ejectGame() {
 void resetGame() {
 	checkMachine();
 	loadCart();
-	powerIsOn = true;
+	setPowerIsOn(true);
 }
 
 //---------------------------------------------------------------------------------
