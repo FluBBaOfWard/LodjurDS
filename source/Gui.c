@@ -170,6 +170,7 @@ void ejectGame() {
 }
 
 void resetGame() {
+	setPowerIsOn(false);
 	checkMachine();
 	loadCart();
 	setPowerIsOn(true);

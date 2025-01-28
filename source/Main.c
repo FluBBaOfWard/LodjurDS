@@ -157,6 +157,20 @@ void setPowerIsOn(bool power) {
 //---------------------------------------------------------------------------------
 	if (powerIsOn != power) {
 		powerIsOn = power;
+		if (gMachine == HW_LYNX_II) {
+			u32 *src = (u32 *)BG_TILE_RAM(0);
+			u32 *dst = (u32 *)(BG_TILE_RAM(0) + 16 + 256*32);
+			if (powerIsOn) {
+				src += 4;
+			}
+			for (int y=0; y<8; y++) {
+				for (int x=0; x<4; x++) {
+					*dst++ = *src++;
+				}
+				src += 124;
+				dst += 124;
+			}
+		}
 	}
 }
 
