@@ -216,26 +216,24 @@ updateLCDRefresh:
 setScreenRefresh:			;@ r0 in = Lynx cycles per frame.
 	.type setScreenRefresh STT_FUNC
 ;@----------------------------------------------------------------------------
-	stmfd sp!,{r4-r6,lr}
-	mov r4,r0
-	ldr r6,=16000000			;@ Lynx main frequency = 16MHz
-	mov r0,r6,lsl#1
-	mov r1,r4
+	stmfd sp!,{r4,lr}
+	mov r1,r0
+	ldr r0,=16000000*2			;@ Lynx main frequency = 16MHz
 	swi 0x090000				;@ Division r0/r1, r0=result, r1=remainder.
 	movs r0,r0,lsr#1
 	adc r0,r0,#0
-	mov r5,r0
-	bl setLCDFPS
+	mov r4,r0
+	bl setTargetFPS
 	ldr r0,=emuSettings
 	ldr r0,[r0]
 	ands r0,r0,#1<<19			;@ ALLOW_REFRESH_CHG
 	moveq r0,#59
-	subne r0,r5,#1
+	subne r0,r4,#1
 	ldr r1,=fpsNominal
 	strb r0,[r1]
 
 	ldr r0,=263*60				;@ Total scanlines for 1s
-	mov r1,r5					;@ Lynx FPS.
+	mov r1,r4					;@ Lynx FPS.
 	swi 0x090000				;@ Division r0/r1, r0=result, r1=remainder.
 	ldr r1,=263
 	sub r0,r1,r0
@@ -243,7 +241,7 @@ setScreenRefresh:			;@ r0 in = Lynx cycles per frame.
 	movcc r0,#0
 	str r0,lcdSkip
 
-	ldmfd sp!,{r4-r6,lr}
+	ldmfd sp!,{r4,lr}
 	bx lr
 
 ;@----------------------------------------------------------------------------

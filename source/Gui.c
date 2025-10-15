@@ -14,7 +14,7 @@
 #include "ARMMikey/Version.h"
 #include "ARMSuzy/Version.h"
 
-#define EMUVERSION "V0.1.4 2025-01-28"
+#define EMUVERSION "V0.1.4 2025-10-15"
 
 static void gammaChange(void);
 static void machineSet(void);
@@ -199,6 +199,12 @@ void debugIOUnmappedR(u16 port) {
 }
 void debugIOUnmappedW(u16 port, u8 val) {
 	debugIO(port, val, "Unmapped W port:");
+}
+void debugIOMirroredR(u16 port) {
+	debugIO(port, 0, "Mirrored R port:");
+}
+void debugIOMirroredW(u16 port, u8 val) {
+	debugIO(port, val, "Mirrored W port:");
 }
 void debugUndefinedInstruction() {
 	debugOutput("Undefined Instruction.");

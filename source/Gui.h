@@ -30,6 +30,8 @@ void debugIOUnmappedR(u16 port);
 void debugIOUnmappedW(u16 port, u8 val);
 void debugIOUnimplR(u16 port);
 void debugIOUnimplW(u16 port, u8 val);
+void debugIOMirroredR(u16 port);
+void debugIOMirroredW(u16 port, u8 val);
 void debugUndefinedInstruction(void);
 void debugPowerOff(void);
 

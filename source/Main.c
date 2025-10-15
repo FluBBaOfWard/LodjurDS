@@ -157,6 +157,9 @@ void setPowerIsOn(bool power) {
 //---------------------------------------------------------------------------------
 	if (powerIsOn != power) {
 		powerIsOn = power;
+		if (!powerIsOn) {
+			debugPowerOff();
+		}
 		if (gMachine == HW_LYNX_II) {
 			u32 *src = (u32 *)BG_TILE_RAM(0);
 			u32 *dst = (u32 *)(BG_TILE_RAM(0) + 16 + 256*32);

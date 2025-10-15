@@ -46,11 +46,11 @@ Games with different refresh rate:
 
 Games Not Working:
 	Baseball Heroes. Tries to execute code from Suzy registers?
-	Gates of Zendocon - Intro hangs if Timer Done bit in Timer 5 is not correct.
 	Rampage. Hangs on title screen after some time?
 
 Games Not Working Fixed:
 	Double Dragon requires Timer4.
+	Gates of Zendocon - Intro hangs if Timer Done bit in Timer 5 is not set in Reload mode.
 	Gauntlet - Expects Timer 1 to not run when enabled but without reload.
 	Pit Fighter. Hangs in demo mode after some time. UART TX needs to work.
 
