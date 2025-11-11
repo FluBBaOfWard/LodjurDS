@@ -289,7 +289,7 @@ hz75Loop:
 	ldrh r1,[r6,#REG_VCOUNT]
 	cmp r1,#202
 	bmi hz75Loop
-	add r1,r1,r0			;@ Skip 55(?) scan lines for 75Hz.
+	add r1,r1,r0				;@ Skip 55(?) scan lines for 75Hz.
 	cmp r1,#260
 	movpl r1,#260
 	strh r1,[r6,#REG_VCOUNT]
@@ -355,7 +355,7 @@ gfxEndFrame:				;@ Called just before screen end (~line 101)	(r0-r3 safe to use)
 	bx lr
 
 ;@----------------------------------------------------------------------------
-frameTotal:			.long 0		;@ Let Gui.c see frame count for savestates
+frameTotal:		.long 0			;@ Let Gui.c see frame count for savestates
 
 dmaScroll:		.long SCROLLBUFF2
 
@@ -411,14 +411,14 @@ MAPPED_RGB:
 	.space 0x2000				;@ 4096*2
 EMUPALBUFF:
 	.space 0x400
-PAL_CACHE:
-	.space 0x40					;@ 16*4
 
 #ifdef NDS
 	.section .dtcm, "ax", %progbits			;@ For the NDS
 #elif GBA
 	.section .bss				;@ This is IWRAM on GBA with devkitARM
 #endif
+PAL_CACHE:
+	.space 0x40					;@ 16*4
 ;@----------------------------------------------------------------------------
 suzy_0:
 	.space suzySize

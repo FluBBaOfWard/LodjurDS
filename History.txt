@@ -1,13 +1,16 @@
 LodjurDS revision history
 -=-=-=-=-=-=-=-=-=-=-=-=-=-
 
-V0.1.4 - 2025-10-15 (FluBBa)
-	Fixed loading of odd sized lnx roms.
+V0.1.4 - 2025-11-09 (FluBBa)
 	Added loading of bll (*.o) files.
 	Added cpu differences between Lynx & Lynx II.
 	Added Mikey & Suzy revision differences between Lynx & Lynx II.
 	Added power off from code.
 	Added some Suzy register mirrors.
+	Fixed loading of odd sized lnx roms.
+	Fixed Math flags.
+	Fixed Timer7.
+	Optimizations to rendering.
 
 V0.1.2 - 2025-01-22 (FluBBa)
 	Fixed initial palette.

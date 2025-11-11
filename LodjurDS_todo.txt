@@ -49,6 +49,7 @@ Games Not Working:
 	Rampage. Hangs on title screen after some time?
 
 Games Not Working Fixed:
+	Dirty Larry, requires Timer7 to end intro correctly.
 	Double Dragon requires Timer4.
 	Gates of Zendocon - Intro hangs if Timer Done bit in Timer 5 is not set in Reload mode.
 	Gauntlet - Expects Timer 1 to not run when enabled but without reload.

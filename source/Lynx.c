@@ -56,36 +56,40 @@ static void setupBorderPalette(const unsigned short *palette, int len) {
 	vramSetBankF(VRAM_F_BG_EXT_PALETTE_SLOT23);
 }
 
+#define BUFFER_WIDTH SCREEN_WIDTH
+#define BUFFER_HEIGHT (256)
+#define ZOOM_VAL ((GAME_WIDTH<<8)/(SCREEN_WIDTH-1))
+
 void setScreenMode(int mode) {
 	swiIntrWait(1, IRQ_VBLANK);
 	switch (mode) {
-		case 1:
+		case 1:			// Rotate Left
 			REG_BG2X = (((SCREEN_WIDTH+SCREEN_HEIGHT)/2)-1)<<8;
-			REG_BG2Y = 0;
+			REG_BG2Y = ((BUFFER_HEIGHT-SCREEN_WIDTH)/2)<<8;
 			REG_BG2PA = 0;
 			REG_BG2PB = -1<<8;
 			REG_BG2PC = 1<<8;
 			REG_BG2PD = 0;
 			break;
-		case 2:
+		case 2:			// Rotate Right
 			REG_BG2X = ((SCREEN_WIDTH-SCREEN_HEIGHT)/2)<<8;
-			REG_BG2Y = (256-1)<<8;
+			REG_BG2Y = (((BUFFER_HEIGHT+SCREEN_WIDTH)/2)-1)<<8;
 			REG_BG2PA = 0;
 			REG_BG2PB = 1<<8;
 			REG_BG2PC = -1<<8;
 			REG_BG2PD = 0;
 			break;
-		case 3:
-			REG_BG2X = ((SCREEN_WIDTH-GAME_WIDTH)/2)<<8;
-			REG_BG2Y = (256*0x100-GAME_HEIGHT*((GAME_WIDTH<<8)/SCREEN_WIDTH)*2)/2;
-			REG_BG2PA = (GAME_WIDTH<<8)/SCREEN_WIDTH;
+		case 3:			// Zoom
+			REG_BG2X = ((BUFFER_WIDTH-GAME_WIDTH)/2)<<8;
+			REG_BG2Y = ((BUFFER_HEIGHT<<8)-SCREEN_HEIGHT*ZOOM_VAL)/2;
+			REG_BG2PA = ZOOM_VAL;
 			REG_BG2PB = 0;
 			REG_BG2PC = 0;
-			REG_BG2PD = (GAME_WIDTH<<8)/SCREEN_WIDTH;
+			REG_BG2PD = ZOOM_VAL;
 			break;
-		default:
+		default:		// 1:1
 			REG_BG2X = 0;
-			REG_BG2Y = ((256-SCREEN_HEIGHT)/2)<<8;
+			REG_BG2Y = ((BUFFER_HEIGHT-SCREEN_HEIGHT)/2)<<8;
 			REG_BG2PA = 1<<8;
 			REG_BG2PB = 0;
 			REG_BG2PC = 0;
