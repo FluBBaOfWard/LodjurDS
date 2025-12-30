@@ -60,8 +60,8 @@ int main(int argc, char **argv) {
 	maxRomSize = 0x80000 + 0x10000;
 	u8 *memPtr = malloc(maxRomSize);
 	romSpacePtr = memPtr;
-	setupGraphics();
 
+	setupGraphics();
 	setupStream();
 	irqSet(IRQ_VBLANK, myVblank);
 	SetYtrigger(230);

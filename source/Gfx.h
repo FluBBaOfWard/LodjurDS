@@ -12,7 +12,6 @@ extern u8 gTwitch;
 extern u8 gGfxMask;
 
 extern SUZY suzy_0;
-extern u16 MAPPED_RGB[0x1000];
 extern u16 EMUPALBUFF[0x200];
 extern u32 GFX_DISPCNT;
 extern u16 GFX_BG0CNT;

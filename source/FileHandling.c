@@ -18,8 +18,8 @@
 #include "io.h"
 #include "Memory.h"
 
-static bool checkLnxHeader(LnxHeader *headerPtr);
-static bool checkBllHeader(BllHeader *headerPtr);
+static bool checkLnxHeader(const LnxHeader *headerPtr);
+static bool checkBllHeader(const BllHeader *headerPtr);
 
 static const char *const folderName = "lodjurds";
 static const char *const settingName = "settings.cfg";
@@ -208,15 +208,15 @@ void selectGame() {
 	}
 }
 
-bool checkLnxHeader(LnxHeader *rHead) {
+bool checkLnxHeader(const LnxHeader *lHead) {
 	bool isLNX = false;
-	if (rHead->magic[0] == 'L'
-			&& rHead->magic[1] == 'Y'
-			&& rHead->magic[2] == 'N'
-			&& rHead->magic[3] == 'X'
-			&& rHead->versionNumber == 1) {
+	if (lHead->magic[0] == 'L'
+			&& lHead->magic[1] == 'Y'
+			&& lHead->magic[2] == 'N'
+			&& lHead->magic[3] == 'X'
+			&& lHead->versionNumber == 1) {
 		isLNX = true;
-		memcpy(&lnxHeader, rHead, sizeof(LnxHeader));
+		memcpy(&lnxHeader, lHead, sizeof(LnxHeader));
 	}
 	else {
 		memset(&lnxHeader, 0, sizeof(LnxHeader));
@@ -231,17 +231,17 @@ bool checkLnxHeader(LnxHeader *rHead) {
 	return isLNX;
 }
 
-bool checkBllHeader(BllHeader *rHead) {
-	int adr = rHead->addressLow | (rHead->addressHigh << 8);
-	int size = rHead->fileSizeLow | (rHead->fileSizeHigh << 8);
-	if (rHead->data0 == -0x80
-			&& rHead->data1 == 0x08
-			&& rHead->magic[0] == 'B'
-			&& rHead->magic[1] == 'S'
-			&& rHead->magic[2] == '9'
-			&& rHead->magic[3] == '3'
+bool checkBllHeader(const BllHeader *bHead) {
+	int adr = bHead->addressLow | (bHead->addressHigh << 8);
+	int size = bHead->fileSizeLow | (bHead->fileSizeHigh << 8);
+	if (bHead->data0 == -0x80
+			&& bHead->data1 == 0x08
+			&& bHead->magic[0] == 'B'
+			&& bHead->magic[1] == 'S'
+			&& bHead->magic[2] == '9'
+			&& bHead->magic[3] == '3'
 			&& (adr + size) < 0x10000) {
-		memcpy(&bllHeader, rHead, sizeof(BllHeader));
+		memcpy(&bllHeader, bHead, sizeof(BllHeader));
 		return true;
 	}
 	memset(&bllHeader, 0, sizeof(BllHeader));

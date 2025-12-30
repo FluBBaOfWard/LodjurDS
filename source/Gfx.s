@@ -11,7 +11,6 @@
 	.global GFX_BG0CNT
 	.global GFX_BG1CNT
 	.global EMUPALBUFF
-	.global MAPPED_RGB
 	.global frameTotal
 	.global suzy_0
 
@@ -38,11 +37,21 @@
 ;@----------------------------------------------------------------------------
 gfxInit:					;@ Called from machineInit
 ;@----------------------------------------------------------------------------
-	stmfd sp!,{lr}
+	stmfd sp!,{mikptr,lr}
+
+	ldr mikptr,=mikey_0
+	ldr r0,=lodjurRenderCallback
+	ldr r1,=gfxEndFrame
+	ldr r2,=lynxRAM
+	bl mikeyInit
+
+	ldr suzptr,=suzy_0
+	ldr r0,=lynxRAM
+	bl suzyInit
 
 	bl gfxWinInit
 
-	ldmfd sp!,{pc}
+	ldmfd sp!,{mikptr,lr}
 
 ;@----------------------------------------------------------------------------
 gfxReset:					;@ Called with CPU reset
@@ -60,15 +69,11 @@ gfxReset:					;@ Called with CPU reset
 
 	bl gfxWinInit
 
-	ldr r0,=lodjurRenderCallback
-	ldr r1,=gfxEndFrame
-	ldr r2,=lynxRAM
 	ldr r4,=gSOC
-	ldrb r3,[r4]
+	ldrb r0,[r4]
 	bl mikeyReset
 
-	ldr r0,=lynxRAM
-	ldrb r1,[r4]
+	ldrb r0,[r4]				;@ SOC
 	bl suzyReset0
 
 	ldr r0,=gGammaValue
@@ -158,18 +163,18 @@ gammaConvert:	;@ Takes value in r0(0-0xFF), gamma in r1(0-4),returns new value i
 ;@----------------------------------------------------------------------------
 lodjurRenderCallback:		;@ (u8 *ram, u32 *palette, bool flip, bool palChg)
 ;@----------------------------------------------------------------------------
-	stmfd sp!,{r4-r6,lr}
+	stmfd sp!,{r4-r5,lr}
 	ldr r5,=PAL_CACHE
 	cmp r3,#0
 	beq palCacheOk
 	ldr r4,=MAPPED_RGB
-	mov r6,#16
+	mov lr,#16
 palCacheLoop:
-	subs r6,r6,#1
-	ldr r3,[r1,r6,lsl#2]
+	subs lr,lr,#1
+	ldr r3,[r1,lr,lsl#2]
 	mov r3,r3,lsl#1
 	ldrh r3,[r4,r3]
-	str r3,[r5,r6,lsl#2]
+	str r3,[r5,lr,lsl#2]
 	bne palCacheLoop
 
 palCacheOk:
@@ -190,7 +195,7 @@ rendLoop:
 	bne rendLoop
 	add r1,r1,#(SCREEN_WIDTH-GAME_WIDTH)*2
 	str r1,currentDest
-	ldmfd sp!,{r4-r6,pc}
+	ldmfd sp!,{r4-r5,pc}
 rendLoopFlip:
 	ldrb r2,[r0],#-1
 	and r3,r2,#0x0F
@@ -203,7 +208,7 @@ rendLoopFlip:
 	bne rendLoopFlip
 	add r1,r1,#(SCREEN_WIDTH-GAME_WIDTH)*2
 	str r1,currentDest
-	ldmfd sp!,{r4-r6,pc}
+	ldmfd sp!,{r4-r5,pc}
 
 ;@----------------------------------------------------------------------------
 updateLCDRefresh:
@@ -328,9 +333,8 @@ lowerRefresh:
 gfxRefresh:					;@ Called from C when changing scaling.
 	.type gfxRefresh STT_FUNC
 ;@----------------------------------------------------------------------------
-	ldr suzptr,=suzy_0
 ;@----------------------------------------------------------------------------
-gfxEndFrame:				;@ Called just before screen end (~line 101)	(r0-r3 safe to use)
+gfxEndFrame:				;@ Called just before screen end (~line 102) (r0-r3 safe to use)
 ;@----------------------------------------------------------------------------
 	stmfd sp!,{r3,lr}
 
@@ -379,7 +383,6 @@ lnxSuzySetButtonData:
 ;@----------------------------------------------------------------------------
 	ldr suzptr,=suzy_0
 	b suzySetButtonData
-
 ;@----------------------------------------------------------------------------
 
 gfxState:
@@ -398,7 +401,7 @@ GFX_BG1CNT:
 	.short 0
 
 #ifdef GBA
-	.section .sbss				;@ For the GBA
+	.section .sbss				;@ This is EWRAM on GBA with devkitARM
 #else
 	.section .bss
 #endif

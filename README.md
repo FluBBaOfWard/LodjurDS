@@ -82,11 +82,18 @@ Some dumb info about the game and emulator...
 
 * Baseball Heroes. Doesn't start
 
+## Accuracy
+
+There are not a lot of test programs yet, the only one I've found so far is from Dr.Helius.
+
+* [Atari Lynx Hardware Test ROMs](https://github.com/drhelius/lynx-tests) - Timer, sound & UART tests.
+
 ## Credits
 
 ```text
 Thanks to:
 Keith Wilkins for Handy source and info.
+Dr.Helius for test programs.
 42Bastian for bug reports, test files & bll.enc.
 ```
 

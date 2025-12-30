@@ -65,8 +65,10 @@ machineInit: 				;@ Called from C
 	ldr r0,=romSize
 	ldr r1,=(ROM_SpaceEnd-ROM_Space)
 	str r1,[r0]
+	tst r1,#0x40
 	ldr r0,=romSpacePtr
 	ldr r1,=ROM_Space
+	addne r1,r1,#0x40
 	str r1,[r0]
 	ldr r0,=biosSpace
 	adr r1,LYNX_BIOS_INTERNAL
@@ -108,7 +110,6 @@ loadCart: 					;@ Called from C
 	movne r4,#SOC_HOWARD2
 	strb r4,gSOC
 
-
 	ldr r0,=lynxRAM				;@ Clear RAM
 	mov r1,#0x10000/4
 	bl memclr_
@@ -125,7 +126,7 @@ loadCart: 					;@ Called from C
 ;@----------------------------------------------------------------------------
 clearDirtyTiles:
 ;@----------------------------------------------------------------------------
-	ldr r0,=DIRTYTILES			;@ Clear RAM
+	ldr r0,=DIRTYTILES			;@ Clear dirty indicator
 	mov r1,#0x200/4
 	b memclr_
 
