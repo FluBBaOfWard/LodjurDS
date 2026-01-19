@@ -114,6 +114,22 @@ EMUinput:			;@ This label here for main.c to use
 	.long 0			;@ EMUjoypad (this is what Emu sees)
 
 ;@----------------------------------------------------------------------------
+updateSlowIO:				;@ Call once every frame, updates rtc and battery levels.
+;@----------------------------------------------------------------------------
+//	ldrb r0,rtcTimer
+	subs r0,r0,#1
+	movmi r0,#59
+//	strb r0,rtcTimer
+	bxpl lr
+
+	stmfd sp!,{r12,lr}
+	;@ Get NDS battery level. 0-15, bit 7 charging.
+	;@ Original DS only 3 & 15.
+	blx getBatteryLevel
+	ldmfd sp!,{r12,lr}
+
+	bx lr
+;@----------------------------------------------------------------------------
 
 	.end
 #endif // #ifdef __arm__

@@ -12,10 +12,10 @@
 	.global GFX_BG1CNT
 	.global EMUPALBUFF
 	.global frameTotal
-	.global suzy_0
 
 	.global gfxInit
 	.global gfxReset
+	.global gfxWinInit
 	.global paletteInit
 	.global gfxRefresh
 	.global gfxEndFrame
@@ -84,21 +84,34 @@ gfxReset:					;@ Called with CPU reset
 
 	ldmfd sp!,{r4,pc}
 
+#define ZOOM_VAL ((GAME_WIDTH<<8)/(SCREEN_WIDTH-1))
+
+winLayouts: // Horizontal, Vertical
+	.short (((SCREEN_WIDTH-GAME_WIDTH)/2)<<8)+(SCREEN_WIDTH+GAME_WIDTH)/2
+	.short (((SCREEN_HEIGHT-GAME_HEIGHT)/2)<<8)+(SCREEN_HEIGHT+GAME_HEIGHT)/2
+	.short (((SCREEN_WIDTH-GAME_HEIGHT)/2)<<8)+(SCREEN_WIDTH+GAME_HEIGHT)/2
+	.short (((SCREEN_HEIGHT-GAME_WIDTH)/2)<<8)+(SCREEN_HEIGHT+GAME_WIDTH)/2
+	.short (((SCREEN_WIDTH-GAME_HEIGHT)/2)<<8)+(SCREEN_WIDTH+GAME_HEIGHT)/2
+	.short (((SCREEN_HEIGHT-GAME_WIDTH)/2)<<8)+(SCREEN_HEIGHT+GAME_WIDTH)/2
+	.short (0<<8)+SCREEN_WIDTH
+	.short (((SCREEN_HEIGHT-((GAME_HEIGHT<<8)/ZOOM_VAL))/2)<<8) + ((SCREEN_HEIGHT+((GAME_HEIGHT<<8)/ZOOM_VAL))/2)
 ;@----------------------------------------------------------------------------
 gfxWinInit:
+	.type gfxWinInit STT_FUNC
 ;@----------------------------------------------------------------------------
-	mov r1,#REG_BASE
+	mov r0,#REG_BASE
+	adr r2,winLayouts
+	ldr r1,=gRotation
+	ldrb r1,[r1]
+	ldr r1,[r2,r1,lsl#2]
 	;@ Horizontal start-end
-	ldr r0,=(((SCREEN_WIDTH-GAME_WIDTH)/2)<<8)+(SCREEN_WIDTH+GAME_WIDTH)/2
-	strh r0,[r1,#REG_WIN0H]
-	strh r0,[r1,#REG_WIN1H]
+	strh r1,[r0,#REG_WIN0H]
 	;@ Vertical start-end
-	ldr r0,=(((SCREEN_HEIGHT-GAME_HEIGHT)/2)<<8)+(SCREEN_HEIGHT+GAME_HEIGHT)/2
-	strh r0,[r1,#REG_WIN0V]
-	strh r0,[r1,#REG_WIN1V]
+	mov r1,r1,lsr#16
+	strh r1,[r0,#REG_WIN0V]
 
-	ldr r0,=0x002C3333			;@ WinIN0/1, BG0, BG1, SPR & COL inside Win0
-	str r0,[r1,#REG_WININ]		;@ WinOUT, Only BG2, BG3 & COL enabled outside Windows.
+	ldr r1,=0x00282c2c			;@ WinIN0/1, BG2, BG3 & COL inside Win0
+	str r1,[r0,#REG_WININ]		;@ WinOUT, Only BG2, BG3 & COL enabled outside Windows.
 	bx lr
 ;@----------------------------------------------------------------------------
 paletteInit:		;@ r0-r3 modified.
@@ -161,7 +174,7 @@ gammaConvert:	;@ Takes value in r0(0-0xFF), gamma in r1(0-4),returns new value i
 	bx lr
 
 ;@----------------------------------------------------------------------------
-lodjurRenderCallback:		;@ (u8 *ram, u32 *palette, bool flip, bool palChg)
+lodjurRenderCallback:		;@ (const u8 *ram, const u32 *palette, bool flip, bool palChg)
 ;@----------------------------------------------------------------------------
 	stmfd sp!,{r4-r5,lr}
 	ldr r5,=PAL_CACHE
@@ -416,15 +429,13 @@ EMUPALBUFF:
 	.space 0x400
 
 #ifdef NDS
-	.section .dtcm, "ax", %progbits			;@ For the NDS
+	.section .sbss				;@ This is DTCM on NDS with devkitARM
 #elif GBA
 	.section .bss				;@ This is IWRAM on GBA with devkitARM
 #endif
+	.align 2
 PAL_CACHE:
 	.space 0x40					;@ 16*4
-;@----------------------------------------------------------------------------
-suzy_0:
-	.space suzySize
 ;@----------------------------------------------------------------------------
 	.end
 #endif // #ifdef __arm__

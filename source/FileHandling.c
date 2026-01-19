@@ -29,71 +29,81 @@ LnxHeader lnxHeader;
 BllHeader bllHeader;
 
 //---------------------------------------------------------------------------------
-int initSettings() {
-	cfg.palette = 0;
-	cfg.gammaValue = 0;
-	cfg.emuSettings = AUTOPAUSE_EMULATION | AUTOLOAD_NVRAM | AUTOSLEEP_OFF;
-	cfg.sleepTime = 60*60*5;
-	cfg.controller = 0;					// Don't swap A/B
+void applyConfigData(void) {
+	emuSettings    = cfg.emuSettings & ~EMUSPEED_MASK; // Clear speed setting.
+	gBorderEnable  = (cfg.config & 1) ^ 1;
+	gGammaValue    = cfg.gammaValue;
+	gContrastValue = cfg.contrastValue;
+	sleepTime      = cfg.sleepTime;
+	gMachineSet    = cfg.machine;
+	joyCfg         = (joyCfg & ~0x400)|((cfg.controller & 1)<<10);
+	strlcpy(currentDir, cfg.currentPath, sizeof(currentDir));
+	setSoundChipEnable(emuSettings & SOUND_ENABLE);
+//	pauseEmulation = emuSettings & AUTOPAUSE_EMULATION;
+}
 
-	return 0;
+void updateConfigData(void) {
+	strcpy(cfg.magic, "cfg");
+	cfg.emuSettings   = emuSettings & ~EMUSPEED_MASK; // Clear speed setting.
+	cfg.config        = (gBorderEnable & 1) ^ 1;
+	cfg.gammaValue    = gGammaValue;
+	cfg.contrastValue = gContrastValue;
+	cfg.sleepTime     = sleepTime;
+	cfg.machine       = gMachineSet;
+	cfg.controller    = (joyCfg>>10)&1;
+	strlcpy(cfg.currentPath, currentDir, sizeof(cfg.currentPath));
+}
+
+void initSettings() {
+	memset(&cfg, 0, sizeof(ConfigData));
+	cfg.emuSettings   = AUTOPAUSE_EMULATION | AUTOLOAD_NVRAM | AUTOSLEEP_OFF;
+	cfg.contrastValue = 3;
+	cfg.sleepTime     = 60*60*5;
+	cfg.machine       = HW_AUTO;
+
+	applyConfigData();
 }
 
 int loadSettings() {
 	FILE *file;
-
-	if (findFolder(folderName)) {
-		return 1;
-	}
-	if ( (file = fopen(settingName, "r")) ) {
-		fread(&cfg, 1, sizeof(ConfigData), file);
+	if (!findFolder(folderName)
+		&& (file = fopen(settingName, "r"))) {
+		int len = fread(&cfg, 1, sizeof(ConfigData), file);
 		fclose(file);
-		if (!strstr(cfg.magic,"cfg")) {
-			infoOutput("Error in settings file.");
-			return 1;
+		if (strstr(cfg.magic, "cfg") && len == sizeof(ConfigData)) {
+			applyConfigData();
+			infoOutput("Settings loaded.");
+			return 0;
 		}
+		updateConfigData();
+		infoOutput("Error in settings file.");
 	}
 	else {
 		infoOutput("Couldn't open file:");
 		infoOutput(settingName);
-		return 1;
 	}
-
-	gGammaValue    = cfg.gammaValue;
-	gContrastValue = cfg.contrastValue;
-	emuSettings    = cfg.emuSettings & ~EMUSPEED_MASK;	// Clear speed setting.
-	sleepTime      = cfg.sleepTime;
-	joyCfg         = (joyCfg & ~0x400)|((cfg.controller & 1)<<10);
-	strlcpy(currentDir, cfg.currentPath, sizeof(currentDir));
-	setSoundChipEnable(emuSettings & SOUND_ENABLE);
-
-	infoOutput("Settings loaded.");
-	return 0;
+	return 1;
 }
 
-void saveSettings() {
+int saveSettings() {
+	updateConfigData();
+
 	FILE *file;
-
-	strcpy(cfg.magic,"cfg");
-	cfg.gammaValue    = gGammaValue;
-	cfg.contrastValue = gContrastValue;
-	cfg.emuSettings   = emuSettings & ~EMUSPEED_MASK;		// Clear speed setting.
-	cfg.sleepTime     = sleepTime;
-	cfg.controller    = (joyCfg>>10)&1;
-	strlcpy(cfg.currentPath, currentDir, sizeof(cfg.currentPath));
-
-	if (findFolder(folderName)) {
-		return;
-	}
-	if ( (file = fopen(settingName, "w")) ) {
-		fwrite(&cfg, 1, sizeof(ConfigData), file);
+	if (!findFolder(folderName)
+		&& (file = fopen(settingName, "w"))) {
+		int len = fwrite(&cfg, 1, sizeof(ConfigData), file);
 		fclose(file);
-		infoOutput("Settings saved.");
+		if (len == sizeof(ConfigData)) {
+			infoOutput("Settings saved.");
+			return 0;
+		}
+		infoOutput("Couldn't save settings.");
 	}
 	else {
 		infoOutput("Couldn't open file:");
 		infoOutput(settingName);
 	}
+	return 1;
 }
 
 void loadNVRAM() {
@@ -112,7 +122,7 @@ void loadNVRAM() {
 	if (findFolder(folderName)) {
 		return;
 	}
-	if ( (svsFile = fopen(nvramName, "r")) ) {
+	if ((svsFile = fopen(nvramName, "r"))) {
 		if (fread(nvMem, 1, saveSize, svsFile) != saveSize) {
 			infoOutput("Bad NVRAM file:");
 			infoOutput(nvramName);
@@ -142,7 +152,7 @@ void saveNVRAM() {
 	if (findFolder(folderName)) {
 		return;
 	}
-	if ( (svsFile = fopen(nvramName, "w")) ) {
+	if ((svsFile = fopen(nvramName, "w"))) {
 		if (fwrite(nvMem, 1, saveSize, svsFile) != saveSize) {
 			infoOutput("Couldn't write correct number of bytes.");
 		}
@@ -249,14 +259,15 @@ bool checkBllHeader(const BllHeader *bHead) {
 }
 
 void checkMachine() {
-	if (gMachineSet == HW_AUTO) {
-		gMachine = HW_LYNX_II;
+	u8 newMachine = gMachineSet;
+	if (newMachine == HW_AUTO) {
+		newMachine = HW_LYNX_II;
 	}
-	else {
-		gMachine = gMachineSet;
+	if (gMachine != newMachine) {
+		gMachine = newMachine;
+		cpuInit(gMachine);
+		setupEmuBackground();
 	}
-	cpuInit(gMachine);
-	setupEmuBackground();
 }
 
 //---------------------------------------------------------------------------------
@@ -273,7 +284,7 @@ static int loadBIOS(void *dest, const char *fPath, const int maxSize) {
 
 	cls(0);
 	strlcpy(tempString, fPath, sizeof(tempString));
-	if ( (sPtr = strrchr(tempString, '/')) ) {
+	if ((sPtr = strrchr(tempString, '/'))) {
 		sPtr[0] = 0;
 		sPtr += 1;
 		chdir("/");

@@ -7,6 +7,7 @@
 	.global waitMaskOut
 	.global m6502_0
 	.global mikey_0
+	.global suzy_0
 
 	.global run
 	.global stepFrame
@@ -133,7 +134,7 @@ cpuReset:					;@ Called by loadCart/resetGame
 	bx lr
 ;@----------------------------------------------------------------------------
 #ifdef NDS
-	.section .dtcm, "ax", %progbits			;@ For the NDS
+	.section .sbss				;@ This is DTCM on NDS with devkitARM
 #elif GBA
 	.section .bss				;@ This is IWRAM on GBA with devkitARM
 #else
@@ -144,6 +145,9 @@ cpuReset:					;@ Called by loadCart/resetGame
 m6502_0:
 mikey_0:
 	.space mikeySize
+;@----------------------------------------------------------------------------
+suzy_0:
+	.space suzySize
 ;@----------------------------------------------------------------------------
 	.end
 #endif // #ifdef __arm__

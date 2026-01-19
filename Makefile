@@ -40,7 +40,7 @@ GRAPHICS	:=	source/Shared/graphics \
 # options for code generation
 #---------------------------------------------------------------------------------
 ARCH	:=	-march=armv5te -mtune=arm946e-s -mthumb -mthumb-interwork
-FLAGS	:=	-DARM9 -DNDS -DW65C02
+FLAGS	:=	-DARM9 -DNDS -DR65C02
 
 ifeq ($(DEBUG),1)
 	CFLAGS	:=	-gdwarf-2 -Wall -ffast-math $(ARCH)

@@ -1,10 +1,10 @@
 #ifdef __arm__
 
-//#define EMBEDDED_ROM
-
 #include "ARMSuzy/ARMSuzy.i"
 #include "ARMMikey/ARMMikey.i"
 #include "LynxCart/LynxCart.i"
+
+//#define EMBEDDED_ROM
 
 	.global cartFlags
 	.global romSpacePtr
@@ -86,7 +86,7 @@ machineInit: 				;@ Called from C
 	ldmfd sp!,{r4-r11,lr}
 	bx lr
 
-	.section .ewram,"ax"
+	.section .ewram, "ax", %progbits
 	.align 2
 ;@----------------------------------------------------------------------------
 loadCart: 					;@ Called from C
@@ -219,7 +219,7 @@ maxRomSize:
 	.long 0
 ;@----------------------------------------------------------------------------
 #ifdef GBA
-	.section .sbss				;@ For the GBA
+	.section .sbss				;@ This is EWRAM on GBA with devkitARM
 #else
 	.section .bss
 #endif

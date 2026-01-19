@@ -1,9 +1,9 @@
 LodjurDS revision history
 -=-=-=-=-=-=-=-=-=-=-=-=-=-
 
-V0.1.4 - 2025-12-30 (FluBBa)
+V0.1.4 - 2026-01-19 (FluBBa)
 	Added loading of bll (*.o) files.
-	Added cpu differences between Lynx & Lynx II.
+	Added CPU differences between Lynx & Lynx II.
 	Added Mikey & Suzy revision differences between Lynx & Lynx II.
 	Added power off from code.
 	Added some Suzy register mirrors.

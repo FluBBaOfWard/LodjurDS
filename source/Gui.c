@@ -14,7 +14,7 @@
 #include "ARMMikey/Version.h"
 #include "ARMSuzy/Version.h"
 
-#define EMUVERSION "V0.1.4 2025-12-30"
+#define EMUVERSION "V0.1.4 2026-01-19"
 
 static void gammaChange(void);
 static void machineSet(void);
@@ -76,7 +76,7 @@ const MItem setItems[] = {
 	{"Autopause Game:", autoPauseGameSet, getAutoPauseGameText},
 	{"Powersave 2nd Screen:", powerSaveSet, getPowerSaveText},
 	{"Emulator on Bottom:", screenSwapSet, getScreenSwapText},
-	{"Autosleep:", sleepSet, getSleepText},
+//	{"Autosleep:", sleepSet, getSleepText},
 };
 const MItem debugItems[] = {
 	{"Debug Output:", debugTextSet, getDebugText},
@@ -246,6 +246,7 @@ void screenModeSet() {
 	if (gScreenMode > 3) gScreenMode = 0;
 	gRotation = gScreenMode;
 	setScreenMode(gScreenMode);
+	gfxWinInit();
 	settingsChanged = true;
 }
 const char *getScreenModeText() {
@@ -254,6 +255,14 @@ const char *getScreenModeText() {
 
 void borderSet() {
 	gBorderEnable ^= 0x01;
+	if (gBorderEnable & 1) {
+		GFX_DISPCNT = MODE_5_2D | DISPLAY_BG2_ACTIVE;
+	}
+	else {
+		GFX_DISPCNT = MODE_5_2D | DISPLAY_BG2_ACTIVE | DISPLAY_WIN0_ON;
+	}
+	videoSetMode(GFX_DISPCNT);
+
 	setupEmuBorderPalette();
 }
 const char *getBorderText() {
@@ -276,7 +285,7 @@ void soundEnableSet() {
 	settingsChanged = true;
 }
 const char *getSoundEnableText() {
-	return autoTxt[(emuSettings & SOUND_ENABLE)>>18];
+	return autoTxt[(emuSettings & SOUND_ENABLE) >> 18];
 }
 
 void refreshChgSet() {
@@ -284,5 +293,5 @@ void refreshChgSet() {
 	updateLCDRefresh();
 }
 const char *getRefreshChgText() {
-	return autoTxt[(emuSettings&ALLOW_REFRESH_CHG)>>19];
+	return autoTxt[(emuSettings & ALLOW_REFRESH_CHG) >> 19];
 }

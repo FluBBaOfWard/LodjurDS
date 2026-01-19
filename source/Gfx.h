@@ -5,19 +5,17 @@
 extern "C" {
 #endif
 
-#include "ARMSuzy/ARMSuzy.h"
-
 extern u8 gFlicker;
 extern u8 gTwitch;
 extern u8 gGfxMask;
 
-extern SUZY suzy_0;
 extern u16 EMUPALBUFF[0x200];
 extern u32 GFX_DISPCNT;
 extern u16 GFX_BG0CNT;
 extern u16 GFX_BG1CNT;
 
 void gfxInit(void);
+void gfxWinInit(void);
 void lodjurRenderCallback(u8 *source, u32 *palette, bool flip, bool palChg);
 void vblIrqHandler(void);
 void paletteInit(u8 gammaVal, u8 contrast);

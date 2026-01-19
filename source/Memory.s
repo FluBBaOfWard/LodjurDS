@@ -48,7 +48,7 @@ rom_W:						;@ Write ROM address (error)
 ;@----------------------------------------------------------------------------
 
 #ifdef NDS
-	.section .itcm						;@ For the NDS ARM9
+	.section .itcm, "ax", %progbits		;@ For the NDS ARM9
 #elif GBA
 	.section .iwram, "ax", %progbits	;@ For the GBA
 #endif

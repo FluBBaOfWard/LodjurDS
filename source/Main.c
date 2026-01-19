@@ -70,10 +70,10 @@ int main(int argc, char **argv) {
 	setupGUI();
 	getInput();
 	initSettings();
+	bool fsOk = initFileHelper();
+	loadSettings();
 	machineInit();
-	loadCart();
-	if (initFileHelper()) {
-		loadSettings();
+	if (fsOk) {
 		loadBios();
 		if (argc > 1) {
 			loadGame(argv[1]);
@@ -193,9 +193,8 @@ static void setupGraphics() {
 
 	// Set up the main display
 	GFX_DISPCNT = MODE_5_2D
-//				 | DISPLAY_BG0_ACTIVE
 				 | DISPLAY_BG2_ACTIVE
-//				 | DISPLAY_BG_EXT_PALETTE
+//				 | DISPLAY_WIN0_ON
 				 ;
 	videoSetMode(GFX_DISPCNT);
 	GFX_BG0CNT = BG_32x32 | BG_MAP_BASE(0) | BG_COLOR_16 | BG_TILE_BASE(2) | BG_PRIORITY(0);
@@ -239,7 +238,7 @@ static void setupStream(void) {
 	sys.samp_count			= 0;
 	sys.mem_bank			= 0;
 	sys.fifo_channel		= FIFO_MAXMOD;
-	mmInit( &sys );
+	mmInit(&sys);
 
 	//----------------------------------------------------------------
 	// open stream
@@ -250,7 +249,7 @@ static void setupStream(void) {
 	myStream.format			= MM_STREAM_16BIT_STEREO;	// format = stereo 16-bit
 	myStream.timer			= MM_TIMER0;				// use hardware timer 0
 	myStream.manual			= false;					// use manual filling
-	mmStreamOpen( &myStream );
+	mmStreamOpen(&myStream);
 
 	//----------------------------------------------------------------
 	// when using 'automatic' filling, your callback will be triggered
