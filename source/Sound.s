@@ -1,3 +1,10 @@
+//
+//  Sound.s
+//  LodjurDS
+//
+//  Created by Fredrik Ahlström on 2024-07-29.
+//  Copyright © 2024-2026 Fredrik Ahlström. All rights reserved.
+//
 #ifdef __arm__
 
 #include "ARMMikey/ARMMikey.i"
@@ -6,8 +13,8 @@
 
 	.global soundInit
 	.global soundReset
-	.global VblSound2
-	.global setMuteSoundGUI
+	.global soundRender
+	.global soundSetMuteGUI
 	.global setSoundChipEnable
 
 ;@----------------------------------------------------------------------------
@@ -36,8 +43,8 @@ soundReset:
 	bx lr
 
 ;@----------------------------------------------------------------------------
-setMuteSoundGUI:
-	.type   setMuteSoundGUI STT_FUNC
+soundSetMuteGUI:
+	.type   soundSetMuteGUI STT_FUNC
 ;@----------------------------------------------------------------------------
 	ldr r1,=pauseEmulation		;@ Output silence when emulation paused.
 	ldrb r0,[r1]
@@ -53,7 +60,7 @@ setSoundChipEnable:			;@ In r0=mute/unmute
 	strb r0,muteSoundChip
 	bx lr
 ;@----------------------------------------------------------------------------
-VblSound2:					;@ r0=length, r1=pointer
+soundRender:					;@ r0=length, r1=pointer
 ;@----------------------------------------------------------------------------
 	ldr r2,muteSound
 	cmp r2,#0
@@ -92,4 +99,4 @@ muteSoundChip:
 //	.space 0x1000
 ;@----------------------------------------------------------------------------
 	.end
-#endif // #ifdef __arm__
+#endif // __arm__

@@ -1,3 +1,10 @@
+//
+//  Cart.s
+//  LodjurDS
+//
+//  Created by Fredrik Ahlström on 2024-07-29.
+//  Copyright © 2024-2026 Fredrik Ahlström. All rights reserved.
+//
 #ifdef __arm__
 
 #include "ARMSuzy/ARMSuzy.i"
@@ -47,10 +54,28 @@ ROM_Space:
 //	.incbin "roms/Shadow of the Beast (1992)[crc-2].lnx"
 //	.incbin "roms/Toki (1990).lnx"
 //	.incbin "roms/twister.lnx"
+//	.incbin "roms/tests/audio.lnx"
+//	.incbin "roms/tests/audio2.lnx"
+//	.incbin "roms/tests/cpu.lnx"
+//	.incbin "roms/tests/math.lnx"
+//	.incbin "roms/tests/memio.lnx"
+//	.incbin "roms/tests/page-mode.lnx"
+//	.incbin "roms/tests/refresh-rate.lnx"
+//	.incbin "roms/tests/sprites1.lnx"
+//	.incbin "roms/tests/sprites2.lnx"
+//	.incbin "roms/tests/sprites3.lnx"
+//	.incbin "roms/tests/sprites4.lnx"
+//	.incbin "roms/tests/sprites5.lnx"
+//	.incbin "roms/tests/timers.lnx"
+//	.incbin "roms/tests/uart.lnx"
+//	.incbin "roms/tests/uart2.lnx"
+//	.incbin "roms/tests/tutorial-collisions.lnx"
+//	.incbin "roms/tests/tutorial-pens.lnx"
+//	.incbin "roms/tests/tutorial-sprites.lnx"
 ROM_SpaceEnd:
 LYNX_BIOS_INTERNAL:
 	.incbin "roms/lynxboot.img"
-#endif
+#endif // EMBEDDED_ROM
 BLL_ENC:
 	.incbin "bll.enc"			;@ Update cart.h if size changes
 
@@ -74,7 +99,7 @@ machineInit: 				;@ Called from C
 	adr r1,LYNX_BIOS_INTERNAL
 	mov r2,#0x200
 	bl memcpy
-#endif
+#endif // EMBEDDED_ROM
 	bl memoryMapInit
 	bl gfxInit
 //	bl ioInit
@@ -234,4 +259,4 @@ cart_0:
 	.space cartSize
 ;@----------------------------------------------------------------------------
 	.end
-#endif // #ifdef __arm__
+#endif // __arm__

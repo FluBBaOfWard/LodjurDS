@@ -20,7 +20,8 @@ void ejectGame(void);
 void resetGame(void);
 
 void uiNullNormal(void);
-void uiAbout(void);
+
+void powerOnOff(void);
 
 void debugIOUnmappedR(u16 port);
 void debugIOUnmappedW(u16 port, u8 val);
@@ -35,4 +36,4 @@ void debugPowerOff(void);
 } // extern "C"
 #endif
 
-#endif // GUI_HEADER
+#endif // !GUI_HEADER

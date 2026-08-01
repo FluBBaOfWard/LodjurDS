@@ -39,7 +39,7 @@ typedef struct
 			u8	sd_real:1;
 			u8	eepWidth:1;
 		} eepBits;
-		u8	eepromInfo;
+		const u8	eepromInfo;
 	};
 	// 0x3D-0x3F So far unused
 	const u8 unused[3];

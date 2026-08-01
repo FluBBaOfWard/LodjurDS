@@ -1,3 +1,10 @@
+//
+//  Gfx.h
+//  LodjurDS
+//
+//  Created by Fredrik Ahlström on 2024-07-29.
+//  Copyright © 2024-2026 Fredrik Ahlström. All rights reserved.
+//
 #ifndef GFX_HEADER
 #define GFX_HEADER
 
@@ -15,6 +22,7 @@ extern u16 GFX_BG0CNT;
 extern u16 GFX_BG1CNT;
 
 void gfxInit(void);
+void gfxPowerOff(void);
 void gfxWinInit(void);
 void lodjurRenderCallback(u8 *source, u32 *palette, bool flip, bool palChg);
 void vblIrqHandler(void);
@@ -28,4 +36,4 @@ void lnxSuzySetButtonData(u16 value);
 } // extern "C"
 #endif
 
-#endif // GFX_HEADER
+#endif // !GFX_HEADER

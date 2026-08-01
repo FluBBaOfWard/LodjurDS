@@ -1,6 +1,10 @@
 LodjurDS revision history
 -=-=-=-=-=-=-=-=-=-=-=-=-=-
 
+V0.1.5 - 2026-08-01 (FluBBa)
+	Fixed sprite type 2 (Boundary Shadow).
+	Added power on/off to menu.
+
 V0.1.4 - 2026-01-19 (FluBBa)
 	Added loading of bll (*.o) files.
 	Added CPU differences between Lynx & Lynx II.

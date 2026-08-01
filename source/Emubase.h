@@ -12,7 +12,7 @@ extern "C" {
 typedef struct {				//(config struct)
 	char magic[4];				//="CFG",0
 	int emuSettings;
-	int sleepTime;				// autoSleepTime
+	int unused;					// unused
 	u8 gammaValue;				// from gfx.s
 	u8 config;					// from cart.s
 	u8 controller;				// from io.s
@@ -27,4 +27,4 @@ typedef struct {				//(config struct)
 } // extern "C"
 #endif
 
-#endif // EMUBASE
+#endif // !EMUBASE

@@ -1,4 +1,4 @@
-# LodjurDS V0.1.4
+# LodjurDS V0.1.5
 
 <img align="right" width="220" src="./logo.png" alt="The Lynx logo"/>
 
@@ -52,8 +52,8 @@ To select between the tabs use R & L or the touchscreen.
 * Settings:
   * Speed: Switch between speed modes.
     * Normal: Game runs at it's normal speed.
-    * 200%: Game runs at double speed.
-    * Max: Games can run up to 4 times normal speed (might change).
+    * 200%: Game can run up to double speed.
+    * Max: Game can run up to 4 times normal speed.
     * 50%: Game runs at half speed.
   * Allow Refresh Change: Allow the Lynx to change NDS refresh rate.
   * Autoload State: Toggle Savestate autoloading. Automagically load the savestate associated with the current game.
@@ -86,6 +86,7 @@ Some dumb info about the game and emulator...
 There are not a lot of test programs yet, the only one I've found so far is from Dr.Helius.
 
 * [Atari Lynx Hardware Test ROMs](https://github.com/drhelius/lynx-tests) - Timer, sound & UART tests.
+* [Suzy Timing](https://github.com/laoo/SuzyTiming) - Suzy Timing.
 
 ## Credits
 

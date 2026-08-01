@@ -1,3 +1,10 @@
+//
+//  io.s
+//  LodjurDS
+//
+//  Created by Fredrik Ahlström on 2024-07-29.
+//  Copyright © 2024-2026 Fredrik Ahlström. All rights reserved.
+//
 #ifdef __arm__
 
 #include "Shared/EmuMenu.i"
@@ -57,7 +64,7 @@ convertInput:			;@ Convert from device keys to target r0=input/output
 ;@----------------------------------------------------------------------------
 	mvn r1,r0
 	tst r1,#KEY_L|KEY_R			;@ Keys to open menu
-	orreq r0,r0,#KEY_OPEN_MENU
+	orreq r0,r0,#ACT_OPEN_MENU
 	bx lr
 ;@----------------------------------------------------------------------------
 refreshEMUjoypads:			;@ Call every frame
@@ -132,4 +139,4 @@ updateSlowIO:				;@ Call once every frame, updates rtc and battery levels.
 ;@----------------------------------------------------------------------------
 
 	.end
-#endif // #ifdef __arm__
+#endif // __arm__

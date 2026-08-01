@@ -8,7 +8,7 @@
 #include "Shared/EmuMenu.h"
 #include "Shared/EmuSettings.h"
 #include "Shared/FileHelper.h"
-#include "Shared/AsmExtra.h"
+#include "Shared/IPSPatch.h"
 #include "Main.h"
 #include "Gui.h"
 #include "Cart.h"
@@ -34,12 +34,12 @@ void applyConfigData(void) {
 	gBorderEnable  = (cfg.config & 1) ^ 1;
 	gGammaValue    = cfg.gammaValue;
 	gContrastValue = cfg.contrastValue;
-	sleepTime      = cfg.sleepTime;
 	gMachineSet    = cfg.machine;
 	joyCfg         = (joyCfg & ~0x400)|((cfg.controller & 1)<<10);
 	strlcpy(currentDir, cfg.currentPath, sizeof(currentDir));
 	setSoundChipEnable(emuSettings & SOUND_ENABLE);
 //	pauseEmulation = emuSettings & AUTOPAUSE_EMULATION;
+	sleepTime      = 0x7F000000; // 360 days...
 }
 
 void updateConfigData(void) {
@@ -48,7 +48,6 @@ void updateConfigData(void) {
 	cfg.config        = (gBorderEnable & 1) ^ 1;
 	cfg.gammaValue    = gGammaValue;
 	cfg.contrastValue = gContrastValue;
-	cfg.sleepTime     = sleepTime;
 	cfg.machine       = gMachineSet;
 	cfg.controller    = (joyCfg>>10)&1;
 	strlcpy(cfg.currentPath, currentDir, sizeof(cfg.currentPath));
@@ -57,8 +56,7 @@ void updateConfigData(void) {
 void initSettings() {
 	memset(&cfg, 0, sizeof(ConfigData));
 	cfg.emuSettings   = AUTOPAUSE_EMULATION | AUTOLOAD_NVRAM | AUTOSLEEP_OFF;
-	cfg.contrastValue = 3;
-	cfg.sleepTime     = 60*60*5;
+	cfg.contrastValue = 1;
 	cfg.machine       = HW_AUTO;
 
 	applyConfigData();
@@ -318,4 +316,14 @@ void selectBios() {
 		loadBios();
 	}
 	cls(0);
+}
+
+void selectIPS() {
+	pauseEmulation = true;
+	ui10();
+	const char *ipsName = browseForFileType(".ips");
+	if (ipsName && patchRom(romSpacePtr, ipsName, gRomSize)) {
+		loadCart();
+	}
+	backOutOfMenu();
 }

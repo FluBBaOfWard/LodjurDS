@@ -23,9 +23,10 @@ void ejectCart(void);
 void selectGame(void);
 void selectBios(void);
 int loadBios(void);
+void selectIPS(void);
 
 #ifdef __cplusplus
 } // extern "C"
 #endif
 
-#endif // FILEHANDLING_HEADER
+#endif // !FILEHANDLING_HEADER

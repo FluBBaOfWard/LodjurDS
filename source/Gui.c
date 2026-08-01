@@ -14,7 +14,7 @@
 #include "ARMMikey/Version.h"
 #include "ARMSuzy/Version.h"
 
-#define EMUVERSION "V0.1.4 2026-01-19"
+#define EMUVERSION "V0.1.5 2026-08-01"
 
 static void gammaChange(void);
 static void machineSet(void);
@@ -34,6 +34,8 @@ static const char *getScreenModeText(void);
 static void soundEnableSet(void);
 static const char *getSoundEnableText(void);
 
+static void uiAbout(void);
+
 const MItem dummyItems[] = {
 	{"", uiDummy}
 };
@@ -41,7 +43,9 @@ const MItem fileItems[] = {
 	{"Load Game", selectGame},
 	{"Load State", loadState},
 	{"Save State", saveState},
-	{"Save Settings", saveSettings},
+	{"Load Patch", selectIPS},
+	{"Save Settings", (void(*)(void))saveSettings},
+	{"Power On/Off", powerOnOff},
 	{"Reset Console", resetGame},
 	{"Quit Emulator", ui9}
 };
@@ -163,6 +167,10 @@ void nullUIDebug(int key) {
 	if (key & KEY_TOUCH) {
 		openMenu();
 	}
+}
+
+void powerOnOff() {
+	setPowerIsOn(!powerIsOn);
 }
 
 void ejectGame() {

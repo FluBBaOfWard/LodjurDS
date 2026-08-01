@@ -18,4 +18,4 @@ typedef struct
 	const char magic[4];
 } BllHeader;
 
-#endif	// BLLHEADER
+#endif // !BLLHEADER

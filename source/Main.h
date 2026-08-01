@@ -5,6 +5,7 @@
 extern "C" {
 #endif
 
+extern bool powerIsOn;
 extern bool gameInserted;
 extern uint16 *map0sub;
 
@@ -25,4 +26,4 @@ void setupMenuPalette(void);
 } // extern "C"
 #endif
 
-#endif // MAIN_HEADER
+#endif // !MAIN_HEADER

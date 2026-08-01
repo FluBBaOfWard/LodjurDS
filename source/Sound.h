@@ -1,3 +1,10 @@
+//
+//  Sound.h
+//  LodjurDS
+//
+//  Created by Fredrik Ahlström on 2024-07-29.
+//  Copyright © 2024-2026 Fredrik Ahlström. All rights reserved.
+//
 #ifndef SOUND_HEADER
 #define SOUND_HEADER
 
@@ -11,12 +18,12 @@ extern "C" {
 #define buffer_size (256+10)
 
 void soundInit(void);
-void setMuteSoundGUI(void);
+void soundSetMuteGUI(void);
 void setSoundChipEnable(bool enable);
-mm_word VblSound2(mm_word length, mm_addr dest, mm_stream_formats format);
+mm_word soundRender(mm_word length, mm_addr dest, mm_stream_formats format);
 
 #ifdef __cplusplus
 } // extern "C"
 #endif
 
-#endif // SOUND_HEADER
+#endif // !SOUND_HEADER

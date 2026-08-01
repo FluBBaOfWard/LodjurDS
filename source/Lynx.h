@@ -25,4 +25,4 @@ void setScreenMode(int mode);
 } // extern "C"
 #endif
 
-#endif // LYNX_HEADER
+#endif // !LYNX_HEADER

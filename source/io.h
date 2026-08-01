@@ -1,3 +1,10 @@
+//
+//  io.h
+//  LodjurDS
+//
+//  Created by Fredrik Ahlström on 2024-07-29.
+//  Copyright © 2024-2026 Fredrik Ahlström. All rights reserved.
+//
 #ifndef IO_HEADER
 #define IO_HEADER
 
@@ -39,4 +46,4 @@ int convertInput(int input);
 } // extern "C"
 #endif
 
-#endif	// IO_HEADER
+#endif // !IO_HEADER

@@ -1,3 +1,10 @@
+//
+//  Gfx.s
+//  LodjurDS
+//
+//  Created by Fredrik Ahlström on 2024-07-29.
+//  Copyright © 2024-2026 Fredrik Ahlström. All rights reserved.
+//
 #ifdef __arm__
 
 #include "Shared/nds_asm.h"
@@ -15,6 +22,7 @@
 
 	.global gfxInit
 	.global gfxReset
+	.global gfxPowerOff
 	.global gfxWinInit
 	.global paletteInit
 	.global gfxRefresh
@@ -44,6 +52,8 @@ gfxInit:					;@ Called from machineInit
 	ldr r1,=gfxEndFrame
 	ldr r2,=lynxRAM
 	bl mikeyInit
+	ldr r0,=setPowerIsOn
+	str r0,[mikptr,#mikPowerCallback]
 
 	ldr suzptr,=suzy_0
 	ldr r0,=lynxRAM
@@ -54,7 +64,7 @@ gfxInit:					;@ Called from machineInit
 	ldmfd sp!,{mikptr,lr}
 
 ;@----------------------------------------------------------------------------
-gfxReset:					;@ Called with CPU reset
+gfxReset:					;@ Called from loadCart, r10=mikptr
 ;@----------------------------------------------------------------------------
 	stmfd sp!,{r4,lr}
 
@@ -62,7 +72,7 @@ gfxReset:					;@ Called with CPU reset
 	mov r1,#5					;@ 5*4
 	bl memclr_					;@ Clear GFX regs
 
-	mov r0,#0x06000000
+	mov r0,#BG_GFX
 	add r0,r0,#(((256-GAME_HEIGHT)/2) * SCREEN_WIDTH * 2)
 	add r0,r0,#SCREEN_WIDTH-GAME_WIDTH
 	str r0,currentDest
@@ -191,6 +201,10 @@ palCacheLoop:
 	bne palCacheLoop
 
 palCacheOk:
+//	ldr r4,frameTotal				;@ Do some frame skipping.
+//	ands r4,r4,#3
+//	ldmfdne sp!,{r4-r5,pc}
+
 	ldr r1,currentDest
 
 	mov r4,#GAME_WIDTH/2
@@ -224,12 +238,24 @@ rendLoopFlip:
 	ldmfd sp!,{r4-r5,pc}
 
 ;@----------------------------------------------------------------------------
+gfxPowerOff:
+	.type gfxPowerOff STT_FUNC
+;@----------------------------------------------------------------------------
+	stmfd sp!,{mikptr,lr}
+	ldr mikptr,=mikey_0
+	bl mikeyDisplayOff
+	ldmfd sp!,{mikptr,lr}
+	bx lr
+;@----------------------------------------------------------------------------
 updateLCDRefresh:
 	.type updateLCDRefresh STT_FUNC
 ;@----------------------------------------------------------------------------
+	stmfd sp!,{mikptr,lr}
 	ldr mikptr,=mikey_0
 	ldrb r1,[mikptr,#mikPBkup]
-	b miPBackupW
+	bl miPBackupW
+	ldmfd sp!,{mikptr,lr}
+	bx lr
 ;@----------------------------------------------------------------------------
 setScreenRefresh:			;@ r0 in = Lynx cycles per frame.
 	.type setScreenRefresh STT_FUNC
@@ -250,7 +276,7 @@ setScreenRefresh:			;@ r0 in = Lynx cycles per frame.
 	ldr r1,=fpsNominal
 	strb r0,[r1]
 
-	ldr r0,=263*60				;@ Total scanlines for 1s
+	ldr r0,=263*60				;@ Total DS scanlines for 1s
 	mov r1,r4					;@ Lynx FPS.
 	swi 0x090000				;@ Division r0/r1, r0=result, r1=remainder.
 	ldr r1,=263
@@ -351,7 +377,7 @@ gfxEndFrame:				;@ Called just before screen end (~line 102) (r0-r3 safe to use)
 ;@----------------------------------------------------------------------------
 	stmfd sp!,{r3,lr}
 
-	mov r0,#0x06000000
+	mov r0,#BG_GFX
 	add r0,r0,#(((256-GAME_HEIGHT)/2) * SCREEN_WIDTH * 2)
 	add r0,r0,#SCREEN_WIDTH-GAME_WIDTH
 	str r0,currentDest
@@ -438,4 +464,4 @@ PAL_CACHE:
 	.space 0x40					;@ 16*4
 ;@----------------------------------------------------------------------------
 	.end
-#endif // #ifdef __arm__
+#endif // __arm__
