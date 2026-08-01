@@ -1,5 +1,6 @@
 LodjurDS Todo
 
+	Change to BlocksDS.
 	Add 16 colour renderer.
 	Add flicker for zoomed in image.
 	Add EEPROM support for homebrew.

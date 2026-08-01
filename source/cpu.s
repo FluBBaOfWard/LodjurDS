@@ -129,7 +129,7 @@ isRockwell:
 	ldmfd sp!,{r4,lr}
 	bx lr
 ;@----------------------------------------------------------------------------
-cpuReset:					;@ Called by loadCart/resetGame
+cpuReset:					;@ Called by loadCart
 	.type cpuReset STT_FUNC
 ;@----------------------------------------------------------------------------
 	stmfd sp!,{lr}

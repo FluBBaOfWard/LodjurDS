@@ -46,7 +46,7 @@ const MItem fileItems[] = {
 	{"Load Patch", selectIPS},
 	{"Save Settings", (void(*)(void))saveSettings},
 	{"Power On/Off", powerOnOff},
-	{"Reset Console", resetGame},
+	{"Reset Console", resetConsole},
 	{"Quit Emulator", ui9}
 };
 const MItem optionItems[] = {
@@ -177,10 +177,9 @@ void ejectGame() {
 	ejectCart();
 }
 
-void resetGame() {
+void resetConsole() {
 	setPowerIsOn(false);
 	checkMachine();
-	loadCart();
 	setPowerIsOn(true);
 }
 

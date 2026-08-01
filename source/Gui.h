@@ -17,7 +17,7 @@ void quickSelectGame(void);
 void nullUINormal(int key);
 void nullUIDebug(int key);
 void ejectGame(void);
-void resetGame(void);
+void resetConsole(void);
 
 void uiNullNormal(void);
 

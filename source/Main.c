@@ -88,11 +88,11 @@ int main(int argc, char **argv) {
 
 	while (1) {
 		waitVBlank();
-		checkTimeOut();
 		guiRunLoop();
 		if (powerIsOn && !pauseEmulation) {
 			run();
 		}
+//		checkTimeOut();
 	}
 	free(memPtr);
 	return 0;
