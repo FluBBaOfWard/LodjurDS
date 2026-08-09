@@ -61,7 +61,7 @@ gfxInit:					;@ Called from machineInit
 
 	bl gfxWinInit
 
-	ldmfd sp!,{mikptr,lr}
+	ldmfd sp!,{mikptr,pc}
 
 ;@----------------------------------------------------------------------------
 gfxReset:					;@ Called from loadCart, r10=mikptr

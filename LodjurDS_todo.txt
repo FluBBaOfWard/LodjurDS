@@ -1,6 +1,7 @@
 LodjurDS Todo
 
 	Change to BlocksDS.
+	Add flicker to upscaled mode.
 	Add 16 colour renderer.
 	Add flicker for zoomed in image.
 	Add EEPROM support for homebrew.
@@ -48,16 +49,16 @@ Games with different refresh rate:
 	Switch Blade II (75Hz)
 
 Games Not Working:
-	Baseball Heroes. Tries to execute code from Suzy registers?
+	Baseball Heroes. Probably timing.
 	Rampage. Hangs on title screen after some time?
 
 Games Not Working Fixed:
 	Dirty Larry, requires Timer7 to end intro correctly.
-	Double Dragon requires Timer4.
-	Gates of Zendocon - Intro hangs if Timer Done bit in Timer 5 is not set in Reload mode.
-	Gauntlet - Expects Timer 1 to not run when enabled but without reload.
-	Pit Fighter. Hangs in demo mode after some time. UART TX needs to work.
-
+	Double Dragon, requires Timer4.
+	Gates of zendocon, hangs in intro. Writes 0x40? Expects some sound thing?
+	Gauntlet, expects Timer 1 to not run when enabled but without reload.
+	Pit Fighter, hangs in demo mode after some time. UART TX needs to work.
+	S.T.U.N. Runner, graphics craps out. Math registers need to be mirrored.
 Games With Glitches:
 
 Games With Glitches Fixed:

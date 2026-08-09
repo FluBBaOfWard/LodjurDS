@@ -11,8 +11,7 @@ typedef enum {
 } EEMPROM_TYPE;
 
 /// LnxHeader
-typedef struct
-{
+typedef struct {
 	/// 0x00 - 0x03, "LYNX" in Big endian
 	const char magic[4];
 	/// 0x04, 0x05, page/block size in Bytes.
@@ -30,19 +29,18 @@ typedef struct
 	/// 0x3B AUDIN Used (1=yes)
 	const u8 audinEn;
 	/// 0x3C EEPROM info
-	union
-	{
-		struct
-		{
+	union {
+		struct {
 			EEMPROM_TYPE eepromType:3;
-			u8	unused:3;
-			u8	sd_real:1;
-			u8	eepWidth:1;
+			u8 unused:3;
+			u8 sd_real:1;
+			u8 eepWidth:1;
 		} eepBits;
-		const u8	eepromInfo;
+		const u8 eepromInfo;
 	};
 	// 0x3D-0x3F So far unused
 	const u8 unused[3];
+	const u8 romData[];
 } LnxHeader;
 
-#endif	// LNXHEADER
+#endif // !LNXHEADER

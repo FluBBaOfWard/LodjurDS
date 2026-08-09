@@ -21,7 +21,7 @@ static void setupStream(void);
 
 bool powerIsOn = false;
 bool gameInserted = false;
-static int sleepTimer = 60*60*5;	// 5 min
+static int sleepTimer = 0x7FFFFFFF;		// 360 days
 static bool vBlankOverflow = false;
 
 static mm_ds_system sys;
@@ -68,12 +68,10 @@ int main(int argc, char **argv) {
 	irqSet(IRQ_VCOUNT, lowerRefresh);
 	irqEnable(IRQ_VCOUNT);
 	setupGUI();
-	getInput();
 	initSettings();
-	bool fsOk = initFileHelper();
-	loadSettings();
 	machineInit();
-	if (fsOk) {
+	if (initFileHelper()) {
+		loadSettings();
 		loadBios();
 		if (argc > 1) {
 			loadGame(argv[1]);
@@ -85,6 +83,7 @@ int main(int argc, char **argv) {
 		infoOutput("fatInitDefault() failure.");
 		checkMachine();
 	}
+	getInput();
 
 	while (1) {
 		waitVBlank();

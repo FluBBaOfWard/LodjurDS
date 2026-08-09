@@ -2,8 +2,13 @@ LodjurDS revision history
 -=-=-=-=-=-=-=-=-=-=-=-=-=-
 
 V0.1.5 - 2026-08-01 (FluBBa)
+	Added IPS patch functionality.
+	Added Power On/Off to menu.
 	Fixed sprite type 2 (Boundary Shadow).
-	Added power on/off to menu.
+	Fixed sprite HSizOff loading.
+	Fixed math register handling.
+	Fixed Sprite Done Acknowledge.
+	Fixed CPU sleep when Suzy bus not enabled.
 
 V0.1.4 - 2026-01-19 (FluBBa)
 	Added loading of bll (*.o) files.

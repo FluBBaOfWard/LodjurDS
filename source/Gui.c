@@ -14,7 +14,7 @@
 #include "ARMMikey/Version.h"
 #include "ARMSuzy/Version.h"
 
-#define EMUVERSION "V0.1.5 2026-08-01"
+#define EMUVERSION "V0.1.5 2026-08-09"
 
 static void gammaChange(void);
 static void machineSet(void);
@@ -117,7 +117,6 @@ const char *const palTxt[]   = {"Classic", "Black & White", "Red", "Green", "Blu
 
 
 void setupGUI() {
-	emuSettings = AUTOPAUSE_EMULATION | AUTOSLEEP_OFF;
 	keysSetRepeat(25, 4);	// delay, repeat.
 	menu1.itemCount = ARRSIZE(fileItems) - (enableExit?0:1);
 	openMenu();
@@ -144,12 +143,14 @@ void uiNullNormal() {
 void uiAbout() {
 	cls(1);
 	drawTabs();
-	drawMenuText("B:          Lynx B button", 4, 0);
-	drawMenuText("A:          Lynx A button", 5, 0);
-	drawMenuText("Y:          Lynx Option I", 6, 0);
-	drawMenuText("X:          Lynx Option II", 7, 0);
-	drawMenuText("Start:      Lynx Pause button", 8, 0);
-	drawMenuText("DPad:       Lynx d-pad", 9, 0);
+	drawMenuText("LodjurDS - Atari Lynx emulator", 4, 0);
+
+	drawMenuText("B:          Lynx B button", 6, 0);
+	drawMenuText("A:          Lynx A button", 7, 0);
+	drawMenuText("Y:          Lynx Option I", 8, 0);
+	drawMenuText("X:          Lynx Option II", 9, 0);
+	drawMenuText("Start:      Lynx Pause button", 10, 0);
+	drawMenuText("DPad:       Lynx d-pad", 11, 0);
 
 	drawMenuText("LodjurDS     " EMUVERSION, 20, 0);
 	drawMenuText("ARMSuzy      " ARMSUZYVERSION, 21, 0);

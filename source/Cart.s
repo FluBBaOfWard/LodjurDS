@@ -51,9 +51,13 @@ ROM_Space:
 //	.incbin "roms/Dracula - The Undead (1991).lnx"
 //	.incbin "roms/Ninja Gaiden (1990).lnx"
 //	.incbin "roms/Ninja Gaiden III - the Ancient Ship of Doom (1993).lnx"
+//	.incbin "roms/S.T.U.N. Runner (1991).lnx"
 //	.incbin "roms/Shadow of the Beast (1992)[crc-2].lnx"
 //	.incbin "roms/Toki (1990).lnx"
+//	.incbin "roms/alynxdj_v0_57.lnx"
+//	.incbin "roms/rotz.lnx"
 //	.incbin "roms/twister.lnx"
+//	.incbin "roms/wolfenstein3d.lnx"
 //	.incbin "roms/tests/audio.lnx"
 //	.incbin "roms/tests/audio2.lnx"
 //	.incbin "roms/tests/cpu.lnx"
@@ -61,6 +65,7 @@ ROM_Space:
 //	.incbin "roms/tests/memio.lnx"
 //	.incbin "roms/tests/page-mode.lnx"
 //	.incbin "roms/tests/refresh-rate.lnx"
+//	.incbin "roms/tests/sdoneack.lnx"
 //	.incbin "roms/tests/sprites1.lnx"
 //	.incbin "roms/tests/sprites2.lnx"
 //	.incbin "roms/tests/sprites3.lnx"
@@ -73,6 +78,7 @@ ROM_Space:
 //	.incbin "roms/tests/tutorial-pens.lnx"
 //	.incbin "roms/tests/tutorial-sprites.lnx"
 ROM_SpaceEnd:
+	.align 2
 LYNX_BIOS_INTERNAL:
 	.incbin "roms/lynxboot.img"
 #endif // EMBEDDED_ROM
@@ -89,12 +95,18 @@ machineInit: 				;@ Called from C
 #ifdef EMBEDDED_ROM
 	ldr r0,=romSize
 	ldr r1,=(ROM_SpaceEnd-ROM_Space)
+	cmp r1,#0x10000
+	movmi r1,#0x40000
 	str r1,[r0]
-	tst r1,#0x40
-	ldr r0,=romSpacePtr
 	ldr r1,=ROM_Space
-	addne r1,r1,#0x40
+	ldr r0,=romSpacePtr
 	str r1,[r0]
+	ldr r0,[r1]
+	ldr r1,=0x584E594C			;@ "LYNX". LNX header?
+	cmp r0,r1
+	moveq r0,#1
+	ldreq r1,=gHasHeader
+	strbeq r0,[r1]
 	ldr r0,=biosSpace
 	adr r1,LYNX_BIOS_INTERNAL
 	mov r2,#0x200

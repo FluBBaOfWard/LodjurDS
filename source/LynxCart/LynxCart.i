@@ -5,7 +5,9 @@
 //  Created by Fredrik Ahlström on 2024-12-08.
 //  Copyright © 2024-2025 Fredrik Ahlström. All rights reserved.
 //
-;@ ASM header for the Atari Lynx Cartridge emulator
+#if !__ASSEMBLER__
+	#error This header file is only for use in assembly files!
+#endif
 
 						;@ LynxCart.s
 	.struct 0

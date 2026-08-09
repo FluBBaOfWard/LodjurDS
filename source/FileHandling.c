@@ -252,7 +252,6 @@ bool checkBllHeader(const BllHeader *bHead) {
 		memcpy(&bllHeader, bHead, sizeof(BllHeader));
 		return true;
 	}
-	memset(&bllHeader, 0, sizeof(BllHeader));
 	return false;
 }
 

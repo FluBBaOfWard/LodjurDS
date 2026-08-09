@@ -5,7 +5,6 @@
 //  Created by Fredrik Ahlström on 2024-12-08.
 //  Copyright © 2024-2025 Fredrik Ahlström. All rights reserved.
 //
-
 #ifdef __arm__
 
 #ifdef GBA
@@ -51,42 +50,36 @@ cartReset:					;@ r0=crtptr, r1=rom, r2=bank0 size, r3=bank1 size.
 	add r1,r1,r2
 	str r1,[r0,#cartBank1]
 
-	ldr r1,=0x7FF
 	mov r12,#11
 	cmp r2,#0x80000
-	movcc r1,r1,lsr#1
 	movcc r12,#10
 	cmp r2,#0x40000
-	movcc r1,r1,lsr#1
 	movcc r12,#9
 	cmp r2,#0x20000
-	movcc r1,r1,lsr#1
 	movcc r12,#8
-	strh r1,[r0,#cartCountMask0]
 	strb r12,[r0,#cartShiftCount0]
+	mov r1,#-1
+	rsb r12,r12,#32
+	mov r1,r1,lsr r12
+	strh r1,[r0,#cartCountMask0]
 
-	ldr r1,=0x7FF
 	mov r12,#11
 	cmp r3,#0x80000
-	movcc r1,r1,lsr#1
 	movcc r12,#10
 	cmp r3,#0x40000
-	movcc r1,r1,lsr#1
 	movcc r12,#9
 	cmp r3,#0x20000
-	movcc r1,r1,lsr#1
 	movcc r12,#8
-	strh r1,[r0,#cartCountMask1]
 	strb r12,[r0,#cartShiftCount1]
+	mov r1,#-1
+	rsb r12,r12,#32
+	mov r1,r1,lsr r12
+	strh r1,[r0,#cartCountMask1]
 
 	mov r1,#0
-	strb r1,[r0,#cartWriteEnable0]
-	strb r1,[r0,#cartWriteEnable1]
-	strh r1,[r0,#cartCounter]
-	strb r1,[r0,#cartShifter]
-	strb r1,[r0,#cartDataBit]
-	strb r1,[r0,#cartStrobe]
-	strb r1,[r0,#cartCurrentBank]
+	strh r1,[r0,#cartWriteEnable0]
+	str r1,[r0,#cartCounter]
+	strh r1,[r0,#cartStrobe]
 
 	bx lr
 
@@ -221,4 +214,4 @@ cartWrite1:					;@ In r0=crtptr, r1=data
 
 ;@----------------------------------------------------------------------------
 
-#endif // #ifdef __arm__
+#endif // __arm__
