@@ -2,6 +2,7 @@ Lodjur.xcodeproj/xcuserdata
 LodjurDS.xcodeproj/project.xcworkspace/xcuserdata
 contents.xcworkspacedata
 build
+compile_commands.json
 *.img
 *.lnx
 *.lyx
