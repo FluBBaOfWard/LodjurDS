@@ -198,14 +198,15 @@ static void setupGraphics() {
 	// Set up the main display
 	GFX_DISPCNT = MODE_5_2D
 				 | DISPLAY_BG2_ACTIVE
+				 | DISPLAY_BG3_ACTIVE
 //				 | DISPLAY_WIN0_ON
 				 ;
 	videoSetMode(GFX_DISPCNT);
 	GFX_BG0CNT = BG_32x32 | BG_MAP_BASE(0) | BG_COLOR_16 | BG_TILE_BASE(2) | BG_PRIORITY(0);
 	REG_BG0CNT = GFX_BG0CNT;
-	// Background 2 for border
-//	REG_BG2CNT = BG_32x32 | BG_MAP_BASE(15) | BG_COLOR_256 | BG_TILE_BASE(4) | BG_PRIORITY(2);
+	// Background 2 & 3 for Lynx screen
 	REG_BG2CNT = BG_BMP16_256x256 | BG_TILE_BASE(0) | BG_PRIORITY(0);
+	REG_BG3CNT = BG_BMP16_256x256 | BG_TILE_BASE(0) | BG_PRIORITY(0);
 	setScreenMode(0);
 
 	// Set up the sub display

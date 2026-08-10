@@ -1,9 +1,6 @@
 LodjurDS Todo
 
-	Change to BlocksDS.
-	Add flicker to upscaled mode.
 	Add 16 colour renderer.
-	Add flicker for zoomed in image.
 	Add EEPROM support for homebrew.
 	Find speed hacks.
 

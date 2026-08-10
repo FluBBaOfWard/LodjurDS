@@ -62,6 +62,8 @@ static void setupBorderPalette(const unsigned short *palette, int len) {
 
 void setScreenMode(int mode) {
 	swiIntrWait(1, IRQ_VBLANK);
+	u16 bldCnt = 0;
+	u16 bldAlpha = 0;
 	switch (mode) {
 		case 1:			// Rotate Left
 			REG_BG2X = (((SCREEN_WIDTH+SCREEN_HEIGHT)/2)-1)<<8;
@@ -79,13 +81,23 @@ void setScreenMode(int mode) {
 			REG_BG2PC = -1<<8;
 			REG_BG2PD = 0;
 			break;
-		case 3:			// Zoom
+		case 3:			// Zoom smooth
+			bldCnt = 0x0844;
+			bldAlpha = 0x0808;
+		case 4:			// Zoom
 			REG_BG2X = ((BUFFER_WIDTH-GAME_WIDTH)/2)<<8;
 			REG_BG2Y = ((BUFFER_HEIGHT<<8)-SCREEN_HEIGHT*ZOOM_VAL)/2;
 			REG_BG2PA = ZOOM_VAL;
 			REG_BG2PB = 0;
 			REG_BG2PC = 0;
 			REG_BG2PD = ZOOM_VAL;
+
+			REG_BG3X = (((BUFFER_WIDTH-GAME_WIDTH)/2)<<8)+ZOOM_VAL/2;
+			REG_BG3Y = ((BUFFER_HEIGHT<<8)-SCREEN_HEIGHT*ZOOM_VAL)/2+ZOOM_VAL/2;
+			REG_BG3PA = ZOOM_VAL;
+			REG_BG3PB = 0;
+			REG_BG3PC = 0;
+			REG_BG3PD = ZOOM_VAL;
 			break;
 		default:		// 1:1
 			REG_BG2X = 0;
@@ -96,6 +108,8 @@ void setScreenMode(int mode) {
 			REG_BG2PD = 1<<8;
 			break;
 	}
+	REG_BLDCNT = bldCnt;
+	REG_BLDALPHA = bldAlpha;
 }
 
 void setupLynxBackground() {

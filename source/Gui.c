@@ -14,7 +14,7 @@
 #include "ARMMikey/Version.h"
 #include "ARMSuzy/Version.h"
 
-#define EMUVERSION "V0.1.5 2026-08-09"
+#define EMUVERSION "V0.1.5 2026-08-10"
 
 static void gammaChange(void);
 static void machineSet(void);
@@ -112,7 +112,7 @@ u8 gRotation = 0;
 
 const char *const machTxt[]  = {"Auto", "Lynx", "LynxII", "Proto"};
 const char *const bordTxt[]  = {"Black", "Border Color", "None"};
-const char *const scrModeTxt[]  = {"1:1", "Rot Left", "Rot Right", "Zoom"};
+const char *const scrModeTxt[]  = {"1:1", "Rot Left", "Rot Right", "Zoom smooth", "Zoom"};
 const char *const palTxt[]   = {"Classic", "Black & White", "Red", "Green", "Blue", "Green-Blue", "Blue-Green", "Puyo Puyo Tsu"};
 
 
@@ -251,7 +251,7 @@ const char *getContrastText() {
 /// Change screen mode
 void screenModeSet() {
 	gScreenMode++;
-	if (gScreenMode > 3) gScreenMode = 0;
+	if (gScreenMode > 4) gScreenMode = 0;
 	gRotation = gScreenMode;
 	setScreenMode(gScreenMode);
 	gfxWinInit();
