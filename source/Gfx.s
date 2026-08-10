@@ -105,6 +105,8 @@ winLayouts: // Horizontal, Vertical
 	.short (((SCREEN_HEIGHT-GAME_WIDTH)/2)<<8)+(SCREEN_HEIGHT+GAME_WIDTH)/2
 	.short (0<<8)+SCREEN_WIDTH
 	.short (((SCREEN_HEIGHT-((GAME_HEIGHT<<8)/ZOOM_VAL))/2)<<8) + ((SCREEN_HEIGHT+((GAME_HEIGHT<<8)/ZOOM_VAL))/2)
+	.short (0<<8)+SCREEN_WIDTH
+	.short (((SCREEN_HEIGHT-((GAME_HEIGHT<<8)/ZOOM_VAL))/2)<<8) + ((SCREEN_HEIGHT+((GAME_HEIGHT<<8)/ZOOM_VAL))/2)
 ;@----------------------------------------------------------------------------
 gfxWinInit:
 	.type gfxWinInit STT_FUNC
@@ -120,7 +122,7 @@ gfxWinInit:
 	mov r1,r1,lsr#16
 	strh r1,[r0,#REG_WIN0V]
 
-	ldr r1,=0x00282c2c			;@ WinIN0/1, BG2, BG3 & COL inside Win0
+	ldr r1,=0x00202c2c			;@ WinIN0/1, BG2, BG3 & COL inside Win0
 	str r1,[r0,#REG_WININ]		;@ WinOUT, Only BG2, BG3 & COL enabled outside Windows.
 	bx lr
 ;@----------------------------------------------------------------------------

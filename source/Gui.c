@@ -14,7 +14,7 @@
 #include "ARMMikey/Version.h"
 #include "ARMSuzy/Version.h"
 
-#define EMUVERSION "V0.1.5 2026-08-10"
+#define EMUVERSION "V0.1.5 2026-08-11"
 
 static void gammaChange(void);
 static void machineSet(void);
@@ -264,10 +264,10 @@ const char *getScreenModeText() {
 void borderSet() {
 	gBorderEnable ^= 0x01;
 	if (gBorderEnable & 1) {
-		GFX_DISPCNT = MODE_5_2D | DISPLAY_BG2_ACTIVE;
+		GFX_DISPCNT = MODE_5_2D | DISPLAY_BG2_ACTIVE | DISPLAY_BG3_ACTIVE;
 	}
 	else {
-		GFX_DISPCNT = MODE_5_2D | DISPLAY_BG2_ACTIVE | DISPLAY_WIN0_ON;
+		GFX_DISPCNT = MODE_5_2D | DISPLAY_BG2_ACTIVE | DISPLAY_BG3_ACTIVE | DISPLAY_WIN0_ON;
 	}
 	videoSetMode(GFX_DISPCNT);
 

@@ -1,7 +1,7 @@
 LodjurDS revision history
 -=-=-=-=-=-=-=-=-=-=-=-=-=-
 
-V0.1.5 - 2026-08-10 (FluBBa)
+V0.1.5 - 2026-08-11 (FluBBa)
 	Added smooth zoom.
 	Added IPS patch functionality.
 	Added Power On/Off to menu.
